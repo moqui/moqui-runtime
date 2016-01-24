@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.6.xsd"
+        default-menu-include="false">
+
+    <parameter name="serviceName" required="true"/>
+
+    <transition name="serviceRun">
+        <default-response url="../ServiceRun"/>
+    </transition>
+
+    <pre-actions>
+        <script>html_scripts.add("/js/prism/prism.js")</script>
+        <script>html_stylesheets.add("/js/prism/prism.css")</script>
+    </pre-actions>
+    <actions>
+        <set field="sd" from="ec.service.getServiceDefinition(serviceName)"/>
+        <set field="serviceNode" from="sd.getServiceNode()"/>
+        <set field="inParameterNodes" from="serviceNode.'in-parameters'.'parameter'"/>
+        <set field="outParameterNodes" from="serviceNode.'out-parameters'.'parameter'"/>
+    </actions>
+    <widgets>
+        <label type="h2" text="${serviceName}"/>
+        <label type="strong" text="${serviceNode.'description'?.getAt(0)?.value()?.getAt(0) ?: ''}" display-if-empty="false"/>
+        <!-- <label type="p" text="${serviceNode.attributes()}"/> -->
+        <label type="p" text="Authenticate: ${sd.getAuthenticate()}"/>
+        <label type="p" text="Service Type: ${sd.getServiceType()}${sd.getLocation() ? ', Location: ' + sd.getLocation() : ''}${sd.getMethod() ? ', Method: ' + sd.getMethod() : ''}"/>
+        <label type="p" text="Tx Ignore: ${sd.getTxIgnore()}, Force New: ${sd.getTxForceNew()}, Use Tx Cache: ${sd.getTxUseCache()}, Timeout: ${sd.getTxTimeout()}"/>
+
+        <label type="h3" text="In Parameters"/>
+        <form-list name="InParameters" list="inParameterNodes" list-entry="parameterNode" skip-form="true">
+            <row-actions><script>ec.context.putAll(parameterNode.attributes())</script></row-actions>
+            <field name="name"><default-field><display/></default-field></field>
+            <field name="type"><default-field><display text="${type?:'String'}"/></default-field></field>
+            <field name="required"><default-field><display text="${required?:'false'}"/></default-field></field>
+            <field name="default"><default-field><display text="${parameterNode.'@default' ?: ''} - ${parameterNode.'@default-value' ?: ''}"/></default-field></field>
+            <field name="format"><default-field><display/></default-field></field>
+            <field name="description"><default-field><display text="${parameterNode.'description'?.getAt(0)?.value()?.getAt(0) ?: ''}"/></default-field></field>
+            <field name="entityField"><default-field><display text="${parameterNode.'@entity-name' ?: ''}${parameterNode.'@field-name' ? '.' + parameterNode.'@field-name' : ''}"/></default-field></field>
+        </form-list>
+
+        <label type="h3" text="Out Parameters"/>
+        <form-list name="OutParameters" list="outParameterNodes" list-entry="parameterNode" skip-form="true">
+            <row-actions><script>ec.context.putAll(parameterNode.attributes())</script></row-actions>
+            <field name="name"><default-field><display/></default-field></field>
+            <field name="type"><default-field><display text="${type?:'String'}"/></default-field></field>
+            <field name="required"><default-field><display/></default-field></field>
+            <field name="default"><default-field><display text="${parameterNode.'@default' ?: ''} - ${parameterNode.'@default-value' ?: ''}"/></default-field></field>
+            <field name="format"><default-field><display/></default-field></field>
+            <field name="description"><default-field><display text="${parameterNode.'description'?.getAt(0)?.value()?.getAt(0) ?: ''}"/></default-field></field>
+            <field name="entityField"><default-field><display text="${parameterNode.'@entity-name' ?: ''}${parameterNode.'@field-name' ? '.' + parameterNode.'@field-name' : ''}"/></default-field></field>
+        </form-list>
+
+        <section name="XmlActionDisplaySection" condition="sd.xmlAction">
+            <widgets>
+                <label text="XML Actions" type="h3"/>
+                <container type="pre" style="line-numbers"><label text="${org.moqui.impl.StupidUtilities.encodeForXmlAttribute(org.moqui.impl.util.FtlNodeWrapper.prettyPrintNode(serviceNode.actions[0]))}"
+                        type="code" style="language-markup" encode="false"/></container>
+
+                <label text="Generated Groovy" type="h3"/>
+                <container type="pre" style="line-numbers"><label text="${sd.xmlAction.groovyString}" type="code"
+                        style="language-groovy" encode="false"/></container>
+            </widgets>
+        </section>
+        <section name="LocationDisplaySection" condition="sd.serviceNode.'@location'">
+            <widgets>
+                <label text="Script" type="h3"/>
+                <container type="pre" style="line-numbers"><label text="${ec.resource.getLocationText(sd.serviceNode.'@location', false)}"
+                        type="code" style="language-groovy" encode="false"/></container>
+            </widgets>
+        </section>
+    </widgets>
+</screen>

@@ -1,0 +1,67 @@
+
+# runtime generated files
+/db/derby/MoquiDEFAULT/
+/db/derby/MoquiTenant/
+/db/derby/MoquiTransactional/
+/db/derby/MoquiAnalytical/
+/db/derby/EXAMPLE1/
+/db/derby/CustJqp/
+/db/derby/derby.log
+/db/h2/
+/db/orientdb/databases/
+/elasticsearch/data/
+/elasticsearch/log/
+/elasticsearch/work/
+/log/
+/tmp/
+/txlog/
+
+# common runtime added files
+/lib/*.jar
+/component/
+/component-lib/
+/mantle/
+/base-component/example/lib/example-*.jar
+
+# IntelliJ IDEA files
+.idea/
+out/
+*.ipr
+*.iws
+*.iml
+
+# Eclipse files (and some general ones also used by Eclipse)
+.metadata
+.gradle
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+
+# NetBeans files
+nbproject/private/
+nbbuild/
+.nb-gradle/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
+# OSX auto files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows auto files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux auto files
+*~

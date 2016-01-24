@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.6.xsd"
+        default-menu-title="SQL" begin-transaction="true">
+
+    <pre-actions>
+        <script><![CDATA[
+            import java.sql.Connection
+            import java.sql.ResultSet
+            import org.moqui.context.ExecutionContext
+
+            ExecutionContext ec = context.ec
+
+            rs = null
+            columns = []
+            records = []
+
+            int limitInt = (limit?:"500") as int
+
+            if (sql && groupName) {
+                Connection con = ec.entity.getConnection(groupName)
+                try {
+                    if (sql.toUpperCase().startsWith("SELECT")) {
+                        ps = con.prepareStatement(sql)
+                        rs = ps.executeQuery()
+                        if (rs != null) {
+                            rsmd = rs.getMetaData()
+                            columnCount = rsmd.getColumnCount()
+                            for (i = 1; i <= columnCount; i++) columns.add(rsmd.getColumnName(i))
+
+                            limitReached = false
+                            while (rs.next()) {
+                                if (limitInt > 0 && records.size() >= limitInt) {
+                                    limitReached = true
+                                    break
+                                }
+                                record = []
+                                for (i = 1; i <= columnCount; i++) record.add(rs.getObject(i))
+                                records.add(record)
+                            }
+                            rs.close()
+
+                            if (limitReached) {
+                                ec.message.addMessage("Only showing first ${limit} rows.")
+                            } else {
+                                ec.message.addMessage("Showing all ${records.size()} results.")
+                            }
+                        }
+                    } else {
+                        ps = con.prepareStatement(sql)
+                        int rowsAffected = ps.executeUpdate()
+                        ec.message.addMessage("Query altered ${rowsAffected} rows.")
+                    }
+                } catch (Exception e) {
+                    ec.message.addError(e.toString())
+                } finally {
+                    if (con != null) {
+                        try {
+                            con.close()
+                        } catch (java.sql.SQLException e) {
+                            // Ignore
+                        }
+                    }
+                }
+            }
+        ]]></script>
+    </pre-actions>
+    <widgets>
+        <form-single name="SqlOptions" transition=".">
+            <field name="groupName"><default-field>
+                <drop-down allow-empty="false" no-current-selected-key="transactional">
+                    <list-options list="ec.entity.getDatasourceGroupNames()"/></drop-down>
+            </default-field></field>
+            <field name="sql"><default-field title="SQL Statement"><text-area cols="120" rows="6"/></default-field></field>
+            <field name="limit"><default-field><text-line size="5" default-value="500"/></default-field></field>
+            <field name="submitButton"><default-field title="Run SQL"><submit/></default-field></field>
+        </form-single>
+
+        <label text="Query Results" type="h3"/>
+        <render-mode><text type="html" template="true"><![CDATA[
+            <div>
+            <#if columns?has_content>
+                <table class="table table-striped table-hover">
+                    <tr class="header-row"><#list columns as column><td>${column}</td></#list></tr>
+                    <#if records?has_content><#list records as record>
+                        <tr><#list record as curField><td>${ec.l10n.format(curField, '')!"&nbsp;"}</td></#list></tr>
+                    </#list></#if>
+                </table>
+            </#if>
+            </div>
+        ]]></text></render-mode>
+    </widgets>
+</screen>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.6.xsd">
+
+    <transition name="clearCache">
+        <actions><script>ec.cache.getCache(cacheName).clear()</script></actions>
+        <default-response url="."/>
+    </transition>
+    <transition name="clearAllCaches">
+        <actions><script>ec.cache.clearAllCaches()</script></actions>
+        <default-response url="."/>
+    </transition>
+    <transition name="cacheElements">
+        <default-response url="../CacheElements"/>
+    </transition>
+
+    <actions>
+        <set field="cacheList" from="ec.cache.getAllCachesInfo(orderByField?:'+name')"/>
+    </actions>
+    <widgets>
+        <container>
+            <link text="Clear All" url="clearAllCaches"/>
+        </container>
+        <form-list name="CacheList" list="cacheList">
+            <field name="name">
+                <header-field show-order-by="true"/>
+                <default-field><link text="${name}" url="cacheElements" link-type="anchor"><parameter name="cacheName" from="name"/></link></default-field>
+            </field>
+            <field name="size">
+                <header-field show-order-by="true"/>
+                <default-field><display also-hidden="false"/></default-field>
+            </field>
+            <field name="hitCount">
+                <header-field title="Hits" show-order-by="true"/>
+                <default-field><display also-hidden="false"/></default-field>
+            </field>
+            <field name="missCountTotal">
+                <header-field title="Misses (NF/EX)" show-order-by="true"/>
+                <default-field>
+                    <display text="${missCountTotal} (${missCountNotFound}/${missCountExpired})" also-hidden="false"/>
+                </default-field>
+            </field>
+            <field name="removeCount">
+                <header-field title="Removes" show-order-by="true"/>
+                <default-field><display also-hidden="false"/></default-field>
+            </field>
+            <field name="expireTimeIdle">
+                <default-field title="Exp Idle"><display also-hidden="false"/></default-field>
+            </field>
+            <field name="expireTimeList">
+                <default-field title="Exp Live"><display also-hidden="false"/></default-field>
+            </field>
+            <field name="maxElements">
+                <default-field title="Max (Evct)">
+                    <display text="${maxElements} (${evictionStrategy})" also-hidden="false"/>
+                </default-field>
+            </field>
+            <field name="clear">
+                <default-field><link text="Clear" url="clearCache" link-type="hidden-form-link"><parameter name="cacheName" from="name"/></link></default-field>
+            </field>
+        </form-list>
+    </widgets>
+</screen>

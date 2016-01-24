@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.6.xsd"
+        default-menu-index="1" menu-image="glyphicon glyphicon-dashboard" menu-image-type="icon">
+
+    <widgets>
+        <container-row>
+            <row-col lg="6" md="6">
+                <container-box>
+                    <box-header><label text="General Tools" type="h5"/></box-header>
+                    <box-body>
+                        <link url="../AutoScreen" text="Auto Screens"/>
+                        <link url="../ArtifactStats" text="Artifact Stats"/>
+                        <link url="../Service" text="Services"/>
+                    </box-body>
+                </container-box>
+                <section name="RestApiSection"><actions>
+                    <set field="restUrl" from="sri.buildUrl('/rest').url"/>
+                    <set field="rootResources" from="ec.service.restApi.rootResourceMap.values()"/>
+                </actions><widgets>
+                    <container-box>
+                        <box-header><label text="REST API: Swagger UI" type="h5"/></box-header>
+                        <box-body>
+                            <section-iterate name="RootResourcesSection" list="rootResources" entry="resource"><widgets>
+                                <link url="/assets/lib/swagger-ui/index.html?url=${restUrl}/service.swagger/${resource.name}"
+                                        url-type="plain" target-window="_blank" text="${resource.displayName ?: resource.name}"
+                                        tooltip="${resource.description ?: ''}"/>
+                            </widgets></section-iterate>
+                            <link url="/assets/lib/swagger-ui/index.html?url=${restUrl}/master.swagger/all"
+                                    url-type="plain" target-window="_blank" text="Entity Master API"/>
+                            <label text="The larger APIs take a few seconds to load. Runs in same session (already authenticated)." type="p"/>
+                        </box-body>
+                    </container-box>
+                </widgets></section>
+            </row-col>
+            <row-col lg="6" md="6">
+                <container-box>
+                    <box-header><label text="Entity Tools" type="h5"/></box-header>
+                    <box-body>
+                        <container>
+                            <link url="../Entity/DataImport" text="Data Import"/>
+                            <link url="../Entity/DataExport" text="Data Export"/>
+                            <link url="../Entity/SqlRunner" text="SQL Runner"/>
+                        </container>
+                        <container>
+                            <link url="../Entity/DataEdit" text="Entities"/>
+                            <link url="../DataView" text="Data Views"/>
+                            <link url="../Entity/SpeedTest" text="Speed Test"/>
+                        </container>
+                    </box-body>
+                </container-box>
+            </row-col>
+        </container-row>
+
+    </widgets>
+</screen>
