@@ -47,7 +47,7 @@ local.properties
 nbproject/private/
 nbbuild/
 .nb-gradle/
-dist/
+# allow dist, some JS libs in webroot/assets use it: dist/
 nbdist/
 nbactions.xml
 nb-configuration.xml
