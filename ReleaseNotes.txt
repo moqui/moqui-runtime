@@ -1,0 +1,15 @@
+
+Moqui Runtime Release Notes
+
+===========================================================================
+Release 1.6.1 - TBD
+===========================================================================
+
+Moqui Runtime 1.6.1 is the first release of the runtime repository separate
+from the rest of Moqui Framework.
+
+Version numbers of this repository will match those of moqui-framework, the
+two are developed in parallel. They are separate to make it easier to use
+your runtime directory separate from the rest of the framework (for
+configuration, custom UI, etc). The easiest way to do this is generally to
+fork from this repository (moqui/moqui-runtime).
