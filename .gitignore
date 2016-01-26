@@ -12,6 +12,7 @@
 /elasticsearch/data/
 /elasticsearch/log/
 /elasticsearch/work/
+/jackrabbit/jackrabbit/
 /log/
 /tmp/
 /txlog/
@@ -23,6 +24,9 @@
 /mantle/
 /base-component/example/build/
 /base-component/example/lib/example-*.jar
+
+# jackrabbit standalone jar file
+/jackrabbit/jackrabbit-standalone-*.jar
 
 # IntelliJ IDEA files
 .idea/
