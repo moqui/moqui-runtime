@@ -37,6 +37,10 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
+        <set field="entityDefinition" from="ec.entity.getEntityDefinition(entityName)"/>
+        <if condition="entityDefinition.getEntityGroupName() == 'tenantcommon'">
+            <message error="true">Data find and edit not allowed for entities in the tenantcommon group</message><return/></if>
+
         <entity-find entity-name="${entityName}" list="entityValueList" offset="0" limit="50">
             <search-form-inputs/>
         </entity-find>

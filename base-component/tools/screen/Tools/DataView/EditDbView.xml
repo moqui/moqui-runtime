@@ -155,7 +155,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <field-map field-name="dbViewEntityName"/>
                     <field-map field-name="entityAlias" value="MASTER"/>
                 </entity-find-one>
-                <set field="masterEntityList" from="ec.entity.getAllEntitiesInfo('entityName', null, false, false)"/>
+                <set field="masterEntityList" from="ec.entity.getAllEntitiesInfo('entityName', null, false, false, true)"/>
                 <set field="masterFieldList"
                     from="ec.entity.getAllEntityRelatedFields(fieldValues?.entityName, orderByField?:'+entityName', dbViewEntityName)"/>
             </actions>

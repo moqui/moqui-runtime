@@ -28,6 +28,12 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
+        <entity-find-one entity-name="moqui.entity.view.DbViewEntityMember" value-field="masterMember">
+            <field-map field-name="dbViewEntityName"/><field-map field-name="entityAlias" value="MASTER"/></entity-find-one>
+        <set field="masterDef" from="ec.entity.getEntityDefinition(masterMember.entityName)"/>
+        <if condition="masterDef == null || masterDef.getEntityGroupName() == 'tenantcommon'">
+            <message error="true">Could not find master entity with name: ${masterMember.entityName}</message><return/></if>
+
         <entity-find-one entity-name="moqui.entity.view.DbViewEntity" value-field="fieldValues"/>
         <entity-find entity-name="${dbViewEntityName}" list="dbViewList">
             <search-form-inputs/>

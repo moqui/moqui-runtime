@@ -29,7 +29,23 @@ along with this software (see the LICENSE.md file). If not, see
                     ec.message.addError("No entity names specified, not exporting anything.")
                     return
                 }
-                if (entityNames instanceof List) edw.entityNames(entityNames) else edw.entityName(entityNames)
+
+                // check for entities in the tenantcommon group, not allowed in Tools app for multi-tenant security
+                if (entityNames instanceof List) {
+                    for (String entityName in entityNames) {
+                        def entDef = ec.entity.getEntityDefinition(entityName)
+                        if (entDef == null || entDef.getEntityGroupName() == 'tenantcommon')
+                            ec.message.addError("Could not find entity with name ${entityName}")
+                    }
+                    edw.entityNames(entityNames)
+                } else {
+                    def entDef = ec.entity.getEntityDefinition(entityNames)
+                    if (entDef == null || entDef.getEntityGroupName() == 'tenantcommon')
+                        ec.message.addError("Could not find entity with name ${entityNames}")
+                    edw.entityName(entityNames)
+                }
+
+                if (ec.message.hasError()) return
 
                 if (dependentLevels) edw.dependentLevels(dependentLevels as int)
                 if (fromDate) edw.fromDate(ec.l10n.parseTimestamp(fromDate, null))
@@ -62,7 +78,7 @@ along with this software (see the LICENSE.md file). If not, see
         <form-single name="ExportData" transition="EntityExport">
             <field name="entityNames">
                 <default-field><drop-down allow-multiple="true" size="80">
-                    <list-options list="ec.entity.getAllEntitiesInfo('fullEntityName', null, false, true)" key="${fullEntityName}"/>
+                    <list-options list="ec.entity.getAllEntitiesInfo('fullEntityName', null, false, true, true)" key="${fullEntityName}"/>
                 </drop-down></default-field>
             </field>
             <field name="dependentLevels"><default-field><text-line size="2" default-value="0"/></default-field></field>
