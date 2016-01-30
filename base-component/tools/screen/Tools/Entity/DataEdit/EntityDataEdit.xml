@@ -27,6 +27,10 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
+        <set field="entityDefinition" from="ec.entity.getEntityDefinition(entityName)"/>
+        <if condition="entityDefinition.getEntityGroupName() == 'tenantcommon'">
+            <message error="true">Data find and edit not allowed for entities in the tenantcommon group</message><return/></if>
+
         <set field="dependentLevels" from="(dependentLevels ?: '0') as int"/>
         <entity-find-one entity-name="${entityName}" value-field="entityValue"/>
         <set field="relationshipInfoList" from="ec.entity.getEntityDefinition(entityName).getRelationshipsInfo(false)"/>

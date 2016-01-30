@@ -2,6 +2,20 @@
 Moqui Runtime Release Notes
 
 ===========================================================================
+Release 1.6.2 - TBD
+===========================================================================
+
+Moqui Runtime 1.6.2 is a minor new feature and bug fix release, in parallel
+with the release of Moqui Framework.
+
+New Features
+
+- The Tools app can now be run in Tenant instances, with the entities in
+  the tenantcommon group excluded from various screens
+
+Bug Fixes
+
+===========================================================================
 Release 1.6.1 - 24 Jan 2016
 ===========================================================================
 

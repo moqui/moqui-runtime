@@ -19,9 +19,13 @@ along with this software (see the LICENSE.md file). If not, see
     <parameter name="aen" required="true"/>
 
     <actions>
-        <set field="masterPrimaryKeyMap" from="ec.entity.getEntityDefinition(aen).getPrimaryKeys(context)"/>
+        <set field="aenDef" from="ec.entity.getEntityDefinition(aen)"/>
+        <if condition="aenDef == null || aenDef.getEntityGroupName() == 'tenantcommon'">
+            <message error="true">Could not find entity with name: ${aen}</message><return/></if>
+
+        <set field="masterPrimaryKeyMap" from="aenDef.getPrimaryKeys(context)"/>
         <!-- only include dependent entities for tabs -->
-        <set field="relationshipInfoList" from="ec.entity.getEntityDefinition(aen).getRelationshipsInfo(true)"/>
+        <set field="relationshipInfoList" from="aenDef.getRelationshipsInfo(true)"/>
     </actions>
     <widgets>
         <!-- NOTE: this template will take care of the active subscreen, if needed; it's not needed for the dynamic menu -->
