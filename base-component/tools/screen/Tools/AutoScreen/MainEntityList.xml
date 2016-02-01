@@ -19,8 +19,8 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="find"><default-response url="../AutoFind"/></transition>
 
     <actions>
-        <set field="allEntityList" from="ec.entity.getAllEntitiesInfo(orderByField?:'fullEntityName', null, false, false, true)"/>
-        <set field="masterEntityList" from="ec.entity.getAllEntitiesInfo(orderByField?:'fullEntityName', null, true, true, true)"/>
+        <set field="allEntityList" from="ec.entity.getAllEntitiesInfo(orderByField?:'fullEntityName', null, false, false, ec.tenantId != 'DEFAULT')"/>
+        <set field="masterEntityList" from="ec.entity.getAllEntitiesInfo(orderByField?:'fullEntityName', null, true, true, ec.tenantId != 'DEFAULT')"/>
     </actions>
     <widgets>
         <form-single name="SelectEntity" transition="find">

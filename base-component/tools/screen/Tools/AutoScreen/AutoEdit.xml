@@ -20,7 +20,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <actions>
         <set field="aenDef" from="ec.entity.getEntityDefinition(aen)"/>
-        <if condition="aenDef == null || aenDef.getEntityGroupName() == 'tenantcommon'">
+        <if condition="aenDef == null || (aenDef.getEntityGroupName() == 'tenantcommon' &amp;&amp; ec.tenantId != 'DEFAULT')">
             <message error="true">Could not find entity with name: ${aen}</message><return/></if>
 
         <set field="masterPrimaryKeyMap" from="aenDef.getPrimaryKeys(context)"/>
