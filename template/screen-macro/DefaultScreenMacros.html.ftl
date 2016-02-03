@@ -789,9 +789,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 <#macro formSingleWidget fieldSubNode>
     <#assign fieldSubParent = fieldSubNode?parent>
-    <#if fieldSubNode["ignored"]?has_content && (fieldSubParent["@hide"]! != "false")><#return></#if>
-    <#if fieldSubNode["hidden"]?has_content && (fieldSubParent["@hide"]! != "false")><#recurse fieldSubNode/><#return></#if>
-    <#if fieldSubParent["@hide"]! == "true"><#return></#if>
+    <#if fieldSubNode["ignored"]?has_content && ec.resource.condition(fieldSubParent["@hide"]!, "")><#return></#if>
+    <#if fieldSubNode["hidden"]?has_content && ec.resource.condition(fieldSubParent["@hide"]!, "")><#recurse fieldSubNode/><#return></#if>
+    <#if ec.resource.condition(fieldSubParent["@hide"]!, "")><#return></#if>
     <#assign containerStyle = ec.resource.expand(fieldSubNode["@container-style"]!, "")>
     <#assign curFieldTitle><@fieldTitle fieldSubNode/></#assign>
     <#if bigRow>
@@ -926,7 +926,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <#if fieldNode == "invalid">
                                 <div>Error: could not find field with name [${fieldRefName}] referred to in a form-list-column.field-ref.@name attribute.</div>
                             <#else>
-                                <#if !(fieldNode["@hide"]! == "true" ||
+                                <#if !(ec.resource.condition(fieldNode["@hide"]!, "") ||
                                         ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
                                         (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
                                     <div><@formListHeaderField fieldNode/></div>
@@ -1044,7 +1044,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
                             <#if fieldSubNode?node_name != "header-field" && fieldSubNode["submit"]?has_content><#assign hasSubmit = true></#if>
                         </#list>
-                        <#if !(fieldNode["@hide"]! == "true" || allHidden ||
+                        <#if !(ec.resource.condition(fieldNode["@hide"]!, "") || allHidden ||
                                 ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
                                 (fieldNode["header-field"][0]?if_exists["hidden"]?has_content || fieldNode["header-field"][0]?if_exists["ignored"]?has_content))) &&
                                 !(isMulti && hasSubmit)>
@@ -1182,7 +1182,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro formListWidget fieldSubNode skipCell=false isHeaderField=false>
     <#if fieldSubNode["ignored"]?has_content><#return/></#if>
     <#assign fieldSubParent = fieldSubNode?parent>
-    <#if fieldSubParent["@hide"]! == "true"><#return></#if>
+    <#if ec.resource.condition(fieldSubParent["@hide"]!, "")><#return></#if>
     <#-- don't do a column for submit fields, they'll go in their own row at the bottom -->
     <#t><#if !isHeaderField && isMulti && !isMultiFinalRow && fieldSubNode["submit"]?has_content><#return/></#if>
     <#t><#if !isHeaderField && isMulti && isMultiFinalRow && !fieldSubNode["submit"]?has_content><#return/></#if>
