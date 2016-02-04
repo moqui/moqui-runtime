@@ -16,25 +16,14 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.6.xsd"
         default-menu-include="false" require-authentication="false">
 
-    <transition name="login" require-session-token="false">
-        <actions><script>ec.user.loginUser(username, password, tenantId)</script></actions>
-        <default-response type="screen-last"/>
-        <error-response url="."/>
-    </transition>
-    <transition name="logout">
-        <actions><script>ec.user.logoutUser()</script></actions>
-        <default-response url="/"/>
-        <error-response url="."/>
-    </transition>
-    <transition name="resetPassword">
-        <service-call name="org.moqui.impl.UserServices.reset#Password"/>
-        <default-response url="."/>
-    </transition>
-    <transition name="changePassword">
-        <service-call name="org.moqui.impl.UserServices.update#Password"/>
-        <default-response url="../Login"/>
-        <error-response url="."/>
-    </transition>
+    <transition name="login" require-session-token="false"><actions><script>ec.user.loginUser(username, password, tenantId)</script></actions>
+        <default-response type="screen-last"/><error-response url="."/></transition>
+    <transition name="logout"><actions><script>ec.user.logoutUser()</script></actions>
+        <default-response url="/"/><error-response url="."/></transition>
+    <transition name="resetPassword"><service-call name="org.moqui.impl.UserServices.reset#Password"/>
+        <default-response url="."/></transition>
+    <transition name="changePassword"><service-call name="org.moqui.impl.UserServices.update#Password"/>
+        <default-response url="../Login"/><error-response url="."/></transition>
 
     <pre-actions><script>html_stylesheets.add('/assets/lib/animate/animate.min.css')</script></pre-actions>
     <widgets>

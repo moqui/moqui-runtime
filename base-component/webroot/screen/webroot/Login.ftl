@@ -21,7 +21,7 @@
             <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
             <#if !ec.getWeb()?? || ec.getWeb().getSession().getAttribute("moqui.tenantAllowOverride")! != "N">
                 <input type="text" name="username" value="${(ec.getWeb().getErrorParameters().get("username"))!""}" placeholder="Username" required="required" class="form-control top">
-                <input type="text" name="tenantId" placeholder="Tenant ID" class="form-control bottom">
+                <input type="text" name="tenantId" value="${(ec.getWeb().getErrorParameters().get("tenantId"))!""}" placeholder="Tenant ID" class="form-control bottom">
             <#else>
                 <input type="text" name="username" placeholder="Username" required="required" class="form-control">
             </#if>
@@ -37,7 +37,7 @@
             <input type="password" name="newPassword" placeholder="New Password" required="required" class="form-control middle">
             <#if !ec.getWeb()?? || ec.getWeb().getSession().getAttribute("moqui.tenantAllowOverride")! != "N">
                 <input type="password" name="newPasswordVerify" placeholder="New Password Verify" required="required" class="form-control middle">
-                <input type="text" name="tenantId" placeholder="Tenant ID" class="form-control bottom">
+                <input type="text" name="tenantId" value="${(ec.getWeb().getErrorParameters().get("tenantId"))!""}" placeholder="Tenant ID" class="form-control bottom">
             <#else>
                 <input type="password" name="newPasswordVerify" placeholder="New Password Verify" required="required" class="form-control bottom">
             </#if>
