@@ -10,6 +10,7 @@ with the release of Moqui Framework.
 
 New Features
 
+- Many unused JS libraries removed (from webroot/assets/lib directory)
 - The Tools app can now be run in Tenant instances, with the entities in
   the tenantcommon group excluded from various screens
 
