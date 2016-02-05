@@ -32,17 +32,6 @@ along with this software (see the LICENSE.md file). If not, see
             '/js/jstree-3.0.3/jstree.min.js',
             '/assets/js/main.min.js','/assets/js/minHeight.js'])"/>
 
-        <!-- out until used in DefaultScreenMacros.html.ftl:
-            '/assets/lib/inputlimiter/jquery.inputlimiter.1.3.1.min.js',
-            '/assets/lib/daterangepicker/daterangepicker.js',
-            '/assets/lib/daterangepicker/moment.min.js',
-            '/assets/lib/jquery.dualListbox-1.3/jquery.dualListBox-1.3.min.js',
-
-            '/assets/lib/inputlimiter/jquery.inputlimiter.1.0.css',
-            '/assets/lib/chosen/chosen.min.css',
-            '/assets/lib/daterangepicker/daterangepicker-bs3.css',
-        -->
-
         <!-- See WebrootThemeData.xml for CSS references -->
         <set field="html_stylesheets" from="new LinkedHashSet()"/>
     </always-actions>
