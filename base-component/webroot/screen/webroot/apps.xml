@@ -31,8 +31,6 @@ along with this software (see the LICENSE.md file). If not, see
 
     <subscreens default-item="AppList">
         <!-- refer to the various app roots here -->
-        <subscreens-item name="example" location="component://example/screen/ExampleApp.xml"
-                menu-title="Example" menu-index="8"/>
         <subscreens-item name="system" location="component://tools/screen/System.xml"
                 menu-title="System" menu-index="98"/>
         <subscreens-item name="tools" location="component://tools/screen/Tools.xml"

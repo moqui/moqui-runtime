@@ -43,16 +43,17 @@ along with this software (see the LICENSE.md file). If not, see
         <script>html_stylesheets.add("/assets/css/elfinder.css")</script>
     </pre-actions>
     <actions>
+        <set field="rootOptions" from="[mantleContentRoot, 'dbresource://', 'component://webroot']"/>
+        <script><![CDATA[
+            if (ec.tenantId == 'DEFAULT') rootOptions.add('file:runtime')
+            if (ec.tenantId != 'DEFAULT' && (!resourceRoot.contains(':') || resourceRoot.startsWith('file') || resourceRoot.startsWith('classpath')))
+                ec.message.addError("File and classpath resources not allowed in tenant ${ec.tenantId}")
+        ]]></script>
     </actions>
     <widgets>
         <form-single name="SelectRoot" transition=".">
             <field name="resourceRoot"><default-field title="">
-                <drop-down>
-                    <option key="${mantleContentRoot}"/>
-                    <option key="dbresource://"/>
-                    <option key="file:runtime"/>
-                    <option key="component://webroot"/>
-                </drop-down>
+                <drop-down><list-options list="rootOptions"/></drop-down>
             </default-field></field>
             <field name="submitButton"><default-field title="Select Root"><submit/></default-field></field>
             <field-layout><field-row-big><field-ref name="resourceRoot"/><field-ref name="submitButton"/></field-row-big></field-layout>
@@ -63,7 +64,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <script>
 $(document).ready(function() {
     var elf_options = { url:'${sri.buildUrl('command').url}', customData:{ moquiSessionToken:'${ec.web.sessionToken}', resourceRoot:'${resourceRoot}' },
-        lang:'en', defaultView:'list', requestType:'post', rememberLastDir:false, height:600,
+        lang:'en', defaultView:'list', requestType:'post', rememberLastDir:false, height:700,
         commands : [ 'open', 'reload', 'home', 'up', 'back', 'forward', 'getfile', 'quicklook',
             'download', 'rm', 'rename', 'mkdir', 'mkfile', 'upload', 'edit', 'info', 'view', 'help',
             'sort'],

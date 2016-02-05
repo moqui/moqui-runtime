@@ -10,8 +10,12 @@ with the release of Moqui Framework.
 
 New Features
 
+- Removed example component, now in a separate repository (moqui/example)
+- Many unused JS libraries removed (from webroot/assets/lib directory)
 - The Tools app can now be run in Tenant instances, with the entities in
   the tenantcommon group excluded from various screens
+- The Resource ElFinder screen in the System app now restricts access to
+  file and classpath resources for all tenants except DEFAULT
 
 Bug Fixes
 
