@@ -789,9 +789,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 <#macro formSingleWidget fieldSubNode>
     <#assign fieldSubParent = fieldSubNode?parent>
-    <#if fieldSubNode["ignored"]?has_content && ec.resource.condition(fieldSubParent["@hide"]!, "")><#return></#if>
-    <#if fieldSubNode["hidden"]?has_content && ec.resource.condition(fieldSubParent["@hide"]!, "")><#recurse fieldSubNode/><#return></#if>
+    <#if fieldSubNode["ignored"]?has_content><#return></#if>
     <#if ec.resource.condition(fieldSubParent["@hide"]!, "")><#return></#if>
+    <#if fieldSubNode["hidden"]?has_content><#recurse fieldSubNode/><#return></#if>
     <#assign containerStyle = ec.resource.expand(fieldSubNode["@container-style"]!, "")>
     <#assign curFieldTitle><@fieldTitle fieldSubNode/></#assign>
     <#if bigRow>
