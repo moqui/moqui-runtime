@@ -114,24 +114,24 @@ along with this software (see the LICENSE.md file). If not, see
             startTime = System.nanoTime()
             List createTestList = []
             for (int i = 0; i < calls; i++) {
-                createTestList.add(ef.makeValue("moqui.tools.test.ToolsTestEntity").setFields([testMedium:"Medium "+i,
+                createTestList.add(ef.makeValue("moqui.test.TestEntity").setFields([testMedium:"Medium "+i,
                         testLong:"Long "+i, testIndicator:"Y", testDateTime:nowTs, testNumberInteger:i,
                         testNumberDecimal:(i+0.5)], true, null, null).setSequencedIdPrimary().create())
             }
             milliseconds = ((System.nanoTime() - startTime) / 1E6)
-            performanceList.add([operation:"direct create with sequenced ID", entity:"moqui.tools.test.ToolsTestEntity", calls:calls, milliseconds:milliseconds,
+            performanceList.add([operation:"direct create with sequenced ID", entity:"moqui.test.TestEntity", calls:calls, milliseconds:milliseconds,
                     msPerCall:(milliseconds / calls),
                     callsPerSecond:((calls / milliseconds) * 1000)])
 
             // create with preset ID test
             startTime = System.nanoTime()
             for (int i = 0; i < calls; i++) {
-                createTestList.add(ef.makeValue("moqui.tools.test.ToolsTestEntity").setFields([testId:("id"+i),
+                createTestList.add(ef.makeValue("moqui.test.TestEntity").setFields([testId:("id"+i),
                         testMedium:"Medium "+i, testLong:"Long "+i, testIndicator:"Y", testDateTime:nowTs,
                         testNumberInteger:i, testNumberDecimal:(i+0.5)], true, null, null).create())
             }
             milliseconds = ((System.nanoTime() - startTime) / 1E6)
-            performanceList.add([operation:"direct create with preset ID", entity:"moqui.tools.test.ToolsTestEntity", calls:calls, milliseconds:milliseconds,
+            performanceList.add([operation:"direct create with preset ID", entity:"moqui.test.TestEntity", calls:calls, milliseconds:milliseconds,
                     msPerCall:(milliseconds / calls),
                     callsPerSecond:((calls / milliseconds) * 1000)])
 
@@ -146,7 +146,7 @@ along with this software (see the LICENSE.md file). If not, see
                 ev.update()
             }
             milliseconds = ((System.nanoTime() - startTime) / 1E6)
-            performanceList.add([operation:"direct update", entity:"moqui.tools.test.ToolsTestEntity", calls:calls, milliseconds:milliseconds,
+            performanceList.add([operation:"direct update", entity:"moqui.test.TestEntity", calls:calls, milliseconds:milliseconds,
                     msPerCall:(milliseconds / calls),
                     callsPerSecond:((calls / milliseconds) * 1000)])
 
@@ -157,7 +157,7 @@ along with this software (see the LICENSE.md file). If not, see
                 ev.delete()
             }
             milliseconds = ((System.nanoTime() - startTime) / 1E6)
-            performanceList.add([operation:"direct delete", entity:"moqui.tools.test.ToolsTestEntity", calls:calls, milliseconds:milliseconds,
+            performanceList.add([operation:"direct delete", entity:"moqui.test.TestEntity", calls:calls, milliseconds:milliseconds,
                     msPerCall:(milliseconds / calls),
                     callsPerSecond:((calls / milliseconds) * 1000)])
 
@@ -171,12 +171,12 @@ along with this software (see the LICENSE.md file). If not, see
             startTime = System.nanoTime()
             List createTestIdList = []
             for (int i = 0; i < calls; i++) {
-                createTestIdList.add(ec.service.sync().name("create", "moqui.tools.test.ToolsTestEntity").parameters([
+                createTestIdList.add(ec.service.sync().name("create", "moqui.test.TestEntity").parameters([
                         testMedium:"Medium "+i, testLong:"Long "+i, testIndicator:"Y", testDateTime:nowTs,
                         testNumberInteger:i, testNumberDecimal:(i+0.5)]).call().testId)
             }
             milliseconds = ((System.nanoTime() - startTime) / 1E6)
-            performanceList.add([operation:"service create with sequenced ID", entity:"moqui.tools.test.ToolsTestEntity", calls:calls, milliseconds:milliseconds,
+            performanceList.add([operation:"service create with sequenced ID", entity:"moqui.test.TestEntity", calls:calls, milliseconds:milliseconds,
                     msPerCall:(milliseconds / calls),
                     callsPerSecond:((calls / milliseconds) * 1000)])
 
@@ -184,10 +184,10 @@ along with this software (see the LICENSE.md file). If not, see
             calls = createTestIdList.size()
             startTime = System.nanoTime()
             for (String id in createTestIdList) {
-                ec.service.sync().name("update", "moqui.tools.test.ToolsTestEntity").parameters([testId:id, testMedium:"Updated Text"]).call()
+                ec.service.sync().name("update", "moqui.test.TestEntity").parameters([testId:id, testMedium:"Updated Text"]).call()
             }
             milliseconds = ((System.nanoTime() - startTime) / 1E6)
-            performanceList.add([operation:"service update", entity:"moqui.tools.test.ToolsTestEntity", calls:calls, milliseconds:milliseconds,
+            performanceList.add([operation:"service update", entity:"moqui.test.TestEntity", calls:calls, milliseconds:milliseconds,
                     msPerCall:(milliseconds / calls),
                     callsPerSecond:((calls / milliseconds) * 1000)])
 
@@ -195,10 +195,10 @@ along with this software (see the LICENSE.md file). If not, see
             calls = createTestIdList.size()
             startTime = System.nanoTime()
             for (String id in createTestIdList) {
-                ec.service.sync().name("delete", "moqui.tools.test.ToolsTestEntity").parameter("testId", id).call()
+                ec.service.sync().name("delete", "moqui.test.TestEntity").parameter("testId", id).call()
             }
             milliseconds = ((System.nanoTime() - startTime) / 1E6)
-            performanceList.add([operation:"service delete", entity:"moqui.tools.test.ToolsTestEntity", calls:calls, milliseconds:milliseconds,
+            performanceList.add([operation:"service delete", entity:"moqui.test.TestEntity", calls:calls, milliseconds:milliseconds,
                     msPerCall:(milliseconds / calls),
                     callsPerSecond:((calls / milliseconds) * 1000)])
 
@@ -212,26 +212,26 @@ along with this software (see the LICENSE.md file). If not, see
             startTime = System.nanoTime()
             List createNoSqlTestList = []
             for (int i = 0; i < calls; i++) {
-                EntityValue ev = ef.makeValue("moqui.tools.test.ToolsTestNoSqlEntity").setFields([testMedium:"Medium "+i,
+                EntityValue ev = ef.makeValue("moqui.test.TestNoSqlEntity").setFields([testMedium:"Medium "+i,
                         testLong:"Long "+i, testIndicator:"Y", testDateTime:nowTs, testNumberInteger:i,
                         testNumberDecimal:(i+0.5)], true, null, null).setSequencedIdPrimary().create()
                 createNoSqlTestList.add(ev)
-                // logger.warn("===== created ToolsTestNoSqlEntity value ${ev}")
+                // logger.warn("===== created TestNoSqlEntity value ${ev}")
             }
             milliseconds = ((System.nanoTime() - startTime) / 1E6)
-            performanceList.add([operation:"direct create with sequenced ID", entity:"moqui.tools.test.ToolsTestNoSqlEntity", calls:calls, milliseconds:milliseconds,
+            performanceList.add([operation:"direct create with sequenced ID", entity:"moqui.test.TestNoSqlEntity", calls:calls, milliseconds:milliseconds,
                     msPerCall:(milliseconds / calls),
                     callsPerSecond:((calls / milliseconds) * 1000)])
 
             // create with preset ID test
             startTime = System.nanoTime()
             for (int i = 0; i < calls; i++) {
-                createNoSqlTestList.add(ef.makeValue("moqui.tools.test.ToolsTestNoSqlEntity").setFields([testId:("id"+i),
+                createNoSqlTestList.add(ef.makeValue("moqui.test.TestNoSqlEntity").setFields([testId:("id"+i),
                         testMedium:"Medium "+i, testLong:"Long "+i, testIndicator:"Y", testDateTime:nowTs,
                         testNumberInteger:i, testNumberDecimal:(i+0.5)], true, null, null).create())
             }
             milliseconds = ((System.nanoTime() - startTime) / 1E6)
-            performanceList.add([operation:"direct create with preset ID", entity:"moqui.tools.test.ToolsTestNoSqlEntity", calls:calls, milliseconds:milliseconds,
+            performanceList.add([operation:"direct create with preset ID", entity:"moqui.test.TestNoSqlEntity", calls:calls, milliseconds:milliseconds,
                     msPerCall:(milliseconds / calls),
                     callsPerSecond:((calls / milliseconds) * 1000)])
 
@@ -246,7 +246,7 @@ along with this software (see the LICENSE.md file). If not, see
                 ev.update()
             }
             milliseconds = ((System.nanoTime() - startTime) / 1E6)
-            performanceList.add([operation:"direct update", entity:"moqui.tools.test.ToolsTestNoSqlEntity", calls:calls, milliseconds:milliseconds,
+            performanceList.add([operation:"direct update", entity:"moqui.test.TestNoSqlEntity", calls:calls, milliseconds:milliseconds,
                     msPerCall:(milliseconds / calls),
                     callsPerSecond:((calls / milliseconds) * 1000)])
 
@@ -257,7 +257,7 @@ along with this software (see the LICENSE.md file). If not, see
                 ev.delete()
             }
             milliseconds = ((System.nanoTime() - startTime) / 1E6)
-            performanceList.add([operation:"direct delete", entity:"moqui.tools.test.ToolsTestNoSqlEntity", calls:calls, milliseconds:milliseconds,
+            performanceList.add([operation:"direct delete", entity:"moqui.test.TestNoSqlEntity", calls:calls, milliseconds:milliseconds,
                     msPerCall:(milliseconds / calls),
                     callsPerSecond:((calls / milliseconds) * 1000)])
 

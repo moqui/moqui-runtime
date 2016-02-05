@@ -22,8 +22,6 @@
 /component/
 /component-lib/
 /mantle/
-/base-component/example/build/
-/base-component/example/lib/example-*.jar
 
 # jackrabbit standalone jar file
 /jackrabbit/jackrabbit-standalone-*.jar
