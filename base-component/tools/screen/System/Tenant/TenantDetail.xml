@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.6.xsd">
+
+    <parameter name="tenantId" required="true"/>
+
+    <transition name="updateTenant"><service-call name="update#moqui.tenant.Tenant"/>
+        <default-response url="."/></transition>
+
+    <actions>
+        <entity-find-one entity-name="moqui.tenant.Tenant" value-field="tenant"/>
+        <entity-find entity-name="moqui.tenant.TenantDataSource" list="dataSourceList">
+            <econdition field-name="tenantId"/></entity-find>
+        <entity-find entity-name="moqui.tenant.TenantHostDefault" list="hostDefaultList">
+            <econdition field-name="tenantId"/></entity-find>
+    </actions>
+    <widgets>
+        <container-row>
+            <row-col lg="6">
+                <form-single name="TenantDetail" map="tenant" transition="updateTenant">
+                    <field name="tenantId"><default-field><display/></default-field></field>
+                    <field name="tenantName"><default-field><text-line size="40"/></default-field></field>
+                    <field name="isEnabled"><default-field title="Enabled?"><display/></default-field></field>
+                    <field name="disabledDate"><default-field><display/></default-field></field>
+                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                </form-single>
+                <container-box>
+                    <box-header><label text="Host Name Mappings" type="h5"/></box-header>
+                    <box-toolbar><!-- TODO --></box-toolbar>
+                    <box-body>
+                        <section-iterate name="HostDefaultList" list="hostDefaultList" entry="hostDefault"><widgets>
+                            <label text="${hostDefault.hostName}" type="h4"/>
+                        </widgets></section-iterate>
+                    </box-body>
+                </container-box>
+            </row-col>
+            <row-col lg="6">
+                <container-box>
+                    <box-header><label text="Data Sources" type="h5"/></box-header>
+                    <box-toolbar><!-- TODO --></box-toolbar>
+                    <box-body>
+                        <section-iterate name="DataSourceList" list="dataSourceList" entry="dataSource">
+                            <actions>
+
+                            </actions>
+                            <widgets>
+                                <label text="${dataSource.entityGroupName}" type="h4"/>
+                            </widgets>
+                        </section-iterate>
+                    </box-body>
+                </container-box>
+            </row-col>
+        </container-row>
+    </widgets>
+</screen>
