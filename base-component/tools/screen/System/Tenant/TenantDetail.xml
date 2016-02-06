@@ -20,6 +20,13 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="updateTenant"><service-call name="update#moqui.tenant.Tenant"/>
         <default-response url="."/></transition>
 
+    <transition name="createHostDefault"><service-call name="create#moqui.tenant.TenantHostDefault"/>
+        <default-response url="."/></transition>
+    <transition name="updateHostDefault"><service-call name="update#moqui.tenant.TenantHostDefault"/>
+        <default-response url="."/></transition>
+    <transition name="deleteHostDefault"><service-call name="delete#moqui.tenant.TenantHostDefault"/>
+        <default-response url="."/></transition>
+
     <actions>
         <entity-find-one entity-name="moqui.tenant.Tenant" value-field="tenant"/>
         <entity-find entity-name="moqui.tenant.TenantDataSource" list="dataSourceList">
@@ -39,11 +46,26 @@ along with this software (see the LICENSE.md file). If not, see
                 </form-single>
                 <container-box>
                     <box-header><label text="Host Name Mappings" type="h5"/></box-header>
-                    <box-toolbar><!-- TODO --></box-toolbar>
+                    <box-toolbar><container-dialog id="AddHostDialog" button-text="Add Tenant Host">
+                        <form-single name="AddHostDefault" transition="createHostDefault">
+                            <field name="tenantId"><default-field><hidden/></default-field></field>
+                            <field name="hostName"><default-field><text-line size="30"/></default-field></field>
+                            <field name="allowOverride"><default-field title="Allow Override">
+                                <drop-down><option key="N"/><option key="Y"/></drop-down></default-field></field>
+                            <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                        </form-single>
+                    </container-dialog></box-toolbar>
                     <box-body>
-                        <section-iterate name="HostDefaultList" list="hostDefaultList" entry="hostDefault"><widgets>
-                            <label text="${hostDefault.hostName}" type="h4"/>
-                        </widgets></section-iterate>
+                        <form-list name="HostDefaultList" list="hostDefaultList" transition="updateHostDefault">
+                            <field name="tenantId"><default-field><hidden/></default-field></field>
+                            <field name="hostName"><default-field><display/></default-field></field>
+                            <field name="allowOverride"><default-field title="Allow Tenant Override at Host">
+                                <drop-down><option key="N"/><option key="Y"/></drop-down></default-field></field>
+                            <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                            <field name="deleteButton"><default-field title="">
+                                <link url="deleteHostDefault" text="Delete">
+                                    <parameter name="tenantId"/><parameter name="hostName"/></link></default-field></field>
+                        </form-list>
                     </box-body>
                 </container-box>
             </row-col>

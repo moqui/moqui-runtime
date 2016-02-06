@@ -50,7 +50,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <header-field title="Host Name(s)"><text-find hide-options="true" size="20"/></header-field>
                 <default-field>
                     <section-iterate name="HostDefaultList" list="hostDefaultList" entry="hostDefault"><widgets>
-                        <label text="${hostDefault.hostName}"/></widgets></section-iterate>
+                        <label text="${hostDefault.hostName}" type="div"/></widgets></section-iterate>
                 </default-field>
             </field>
             <field name="find"><header-field title="Find"><submit/></header-field></field>
