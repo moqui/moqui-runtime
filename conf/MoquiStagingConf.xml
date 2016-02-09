@@ -3,7 +3,7 @@
 <moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-1.6.xsd">
 
-    <tools enable-elasticsearch="true" enable-camel="true"/>
+    <tools enable-elasticsearch="true" enable-camel="true" run-jackrabbit="false" empty-db-load="seed,seed-initial,install"/>
 
     <server-stats stats-skip-condition="pathInfo?.startsWith('/rpc') || pathInfo?.startsWith('/rest') || pathInfo?.startsWith('/status')">
         <artifact-stats type="screen" persist-bin="true" persist-hit="true"/>
