@@ -29,45 +29,45 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <set field="sd" from="ec.service.getServiceDefinition(serviceName)"/>
         <set field="serviceNode" from="sd.getServiceNode()"/>
-        <set field="inParameterNodes" from="serviceNode.'in-parameters'.'parameter'"/>
-        <set field="outParameterNodes" from="serviceNode.'out-parameters'.'parameter'"/>
+        <set field="inParameterNodes" from="serviceNode.first('in-parameters').children('parameter')"/>
+        <set field="outParameterNodes" from="serviceNode.first('out-parameters').children('parameter')"/>
     </actions>
     <widgets>
         <label type="h2" text="${serviceName}"/>
-        <label type="strong" text="${serviceNode.'description'?.getAt(0)?.value()?.getAt(0) ?: ''}" display-if-empty="false"/>
-        <!-- <label type="p" text="${serviceNode.attributes()}"/> -->
+        <label type="strong" text="${serviceNode.first('description')?.text ?: ''}" display-if-empty="false"/>
+        <!-- <label type="p" text="${serviceNode.attributes}"/> -->
         <label type="p" text="Authenticate: ${sd.getAuthenticate()}"/>
         <label type="p" text="Service Type: ${sd.getServiceType()}${sd.getLocation() ? ', Location: ' + sd.getLocation() : ''}${sd.getMethod() ? ', Method: ' + sd.getMethod() : ''}"/>
         <label type="p" text="Tx Ignore: ${sd.getTxIgnore()}, Force New: ${sd.getTxForceNew()}, Use Tx Cache: ${sd.getTxUseCache()}, Timeout: ${sd.getTxTimeout()}"/>
 
         <label type="h3" text="In Parameters"/>
         <form-list name="InParameters" list="inParameterNodes" list-entry="parameterNode" skip-form="true">
-            <row-actions><script>ec.context.putAll(parameterNode.attributes())</script></row-actions>
+            <row-actions><script>ec.context.putAll(parameterNode.attributes)</script></row-actions>
             <field name="name"><default-field><display/></default-field></field>
             <field name="type"><default-field><display text="${type?:'String'}"/></default-field></field>
             <field name="required"><default-field><display text="${required?:'false'}"/></default-field></field>
-            <field name="default"><default-field><display text="${parameterNode.'@default' ?: ''} - ${parameterNode.'@default-value' ?: ''}"/></default-field></field>
+            <field name="default"><default-field><display text="${parameterNode.attribute('default') ?: ''} - ${parameterNode.attribute('default-value') ?: ''}"/></default-field></field>
             <field name="format"><default-field><display/></default-field></field>
-            <field name="description"><default-field><display text="${parameterNode.'description'?.getAt(0)?.value()?.getAt(0) ?: ''}"/></default-field></field>
-            <field name="entityField"><default-field><display text="${parameterNode.'@entity-name' ?: ''}${parameterNode.'@field-name' ? '.' + parameterNode.'@field-name' : ''}"/></default-field></field>
+            <field name="description"><default-field><display text="${parameterNode.first('description')?.text ?: ''}"/></default-field></field>
+            <field name="entityField"><default-field><display text="${parameterNode.attribute('entity-name') ?: ''}${parameterNode.attribute('field-name') ? '.' + parameterNode.attribute('field-name') : ''}"/></default-field></field>
         </form-list>
 
         <label type="h3" text="Out Parameters"/>
         <form-list name="OutParameters" list="outParameterNodes" list-entry="parameterNode" skip-form="true">
-            <row-actions><script>ec.context.putAll(parameterNode.attributes())</script></row-actions>
+            <row-actions><script>ec.context.putAll(parameterNode.attributes)</script></row-actions>
             <field name="name"><default-field><display/></default-field></field>
             <field name="type"><default-field><display text="${type?:'String'}"/></default-field></field>
             <field name="required"><default-field><display/></default-field></field>
-            <field name="default"><default-field><display text="${parameterNode.'@default' ?: ''} - ${parameterNode.'@default-value' ?: ''}"/></default-field></field>
+            <field name="default"><default-field><display text="${parameterNode.attribute('default') ?: ''} - ${parameterNode.attribute('default-value') ?: ''}"/></default-field></field>
             <field name="format"><default-field><display/></default-field></field>
-            <field name="description"><default-field><display text="${parameterNode.'description'?.getAt(0)?.value()?.getAt(0) ?: ''}"/></default-field></field>
-            <field name="entityField"><default-field><display text="${parameterNode.'@entity-name' ?: ''}${parameterNode.'@field-name' ? '.' + parameterNode.'@field-name' : ''}"/></default-field></field>
+            <field name="description"><default-field><display text="${parameterNode.first('description')?.text ?: ''}"/></default-field></field>
+            <field name="entityField"><default-field><display text="${parameterNode.attribute('entity-name') ?: ''}${parameterNode.attribute('field-name') ? '.' + parameterNode.attribute('field-name') : ''}"/></default-field></field>
         </form-list>
 
         <section name="XmlActionDisplaySection" condition="sd.xmlAction">
             <widgets>
                 <label text="XML Actions" type="h3"/>
-                <container type="pre" style="line-numbers"><label text="${org.moqui.impl.StupidUtilities.encodeForXmlAttribute(org.moqui.impl.util.FtlNodeWrapper.prettyPrintNode(serviceNode.actions[0]))}"
+                <container type="pre" style="line-numbers"><label text="${org.moqui.impl.StupidUtilities.encodeForXmlAttribute(serviceNode.first('actions')?.toString())}"
                         type="code" style="language-markup" encode="false"/></container>
 
                 <label text="Generated Groovy" type="h3"/>
@@ -75,10 +75,10 @@ along with this software (see the LICENSE.md file). If not, see
                         style="language-groovy" encode="false"/></container>
             </widgets>
         </section>
-        <section name="LocationDisplaySection" condition="sd.serviceNode.'@location'">
+        <section name="LocationDisplaySection" condition="sd.serviceNode.attribute('location')">
             <widgets>
                 <label text="Script" type="h3"/>
-                <container type="pre" style="line-numbers"><label text="${ec.resource.getLocationText(sd.serviceNode.'@location', false)}"
+                <container type="pre" style="line-numbers"><label text="${ec.resource.getLocationText(sd.serviceNode.attribute('location'), false)}"
                         type="code" style="language-groovy" encode="false"/></container>
             </widgets>
         </section>
