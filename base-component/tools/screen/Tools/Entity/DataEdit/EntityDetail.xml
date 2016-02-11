@@ -48,7 +48,7 @@ along with this software (see the LICENSE.md file). If not, see
             <row-col md="3" lg="3"><label text="View Entity? ${entityDefinition.isViewEntity()}" type="strong"/></row-col>
             <row-col md="3" lg="3"><label text="Short Alias: ${entityDefinition.getShortAlias() ?: 'N/A'}" type="strong"/></row-col>
             <row-col md="3" lg="3"><label text="Table Name: ${entityDefinition.getFullTableName() ?: 'N/A'}" type="strong"/></row-col>
-            <row-col md="3" lg="3"><label text="Entity Group: ${entityNode.'@group-name' ?: '(default)'}" type="strong"/></row-col>
+            <row-col md="3" lg="3"><label text="Entity Group: ${entityNode.attribute('group-name') ?: '(default)'}" type="strong"/></row-col>
         </container-row>
         <container-row>
             <row-col md="3" lg="3"><label text="Needs Encrypt? ${entityDefinition.needsEncrypt()}" type="strong"/></row-col>
@@ -56,18 +56,18 @@ along with this software (see the LICENSE.md file). If not, see
         </container-row>
         <container-row>
             <row-col md="3" lg="3"><label text="Needs Audit Log? ${entityDefinition.needsAuditLog()}" type="strong"/></row-col>
-            <row-col md="3" lg="3"><label text="Entity Audit Default: ${entityNode.'@enable-audit-log' ?: 'false'}" type="strong"/></row-col>
+            <row-col md="3" lg="3"><label text="Entity Audit Default: ${entityNode.attribute('enable-audit-log') ?: 'false'}" type="strong"/></row-col>
         </container-row>
 
         <form-list name="FieldList" list="fieldNodes" list-entry="node">
-            <field name="fieldName" entry-name="node.'@name'"><default-field><display/></default-field></field>
-            <field name="type" entry-name="node.'@type'"><default-field><display/></default-field></field>
-            <field name="column" entry-name="entityDefinition.getColumnName(node.'@name', true)"><default-field><display/></default-field></field>
-            <field name="isPk" entry-name="node.'@is-pk'"><default-field title="Is PK"><display/></default-field></field>
-            <field name="audit" entry-name="node.'@enable-audit-log'"><default-field><display/></default-field></field>
-            <field name="encrypt" entry-name="node.'@encrypt'"><default-field><display/></default-field></field>
-            <field name="localize" entry-name="node.'@enable-localization'"><default-field><display/></default-field></field>
-            <field name="default" entry-name="node.'@default'"><default-field><display/></default-field></field>
+            <field name="fieldName" entry-name="node.attribute('name')"><default-field><display/></default-field></field>
+            <field name="type" entry-name="node.attribute('type')"><default-field><display/></default-field></field>
+            <field name="column" entry-name="entityDefinition.getColumnName(node.attribute('name'), true)"><default-field><display/></default-field></field>
+            <field name="isPk" entry-name="node.attribute('is-pk')"><default-field title="Is PK"><display/></default-field></field>
+            <field name="audit" entry-name="node.attribute('enable-audit-log')"><default-field><display/></default-field></field>
+            <field name="encrypt" entry-name="node.attribute('encrypt')"><default-field><display/></default-field></field>
+            <field name="localize" entry-name="node.attribute('enable-localization')"><default-field><display/></default-field></field>
+            <field name="default" entry-name="node.attribute('default')"><default-field><display/></default-field></field>
         </form-list>
         <form-list name="UserFieldList" list="userFieldList">
             <field name="fieldName"><default-field title="User Field"><display/></default-field></field>

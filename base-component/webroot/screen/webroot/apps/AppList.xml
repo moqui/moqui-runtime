@@ -33,7 +33,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <widgets>
                     <section name="ScreenItemRender">
                         <condition><expression>currentScreenDef != null &amp;&amp;
-                            !currentScreenDef?.getParameterMap() &amp;&amp; currentUrlInstance?.isPermitted()</expression></condition>
+                            !currentScreenDef.getParameterMap() &amp;&amp; currentUrlInstance?.isPermitted()</expression></condition>
                         <widgets>
                             <render-mode><text type="html"><![CDATA[
                                 <a href="${currentUrlInstance.url}" class="btn btn-primary app-list-link">
