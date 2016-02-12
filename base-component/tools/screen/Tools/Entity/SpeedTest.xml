@@ -61,27 +61,22 @@ along with this software (see the LICENSE.md file). If not, see
 
 
                 List<EntityCondition> conditionList = new ArrayList(calls)
-                for (int i = 0; i < calls; i++) {
+                for (int i = 0; i < calls; i++)
                     conditionList.add(ecf.makeCondition("enumId", EntityCondition.EQUALS, "_NA_"))
-                }
                 milliseconds = ((System.nanoTime() - startTime) / 1E6)
                 performanceList.add([operation: "create EntityCondition", entity: "moqui.basic.Enumeration",
                                      calls: calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
                                      callsPerSecond: ((calls / milliseconds) * 1000)])
 
                 startTime = System.nanoTime()
-                for (int i = 0; i < calls; i++) {
-                    testCache.put(conditionList[i], testEnumValue)
-                }
+                for (int i = 0; i < calls; i++) testCache.put(conditionList[i], testEnumValue)
                 milliseconds = ((System.nanoTime() - startTime) / 1E6)
                 performanceList.add([operation: "direct cache writes", entity: "moqui.basic.Enumeration",
                                      calls: calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
                                      callsPerSecond: ((calls / milliseconds) * 1000)])
 
                 startTime = System.nanoTime()
-                for (int i = 0; i < calls; i++) {
-                    testCache.get(conditionList[i])
-                }
+                for (int i = 0; i < calls; i++) testCache.get(conditionList[i])
                 milliseconds = ((System.nanoTime() - startTime) / 1E6)
                 performanceList.add([operation: "direct cache reads", entity: "moqui.basic.Enumeration",
                                      calls: calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
@@ -91,11 +86,11 @@ along with this software (see the LICENSE.md file). If not, see
                 sleep(sleepTime)
 
                 // one PK cache
+                ef.find("moqui.basic.Enumeration").condition("enumId", "_NA_").useCache(true).one() // get it in the cache first
                 calls = baseCallsNum
                 startTime = System.nanoTime()
-                for (int i = 0; i < calls; i++) {
+                for (int i = 0; i < calls; i++)
                     ef.find("moqui.basic.Enumeration").condition("enumId", "_NA_").useCache(true).one()
-                }
                 milliseconds = ((System.nanoTime() - startTime) / 1E6)
                 performanceList.add([operation: "one PK cache", entity: "moqui.basic.Enumeration",
                                      calls: calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
@@ -104,11 +99,31 @@ along with this software (see the LICENSE.md file). If not, see
                 // one PK
                 calls = baseCallsNum
                 startTime = System.nanoTime()
-                for (int i = 0; i < calls; i++) {
+                for (int i = 0; i < calls; i++)
                     ef.find("moqui.basic.Enumeration").condition("enumId", "_NA_").useCache(false).one()
-                }
                 milliseconds = ((System.nanoTime() - startTime) / 1E6)
                 performanceList.add([operation: "one PK", entity: "moqui.basic.Enumeration",
+                                     calls: calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
+                                     callsPerSecond: ((calls / milliseconds) * 1000)])
+
+                // list cache
+                ef.find("moqui.basic.Enumeration").condition("enumTypeId", "EntitySyncArtifactAppl").useCache(true).list() // get it in the cache first
+                calls = baseCallsNum
+                startTime = System.nanoTime()
+                for (int i = 0; i < calls; i++)
+                    ef.find("moqui.basic.Enumeration").condition("enumTypeId", "EntitySyncArtifactAppl").useCache(true).list()
+                milliseconds = ((System.nanoTime() - startTime) / 1E6)
+                performanceList.add([operation: "list cache by type", entity: "moqui.basic.Enumeration",
+                                     calls: calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
+                                     callsPerSecond: ((calls / milliseconds) * 1000)])
+
+                // list
+                calls = baseCallsNum
+                startTime = System.nanoTime()
+                for (int i = 0; i < calls; i++)
+                    ef.find("moqui.basic.Enumeration").condition("enumTypeId", "EntitySyncArtifactAppl").useCache(false).list()
+                milliseconds = ((System.nanoTime() - startTime) / 1E6)
+                performanceList.add([operation: "list by type", entity: "moqui.basic.Enumeration",
                                      calls: calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
                                      callsPerSecond: ((calls / milliseconds) * 1000)])
 
