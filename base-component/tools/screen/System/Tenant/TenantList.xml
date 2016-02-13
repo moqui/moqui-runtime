@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.6.xsd">
+
+    <transition name="tenantDetail"><default-response url="../TenantDetail"/></transition>
+
+    <actions>
+        <entity-find entity-name="moqui.tenant.TenantAndHostDefault" list="tenantList">
+            <search-form-inputs default-order-by="tenantId"/>
+            <select-field field-name="tenantId,tenantName,isEnabled,disabledDate"/>
+        </entity-find>
+    </actions>
+    <widgets>
+        <form-list name="TenantList" list="tenantList" skip-form="true">
+            <row-actions>
+                <entity-find entity-name="moqui.tenant.TenantHostDefault" list="hostDefaultList">
+                    <econdition field-name="tenantId"/></entity-find>
+            </row-actions>
+            <field name="tenantId">
+                <header-field title="ID" show-order-by="true"><text-find hide-options="true" size="8"/></header-field>
+                <default-field><link text="${tenantId}" url="tenantDetail" link-type="anchor"><parameter name="tenantId"/></link></default-field>
+            </field>
+            <field name="tenantName">
+                <header-field title="Name" show-order-by="true"><text-find hide-options="true" size="8"/></header-field>
+                <default-field><link text="${tenantName}" url="tenantDetail" link-type="anchor"><parameter name="tenantId"/></link></default-field>
+            </field>
+            <field name="isEnabled">
+                <header-field title="Enabled?" show-order-by="true">
+                    <drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="disabledDate">
+                <header-field show-order-by="true"><date-period allow-empty="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="hostName">
+                <header-field title="Host Name(s)"><text-find hide-options="true" size="20"/></header-field>
+                <default-field>
+                    <section-iterate name="HostDefaultList" list="hostDefaultList" entry="hostDefault"><widgets>
+                        <label text="${hostDefault.hostName}" type="div"/></widgets></section-iterate>
+                </default-field>
+            </field>
+            <field name="find"><header-field title="Find"><submit/></header-field></field>
+        </form-list>
+    </widgets>
+</screen>

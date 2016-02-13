@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.6.xsd">
+
+    <parameter name="tenantId" required="true"/>
+
+    <transition name="updateTenant"><service-call name="update#moqui.tenant.Tenant"/>
+        <default-response url="."/></transition>
+    <transition name="disableTenant"><service-call name="org.moqui.impl.TenantServices.disable#Tenant"/>
+        <default-response url="."/></transition>
+    <transition name="enableTenant"><service-call name="org.moqui.impl.TenantServices.enable#Tenant"/>
+        <default-response url="."/></transition>
+
+    <transition name="createHostDefault"><service-call name="create#moqui.tenant.TenantHostDefault"/>
+        <default-response url="."/></transition>
+    <transition name="updateHostDefault"><service-call name="update#moqui.tenant.TenantHostDefault"/>
+        <default-response url="."/></transition>
+    <transition name="deleteHostDefault"><service-call name="delete#moqui.tenant.TenantHostDefault"/>
+        <default-response url="."/></transition>
+
+    <transition name="createDataSource"><service-call name="create#moqui.tenant.TenantDataSource"/>
+        <default-response url="."/></transition>
+    <transition name="updateDataSource"><service-call name="update#moqui.tenant.TenantDataSource"/>
+        <default-response url="."/></transition>
+
+    <transition name="createDataSourceXaProp"><service-call name="create#moqui.tenant.TenantDataSourceXaProp"/>
+        <default-response url="."/></transition>
+    <transition name="updateDataSourceXaProp"><service-call name="update#moqui.tenant.TenantDataSourceXaProp"/>
+        <default-response url="."/></transition>
+    <transition name="deleteDataSourceXaProp"><service-call name="delete#moqui.tenant.TenantDataSourceXaProp"/>
+        <default-response url="."/></transition>
+
+    <actions>
+        <entity-find-one entity-name="moqui.tenant.Tenant" value-field="tenant"/>
+        <entity-find entity-name="moqui.tenant.TenantDataSource" list="dataSourceList">
+            <econdition field-name="tenantId"/><order-by field-name="entityGroupName"/></entity-find>
+        <entity-find entity-name="moqui.tenant.TenantHostDefault" list="hostDefaultList">
+            <econdition field-name="tenantId"/><order-by field-name="hostName"/></entity-find>
+    </actions>
+    <widgets>
+        <container-row><row-col lg="5">
+            <link url="disableTenant" text="Disable Tenant" condition="tenantId != 'DEFAULT' &amp;&amp; tenant.isEnabled == 'Y'"/>
+            <link url="enableTenant" text="Enable Tenant" condition="tenant.isEnabled == 'N'"/>
+
+            <form-single name="TenantDetail" map="tenant" transition="updateTenant">
+                <field name="tenantId"><default-field><display/></default-field></field>
+                <field name="tenantName"><default-field><text-line size="40"/></default-field></field>
+                <field name="isEnabled"><default-field title="Enabled?"><display/></default-field></field>
+                <field name="disabledDate"><default-field><display/></default-field></field>
+                <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+            </form-single>
+            <container-box>
+                <box-header><label text="Host Name Mappings" type="h5"/></box-header>
+                <box-toolbar><container-dialog id="AddHostDialog" button-text="Add Tenant Host">
+                    <form-single name="AddHostDefault" transition="createHostDefault">
+                        <field name="tenantId"><default-field><hidden/></default-field></field>
+                        <field name="hostName"><default-field><text-line size="30"/></default-field></field>
+                        <field name="allowOverride"><default-field title="Allow Override">
+                            <drop-down><option key="N"/><option key="Y"/></drop-down></default-field></field>
+                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog></box-toolbar>
+                <box-body>
+                    <form-list name="HostDefaultList" list="hostDefaultList" transition="updateHostDefault">
+                        <field name="tenantId"><default-field><hidden/></default-field></field>
+                        <field name="hostName"><default-field><display/></default-field></field>
+                        <field name="allowOverride"><default-field title="Allow Tenant Override at Host">
+                            <drop-down><option key="N"/><option key="Y"/></drop-down></default-field></field>
+                        <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                        <field name="deleteButton"><default-field title="">
+                            <link url="deleteHostDefault" text="Delete">
+                                <parameter name="tenantId"/><parameter name="hostName"/></link></default-field></field>
+                    </form-list>
+                </box-body>
+            </container-box>
+        </row-col><row-col lg="7">
+            <container-box>
+                <box-header><label text="Data Sources" type="h5"/></box-header>
+                <box-toolbar>
+                    <container-dialog id="AddDataSourceDialog" button-text="Add Standard">
+                        <form-single name="AddDataSource" transition="createDataSource">
+                            <field name="tenantId"><default-field><hidden/></default-field></field>
+                            <field name="entityGroupName"><default-field title="Entity Group">
+                                <drop-down><option key="transactional"/><option key="analytical"/>
+                                    <option key="nosql"/></drop-down>
+                            </default-field></field>
+                            <field name="submitButton"><default-field title="Add">
+                                <submit/></default-field></field>
+                        </form-single>
+                    </container-dialog>
+                    <container-dialog id="AddCustomDsDialog" button-text="Add Custom">
+                        <form-single name="AddCustomDataSource" transition="createDataSource">
+                            <field name="tenantId"><default-field><hidden/></default-field></field>
+                            <field name="entityGroupName"><default-field title="Entity Group">
+                                <text-line size="30"/></default-field></field>
+                            <field name="submitButton"><default-field title="Add">
+                                <submit/></default-field></field>
+                        </form-single>
+                    </container-dialog>
+                </box-toolbar>
+                <box-body>
+                    <section-iterate name="DataSourceList" list="dataSourceList" entry="dataSource">
+                        <actions>
+                            <entity-find entity-name="moqui.tenant.TenantDataSourceXaProp" list="xaPropList">
+                                <econdition field-name="tenantId"/>
+                                <econdition field-name="entityGroupName" from="dataSource.entityGroupName"/>
+                                <order-by field-name="propName"/>
+                            </entity-find>
+                        </actions>
+                        <widgets><container-box><box-header><label text="Entity Group: ${dataSource.entityGroupName}" type="h5"/></box-header><box-body>
+                            <form-single name="EditDataSource" map="dataSource" transition="updateDataSource">
+                                <field name="tenantId"><default-field><hidden/></default-field></field>
+                                <field name="entityGroupName"><default-field><hidden/></default-field></field>
+                                <field name="jndiName"><default-field title="JNDI Name">
+                                    <text-line size="40"/></default-field></field>
+                                <field name="jdbcUri"><default-field title="JDBC URI">
+                                    <text-line size="50"/></default-field></field>
+                                <field name="jdbcUsername"><default-field title="JDBC User">
+                                    <text-line size="20"/></default-field></field>
+                                <field name="jdbcPassword"><default-field title="Password">
+                                    <text-line size="20"/></default-field></field>
+                                <field name="defaultToConfProps"><default-field title="Use Default XA Props">
+                                    <drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down>
+                                </default-field></field>
+
+                                <field name="submitButton"><default-field title="Update">
+                                    <submit/></default-field></field>
+
+                                <field-layout>
+                                    <field-ref name="jndiName"/><field-ref name="jdbcUri"/>
+                                    <field-row><field-ref name="jdbcUsername"/><field-ref name="jdbcPassword"/></field-row>
+                                    <field-ref name="defaultToConfProps"/><field-ref name="submitButton"/>
+                                </field-layout>
+
+                                <!--
+                                <field-layout collapsible="true">
+                                    <field-ref name="entityGroupName"/>
+                                    <field-group title="XA"><field-ref name="defaultToConfProps"/></field-group>
+                                    <field-group title="JNDI"><field-ref name="jndiName"/></field-group>
+                                    <field-group title="JDBC"><field-ref name="jdbcUri"/><field-ref name="jdbcUsername"/>
+                                        <field-ref name="jdbcPassword"/></field-group>
+                                    <field-ref name="submitButton"/>
+                                </field-layout>
+                                -->
+                            </form-single>
+
+                            <container-dialog id="AddXaPropDialog" button-text="Add XA Property">
+                                <form-single name="AddXaProp" transition="createDataSourceXaProp">
+                                    <field name="tenantId"><default-field><hidden/></default-field></field>
+                                    <field name="entityGroupName" entry-name="dataSource.entityGroupName">
+                                        <default-field><hidden/></default-field></field>
+                                    <field name="propName"><default-field title="Name"><text-line size="20"/></default-field></field>
+                                    <field name="propValue"><default-field title="Value"><text-line size="50"/></default-field></field>
+                                    <field name="submitButton"><default-field title="Add">
+                                        <submit/></default-field></field>
+                                </form-single>
+                            </container-dialog>
+                            <form-list name="XaPropList" list="xaPropList" transition="updateDataSourceXaProp">
+                                <field name="tenantId"><default-field><hidden/></default-field></field>
+                                <field name="entityGroupName"><default-field><hidden/></default-field></field>
+                                <field name="propName"><default-field title="Name"><display/></default-field></field>
+                                <field name="propValue"><default-field title="XA Property Value"><text-line size="50"/></default-field></field>
+                                <field name="submitButton"><default-field title="Update">
+                                    <submit/></default-field></field>
+                                <field name="deleteButton"><default-field title="">
+                                    <link url="deleteDataSourceXaProp" text="X"
+                                            parameter-map="[tenantId:tenantId, entityGroupName:entityGroupName, propName:propName]"/>
+                                </default-field></field>
+                            </form-list>
+                        </box-body></container-box></widgets>
+                    </section-iterate>
+                </box-body>
+            </container-box>
+        </row-col></container-row>
+    </widgets>
+</screen>

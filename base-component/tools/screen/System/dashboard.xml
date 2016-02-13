@@ -45,6 +45,8 @@ along with this software (see the LICENSE.md file). If not, see
                         <link url="../Cache" text="Cache Stats and Mgmt"/>
                         <link url="../Scheduler" text="Job Scheduler"/>
                         <link url="../Print" text="Print Servers and Jobs"/>
+                        <!-- Tenant link is conditional, and Tenant screen locked to DEFAULT tenant -->
+                        <link url="../Tenant" text="Tenant Admin" condition="ec.tenantId == 'DEFAULT'"/>
                     </box-body>
                 </container-box>
                 <container-box>
