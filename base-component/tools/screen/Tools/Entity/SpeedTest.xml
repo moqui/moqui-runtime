@@ -151,7 +151,7 @@ along with this software (see the LICENSE.md file). If not, see
 
                     // create with sequenced ID test
                     startTime = System.nanoTime()
-                    List<EntityValue> createTestList = []
+                    ArrayList<EntityValue> createTestList = new ArrayList<EntityValue>(calls*2)
                     for (int i = 0; i < calls; i++) {
                         createTestList.add(ef.makeValue("moqui.test.TestEntity")
                                 .setFields([testMedium       : "Medium " + i,
@@ -183,7 +183,8 @@ along with this software (see the LICENSE.md file). If not, see
                     // update test
                     calls = createTestList.size()
                     startTime = System.nanoTime()
-                    for (EntityValue ev in createTestList) {
+                    for (int i = 0; i < calls; i++) {
+                        EntityValue ev = (EntityValue) createTestList.get(i)
                         ev.testMedium = (ev.testMedium as String) + " - Updated"
                         ev.update()
                     }
@@ -195,7 +196,8 @@ along with this software (see the LICENSE.md file). If not, see
                     // delete
                     calls = createTestList.size()
                     startTime = System.nanoTime()
-                    for (EntityValue ev in createTestList) {
+                    for (int i = 0; i < calls; i++) {
+                        EntityValue ev = (EntityValue) createTestList.get(i)
                         ev.delete()
                     }
                     milliseconds = ((System.nanoTime() - startTime) / 1E6)
@@ -213,11 +215,11 @@ along with this software (see the LICENSE.md file). If not, see
 
                     // create with sequenced ID test
                     startTime = System.nanoTime()
-                    List createTestIdList = []
+                    ArrayList<String> createTestIdList = new ArrayList<String>(calls)
                     for (int i = 0; i < calls; i++) {
                         createTestIdList.add(ec.service.sync().name("create", "moqui.test.TestEntity").parameters([
                                 testMedium       : "Medium " + i, testLong: "Long " + i, testIndicator: "Y", testDateTime: nowTs,
-                                testNumberInteger: i, testNumberDecimal: (i + 0.5)]).call().testId)
+                                testNumberInteger: i, testNumberDecimal: (i + 0.5)]).call().testId as String)
                     }
                     milliseconds = ((System.nanoTime() - startTime) / 1E6)
                     performanceList.add([operation     : "service create with sequenced ID", entity: "moqui.test.TestEntity",
@@ -227,7 +229,8 @@ along with this software (see the LICENSE.md file). If not, see
                     // update test
                     calls = createTestIdList.size()
                     startTime = System.nanoTime()
-                    for (String id in createTestIdList) {
+                    for (int i = 0; i < calls; i++) {
+                        String id = (String) createTestIdList.get(i)
                         ec.service.sync().name("update", "moqui.test.TestEntity").parameters([testId: id, testMedium: "Updated Text"]).call()
                     }
                     milliseconds = ((System.nanoTime() - startTime) / 1E6)
@@ -238,7 +241,8 @@ along with this software (see the LICENSE.md file). If not, see
                     // delete
                     calls = createTestIdList.size()
                     startTime = System.nanoTime()
-                    for (String id in createTestIdList) {
+                    for (int i = 0; i < calls; i++) {
+                        String id = (String) createTestIdList.get(i)
                         ec.service.sync().name("delete", "moqui.test.TestEntity").parameter("testId", id).call()
                     }
                     milliseconds = ((System.nanoTime() - startTime) / 1E6)
@@ -256,7 +260,7 @@ along with this software (see the LICENSE.md file). If not, see
 
                     // create with sequenced ID test
                     startTime = System.nanoTime()
-                    List<EntityValue> createNoSqlTestList = []
+                    ArrayList<EntityValue> createNoSqlTestList = new ArrayList<EntityValue>(calls*2)
                     for (int i = 0; i < calls; i++) {
                         EntityValue ev = ef.makeValue("moqui.test.TestNoSqlEntity")
                                 .setFields([testMedium       : "Medium " + i,
@@ -289,7 +293,8 @@ along with this software (see the LICENSE.md file). If not, see
                     // update test
                     calls = createNoSqlTestList.size()
                     startTime = System.nanoTime()
-                    for (EntityValue ev in createNoSqlTestList) {
+                    for (int i = 0; i < calls; i++) {
+                        EntityValue ev = (EntityValue) createNoSqlTestList.get(i)
                         ev.testMedium = (ev.testMedium as String) + " - Updated"
                         ev.update()
                     }
@@ -301,7 +306,8 @@ along with this software (see the LICENSE.md file). If not, see
                     // delete
                     calls = createNoSqlTestList.size()
                     startTime = System.nanoTime()
-                    for (EntityValue ev in createNoSqlTestList) {
+                    for (int i = 0; i < calls; i++) {
+                        EntityValue ev = (EntityValue) createNoSqlTestList.get(i)
                         ev.delete()
                     }
                     milliseconds = ((System.nanoTime() - startTime) / 1E6)
