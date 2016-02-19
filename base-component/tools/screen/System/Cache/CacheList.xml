@@ -19,6 +19,22 @@ along with this software (see the LICENSE.md file). If not, see
         <actions><script>ec.cache.getCache(cacheName).clear()</script></actions>
         <default-response url="."/>
     </transition>
+    <transition name="clearArtifactCaches">
+        <actions><script>
+            ['entity.definition', 'entity.location', 'entity.data.feed.info', 'service.location',
+            'service.java.class', 'kie.component.releaseId', 'screen.location', 'screen.url',
+            'screen.template.mode', 'screen.template.location', 'screen.find.path',
+            'resource.xml-actions.location', 'resource.groovy.location', 'resource.groovy.expression',
+            'resource.javascript.location', 'resource.ftl.location', 'resource.gstring.location',
+            'resource.wiki.location', 'resource.markdown.location', 'resource.text.location', 'resource.text.location',
+            'resource.reference.location', 'l10n.message'].each {
+                cacheName -> ec.cache.getCache(cacheName).clear()
+            }
+
+            ec.ecfi.warmCache()
+        </script></actions>
+        <default-response url="."/>
+    </transition>
     <transition name="clearAllCaches">
         <actions><script>ec.cache.clearAllCaches()</script></actions>
         <default-response url="."/>
@@ -33,6 +49,7 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <container>
             <link text="Clear All" url="clearAllCaches"/>
+            <link text="Clear All Artifact" url="clearArtifactCaches"/>
         </container>
         <form-list name="CacheList" list="cacheList">
             <field name="name">
