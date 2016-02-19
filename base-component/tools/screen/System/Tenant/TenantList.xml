@@ -16,6 +16,8 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-1.6.xsd">
 
     <transition name="tenantDetail"><default-response url="../TenantDetail"/></transition>
+    <transition name="provisionTenantDatabase"><service-call name="org.moqui.impl.TenantServices.provision#TenantDatabase"/>
+        <default-response url="."/></transition>
 
     <actions>
         <entity-find entity-name="moqui.tenant.TenantAndHostDefault" list="tenantList">
@@ -24,6 +26,34 @@ along with this software (see the LICENSE.md file). If not, see
         </entity-find>
     </actions>
     <widgets>
+        <container-dialog id="ProvisionTenantDialog" button-text="Provision Tenant">
+            <form-single name="ProvisionTenant" transition="provisionTenantDatabase">
+                <field name="tenantId"><default-field tooltip="This is the ID used at login (unless a host name is used) and the default name of the database">
+                    <text-line size="20"/></default-field></field>
+                <field name="tenantName"><default-field><text-line size="60"/></default-field></field>
+                <field name="isEnabled"><default-field>
+                    <drop-down><option key="Y"/><option key="N"/></drop-down></default-field></field>
+                <field name="dataLoadTypes"><default-field>
+                    <text-line size="60" default-value="seed,seed-initial,install"/></default-field></field>
+                <field name="hostName"><default-field tooltip="The full virtual host name, including top-level domain">
+                    <text-line size="40"/></default-field></field>
+                <field name="hostAllowOverride"><default-field tooltip="Allow different tenant on login when accessed through host name?">
+                    <drop-down><option key="N"/><option key="Y"/></drop-down></default-field></field>
+                <field name="databaseConfName"><default-field><drop-down>
+                    <option key="" text="Conf from 'transactional' group"/>
+                    <option key="mysql" text="MySQL"/><option key="h2" text="H2"/><option key="derby" text="Derby"/>
+                </drop-down></default-field></field>
+
+                <field name="username"><default-field title="Admin Username"><text-line size="30"/></default-field></field>
+                <field name="newPassword"><default-field title="Admin Password"><password size="20"/></default-field></field>
+                <field name="newPasswordVerify"><default-field title="Admin Password Verify"><password size="20"/></default-field></field>
+                <field name="userFullName"><default-field title="Admin Full Name"><text-line size="60"/></default-field></field>
+                <field name="emailAddress"><default-field title="Admin Email"><text-line size="60"/></default-field></field>
+
+                <field name="submitButton"><default-field title="Provision"><submit/></default-field></field>
+            </form-single>
+        </container-dialog>
+
         <form-list name="TenantList" list="tenantList" skip-form="true">
             <row-actions>
                 <entity-find entity-name="moqui.tenant.TenantHostDefault" list="hostDefaultList">
