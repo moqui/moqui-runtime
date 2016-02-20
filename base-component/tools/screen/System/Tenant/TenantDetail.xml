@@ -24,6 +24,9 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="enableTenant"><service-call name="org.moqui.impl.TenantServices.enable#Tenant"/>
         <default-response url="."/></transition>
 
+    <transition name="createTenantAdminAccount"><service-call name="org.moqui.impl.TenantServices.create#TenantAdminAccount"/>
+        <default-response url="."/></transition>
+
     <transition name="createHostDefault"><service-call name="create#moqui.tenant.TenantHostDefault"/>
         <default-response url="."/></transition>
     <transition name="updateHostDefault"><service-call name="update#moqui.tenant.TenantHostDefault"/>
@@ -54,6 +57,19 @@ along with this software (see the LICENSE.md file). If not, see
         <container-row><row-col lg="5">
             <link url="disableTenant" text="Disable Tenant" condition="tenantId != 'DEFAULT' &amp;&amp; tenant.isEnabled == 'Y'"/>
             <link url="enableTenant" text="Enable Tenant" condition="tenant.isEnabled == 'N'"/>
+            <container-dialog id="CreateTenantAdminDialog" button-text="Create Admin Account">
+                <form-single name="CreateTenantAdminAccount" transition="createTenantAdminAccount">
+                    <field name="tenantId"><default-field><hidden/></default-field></field>
+
+                    <field name="username"><default-field title="Admin Username"><text-line size="30"/></default-field></field>
+                    <field name="newPassword"><default-field title="Admin Password"><password size="20"/></default-field></field>
+                    <field name="newPasswordVerify"><default-field title="Admin Password Verify"><password size="20"/></default-field></field>
+                    <field name="userFullName"><default-field title="Admin Full Name"><text-line size="60"/></default-field></field>
+                    <field name="emailAddress"><default-field title="Admin Email"><text-line size="60"/></default-field></field>
+
+                    <field name="submitButton"><default-field title="Create Admin"><submit/></default-field></field>
+                </form-single>
+            </container-dialog>
 
             <form-single name="TenantDetail" map="tenant" transition="updateTenant">
                 <field name="tenantId"><default-field><display/></default-field></field>
