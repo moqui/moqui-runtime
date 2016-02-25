@@ -19,15 +19,20 @@ along with this software (see the LICENSE.md file). If not, see
 
     <transition name="clearCacheElement">
         <actions>
-            <script>
+            <script><![CDATA[
                 org.moqui.context.Cache theCache = ec.cache.getCache(cacheName)
-                if (theCache.containsKey(key)) {
-                    Object cacheValue = theCache.remove(key)
-                    ec.message.addMessage("Cleared [${key}] from cache [${cacheName}] had value [${cacheValue}]")
-                } else {
-                    ec.message.addError("No entry with key [${key}] in cache [${cacheName}]")
+                // key is a String containsKey not work
+                net.sf.ehcache.Ehcache ehc = theCache.getInternalCache()
+                List<Object> keys = (List<Object>) ehc.getKeys()
+                for (Object keyObj in keys) {
+                    if (key == (keyObj as String)) {
+                        Object cacheValue = theCache.remove(keyObj)
+                        ec.message.addMessage("Cleared [${key}] from cache [${cacheName}] had value [${cacheValue}]")
+                        return
+                    }
                 }
-            </script>
+                ec.message.addError("No entry with key [${key}] in cache [${cacheName}]")
+            ]]></script>
         </actions>
         <default-response url="."/>
     </transition>
