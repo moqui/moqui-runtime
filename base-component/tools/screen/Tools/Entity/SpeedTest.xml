@@ -25,6 +25,8 @@ along with this software (see the LICENSE.md file). If not, see
             import org.moqui.entity.EntityValue
             import org.moqui.entity.EntityCondition
             import org.moqui.entity.EntityConditionFactory
+            import org.moqui.screen.ScreenTest
+
             import java.text.DecimalFormat
             import java.sql.Timestamp
             import org.slf4j.Logger
@@ -47,6 +49,7 @@ along with this software (see the LICENSE.md file). If not, see
                 boolean directCrudTests = true
                 boolean serviceCrudTests = true
                 boolean directNoSqlCrudTests = true
+                boolean screenRenderTests = true
 
                 EntityFacade ef = ec.entity
                 Timestamp nowTs = new Timestamp(System.currentTimeMillis())
@@ -151,7 +154,7 @@ along with this software (see the LICENSE.md file). If not, see
 
                     // create with sequenced ID test
                     startTime = System.nanoTime()
-                    ArrayList<EntityValue> createTestList = new ArrayList<EntityValue>(calls*2)
+                    ArrayList<EntityValue> createTestList = new ArrayList<EntityValue>(calls * 2)
                     for (int i = 0; i < calls; i++) {
                         createTestList.add(ef.makeValue("moqui.test.TestEntity")
                                 .setFields([testMedium       : "Medium " + i,
@@ -260,7 +263,7 @@ along with this software (see the LICENSE.md file). If not, see
 
                     // create with sequenced ID test
                     startTime = System.nanoTime()
-                    ArrayList<EntityValue> createNoSqlTestList = new ArrayList<EntityValue>(calls*2)
+                    ArrayList<EntityValue> createNoSqlTestList = new ArrayList<EntityValue>(calls * 2)
                     for (int i = 0; i < calls; i++) {
                         EntityValue ev = ef.makeValue("moqui.test.TestNoSqlEntity")
                                 .setFields([testMedium       : "Medium " + i,
@@ -314,6 +317,32 @@ along with this software (see the LICENSE.md file). If not, see
                     performanceList.add([operation     : "direct delete", entity: "moqui.test.TestNoSqlEntity",
                                          calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
                                          callsPerSecond: ((calls / milliseconds) * 1000)])
+                }
+
+                // ========== Screen Render tests ==========
+                if (screenRenderTests) {
+                    boolean tarpitAlreadyDisabled = ec.artifactExecution.disableTarpit()
+
+                    calls = (baseCallsNum / 100).intValue()
+                    ScreenTest screenTest = ec.screen.makeTest().baseScreenPath("apps/system")
+
+                    // Render Dashboard (simple screen, mostly screen overhead)
+                    startTime = System.nanoTime()
+                    for (int i = 0; i < calls; i++) screenTest.render("dashboard", null, null)
+                    milliseconds = ((System.nanoTime() - startTime) / 1E6)
+                    performanceList.add([operation     : "Render System Dashboard Screen", entity: "",
+                                         calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
+                                         callsPerSecond: ((calls / milliseconds) * 1000)])
+
+                    // Render ArtifactHitSummary
+                    startTime = System.nanoTime()
+                    for (int i = 0; i < calls; i++) screenTest.render("ArtifactHitSummary", null, null)
+                    milliseconds = ((System.nanoTime() - startTime) / 1E6)
+                    performanceList.add([operation     : "Render System Dashboard Screen", entity: "",
+                                         calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
+                                         callsPerSecond: ((calls / milliseconds) * 1000)])
+
+                    if (!tarpitAlreadyDisabled) ec.artifactExecution.enableTarpit()
                 }
 
                 return performanceList
