@@ -324,6 +324,7 @@ along with this software (see the LICENSE.md file). If not, see
                     boolean tarpitAlreadyDisabled = ec.artifactExecution.disableTarpit()
 
                     calls = (baseCallsNum / 100).intValue()
+                    if (calls == 0) calls = 1
                     ScreenTest screenTest = ec.screen.makeTest().baseScreenPath("apps/system")
 
                     // Render Dashboard (simple screen, mostly screen overhead)
@@ -338,7 +339,7 @@ along with this software (see the LICENSE.md file). If not, see
                     startTime = System.nanoTime()
                     for (int i = 0; i < calls; i++) screenTest.render("ArtifactHitSummary", null, null)
                     milliseconds = ((System.nanoTime() - startTime) / 1E6)
-                    performanceList.add([operation     : "Render System Dashboard Screen", entity: "",
+                    performanceList.add([operation     : "Render System ArtifactHitSummary Screen", entity: "",
                                          calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
                                          callsPerSecond: ((calls / milliseconds) * 1000)])
 
