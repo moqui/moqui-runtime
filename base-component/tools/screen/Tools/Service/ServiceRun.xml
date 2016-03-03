@@ -62,9 +62,9 @@ along with this software (see the LICENSE.md file). If not, see
         <section name="ServiceParametersSection" condition="serviceName"><widgets>
             <label text="Run Service: ${serviceName}" type="h3"/>
             <form-single name="ServiceParameters" transition="run" dynamic="true">
-                <auto-fields-service service-name="${serviceName}" field-type="edit"/>
                 <field name="serviceName"><default-field><hidden/></default-field></field>
                 <field name="doingRun"><default-field><hidden default-value="Y"/></default-field></field>
+                <auto-fields-service service-name="${serviceName}" include="in" field-type="edit"/>
                 <field name="submitButton"><default-field title="Run Service"><submit/></default-field></field>
 
                 <field name="cronString"><default-field tooltip="Enter a cron string to schedule instead of running immediately">
