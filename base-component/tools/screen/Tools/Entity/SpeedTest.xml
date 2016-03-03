@@ -39,10 +39,10 @@ along with this software (see the LICENSE.md file). If not, see
             baseCalls = baseCalls ?: '1000'
             baseCallsNum = ec.l10n.parseNumber(baseCalls, '') as int
 
-            performanceList = runTests(baseCallsNum, context.ec)
+            performanceList = runTests(baseCallsNum, context.ec, logger)
 
             @CompileStatic
-            List runTests(int baseCallsNum, ExecutionContext ec) {
+            List runTests(int baseCallsNum, ExecutionContext ec, Logger logger) {
                 boolean generalCacheTests = true
                 boolean findCacheTests = true
                 boolean findTests = true
@@ -323,8 +323,7 @@ along with this software (see the LICENSE.md file). If not, see
                 if (screenRenderTests) {
                     boolean tarpitAlreadyDisabled = ec.artifactExecution.disableTarpit()
 
-                    calls = (baseCallsNum / 100).intValue()
-                    if (calls == 0) calls = 1
+                    calls = (baseCallsNum / 100).intValue() ?: 1
                     ScreenTest screenTest = ec.screen.makeTest().baseScreenPath("apps/system")
 
                     // Render Dashboard (simple screen, mostly screen overhead)
@@ -342,6 +341,20 @@ along with this software (see the LICENSE.md file). If not, see
                     performanceList.add([operation     : "Render System ArtifactHitSummary Screen", entity: "",
                                          calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
                                          callsPerSecond: ((calls / milliseconds) * 1000)])
+
+                    logger.info("Rendered ${screenTest.renderCount} screens (${screenTest.errorCount} errors) in ${ec.l10n.format(milliseconds/1000, "0.000")}s, output ${ec.l10n.format(screenTest.renderTotalChars/1000, "#,##0")}k chars")
+
+                    // Get default.css
+                    calls = (baseCallsNum / 10).intValue() ?: 1
+                    ScreenTest screenTestRoot = ec.screen.makeTest()
+                    startTime = System.nanoTime()
+                    for (int i = 0; i < calls; i++) screenTestRoot.render("css/default.css", null, null)
+                    milliseconds = ((System.nanoTime() - startTime) / 1E6)
+                    performanceList.add([operation     : "Get default.css", entity: "",
+                                         calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
+                                         callsPerSecond: ((calls / milliseconds) * 1000)])
+
+                    logger.info("Rendered ${screenTestRoot.renderCount} screens (${screenTestRoot.errorCount} errors) in ${ec.l10n.format(milliseconds/1000, "0.000")}s, output ${ec.l10n.format(screenTestRoot.renderTotalChars/1000, "#,##0")}k chars")
 
                     if (!tarpitAlreadyDisabled) ec.artifactExecution.enableTarpit()
                 }
