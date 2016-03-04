@@ -38,6 +38,9 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
+        <if condition="!ec.cache.cacheExists(cacheName) || (ec.tenantId != 'DEFAULT' &amp;&amp; !cacheName.startsWith(ec.tenantId + '__'))">
+            <return error="true" message="Cache with name ${cacheName} not found"/></if>
+
         <set field="pageSize" from="pageSize ?: 40"/>
         <set field="cacheElementList" from="ec.cache.getCache(cacheName)?.makeElementInfoList(orderByField?:'+key')"/>
         <script>StupidUtilities.paginateList("cacheElementList", null, context)</script>
