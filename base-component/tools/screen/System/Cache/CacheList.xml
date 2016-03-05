@@ -44,13 +44,20 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
-        <set field="cacheList" from="ec.cache.getAllCachesInfo(orderByField?:'+name')"/>
+        <set field="cacheList" from="ec.cache.getAllCachesInfo(orderByField?:'+name', filterRegexp)"/>
+        <set field="pageSize" from="pageSize ?: '40'"/>
+        <script>StupidUtilities.paginateList("cacheList", null, context)</script>
     </actions>
     <widgets>
         <container>
             <link text="Clear All" url="clearAllCaches"/>
             <link text="Clear All Artifact" url="clearArtifactCaches"/>
         </container>
+        <form-single name="FilterForm" transition=".">
+            <field name="filterRegexp"><default-field><text-line size="30"/></default-field></field>
+            <field name="submitButton"><default-field title="Filter"><submit/></default-field></field>
+            <field-layout><field-row-big><field-ref name="filterRegexp"/><field-ref name="submitButton"/></field-row-big></field-layout>
+        </form-single>
         <form-list name="CacheList" list="cacheList">
             <field name="name">
                 <header-field show-order-by="true"/>
