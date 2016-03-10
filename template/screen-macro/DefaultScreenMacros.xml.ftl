@@ -14,6 +14,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro attributeValue textValue>${Static["org.moqui.impl.StupidUtilities"].encodeForXmlAttribute(textValue)}</#macro>
 
 <#macro @element><#-- Doing nothing for element ${.node?node_name}, not yet implemented. --></#macro>
+<#macro screen><#recurse></#macro>
 <#macro widgets>
 <#if .node?parent?node_name == "screen"><${sri.getActiveScreenDef().getScreenName()}></#if>
 <#recurse>

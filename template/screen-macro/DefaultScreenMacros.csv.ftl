@@ -20,6 +20,7 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 
 <#macro @element><#-- do nothing for unknown elements --></#macro>
+<#macro screen><#recurse></#macro>
 <#macro widgets><#recurse></#macro>
 <#macro "fail-widgets"><#recurse></#macro>
 
