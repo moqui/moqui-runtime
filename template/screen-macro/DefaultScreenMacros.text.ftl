@@ -13,6 +13,7 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro @element></#macro>
 
+<#macro screen><#recurse></#macro>
 <#macro widgets><#recurse></#macro>
 <#macro "fail-widgets"><#recurse></#macro>
 

@@ -15,6 +15,7 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro @element><fo:block>=== Doing nothing for element ${.node?node_name}, not yet implemented. ===</fo:block></#macro>
 
+<#macro screen><#recurse></#macro>
 <#macro widgets>
 <#if sri.doBoundaryComments()><!-- BEGIN screen[@location=${sri.getActiveScreenDef().location}].widgets --></#if>
 <#recurse>
