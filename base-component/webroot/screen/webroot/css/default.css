@@ -249,6 +249,9 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .navbar-inverse .navbar-nav > li > a { font-size: 1.1em; color: #BBB; }
 .navbar-inverse .navbar-nav > li > a:hover, .navbar-inverse .navbar-nav > li > a:focus { color: #fff; background-color: transparent; }
 
+/* Note that the navbar is 50px tall */
+.navbar-brand img { height: 30px; margin: 10px; }
+
 .nav>li>a.btn-sm { padding: 5px 10px; }
 
 /* ================ Other, Fix Styles =============== */
