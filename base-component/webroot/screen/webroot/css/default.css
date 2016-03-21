@@ -328,6 +328,8 @@ form.editable-form button { background: white; color: #333; border: 1px solid; b
 .bg-light .table-striped>tbody>tr:nth-child(odd)>td { background-color: rgba(243, 243, 243, 0.5); }
 .bg-light .table-hover > tbody > tr:hover > td { background-color: rgba(234, 234, 234, 0.5); }
 
+#wiki-page-area th, #wiki-page-area td { padding: 2px 4px 2px 4px; border: thin solid lightgrey; }
+
 .CodeMirror, .CodeMirror-scroll { min-height: 600px; min-width: 800px; }
 
 /* #content has white-space: nowrap, which is an annoying thing for all to inherit */
