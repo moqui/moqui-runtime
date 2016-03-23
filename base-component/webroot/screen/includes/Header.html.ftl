@@ -11,17 +11,17 @@
     <title><#if html_title?has_content>${html_title}<#else><#-- ${ec.l10n.localize((ec.tenant.tenantName)!'Moqui')}--><#if parentMenuName?has_content>${ec.resource.expand(parentMenuName, "")} - </#if><#if defaultMenuName?has_content>${ec.resource.expand(defaultMenuName, "")}</#if></#if></title>
     <link rel="apple-touch-icon" href="/MoquiLogo100.png"/>
 <#-- Style Sheets -->
-<#list sri.getThemeValues("STRT_STYLESHEET") as styleSheetLocation>
-    <link rel="stylesheet" href="${sri.buildUrl(styleSheetLocation).url}" type="text/css">
-</#list>
 <#list html_stylesheets?if_exists as styleSheetLocation>
     <link rel="stylesheet" href="${sri.buildUrl(styleSheetLocation).url}" type="text/css">
 </#list>
+<#list sri.getThemeValues("STRT_STYLESHEET") as styleSheetLocation>
+    <link rel="stylesheet" href="${sri.buildUrl(styleSheetLocation).url}" type="text/css">
+</#list>
 <#-- JavaScript -->
-<#list sri.getThemeValues("STRT_SCRIPT") as scriptLocation>
+<#list html_scripts?if_exists as scriptLocation>
     <script language="javascript" src="${sri.buildUrl(scriptLocation).url}" type="text/javascript"></script>
 </#list>
-<#list html_scripts?if_exists as scriptLocation>
+<#list sri.getThemeValues("STRT_SCRIPT") as scriptLocation>
     <script language="javascript" src="${sri.buildUrl(scriptLocation).url}" type="text/javascript"></script>
 </#list>
 <#-- Icon -->
