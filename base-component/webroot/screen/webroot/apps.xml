@@ -47,6 +47,10 @@ along with this software (see the LICENSE.md file). If not, see
         // Prime UI
         html_scripts.add('/primeui/primeui.min.js')
         html_stylesheets.add('/primeui/primeui.min.css')
+        // Bootstrap
+        html_scripts.add('/bootstrap/bootstrap.min.js')
+        html_stylesheets.add('/bootstrap/bootstrap.min.css')
+
         // Other
         html_scripts.add('/js/jquery-jeditable-1.7.1.min.js')
     ]]></script></pre-actions>

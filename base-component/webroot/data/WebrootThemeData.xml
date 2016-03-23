@@ -16,6 +16,8 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- Default Theme Extensions (rest of the theme defined in ScreenEntities.xml) -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="10" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="/primeui/themes/delta/theme.css"/>
+    <!-- try without this for now: <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="11" resourceTypeEnumId="STRT_STYLESHEET"
+            resourceValue="/bootstrap/bootstrap-theme.min.css"/> -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="20" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="/css/default.css"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="100" resourceTypeEnumId="STRT_HEADER_LOGO"
