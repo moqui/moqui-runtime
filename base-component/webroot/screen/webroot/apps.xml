@@ -37,70 +37,79 @@ along with this software (see the LICENSE.md file). If not, see
                 menu-title="Tools" menu-index="99"/>
     </subscreens>
 
+    <pre-actions><script><![CDATA[
+        // jQuery/UI
+        html_scripts.add('/primeui/jquery.min.js')
+        html_scripts.add('/primeui/jquery-ui.min.js')
+        html_stylesheets.add('/primeui/jquery-ui.min.css')
+        // Font Awesome
+        html_stylesheets.add('/primeui/font-awesome/css/font-awesome.min.css')
+        // Prime UI
+        html_scripts.add('/primeui/primeui.min.js')
+        html_stylesheets.add('/primeui/primeui.min.css')
+        // Other
+        html_scripts.add('/js/jquery-jeditable-1.7.1.min.js')
+    ]]></script></pre-actions>
+
     <widgets>
-        <container id="wrap"><!-- note: no "bg-light lter" or "bg-dark dk" styles here, on body -->
-            <container id="top">
-                <render-mode><text type="html" location="component://webroot/screen/includes/navbar.html.ftl"/></render-mode>
-                <subscreens-menu type="popup" id="header-menu" title="Application"/>
-            </container>
-            <!-- <container id="left"></container> -->
-            <container id="content">
-                <!-- <container style="outer"> -->
-                    <container style="inner">
-                        <section name="MessagesSection"><widgets>
-                            <section-iterate name="headerMessages" list="ec.message.messages" entry="message">
-                                <widgets>
-                                    <render-mode><text type="html"><![CDATA[<div class="alert alert-success fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
-                                    <label text="${message}" type="h4"/>
-                                    <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
-                                </widgets>
-                            </section-iterate>
-                            <section-iterate name="headerErrors" list="ec.message.errors" entry="errorMessage">
-                                <widgets>
-                                    <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
-                                    <label text="${errorMessage}" type="h4"/>
-                                    <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
-                                </widgets>
-                            </section-iterate>
-                            <section-iterate name="headerValidationErrors" list="ec.message.validationErrors" entry="validationError">
-                                <!-- TODO: put these by fields instead of in header -->
-                                <widgets>
-                                    <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
-                                    <label text="${validationError.message} (for field ${validationError.field})" type="h4"/>
-                                    <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
-                                </widgets>
-                            </section-iterate>
+        <container id="top">
+            <render-mode><text type="html" location="component://webroot/screen/includes/navbar.html.ftl"/></render-mode>
+            <subscreens-menu type="popup" id="header-menu" title="Application"/>
+        </container>
+        <container id="content">
+            <container style="inner">
+                <section name="MessagesSection"><widgets>
+                    <section-iterate name="headerMessages" list="ec.message.messages" entry="message">
+                        <widgets>
+                            <render-mode><text type="html"><![CDATA[<div class="alert alert-success fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                            <label text="${message}" type="h4"/>
+                            <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+                        </widgets>
+                    </section-iterate>
+                    <section-iterate name="headerErrors" list="ec.message.errors" entry="errorMessage">
+                        <widgets>
+                            <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                            <label text="${errorMessage}" type="h4"/>
+                            <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+                        </widgets>
+                    </section-iterate>
+                    <section-iterate name="headerValidationErrors" list="ec.message.validationErrors" entry="validationError">
+                        <!-- TODO: put these by fields instead of in header -->
+                        <widgets>
+                            <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                            <label text="${validationError.message} (for field ${validationError.field})" type="h4"/>
+                            <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+                        </widgets>
+                    </section-iterate>
 
-                            <section-iterate name="headerSavedMessages" list="ec.web?.savedMessages" entry="message">
-                                <widgets>
-                                    <render-mode><text type="html"><![CDATA[<div class="alert alert-success fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
-                                    <label text="${message}" type="h4"/>
-                                    <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
-                                </widgets>
-                            </section-iterate>
-                            <section-iterate name="headerSavedErrors" list="ec.web?.savedErrors" entry="errorMessage">
-                                <widgets>
-                                    <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
-                                    <label text="${errorMessage}" type="h4"/>
-                                    <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
-                                </widgets>
-                            </section-iterate>
-                            <section-iterate name="headerSavedValidationErrors" list="ec.web?.savedValidationErrors" entry="validationError">
-                                <!-- TODO: put these by fields instead of in header -->
-                                <widgets>
-                                    <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
-                                    <label text="${validationError.message} (for field ${validationError.field})" type="h4"/>
-                                    <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
-                                </widgets>
-                            </section-iterate>
-                        </widgets></section>
+                    <section-iterate name="headerSavedMessages" list="ec.web?.savedMessages" entry="message">
+                        <widgets>
+                            <render-mode><text type="html"><![CDATA[<div class="alert alert-success fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                            <label text="${message}" type="h4"/>
+                            <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+                        </widgets>
+                    </section-iterate>
+                    <section-iterate name="headerSavedErrors" list="ec.web?.savedErrors" entry="errorMessage">
+                        <widgets>
+                            <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                            <label text="${errorMessage}" type="h4"/>
+                            <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+                        </widgets>
+                    </section-iterate>
+                    <section-iterate name="headerSavedValidationErrors" list="ec.web?.savedValidationErrors" entry="validationError">
+                        <!-- TODO: put these by fields instead of in header -->
+                        <widgets>
+                            <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                            <label text="${validationError.message} (for field ${validationError.field})" type="h4"/>
+                            <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+                        </widgets>
+                    </section-iterate>
+                </widgets></section>
 
-                        <subscreens-active/>
-                    </container>
-                <!-- </container> -->
+                <subscreens-active/>
             </container>
         </container>
-        <container id="footer" style="Footer bg-dark dker">
+        <container id="footer" style="Footer bg-dark">
             <render-mode><text type="html"><![CDATA[
                     <#assign footerItemList = sri.getThemeValues("STRT_FOOTER_ITEM")>
                     <div id="apps-footer-content">

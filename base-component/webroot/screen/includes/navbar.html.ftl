@@ -1,5 +1,4 @@
 
-<!-- .navbar -->
 <nav class="navbar navbar-inverse navbar-fixed-top"><#-- navbar-static-top -->
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
@@ -16,26 +15,9 @@
         <#if headerTitleList?has_content><div class="navbar-text">${ec.resource.expand(headerTitleList?first, "")}</div></#if>
     </header>
     <div id="navbar-buttons" class="collapse navbar-collapse navbar-ex1-collapse">
-        <!-- .nav -->
         <ul id="header-menus" class="nav navbar-nav">
             <#-- NOTE: menu drop-downs are appended here using JS as subscreens render, so this is empty -->
-
-            <#-- Alternate menu code, show menus/submenus instead of breadcrumb menus (the current approach):
-            <#assign menuTitle = sri.getActiveScreenDef().getDefaultMenuName()!"Menu">
-            <#assign menuUrlInfo = sri.buildUrl("")> ${menuUrlInfo.minimalPathUrlWithParams}
-            <li class='dropdown'>
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">${menuTitle}<b class="caret"></b></a>
-                <ul class="dropdown-menu">
-                <#list sri.getActiveScreenDef().getMenuSubscreensItems() as subscreensItem>
-                    <#assign urlInfo = sri.buildUrl(subscreensItem.name)>
-                    <#if urlInfo.isPermitted()>
-                        <li class="<#if urlInfo.inCurrentScreenPath>active</#if>"><a href="<#if urlInfo.disableLink>#<#else>${urlInfo.minimalPathUrlWithParams}</#if>">${ec.l10n.localize(subscreensItem.menuTitle)}</a></li>
-                    </#if>
-                </#list>
-                </ul>
-            </li>
-            -->
-        </ul><!-- /.nav -->
+        </ul>
         <div id="navbar-menu-crumbs"></div>
         <div class="navbar-text">${html_title!(ec.resource.expand(sri.screenUrlInfo.targetScreen.getDefaultMenuName()!"Page", ""))}</div>
         <#-- logout button -->
@@ -80,34 +62,12 @@
         <script>
             $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
             function switchDarkLight() {
-                $("body").toggleClass("bg-dark dk");
-                $("body").toggleClass("bg-light lter");
-                var currentStyle = $("body").hasClass("bg-dark dk") ? "bg-dark dk" : "bg-light lter";
+                $("body").toggleClass("bg-dark");
+                $("body").toggleClass("bg-light");
+                var currentStyle = $("body").hasClass("bg-dark") ? "bg-dark" : "bg-light";
                 $.ajax({ type:'POST', url:'/apps/setPreference', data:{ 'moquiSessionToken': '${ec.web.sessionToken}','preferenceKey': 'OUTER_STYLE', 'preferenceValue': currentStyle }, dataType:'json' });
             }
         </script>
     </div>
-  </div> <!-- container-fluid -->
-</nav><!-- /.navbar -->
-
-<#-- A header below the navbar, commented as not used by default:
-<header class="head">
-    <div class="search-bar">
-        <a data-original-title="Show/Hide Menu" data-placement="bottom" data-tooltip="tooltip" class="accordion-toggle btn btn-primary btn-sm visible-xs" data-toggle="collapse" href="#menu" id="menu-toggle">
-            <i class="fa fa-expand"></i>
-        </a>
-        <form class="main-search">
-            <div class="input-group">
-                <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
-                <input type="text" class="input-small form-control" placeholder="Live Search ...">
-                <span class="input-group-btn">
-                    <button class="btn btn-primary btn-sm text-muted" type="button"><i class="fa fa-search"></i></button>
-                </span>
-            </div>
-        </form>
-    </div>
-    <div class="main-bar">
-        <h3>${html_title!((sri.screenUrlInfo.targetScreen.getDefaultMenuName())!"Page")}</h3>
-    </div>
-</header>
--->
+  </div>
+</nav>

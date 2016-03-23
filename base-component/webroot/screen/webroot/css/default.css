@@ -23,6 +23,11 @@ div.error span { color: red; }
 
 #apps-footer-content { margin: 5px 0 0 0; text-align: center; }
 
+/* ========== main background styles, light/dark switch ========== */
+
+.bg-dark { background-color: #3a3a3a !important; color: #ffffff !important; }
+.bg-light { background-color: #ffffff !important; color: #333333 !important; }
+
 /* ====================== headings, general ====================== */
 
 strong { font-weight: bold; }
