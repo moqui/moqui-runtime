@@ -15,25 +15,28 @@
 
 /* ========================== body, etc ========================== */
 
+html, body { height: 100%; }
 body { padding-top: 51px; } /* this is the initial load setting, will get set dynamically for navbar-fixed-top */
 
-div.message { width: 600px; margin: 2px auto 2px auto; border: 1px solid #DDDDDF; padding: 2px; text-align: center; background: transparent; }
-div.message span { font-size: 1em; }
-div.error span { color: red; }
-
 /* #top, #content>.inner, #footer are the main page structure elements */
-#content { overflow: visible; background: transparent; }
-.inner { overflow: visible; background: transparent; padding: 10px; border: 0; }
-#footer { margin: 0 auto; color: #f4f4f4; border-top: 1px solid #222; position: absolute; bottom: 0; width: 100%; height: 48px; }
+#content { overflow: visible; background: transparent; min-height: 100%; }
+/* inner contains a bootstrap container-fluid div which has 16px left/right padding */
+.inner { overflow: visible; background: transparent; border: 0; padding: 16px 0 58px 0; /* padding bottom is footer height (48) plus 10px */ }
+#footer { color: #f4f4f4; border-top: 1px solid #222; width: 100%;
+    position: relative; height: 48px; margin: -48px auto 0 auto; /* negative value of footer height */ }
 #footer p { padding: 0.2em 0 0 0; font-size: 0.9em; margin: 0; text-align: center; }
 
 #apps-footer-content { margin-top: 4px; text-align: center; }
 
 /* main background styles, light/dark switch */
-.bg-dark { background-color: #3a3a3a !important; color: #ffffff !important; }
+.bg-dark { background-color: #3a3a3a !important; color: #f5f5f5 !important; }
 .bg-light { background-color: #ffffff !important; color: #333333 !important; }
 
 /* ====================== headings, general ====================== */
+
+div.message { width: 600px; margin: 2px auto 2px auto; border: 1px solid #DDDDDF; padding: 2px; text-align: center; background: transparent; }
+div.message span { font-size: 1em; }
+div.error span { color: red; }
 
 strong { font-weight: bold; }
 tt, pre, pre code { font-family: "Courier New", Courier, monospace; }
@@ -55,7 +58,7 @@ a.disabled { pointer-events: none; text-decoration: none; }
 
 input:required:invalid, input:invalid, textarea:invalid { background-color: #FEE; }
 input:focus:valid, textarea:focus:valid { background-color: #EEE; }
-input { color: #000; }
+/* input { color: #000; } */
 
 .form-list-outer th { text-align: left; padding: 0 4px 0 2px; }
 .form-list-outer td { padding: 0 4px 0 2px; }
@@ -190,14 +193,6 @@ span.shaded-area { display: inline-block; white-space: normal; }
     box-shadow: 0 0 0 1px #080808 inset, 0 0 0 1px #333; }
 .shaded-area.condensed { padding: 4px; margin-bottom: 4px; }
 
-/* ======================= Screen-specific ======================= */
-
-.app-list-link { font-size: 1.5em; display: block; width: 320px; margin: 8px auto 8px auto; }
-
-#VisitArtifactHitList-table tbody tr td div { font-size: 1em; }
-
-.ScreenTreeNested { margin: 4px 0 4px 12px; padding: 0 0 0 12px; border-left: 1px dashed #DDDDDF; }
-
 /* ================ Overrides for jquery-ui theme ================ */
 
 /*
@@ -267,10 +262,30 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 
 .nav>li>a.btn-sm { padding: 5px 10px; }
 
-/* ================ Other, Fix Styles =============== */
+/* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */
+.panel .panel-heading { position: relative; }
+.panel .panel-heading .panel-toolbar { position: absolute; top: 0px; right: 0px; }
+.panel .panel-heading h5, .panel .panel-heading span { margin-top: 0; margin-bottom: 0; font-size: 16px; color: inherit; }
+.panel, .panel .panel-body { background: transparent; }
+.bg-dark .panel-heading { background-color: #333; color: inherit; }
+.bg-dark .panel, .bg-dark .panel-heading { border-color: #222; }
 
+.btn { margin: 4px 4px 4px 0; }
 div.btn-group a.btn { margin-right: 0; }
 div.btn-group { margin-right: 4px; }
+
+/* Variations on Bootstrap default table styles */
+.table>thead>tr>th { vertical-align: top; }
+.table>tbody>tr>td { vertical-align: middle; }
+.table { margin-bottom: 8px; }
+.bg-dark .table-striped th, .bg-dark .table-striped td { border-color: #222; }
+.bg-dark .table-striped > tbody > tr:nth-child(odd) > td { background-color: #303030; }
+.bg-dark .table-hover > tbody > tr:hover > td { background-color: #444444; }
+
+.bg-light .table-striped>tbody>tr:nth-child(odd)>td { background-color: rgba(243, 243, 243, 0.5); }
+.bg-light .table-hover > tbody > tr:hover > td { background-color: rgba(234, 234, 234, 0.5); }
+
+/* ================ Other, Fix Styles =============== */
 
 
 input[type=radio], input[type=checkbox] { height: auto; }
@@ -308,35 +323,25 @@ form.editable-form button { background: white; color: #333; border: 1px solid; b
 
 .modal-dialog { text-align: left; } /* needed when right aligning the dialog button */
 
-.bg-light .box header { background-image: linear-gradient(#EEE 0, #EEE 100%); }
+/* #content has white-space: nowrap, which is an annoying thing for all to inherit
+div { white-space: normal; } */
 
-.bg-dark .box { border-color: #222; }
-.bg-dark .box header { background-image: linear-gradient(#333 0, #333 100%);
-    background-repeat: repeat-x; border-color: #222; } /* flat and dark */
-.bg-dark .box .body { background: transparent; }
-/* this is one of the default styles, but gets overridden by .bg-light>.dk so overridding again here */
-.bg-dark.dker { background-color:#303030 !important; }
 
-.bg-light .login { background: url("/assets/img/pattern/cream_pixels.png") repeat #444; }
-.bg-dark .login { background: url("/assets/img/pattern/irongrip.png") repeat #444; }
+/* ======================= Screen-specific ======================= */
 
-/* Metis makes the scrollbar invisible in webkit unless you hover over it, make it always visible */
-::-webkit-scrollbar-thumb { background-color: #888; }
-::-webkit-scrollbar-track { background: rgba(110, 110, 110, 0.25); }
+.app-list-link { font-size: 1.5em; display: block; width: 320px; margin: 8px auto 8px auto; }
 
-/* Reduce padding from Bootstrap default style */
-.table>thead>tr>th { vertical-align: top; }
-.table>tbody>tr>td { vertical-align: middle; }
-.table { margin-bottom: 8px; }
-.bg-dark .table-striped > tbody > tr:nth-child(odd) > td { background-color: rgba(40, 40, 40, 0.5); }
-.bg-dark .table-hover > tbody > tr:hover > td { background-color: rgba(28, 28, 28, 0.5); }
+.ScreenTreeNested { margin: 4px 0 4px 12px; padding: 0 0 0 12px; border-left: 1px dashed #DDDDDF; }
 
-.bg-light .table-striped>tbody>tr:nth-child(odd)>td { background-color: rgba(243, 243, 243, 0.5); }
-.bg-light .table-hover > tbody > tr:hover > td { background-color: rgba(234, 234, 234, 0.5); }
+.bg-light.Login { background: url("../images/pattern/cream_pixels.png") repeat #444; }
+.bg-dark.Login { background: url("../images/pattern/irongrip.png") repeat #444; }
+.Login .form-signin { display: block; width: 340px; padding: 10px; margin: 0 auto; border-radius: 3px; }
+.Login .form-signin input { width: 100%; height: auto; font-size: 1.2em; }
+.Login .form-signin input.top { margin-bottom: -1px; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.Login .form-signin input.middle { margin-bottom: -1px; border-radius: 0; }
+.Login .form-signin input.bottom { border-top-left-radius: 0; border-top-right-radius: 0; margin-bottom: 10px; }
 
+/* wiki screen, including CodeMirror class */
 #wiki-page-area th, #wiki-page-area td { padding: 2px 4px 2px 4px; border: thin solid lightgrey; }
-
 .CodeMirror, .CodeMirror-scroll { min-height: 600px; min-width: 800px; }
 
-/* #content has white-space: nowrap, which is an annoying thing for all to inherit */
-div { white-space: normal; }
