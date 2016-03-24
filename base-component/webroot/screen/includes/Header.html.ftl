@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="keywords" content="${html_keywords?if_exists}">
-    <meta name="description" content="${html_description?if_exists}">
+    <#if html_keywords?has_content><meta name="keywords" content="${html_keywords}"></#if>
+    <#if html_description?has_content><meta name="description" content="${html_description}"></#if>
     <#assign parentMenuName = (sri.screenUrlInfo.parentScreen.getDefaultMenuName())!"">
     <#assign defaultMenuName = sri.screenUrlInfo.targetScreen.getDefaultMenuName()>
     <title><#if html_title?has_content>${html_title}<#else><#-- ${ec.l10n.localize((ec.tenant.tenantName)!'Moqui')}--><#if parentMenuName?has_content>${ec.resource.expand(parentMenuName, "")} - </#if><#if defaultMenuName?has_content>${ec.resource.expand(defaultMenuName, "")}</#if></#if></title>
@@ -31,4 +31,4 @@
 </head>
 
 <#assign bodyClassList = sri.getThemeValues("STRT_BODY_CLASS")>
-<body class="${(ec.user.getPreference("OUTER_STYLE")!(bodyClassList?first))!"bg-light lter"} ${(sri.screenUrlInfo.targetScreen.screenName)!""}"><!-- try "bg-dark dk" or "bg-light lter" -->
+<body class="${(ec.user.getPreference("OUTER_STYLE")!(bodyClassList?first))!"bg-light"} ${(sri.screenUrlInfo.targetScreen.screenName)!""}"><!-- try "bg-dark" or "bg-light" -->

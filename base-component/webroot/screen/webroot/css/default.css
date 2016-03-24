@@ -21,10 +21,15 @@ div.message { width: 600px; margin: 2px auto 2px auto; border: 1px solid #DDDDDF
 div.message span { font-size: 1em; }
 div.error span { color: red; }
 
-#apps-footer-content { margin: 5px 0 0 0; text-align: center; }
+/* #top, #content>.inner, #footer are the main page structure elements */
+#content { overflow: visible; background: transparent; }
+.inner { overflow: visible; background: transparent; padding: 10px; border: 0; }
+#footer { margin: 0 auto; color: #f4f4f4; border-top: 1px solid #222; position: absolute; bottom: 0; width: 100%; height: 48px; }
+#footer p { padding: 0.2em 0 0 0; font-size: 0.9em; margin: 0; text-align: center; }
 
-/* ========== main background styles, light/dark switch ========== */
+#apps-footer-content { margin-top: 4px; text-align: center; }
 
+/* main background styles, light/dark switch */
 .bg-dark { background-color: #3a3a3a !important; color: #ffffff !important; }
 .bg-light { background-color: #ffffff !important; color: #333333 !important; }
 
@@ -187,7 +192,7 @@ span.shaded-area { display: inline-block; white-space: normal; }
 
 /* ======================= Screen-specific ======================= */
 
-.app-list-link { font-size: 1.5em; display: block; width: 400px; margin: 8px auto 8px auto; }
+.app-list-link { font-size: 1.5em; display: block; width: 320px; margin: 8px auto 8px auto; }
 
 #VisitArtifactHitList-table tbody tr td div { font-size: 1em; }
 
@@ -235,7 +240,7 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .ui-loading { background: white url('/images/wait_anim_16x16.gif') right center no-repeat; }
 .ui-autocomplete { z-index: 1100; } /* needed for modal windows with z-index of 1050 */
 
-/* ================ Extensions for bootstrap.min.css theme =============== */
+/* ================ Extensions for bootstrap.min.css =============== */
 
 .progress { margin-bottom: 8px; }
 
@@ -254,23 +259,19 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .navbar-inverse .navbar-nav > li > a { font-size: 1.1em; color: #BBB; }
 .navbar-inverse .navbar-nav > li > a:hover, .navbar-inverse .navbar-nav > li > a:focus { color: #fff; background-color: transparent; }
 
-/* Note that the navbar is 50px tall */
-.navbar-brand img { height: 30px; margin: 10px; }
+/* Bootstrap by default has a 20px height for this, for 30px height shift up 5px */
+.navbar-brand>img { height: 30px; margin-top: -5px; }
+/* Bootstrap has no margin for a.navbar-btn so add them; note margin-right in bootstrap is -15px because of other styles, so for a margin of 10px set to -5px */
+.navbar-right.btn { margin-right: -5px; margin-left: 10px; }
+.navbar-right.btn-group { margin-right: -5px; margin-left: 10px; }
 
 .nav>li>a.btn-sm { padding: 5px 10px; }
 
 /* ================ Other, Fix Styles =============== */
 
-/* these are needed for Chosen and other dynamic things to not get clipped by the bottom of the content area */
-#wrap { overflow: visible; background: transparent; }
-#content { overflow: visible; background: transparent; }
-.inner { overflow: visible; background: transparent; }
-
 div.btn-group a.btn { margin-right: 0; }
 div.btn-group { margin-right: 4px; }
 
-/* get rid of the grey box, looks funny when screen isn't very tall */
-.inner { border: 0; }
 
 input[type=radio], input[type=checkbox] { height: auto; }
 

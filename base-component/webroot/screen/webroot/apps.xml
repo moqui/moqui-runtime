@@ -39,20 +39,20 @@ along with this software (see the LICENSE.md file). If not, see
 
     <pre-actions><script><![CDATA[
         // jQuery/UI
-        html_scripts.add('/primeui/jquery.min.js')
-        html_scripts.add('/primeui/jquery-ui.min.js')
-        html_stylesheets.add('/primeui/jquery-ui.min.css')
+        html_scripts.add('/lib/jquery/jquery.min.js')
+        html_scripts.add('/lib/jquery/jquery-ui.min.js')
+        html_stylesheets.add('/lib/jquery/jquery-ui.min.css')
         // Font Awesome
-        html_stylesheets.add('/primeui/font-awesome/css/font-awesome.min.css')
+        html_stylesheets.add('/lib/font-awesome/css/font-awesome.min.css')
         // Prime UI
-        html_scripts.add('/primeui/primeui.min.js')
-        html_stylesheets.add('/primeui/primeui.min.css')
+        html_scripts.add('/lib/primeui/primeui.min.js')
+        html_stylesheets.add('/lib/primeui/primeui.min.css')
         // Bootstrap
-        html_scripts.add('/bootstrap/bootstrap.min.js')
-        html_stylesheets.add('/bootstrap/bootstrap.min.css')
+        html_scripts.add('/lib/bootstrap/bootstrap.min.js')
+        html_stylesheets.add('/lib/bootstrap/bootstrap.min.css')
 
         // Other
-        html_scripts.add('/js/jquery-jeditable-1.7.1.min.js')
+        html_scripts.add('/lib/jeditable/jquery.jeditable.min.js')
     ]]></script></pre-actions>
 
     <widgets>
@@ -113,16 +113,16 @@ along with this software (see the LICENSE.md file). If not, see
                 <subscreens-active/>
             </container>
         </container>
-        <container id="footer" style="Footer bg-dark">
+        <container id="footer" style="bg-dark">
             <render-mode><text type="html"><![CDATA[
-                    <#assign footerItemList = sri.getThemeValues("STRT_FOOTER_ITEM")>
-                    <div id="apps-footer-content">
-                        <#list footerItemList! as footerItem>
-                            <#assign footerItemTemplate = footerItem?interpret>
-                            <@footerItemTemplate/>
-                        </#list>
-                    </div>
-                ]]></text></render-mode>
+                <#assign footerItemList = sri.getThemeValues("STRT_FOOTER_ITEM")>
+                <div id="apps-footer-content">
+                    <#list footerItemList! as footerItem>
+                        <#assign footerItemTemplate = footerItem?interpret>
+                        <@footerItemTemplate/>
+                    </#list>
+                </div>
+            ]]></text></render-mode>
         </container>
     </widgets>
 </screen>

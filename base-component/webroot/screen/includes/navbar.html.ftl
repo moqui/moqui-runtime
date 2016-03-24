@@ -12,13 +12,15 @@
         <#assign headerLogoList = sri.getThemeValues("STRT_HEADER_LOGO")>
         <#if headerLogoList?has_content><a href="${sri.buildUrl("/").getUrl()}" class="navbar-brand"><img src="${sri.buildUrl(headerLogoList?first).getUrl()}" alt="Home"></a></#if>
         <#assign headerTitleList = sri.getThemeValues("STRT_HEADER_TITLE")>
-        <#if headerTitleList?has_content><div class="navbar-text">${ec.resource.expand(headerTitleList?first, "")}</div></#if>
+        <#if headerTitleList?has_content><div class="navbar-brand">${ec.resource.expand(headerTitleList?first, "")}</div></#if>
     </header>
     <div id="navbar-buttons" class="collapse navbar-collapse navbar-ex1-collapse">
         <ul id="header-menus" class="nav navbar-nav">
-            <#-- NOTE: menu drop-downs are appended here using JS as subscreens render, so this is empty -->
+            <#-- NOTE: menu drop-downs are appended here using JS as subscreens render so this is empty -->
         </ul>
-        <div id="navbar-menu-crumbs"></div>
+        <div id="navbar-menu-crumbs">
+            <#-- NOTE: non-menu bread crumbs are appended here using JS as subscreens render so this is empty -->
+        </div>
         <div class="navbar-text">${html_title!(ec.resource.expand(sri.screenUrlInfo.targetScreen.getDefaultMenuName()!"Page", ""))}</div>
         <#-- logout button -->
         <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="Logout ${(ec.getUser().getUserAccount().userFullName)!}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right">
