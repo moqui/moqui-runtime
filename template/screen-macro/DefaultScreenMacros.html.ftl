@@ -1324,33 +1324,33 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 
 <#--
-Bootstrap datepicker format refer to https://github.com/smalot/bootstrap-datetimepicker
-Java simple date format refer to http://docs.oracle.com/javase/6/docs/api/java/text/SimpleDateFormat.html
-Java	Datepicker	Description
-a	    p	        am/pm
-a	    P	        AM/PM
+eonasdan/bootstrap-datetimepicker uses Moment for time parsing/etc
+For Moment format refer to http://momentjs.com/docs/#/displaying/format/
+For Java simple date format refer to http://docs.oracle.com/javase/6/docs/api/java/text/SimpleDateFormat.html
+Java	Moment  	Description
+-	    a	        am/pm
+a	    A	        AM/PM
 s	    s	        seconds without leading zeros
 ss	    ss	        seconds, 2 digits with leading zeros
-m	    i	        minutes without leading zeros
-mm	    ii	        minutes, 2 digits with leading zeros
-H	    h	        hour without leading zeros - 24-hour format
-HH	    hh	        hour, 2 digits with leading zeros - 24-hour format
-h	    H	        hour without leading zeros - 12-hour format
-hh	    HH	        hour, 2 digits with leading zeros - 12-hour format
-d	    d	        day of the month without leading zeros
-dd	    dd	        day of the month, 2 digits with leading zeros
-M	    m	        numeric representation of month without leading zeros
-MM	    mm	        numeric representation of the month, 2 digits with leading zeros
-MMM	    M	        short textual representation of a month, three letters
-MMMM	MM	        full textual representation of a month, such as January or March
-yy	    yy	        two digit representation of a year
-yyyy	yyyy	    full numeric representation of a year, 4 digits
+m	    m	        minutes without leading zeros
+mm	    mm	        minutes, 2 digits with leading zeros
+H	    H	        hour without leading zeros - 24-hour format
+HH	    HH	        hour, 2 digits with leading zeros - 24-hour format
+h	    h	        hour without leading zeros - 12-hour format
+hh	    hh	        hour, 2 digits with leading zeros - 12-hour format
+d	    D	        day of the month without leading zeros
+dd	    DD	        day of the month, 2 digits with leading zeros (NOTE: moment uses lower case d for day of week!)
+M	    M	        numeric representation of month without leading zeros
+MM	    MM	        numeric representation of the month, 2 digits with leading zeros
+MMM	    MMM	        short textual representation of a month, three letters
+MMMM	MMMM	    full textual representation of a month, such as January or March
+yy	    YY	        two digit representation of a year
+yyyy	YYYY	    full numeric representation of a year, 4 digits
 
-The java format that requires to be translate to bootstrap datepicker format, others not in this list but in SimpleDateFormat should not be used:
-a -> p, m -> i, h -> H, H -> h, M -> m, MMM -> M, MMMM -> MM
+Summary of changes needed:
+a => A, d => D, y => Y
 -->
-<#-- if condition to avoid recursion of replacing "h" and "H" -->
-<#macro getBootstrapDateFormat dateFormat><#if dateFormat?contains("h")>${dateFormat?replace("a","p")?replace("m","i")?replace("h","H")?replace("M","m")?replace("mmmm","MM")?replace("mmm","M")}<#else>${dateFormat?replace("a","p")?replace("m","i")?replace("H","h")?replace("M","m")?replace("mmmm","MM")?replace("mmm","M")}</#if></#macro>
+<#macro getBootstrapDateFormat dateFormat>${dateFormat?replace("a","A")?replace("d","D")?replace("y","Y")}</#macro>
 
 <#macro "date-time">
 <span class="form-date-time">
@@ -1365,42 +1365,29 @@ a -> p, m -> i, h -> H, H -> h, M -> m, MMM -> M, MMMM -> MM
     <#assign maxlength = .node["@max-length"]?default(maxlength)>
     <#if .node["@type"]! != "time">
         <#if .node["@type"]! == "date">
-            <div class="input-group input-append date" id="${id}" data-date="${fieldValue?html}" data-date-format="${datepickerFormat}">
+            <div class="input-group date" id="${id}">
                 <input type="text" class="form-control" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-                <span class="input-group-addon add-on"><i class="glyphicon glyphicon-calendar"></i></span>
+                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
             </div>
-            <#assign afterFormScript>$('#${id}').datetimepicker({minView:2, pickerPosition:'bottom-left', autoclose:true});</#assign>
-            <#t>${sri.appendToScriptWriter(afterFormScript)}
+            <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValue?html}', format:'${datepickerFormat}'});</script>
         <#else>
-            <div class="input-group input-append date" id="${id}" data-date="${fieldValue?html}" data-date-format="${datepickerFormat}">
+            <div class="input-group date" id="${id}">
                 <input type="text" class="form-control" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-                <span class="input-group-addon add-on"><i class="glyphicon glyphicon-calendar"></i></span>
+                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
             </div>
-            <#assign afterFormScript>$('#${id}').datetimepicker({pickerPosition:'bottom-left', autoclose:true});</#assign>
-            <#t>${sri.appendToScriptWriter(afterFormScript)}
+            <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValue?html}', format:'${datepickerFormat}', stepping:5});</script>
         </#if>
     <#else>
-        <div class="input-group input-append date" id="${id}" data-date="${fieldValue?html}" data-date-format="${datepickerFormat}">
+        <#-- use a regex to validate time format -->
+        <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
+        <#-- datetimepicker does not support time only, even with plain HH:mm format
+        <div class="input-group date" id="${id}">
             <input type="text" class="form-control" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-            <span class="input-group-addon add-on"><i class="glyphicon glyphicon-time"></i></span>
+            <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
         </div>
-        <#assign afterFormScript>$('#${id}').datetimepicker({startView:1, maxView:1, pickerPosition:'bottom-left', autoclose:true});</#assign>
-        <#t>${sri.appendToScriptWriter(afterFormScript)}
+        <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValue?html}', format:'${datepickerFormat}', stepping:5});</script>
+        -->
     </#if>
-
-    <#-- old jquery stuff:
-    <input type="text" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}" id="${id}"<#if .node?parent["@tooltip"]?has_content> title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-    <#if .node["@type"]! != "time">
-        <#assign afterFormScript>
-                <#if .node["@type"]! == "date">
-                $("#${id}").datepicker({
-                <#else>
-                $("#${id}").datetimepicker({showSecond: true, timeFormat: 'hh:mm:ss', stepHour: 1, stepMinute: 1, stepSecond: 1,
-                </#if>showOn: 'button', buttonImage: '/images/icon-calendar.png', buttonText: 'Calendar', buttonImageOnly: true, dateFormat: 'yy-mm-dd', changeMonth: true, changeYear: true, showButtonPanel: true});
-        </#assign>
-        <#t>${sri.appendToScriptWriter(afterFormScript)}
-    </#if>
-    -->
 </span>
 </#macro>
 
