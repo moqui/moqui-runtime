@@ -39,21 +39,21 @@ along with this software (see the LICENSE.md file). If not, see
                                 <section name="RootResourceChildren" condition="resource.childMethods &gt; 100"><widgets>
                                     <container-dialog id="RootResourceSwaggerDialog" button-text="${resource.displayName ?: resource.name} (${resource.childMethods})">
                                         <section-iterate name="RootResourceSwaggerSection" list="resource.resourceMap.values()" entry="childResource"><widgets>
-                                            <container><link url="/assets/lib/swagger-ui/index.html?url=${restUrl}/service.swagger/${resource.name}/${childResource.name}"
+                                            <container><link url="/toolstatic/lib/swagger-ui/index.html?url=${restUrl}/service.swagger/${resource.name}/${childResource.name}"
                                                     text="${childResource.displayName ?: childResource.description ?: childResource.name} (${childResource.childMethods})"
                                                     link-type="anchor" target-window="_blank"/></container>
                                         </widgets></section-iterate>
                                     </container-dialog>
                                 </widgets><fail-widgets>
-                                    <link url="/assets/lib/swagger-ui/index.html?url=${restUrl}/service.swagger/${resource.name}"
-                                            url-type="plain" target-window="_blank" text="${resource.displayName ?: resource.name} (${resource.childMethods})"
+                                    <link url="/toolstatic/lib/swagger-ui/index.html?url=${restUrl}/service.swagger/${resource.name}"
+                                            target-window="_blank" text="${resource.displayName ?: resource.name} (${resource.childMethods})"
                                             tooltip="${resource.description ?: ''}"/>
                                 </fail-widgets></section>
                             </widgets></section-iterate>
 
                             <container-dialog id="EntitySwagger" button-text="Entity Master API">
                                 <section-iterate name="EntitySwaggerSection" list="masterEntityNameList" entry="masterEntityName"><widgets>
-                                    <container><link url="/assets/lib/swagger-ui/index.html?url=${restUrl}/master.swagger/${masterEntityName}"
+                                    <container><link url="/toolstatic/lib/swagger-ui/index.html?url=${restUrl}/master.swagger/${masterEntityName}"
                                             text="${masterEntityName}" link-type="anchor" target-window="_blank"/></container>
                                 </widgets></section-iterate>
                             </container-dialog>

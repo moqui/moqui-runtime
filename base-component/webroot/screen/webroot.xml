@@ -25,6 +25,9 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="html_stylesheets" from="new LinkedHashSet()"/>
     </always-actions>
     <subscreens default-item="apps">
+        <subscreens-item name="toolstatic" location="component://tools/screen/toolstatic.xml"
+                menu-include="false"/>
+
         <!-- if the client is an iPad, default to the ipad subscreens item instead of apps, but allow either to be used explicitly -->
         <!-- <conditional-default condition="(ec.web.request.getHeader('User-Agent')?:'').matches('.*iPad.*')" item="ipad"/> -->
 

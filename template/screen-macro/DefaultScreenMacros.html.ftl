@@ -1474,11 +1474,9 @@ a -> p, m -> i, h -> H, H -> h, M -> m, MMM -> M, MMMM -> MM
     <#-- <span>[${currentValue}]; <#list currentValueList as curValue>[${curValue!''}], </#list></span> -->
     <#if allowMultiple><input type="hidden" id="${id}_op" name="${name}_op" value="in"></#if>
     <#if .node["@combo-box"]! == "true">
-        <#assign afterFormScript>$("#${id}").puidropdown({ editable: true });</#assign>
-        <#t>${sri.appendToScriptWriter(afterFormScript)}
+        <script>$("#${id}").puidropdown({ editable: true });</script>
     <#elseif .node["@search"]! != "false">
-        <#assign afterFormScript>$("#${id}").puidropdown({ filter: true, filterMatchMode: 'contains', caseSensitiveFilter: false });</#assign>
-        <#t>${sri.appendToScriptWriter(afterFormScript)}
+        <script>$("#${id}").puidropdown({ filter: true, filterMatchMode: 'contains', caseSensitiveFilter: false });</script>
     </#if>
 
     <#if isDynamicOptions>
@@ -1486,37 +1484,35 @@ a -> p, m -> i, h -> H, H -> h, M -> m, MMM -> M, MMMM -> MM
         <#assign depNodeList = doNode["depends-on"]>
         <#assign doUrlInfo = sri.makeUrlByType(doNode["@transition"], "transition", .node, "false")>
         <#assign doUrlParameterMap = doUrlInfo.getParameterMap()>
-        <#assign afterFormScript>
-
+        <script>
             function populate_${id}() {
                 var hasAllParms = true;
                 <#list depNodeList as depNode>if (!$('#<@fieldIdByName depNode["@field"]/>').val()) { hasAllParms = false; } </#list>
-                if (!hasAllParms) { $('#${id}').html(""); $("#${id}").trigger("chosen:updated"); <#-- alert("not has all"); --> return; }
+                if (!hasAllParms) { $('#${id}').puidropdown('removeAllOptions'); <#-- alert("not has all"); --> return; }
                 $.ajax({ type:'POST', url:'${doUrlInfo.url}', data:{ moquiSessionToken: "${(ec.web.sessionToken)!}"<#list depNodeList as depNode>, '${depNode["@field"]}': $('#<@fieldIdByName depNode["@field"]/>').val()</#list><#list doUrlParameterMap?keys as parameterKey><#if doUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${doUrlParameterMap.get(parameterKey)}"</#if></#list> }, dataType:'json' }).done(
                     function(list) {
                         if (list) {
-                            $('#${id}').html(""); /* clear out the drop-down */
+                            $('#${id}').puidropdown('removeAllOptions'); /* clear out the drop-down */
                             <#if allowEmpty! == "true">
-                            $('#${id}').append('<option value="">&nbsp;</option>');
+                            $('#${id}').puidropdown('addOption', { label:'', value:'' });
                             </#if>
                             $.each(list, function(key, value) {
                                 var optionValue = value["${doNode["@value-field"]!"value"}"];
+                                $('#${id}').puidropdown('addOption', { label:value["${doNode["@label-field"]!"label"}"], value:optionValue });
                                 if (optionValue == "${currentValue}") {
-                                    $('#${id}').append("<option selected='selected' value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");
-                                } else {
-                                    $('#${id}').append("<option value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");
+                                    $('#${id}').puidropdown('selectValue', { value:optionValue });
                                 }
                             });
-                            $("#${id}").trigger("chosen:updated");
-                }; } ); };
-            $(document).ready(function() {
-                <#list depNodeList as depNode>
-                    $("#<@fieldIdByName depNode["@field"]/>").change(function() { populate_${id}(); });
-                </#list>
-                populate_${id}();
-            });
-        </#assign>
-        <#t>${sri.appendToScriptWriter(afterFormScript)}
+                        }
+                    }
+                );
+            }
+            <#list depNodeList as depNode>
+                $("#<@fieldIdByName depNode["@field"]/>").on('puidropdownchange', function() { populate_${id}(); });
+                $("#<@fieldIdByName depNode["@field"]/>").change(function() { populate_${id}(); });
+            </#list>
+            populate_${id}();
+        </script>
     </#if>
 </#macro>
 
