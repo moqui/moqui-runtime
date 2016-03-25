@@ -286,32 +286,15 @@ ${sri.renderSection(.node["@name"])}
 <#macro "container-dialog">
     <#assign buttonText = ec.resource.expand(.node["@button-text"], "")>
     <#assign divId><@nodeId .node/></#assign>
-    <button id="${divId}-button" type="button" data-toggle="modal" data-target="#${divId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
-    <#if _openDialog! == divId><#assign afterScreenScript>$('#${divId}').modal('show'); </#assign><#t>${sri.appendToScriptWriter(afterScreenScript)}</#if>
-    <div id="${divId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
-        <div class="modal-dialog" style="width: ${.node["@width"]!"600"}px;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">${buttonText}</h4>
-                </div>
-                <div class="modal-body">
-                    <#recurse>
-                </div>
-                <#-- <div class="modal-footer"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></div> -->
-            </div>
-        </div>
+    <button id="${divId}-button" type="button" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+    <#if _openDialog! == divId><#assign afterScreenScript>$('#${divId}').puidialog('show'); </#assign><#t>${sri.appendToScriptWriter(afterScreenScript)}</#if>
+    <div id="${divId}" title="${buttonText}" aria-hidden="true" style="display: none;">
+        <#recurse>
     </div>
-
-    <#-- for jQuery dialog:
-    <#assign afterScreenScript>
-        $("#${.node["@id"]}").dialog({autoOpen:false, height:${.node["@height"]!"600"}, width:${.node["@width"]!"600"}, modal:false });
-        <#--, buttons: { Close: function() { $(this).dialog("close"); } } - ->
-        <#--, close: function() { } - ->
-        $("#${.node["@id"]}-button").click(function() { $("#${.node["@id"]}").dialog("open"); });
-    </#assign>
-    <#t>${sri.appendToScriptWriter(afterScreenScript)}
-    -->
+    <script>
+        $("#${divId}").puidialog({ <#if .node["@height"]?has_content>height:${.node["@height"]}, </#if>width:${.node["@width"]!"600"}, modal:true, minimizable:false, maximizable:false, appendTo:$("#content") });
+        $("#${divId}-button").click(function() { $("#${divId}").puidialog("show"); });
+    </script>
 </#macro>
 
 <#macro "dynamic-container">
@@ -330,34 +313,20 @@ ${sri.renderSection(.node["@name"])}
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
     <#assign divId><@nodeId .node/></#assign>
 
-    <button id="${divId}-button" type="button" data-toggle="modal" data-target="#${divId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
-    <div id="${divId}" class="modal fade dynamic-dialog" aria-hidden="true" style="display: none;">
-        <div class="modal-dialog" style="width: ${.node["@width"]!"600"}px;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">${buttonText}</h4>
-                </div>
-                <div class="modal-body" id="${divId}-body">
-                    <img src="/images/wait_anim_16x16.gif" alt="Loading...">
-                </div>
-                <#-- <div class="modal-footer"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></div> -->
-            </div>
+    <button id="${divId}-button" type="button" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+    <div id="${divId}" title="${buttonText}" class="dynamic-dialog" aria-hidden="true" style="display: none;">
+        <div class="modal-body" id="${divId}-body">
+            <img src="/images/wait_anim_16x16.gif" alt="Loading...">
         </div>
     </div>
-    <script>$("#${divId}").on("show.bs.modal", function (e) { $("#${divId}-body").load('${urlInstance.urlWithParams}'); }); $("#${divId}").on("hidden.bs.modal", function (e) { $("#${divId}-body").empty(); $("#${divId}-body").append('<img src="/images/wait_anim_16x16.gif" alt="Loading...">'); });</script>
-    <#if _openDialog! == divId><#assign afterScreenScript>$('#${divId}').modal('show')</#assign><#t>${sri.appendToScriptWriter(afterScreenScript)}</#if>
-
-    <#-- jQuery dialog:
-    <button id="${divId}-button"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
-    <div id="${divId}" title="${buttonText}"></div>
-    <#assign afterScreenScript>
-        $("#${divId}").dialog({autoOpen:false, height:${.node["@height"]!"600"}, width:${.node["@width"]!"600"},
-            modal:false, open: function() { $(this).load('${urlInstance.urlWithParams}', function() { activateAllButtons() }) } });
-        $("#${divId}-button").click(function() { $("#${divId}").dialog("open"); return false; });
-    </#assign>
-    <#t>${sri.appendToScriptWriter(afterScreenScript)}
-    -->
+    <script>
+        $("#${divId}").puidialog({ <#if .node["@height"]?has_content>height:${.node["@height"]}, </#if>width:${.node["@width"]!"600"},
+            modal:true, minimizable:false, maximizable:false, appendTo:$("#content"),
+            afterShow:function (e) { $("#${divId}-body").load('${urlInstance.urlWithParams}'); },
+            afterHide:function (e) { $("#${divId}-body").empty(); $("#${divId}-body").append('<img src="/images/wait_anim_16x16.gif" alt="Loading...">'); } });
+        $("#${divId}-button").click(function() { $("#${divId}").puidialog("show"); });
+        <#if _openDialog! == divId>$('#${divId}').puidialog('show')</#if>
+    </script>
 </#macro>
 
 <#-- ==================== Includes ==================== -->
@@ -1324,7 +1293,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign fvOffset = ec.context.get(curFieldName + "_poffset")!>
     <#assign fvPeriod = ec.context.get(curFieldName + "_period")!?lower_case>
     <#assign allowEmpty = .node["@allow-empty"]!"true">
-    <select name="${curFieldName}_poffset" class="chosen-select" id="${id}_poffset"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
+    <select name="${curFieldName}_poffset" id="${id}_poffset"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
         <#if (allowEmpty! != "false")>
             <option value="">&nbsp;</option>
         </#if>
@@ -1338,7 +1307,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <option value="3"<#if fvOffset == "3"> selected="selected"</#if>>+3</option>
         <option value="4"<#if fvOffset == "4"> selected="selected"</#if>>+4</option>
     </select>
-    <select name="${curFieldName}_period" class="chosen-select" id="${id}_period"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
+    <select name="${curFieldName}_period" id="${id}_period"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
         <#if (allowEmpty! != "false")>
         <option value="">&nbsp;</option>
         </#if>
@@ -1348,8 +1317,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <option<#if fvPeriod == "year"> selected="selected"</#if>>Year</option>
     </select>
     <#assign afterFormScript>
-        $("#${id}_poffset").chosen({ search_contains:true, disable_search_threshold:10, inherit_select_classes:true });
-        $("#${id}_period").chosen({ search_contains:true, disable_search_threshold:10, inherit_select_classes:true });
+        $("#${id}_poffset").puidropdown();
+        $("#${id}_period").puidropdown();
     </#assign>
     <#t>${sri.appendToScriptWriter(afterFormScript)}
 </#macro>
@@ -1480,9 +1449,10 @@ a -> p, m -> i, h -> H, H -> h, M -> m, MMM -> M, MMMM -> MM
     </#if>
     <#assign id><@fieldId .node/></#assign>
     <#assign allowMultiple = ec.resource.expand(.node["@allow-multiple"]!, "") == "true"/>
+    <#assign isDynamicOptions = .node["dynamic-options"]?has_content>
     <#assign name><@fieldName .node/></#assign>
-    <select name="${name}" class="chosen-select<#if .node["dynamic-options"]?has_content> dynamic-options</#if><#if .node["@style"]?has_content> ${ec.resource.expand(.node["@style"], "")}</#if>" id="${id}"<#if allowMultiple> multiple="multiple"</#if><#if .node["@size"]?has_content> size="${.node["@size"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-    <#if currentValue?has_content && (.node["@current"]! != "selected") && !(allowMultiple)>
+    <select name="${name}" class="<#if isDynamicOptions>dynamic-options</#if><#if .node["@style"]?has_content> ${ec.resource.expand(.node["@style"], "")}</#if>" id="${id}"<#if allowMultiple> multiple="multiple"</#if><#if .node["@size"]?has_content> size="${.node["@size"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
+    <#if currentValue?has_content && (.node["@current"]! == "first-in-list") && !(allowMultiple)>
         <option selected="selected" value="${currentValue}"><#if currentDescription?has_content>${currentDescription}<#else>${currentValue}</#if></option><#rt/>
         <option value="${currentValue}">---</option><#rt/>
     </#if>
@@ -1491,7 +1461,7 @@ a -> p, m -> i, h -> H, H -> h, M -> m, MMM -> M, MMMM -> MM
         <option value="">&nbsp;</option>
     </#if>
 
-    <#if !.node["dynamic-options"]?has_content>
+    <#if !isDynamicOptions>
         <#list (options.keySet())! as key>
             <#assign isSelected = currentValue?has_content && currentValue == key>
             <#if allowMultiple && currentValueList?has_content><#list currentValueList as curValue>
@@ -1504,18 +1474,14 @@ a -> p, m -> i, h -> H, H -> h, M -> m, MMM -> M, MMMM -> MM
     <#-- <span>[${currentValue}]; <#list currentValueList as curValue>[${curValue!''}], </#list></span> -->
     <#if allowMultiple><input type="hidden" id="${id}_op" name="${name}_op" value="in"></#if>
     <#if .node["@combo-box"]! == "true">
-    <#-- TODO: find a real combobox that allows entering additional elements; make sure chosen style removed for whatever it is
-        <#assign afterFormScript>$("#${id}").combobox();</#assign>
-        <#t>${sri.appendToScriptWriter(afterFormScript)}
-    -->
-        <#assign afterFormScript>$("#${id}").chosen({ search_contains:true, disable_search_threshold:10, inherit_select_classes:true });</#assign>
+        <#assign afterFormScript>$("#${id}").puidropdown({ editable: true });</#assign>
         <#t>${sri.appendToScriptWriter(afterFormScript)}
     <#elseif .node["@search"]! != "false">
-        <#assign afterFormScript>$("#${id}").chosen({ search_contains:true, disable_search_threshold:10, inherit_select_classes:true });</#assign>
+        <#assign afterFormScript>$("#${id}").puidropdown({ filter: true, filterMatchMode: 'contains', caseSensitiveFilter: false });</#assign>
         <#t>${sri.appendToScriptWriter(afterFormScript)}
     </#if>
 
-    <#if .node["dynamic-options"]?has_content>
+    <#if isDynamicOptions>
         <#assign doNode = .node["dynamic-options"][0]>
         <#assign depNodeList = doNode["depends-on"]>
         <#assign doUrlInfo = sri.makeUrlByType(doNode["@transition"], "transition", .node, "false")>

@@ -68,14 +68,6 @@ input:focus:valid, textarea:focus:valid { background-color: #EEE; }
 
 /* ======================= XML Screen Styles ======================= */
 
-/* styles based on convention in jquery-layout
-div.ui-layout-north { display: none; }
-div.ui-layout-west { display: none; }
-div.ui-layout-center { display: none; }
-div.ui-layout-east { display: none; }
-div.ui-layout-south { display: none; }
-div.ui-layout-container { height: 100%; }
-*/
 /* styles for non-dynamic table layout, not using jquery-layout */
 div.container-panel-outer {  }
 div.container-panel-middle { display: table; table-layout: auto; width: 100%; height: 100%; }
@@ -108,36 +100,6 @@ div.panel-right { float: right; width: 180px; margin-left: 10px; }
 .form-group .field-row-item { margin-left: 15px; margin-right: 15px; }
 .field-row-item input, .field-row-item select { display: inline-block; }
 
-/* Deprecated, now using Bootstrap table styles
-.form-list-outer {
-margin: 0 0 10px 0; padding: 4px; width: 100%;
--moz-border-radius: 4px; -webkit-border-radius: 4px; border-radius: 4px;
-display: table; table-layout: auto; border-collapse: separate; empty-cells: show;
-white-space: normal;
-}
-.bg-light .form-list-outer { border: 1px solid #DDDDDF;  }
-.bg-dark .form-list-outer { border: 1px solid #222220;  }
-.form-header-group { display: table-header-group; }
-.form-header-row { display: table-row; }
-.form-header-cell { display: table-cell; text-align: left; padding: 0 4px 0 2px; }
-.form-body { display: table-row-group; }
-.form-row { display: table-row; vertical-align: middle; }
-.form-cell { display: table-cell; padding: 0 4px 0 2px; font-size: 1em; vertical-align: middle; }
-.form-cell span { display: inline-block; white-space: normal; }
-.form-cell input, .form-cell span input, .form-cell select, .form-cell span select { font-size: 0.9em; }
-
-.bg-light .form-row:nth-child(odd) { background-color: #EEE; }
-.bg-dark .form-row:nth-child(odd) { background-color: #333; }
-/ * .form-row:nth-child(even) { background-color: #FFF; } * /
-.bg-light .form-row:hover { background-color: #DDD; }
-.bg-dark .form-row:hover { background-color: #222; }
-
-.bg-dark .modal-dialog .form-row:hover { background-color: #DDD; }
-.bg-dark .modal-dialog .form-row:nth-child(odd) { background-color: #EEE; }
-
-.form-bottom-row { display: table-caption; caption-side: bottom; text-align: left; vertical-align: middle; width: 100%; }
-.form-header-cell, .form-header-cell div.form-title { vertical-align: top; }
-*/
 /* For the bottom row spanning all columns still use this */
 .form-list-outer .form-title { /* border-bottom: 1px solid #DDDDDF; */ white-space: nowrap; height: 1.5em; font-weight: bold; }
 .form-header-field { white-space: nowrap; padding-top: 4px; }
@@ -146,9 +108,6 @@ white-space: normal;
 
 td span.form-display { display: inline-block; width: 100%; }
 
-/* .form-date-find span, .form-range-find span, .form-text-find span, .form-text-find select { font-size: .8em; } */
-/*.form-date-time { white-space: nowrap; display: inline; padding: 8px 52px 8px 12px; }
-.form-date-find { white-space: nowrap; display: inline; padding: 8px 12px 8px 12px; }*/
 .form-date-find, .form-range-find { display: block; padding-bottom: 4px; }
 .input-group { display: inline-block; }
 .input-group-addon, .input-group-btn, .input-group .form-control { display: inline; }
@@ -245,9 +204,11 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 /* .form-horizontal .control-label { padding-top: 0; } */
 .form-horizontal, .form-horizontal .col-lg-12, .form-horizontal .col-lg-10, .form-horizontal .field-row-item { vertical-align: middle; }
 
+/*
 .input-append.date { white-space: nowrap; }
 .input-append.date .form-control { margin-right: 39px; }
 .input-append.date .add-on { margin-left: -39px; }
+*/
 
 .nav.nav-tabs { margin-bottom: 8px; }
 
@@ -260,7 +221,7 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .navbar-right.btn { margin-right: -5px; margin-left: 10px; }
 .navbar-right.btn-group { margin-right: -5px; margin-left: 10px; }
 
-.nav>li>a.btn-sm { padding: 5px 10px; }
+/* .nav>li>a.btn-sm { padding: 5px 10px; } */
 
 /* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */
 .panel .panel-heading { position: relative; }

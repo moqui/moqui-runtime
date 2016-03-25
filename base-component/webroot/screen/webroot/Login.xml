@@ -34,7 +34,7 @@ along with this software (see the LICENSE.md file). If not, see
     </script></pre-actions>
     <widgets>
         <!-- NOTE: this screen is not under the apps screen, but uses similar header/footer/etc -->
-        <container id="content"><container style="inner">
+        <container id="content"><container style="inner"><container style="container-fluid">
             <section-include name="MessagesSection" location="component://webroot/screen/webroot/apps.xml"/>
 
             <render-mode>
@@ -79,7 +79,7 @@ along with this software (see the LICENSE.md file). If not, see
                     .condition('currentPassword', '16ac58bbfa332c1c55bd98b53e60720bfa90d394').disableAuthz().count()</expression></condition>
                 <widgets><link url="login" text="Test Login (John Doe)" parameter-map="[username:'john.doe', password:'moqui']"/></widgets>
             </section>
-        </container></container>
+        </container></container></container>
         <container id="footer" style="bg-dark">
             <render-mode><text type="html"><![CDATA[
                     <#assign footerItemList = sri.getThemeValues("STRT_FOOTER_ITEM")>
