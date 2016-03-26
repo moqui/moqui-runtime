@@ -1355,16 +1355,21 @@ a => A, d => D, y => Y
 <#macro "date-time">
     <#assign javaFormat = .node["@format"]!>
     <#if !javaFormat?has_content>
-        <#if .node["@type"]! == "time"><#assign size=9><#assign maxlength=13><#assign javaFormat="HH:mm">
-        <#elseif .node["@type"]! == "date"><#assign size=10><#assign maxlength=10><#assign javaFormat="yyyy-MM-dd">
-        <#else><#assign size=16><#assign maxlength=23><#assign javaFormat="yyyy-MM-dd HH:mm"></#if>
+        <#if .node["@type"]! == "time"><#assign javaFormat="HH:mm">
+        <#elseif .node["@type"]! == "date"><#assign javaFormat="yyyy-MM-dd">
+        <#else><#assign javaFormat="yyyy-MM-dd HH:mm"></#if>
     </#if>
     <#assign datepickerFormat><@getBootstrapDateFormat javaFormat/></#assign>
     <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, .node["@default-value"]!"", javaFormat)>
 
     <#assign id><@fieldId .node/></#assign>
-    <#assign size = .node["@size"]?default(size)>
-    <#assign maxlength = .node["@max-length"]?default(maxlength)>
+
+    <#if .node["@type"]! == "time"><#assign size=9><#assign maxlength=13>
+        <#elseif .node["@type"]! == "date"><#assign size=10><#assign maxlength=10>
+        <#else><#assign size=16><#assign maxlength=23></#if>
+    <#assign size = .node["@size"]!size>
+    <#assign maxlength = .node["@max-length"]!maxlength>
+
     <#if .node["@type"]! != "time">
         <#if .node["@type"]! == "date">
             <div class="input-group date" id="${id}">
