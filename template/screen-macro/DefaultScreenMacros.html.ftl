@@ -1353,7 +1353,6 @@ a => A, d => D, y => Y
 <#macro getBootstrapDateFormat dateFormat>${dateFormat?replace("a","A")?replace("d","D")?replace("y","Y")}</#macro>
 
 <#macro "date-time">
-<span class="form-date-time">
     <#assign javaFormat = .node["@format"]!>
     <#if !javaFormat?has_content>
         <#if .node["@type"]! == "time"><#assign size=9><#assign maxlength=13><#assign javaFormat="HH:mm">
@@ -1391,7 +1390,6 @@ a => A, d => D, y => Y
         <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValue?html}', format:'${datepickerFormat}', stepping:5});</script>
         -->
     </#if>
-</span>
 </#macro>
 
 <#macro display>

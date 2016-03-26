@@ -111,11 +111,6 @@ td span.form-display { display: inline-block; width: 100%; }
 .form-date-find, .form-range-find { display: block; padding-bottom: 4px; }
 .form-text-find input, .form-range-find input { display: inline-block; }
 
-/* form-single formatting so non-buttons align with header; NOTE: better solution is use the bootstrap p.form-control-static style */
-/* GET RID OF? fieldset span.form-display, fieldset div>a:not(.btn), fieldset div>span { display: inline-block; padding-top: 6px; } */
-/* exclude date/time widget from top padding */
-/* GET RID OF? fieldset div>span.form-date-time { display: inline-block; padding-top: 0px; } */
-
 /* This is the +/- in the header, use fixed width font for consistent sizing, Courier New has the best vertical alignment with + and - */
 a.form-order-by { margin: 0; padding: 0; font-family: "Courier New", monospace; font-weight: bold; font-size: 1.0em; padding-left: 0.25em; vertical-align: top; }
 a.form-order-by:hover { color: blue; }
@@ -191,24 +186,11 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 
 .progress { margin-bottom: 8px; }
 
-/* GET RID OF?
-.form-group { margin-bottom: 8px; }
-.form-group .field-row-item > .form-group { margin-bottom: 0px; }
-*/
-/* Bootstrap defines these as width 100% making all fields REALLY wide, but doing this sends input-group-addon way to the right */
-/* GET RID OF?
-.input-group .form-control, .form-control { width: auto; }
-.input-group { display: inline-block; }
-.input-group-addon, .input-group-btn, .input-group .form-control { display: inline; }
-*/
-/* GET RID OF?
-.form-date-find .input-group-addon { line-height: 14.6px; padding: 8px 12px 8px 12px; }
-.form-date-find .input-group { display: inline-block; }
-*/
-
-/* GET RID OF?
-.form-horizontal, .form-horizontal .col-lg-12, .form-horizontal .col-lg-10, .form-horizontal .field-row-item { vertical-align: middle; }
-*/
+/* Styles to get around default Bootstrap input width:100%; note margin-right on .input-group is enough for a 14px icon but nothing more! */
+.form-control { display: inline; min-width: 20px; width: auto; }
+.input-group { display: inline-block; white-space: nowrap; margin-right: 39px; }
+.input-group .form-control { display: inline; min-width: 20px; width: auto; }
+.input-group .input-group-addon { display: inline; line-height: 34px; padding: 8px 12px; }
 
 .nav.nav-tabs { margin-bottom: 8px; }
 
@@ -220,8 +202,6 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 /* Bootstrap has no margin for a.navbar-btn so add them; note margin-right in bootstrap is -15px because of other styles, so for a margin of 10px set to -5px */
 .navbar-right.btn { margin-right: -5px; margin-left: 10px; }
 .navbar-right.btn-group { margin-right: -5px; margin-left: 10px; }
-
-/* .nav>li>a.btn-sm { padding: 5px 10px; } */
 
 /* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */
 .panel .panel-heading { position: relative; }
@@ -283,10 +263,6 @@ form.editable-form button { background: white; color: #333; border: 1px solid; b
 .bg-dark form.editable-form textarea { background-color: #3a3a3a; border-color: #222; }
 
 .modal-dialog { text-align: left; } /* needed when right aligning the dialog button */
-
-/* #content has white-space: nowrap, which is an annoying thing for all to inherit
-div { white-space: normal; } */
-
 
 /* ======================= Screen-specific ======================= */
 
