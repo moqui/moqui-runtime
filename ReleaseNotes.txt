@@ -2,7 +2,21 @@
 Moqui Runtime Release Notes
 
 ===========================================================================
-Release 1.6.2 - TBD
+Release 1.6.3 - TBD
+===========================================================================
+
+Moqui Runtime 1.6.3 is a minor new feature and bug fix release, in parallel
+with the release of Moqui Framework.
+
+TODO
+
+New Features
+
+
+Bug Fixes
+
+===========================================================================
+Release 1.6.2 - 26 Mar 2016
 ===========================================================================
 
 Moqui Runtime 1.6.2 is a minor new feature and bug fix release, in parallel
@@ -10,12 +24,14 @@ with the release of Moqui Framework.
 
 New Features
 
+- New Moqui logo!
 - Removed example component, now in a separate repository (moqui/example)
 - Many unused JS libraries removed (from webroot/assets/lib directory)
 - The Tools app can now be run in Tenant instances, with the entities in
   the tenantcommon group excluded from various screens
 - The Resource ElFinder screen in the System app now restricts access to
   file and classpath resources for all tenants except DEFAULT
+- Added basic tenant admin screens, only accessible in the DEFAULT tenant
 
 Bug Fixes
 
