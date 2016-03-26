@@ -172,7 +172,12 @@ button.ui-button-icons-only { width: 1.5em; }
 */
 
 .ui-accordion-header { line-height: .7; background: #EEE; }
-.ui-accordion .ui-accordion-content { padding: 0.5em 1em; }
+.ui-accordion-header:focus { outline: none; }
+.ui-accordion .ui-accordion-content { padding: 15px 15px 0 15px; margin-right: auto; margin-left: auto; background: transparent; color: inherit; }
+.bg-dark .ui-accordion-header, .bg-dark .ui-accordion-content { border-color: black; }
+
+.ui-dialog a.ui-dialog-titlebar-close.ui-state-hover { border: none; background: transparent; }
+.ui-dialog a.ui-dialog-titlebar-close:hover, .ui-dialog a.ui-dialog-titlebar-close:focus { padding: 1px; text-decoration: none; color: #999; }
 
 /* ================ Extensions for jquery-ui theme =============== */
 
@@ -193,6 +198,9 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .input-group .input-group-addon { display: inline; line-height: 34px; padding: 8px 12px; }
 
 .nav.nav-tabs { margin-bottom: 8px; }
+.bg-dark .nav.nav-tabs a:hover { background-color: #333; border-color: #333; border-bottom-color: black; }
+.bg-dark .nav.nav-tabs .active a { background-color: inherit; color: inherit; border-color: black; border-bottom-color: #3a3a3a; }
+.bg-dark .nav.nav-tabs { border-color: black; }
 
 .navbar-inverse .navbar-nav > li > a { font-size: 1.1em; color: #BBB; }
 .navbar-inverse .navbar-nav > li > a:hover, .navbar-inverse .navbar-nav > li > a:focus { color: #fff; background-color: transparent; }
