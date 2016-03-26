@@ -589,7 +589,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#assign inFieldRow = true>
                     <#list layoutNode?children as rowChildNode>
                         <#if rowChildNode?node_name == "field-ref">
-                            <div class="col-lg-6"><#-- was field-row-item -->
+                            <div class="col-md-6"><#-- was field-row-item -->
                                 <#assign fieldRef = rowChildNode["@name"]>
                                 <#assign fieldNode = "invalid">
                                 <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
@@ -598,7 +598,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <#else>
                                     <@formSingleSubField fieldNode/>
                                 </#if>
-                            </div><!-- /col-lg-6 not bigRow -->
+                            </div><!-- /col-md-6 not bigRow -->
                         <#elseif rowChildNode?node_name == "fields-not-referenced">
                             <#assign nonReferencedFieldList = sri.getFtlFormFieldLayoutNonReferencedFieldList(.node["@name"])>
                             <#list nonReferencedFieldList as nonReferencedField><@formSingleSubField nonReferencedField/></#list>
@@ -640,13 +640,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#if rowContent?has_content>
                     <div class="form-group"><#-- was row -->
                         <#if layoutNode["@title"]?has_content>
-                        <label class="control-label col-lg-2">${ec.resource.expand(layoutNode["@title"], "")}</label>
-                        <div class="col-lg-10">
+                        <label class="control-label col-md-2">${ec.resource.expand(layoutNode["@title"], "")}</label>
+                        <div class="col-md-10">
                         <#else>
-                        <div class="col-lg-12">
+                        <div class="col-md-12">
                         </#if>
                             ${rowContent}
-                        </div><#-- /col-lg-12 bigRow -->
+                        </div><#-- /col-md-12 bigRow -->
                     </div><#-- /row -->
                     </#if>
                     <#assign bigRow = false>
@@ -675,7 +675,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <#assign inFieldRow = true>
                                 <#list groupNode?children as rowChildNode>
                                     <#if rowChildNode?node_name == "field-ref">
-                                        <div class="col-lg-6"><#-- was field-row-item -->
+                                        <div class="col-md-6"><#-- was field-row-item -->
                                             <#assign fieldRef = rowChildNode["@name"]>
                                             <#assign fieldNode = "invalid">
                                             <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
@@ -684,7 +684,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                             <#else>
                                                 <@formSingleSubField fieldNode/>
                                             </#if>
-                                        </div><#-- /col-lg-6 not bigRow -->
+                                        </div><#-- /col-md-6 not bigRow -->
                                     <#elseif rowChildNode?node_name == "fields-not-referenced">
                                         <#assign nonReferencedFieldList = sri.getFtlFormFieldLayoutNonReferencedFieldList(.node["@name"])>
                                         <#list nonReferencedFieldList as nonReferencedField><@formSingleSubField nonReferencedField/></#list>
@@ -775,15 +775,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#else>
         <#if fieldSubNode["submit"]?has_content>
         <div class="form-group"><#-- was single-form-field -->
-            <div class="<#if inFieldRow>col-lg-4<#else>col-lg-2</#if>"> </div>
-            <div class="<#if inFieldRow>col-lg-8<#else>col-lg-10</#if><#if containerStyle?has_content> ${containerStyle}</#if>">
+            <div class="<#if inFieldRow>col-md-4<#else>col-md-2</#if>"> </div>
+            <div class="<#if inFieldRow>col-md-8<#else>col-md-10</#if><#if containerStyle?has_content> ${containerStyle}</#if>">
         <#elseif !(inFieldRow! && !curFieldTitle?has_content)>
         <div class="form-group"><#-- was single-form-field -->
-            <label class="control-label <#if inFieldRow>col-lg-4<#else>col-lg-2</#if>" for="${formId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
-            <div class="<#if inFieldRow>col-lg-8<#else>col-lg-10</#if><#if containerStyle?has_content> ${containerStyle}</#if>">
+            <label class="control-label <#if inFieldRow>col-md-4<#else>col-md-2</#if>" for="${formId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
+            <div class="<#if inFieldRow>col-md-8<#else>col-md-10</#if><#if containerStyle?has_content> ${containerStyle}</#if>">
         </#if>
     </#if>
-    <#-- NOTE: this style is only good for 2 fields in a field-row! in field-row cols are double size because are inside a col-lg-6 element -->
+    <#-- NOTE: this style is only good for 2 fields in a field-row! in field-row cols are double size because are inside a col-md-6 element -->
     ${sri.pushContext()}
     <#list fieldSubNode?children as widgetNode><#if widgetNode?node_name == "set">${sri.setInContext(widgetNode)}</#if></#list>
     <#list fieldSubNode?children as widgetNode>
@@ -1354,12 +1354,15 @@ a => A, d => D, y => Y
 
 <#macro "date-time">
 <span class="form-date-time">
-    <#if .node["@type"]! == "time"><#assign size=9><#assign maxlength=13><#assign defaultFormat="HH:mm">
-    <#elseif .node["@type"]! == "date"><#assign size=10><#assign maxlength=10><#assign defaultFormat="yyyy-MM-dd">
-    <#else><#assign size=16><#assign maxlength=23><#assign defaultFormat="yyyy-MM-dd HH:mm">
+    <#assign javaFormat = .node["@format"]!>
+    <#if !javaFormat?has_content>
+        <#if .node["@type"]! == "time"><#assign size=9><#assign maxlength=13><#assign javaFormat="HH:mm">
+        <#elseif .node["@type"]! == "date"><#assign size=10><#assign maxlength=10><#assign javaFormat="yyyy-MM-dd">
+        <#else><#assign size=16><#assign maxlength=23><#assign javaFormat="yyyy-MM-dd HH:mm"></#if>
     </#if>
-    <#assign datepickerFormat><@getBootstrapDateFormat .node["@format"]!defaultFormat/></#assign>
-    <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, .node["@default-value"]!"", .node["@format"]!defaultFormat)>
+    <#assign datepickerFormat><@getBootstrapDateFormat javaFormat/></#assign>
+    <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, .node["@default-value"]!"", javaFormat)>
+
     <#assign id><@fieldId .node/></#assign>
     <#assign size = .node["@size"]?default(size)>
     <#assign maxlength = .node["@max-length"]?default(maxlength)>
@@ -1367,13 +1370,13 @@ a => A, d => D, y => Y
         <#if .node["@type"]! == "date">
             <div class="input-group date" id="${id}">
                 <input type="text" class="form-control" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
             </div>
             <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValue?html}', format:'${datepickerFormat}'});</script>
         <#else>
             <div class="input-group date" id="${id}">
                 <input type="text" class="form-control" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
             </div>
             <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValue?html}', format:'${datepickerFormat}', stepping:5});</script>
         </#if>
@@ -1409,7 +1412,7 @@ a => A, d => D, y => Y
     <#else>
         <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, "", .node["@format"]!)>
     </#if>
-    <#t><span id="<@fieldId .node/>_display" class="form-display ${sri.getFieldValueClass(.node?parent?parent)}<#if .node["@currency-unit-field"]?has_content> currency</#if>"><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></span>
+    <#t><p id="<@fieldId .node/>_display" class="form-control-static ${sri.getFieldValueClass(.node?parent?parent)}<#if .node["@currency-unit-field"]?has_content> currency</#if>"><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></p>
     <#t><#if !.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true">
         <#-- use getFieldValuePlainString() and not getFieldValueString() so we don't do timezone conversions, etc -->
         <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
@@ -1418,7 +1421,7 @@ a => A, d => D, y => Y
 </#macro>
 <#macro "display-entity">
     <#assign fieldValue = ""/><#assign fieldValue = sri.getFieldEntityValue(.node)!/>
-    <#t><span id="<@fieldId .node/>_display" class="form-display"><#if fieldValue?has_content><#if .node["@encode"]!"true" == "false">${fieldValue!"&nbsp;"}<#else>${(fieldValue!" ")?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></span>
+    <#t><p id="<@fieldId .node/>_display" class="form-control-static"><#if fieldValue?has_content><#if .node["@encode"]!"true" == "false">${fieldValue!"&nbsp;"}<#else>${(fieldValue!" ")?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></p>
     <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
     <#t><#if !.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true"><input type="hidden" id="<@fieldId .node/>" name="<@fieldName .node/>" value="${sri.getFieldValuePlainString(.node?parent?parent, "")?html}"></#if>
 </#macro>

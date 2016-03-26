@@ -109,19 +109,12 @@ div.panel-right { float: right; width: 180px; margin-left: 10px; }
 td span.form-display { display: inline-block; width: 100%; }
 
 .form-date-find, .form-range-find { display: block; padding-bottom: 4px; }
-.input-group { display: inline-block; }
-.input-group-addon, .input-group-btn, .input-group .form-control { display: inline; }
-.form-date-find .input-group-addon { line-height: 34px; padding: 8px 12px 8px 12px; }
-.form-date-find .input-group { display: inline-block; }
-.form-date-time .input-group-addon {line-height: 14.6px;} /* Make Calendar widget align with box it is added on to */
-
 .form-text-find input, .form-range-find input { display: inline-block; }
 
-/*  form-single formatting so non-buttons align with header */
-fieldset span.form-display,
-fieldset div>a:not(.btn),
-fieldset div>span { display: inline-block; padding-top: 6px; }
-fieldset div>span.form-date-time { display: inline-block; padding-top: 0px; } /* exclude date/time widget from top padding */
+/* form-single formatting so non-buttons align with header; NOTE: better solution is use the bootstrap p.form-control-static style */
+/* GET RID OF? fieldset span.form-display, fieldset div>a:not(.btn), fieldset div>span { display: inline-block; padding-top: 6px; } */
+/* exclude date/time widget from top padding */
+/* GET RID OF? fieldset div>span.form-date-time { display: inline-block; padding-top: 0px; } */
 
 /* This is the +/- in the header, use fixed width font for consistent sizing, Courier New has the best vertical alignment with + and - */
 a.form-order-by { margin: 0; padding: 0; font-family: "Courier New", monospace; font-weight: bold; font-size: 1.0em; padding-left: 0.25em; vertical-align: top; }
@@ -198,16 +191,23 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 
 .progress { margin-bottom: 8px; }
 
+/* GET RID OF?
 .form-group { margin-bottom: 8px; }
 .form-group .field-row-item > .form-group { margin-bottom: 0px; }
+*/
+/* Bootstrap defines these as width 100% making all fields REALLY wide, but doing this sends input-group-addon way to the right */
+/* GET RID OF?
 .input-group .form-control, .form-control { width: auto; }
-/* .form-horizontal .control-label { padding-top: 0; } */
-.form-horizontal, .form-horizontal .col-lg-12, .form-horizontal .col-lg-10, .form-horizontal .field-row-item { vertical-align: middle; }
+.input-group { display: inline-block; }
+.input-group-addon, .input-group-btn, .input-group .form-control { display: inline; }
+*/
+/* GET RID OF?
+.form-date-find .input-group-addon { line-height: 14.6px; padding: 8px 12px 8px 12px; }
+.form-date-find .input-group { display: inline-block; }
+*/
 
-/*
-.input-append.date { white-space: nowrap; }
-.input-append.date .form-control { margin-right: 39px; }
-.input-append.date .add-on { margin-left: -39px; }
+/* GET RID OF?
+.form-horizontal, .form-horizontal .col-lg-12, .form-horizontal .col-lg-10, .form-horizontal .field-row-item { vertical-align: middle; }
 */
 
 .nav.nav-tabs { margin-bottom: 8px; }
