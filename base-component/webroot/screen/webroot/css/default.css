@@ -208,8 +208,8 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 /* Bootstrap by default has a 20px height for this, for 30px height shift up 5px */
 .navbar-brand>img { height: 30px; margin-top: -5px; }
 /* Bootstrap has no margin for a.navbar-btn so add them; note margin-right in bootstrap is -15px because of other styles, so for a margin of 10px set to -5px */
-.navbar-right.btn { margin-right: -5px; margin-left: 10px; }
-.navbar-right.btn-group { margin-right: -5px; margin-left: 10px; }
+.navbar-right.btn { margin-right: -6px; margin-left: 10px; }
+.navbar-right.btn-group { margin-right: -6px; margin-left: 0px; }
 
 /* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */
 .panel .panel-heading { position: relative; }
@@ -220,8 +220,8 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .bg-dark .panel, .bg-dark .panel-heading { border-color: #222; }
 
 .btn { margin: 4px 4px 4px 0; }
-div.btn-group a.btn { margin-right: 0; }
-div.btn-group { margin-right: 4px; }
+.btn-group .btn { margin-right: 0; }
+.btn-group { margin-right: 4px; }
 
 /* Variations on Bootstrap default table styles */
 .table>thead>tr>th { vertical-align: top; }
