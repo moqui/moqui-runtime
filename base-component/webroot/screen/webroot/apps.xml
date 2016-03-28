@@ -61,6 +61,8 @@ along with this software (see the LICENSE.md file). If not, see
         html_scripts.add('/lib/select2/select2.min.js')
         html_stylesheets.add('/lib/select2/select2.min.css')
         html_stylesheets.add('/lib/select2/select2-bootstrap.min.css')
+        html_scripts.add('/lib/jstree/jstree.min.js')
+        html_stylesheets.add('/lib/jstree/themes/default/style.min.css')
         html_scripts.add('/lib/jeditable/jquery.jeditable.min.js')
     ]]></script></pre-actions>
 

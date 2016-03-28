@@ -342,19 +342,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign ajaxParms = ajaxUrlInfo.getParameterMap()>
 
     <div id="${.node["@name"]}"></div>
-
-    <#assign afterScreenScript>
+    <script>
     $("#${.node["@name"]}").bind('select_node.jstree', function(e,data) {window.location.href = data.node.a_attr.href;}).jstree({
         "core" : { "themes" : { "url" : false, "dots" : true, "icons" : false }, "multiple" : false,
             'data' : {
                 dataType: 'json', type: 'POST',
                 url: function (node) { return '${ajaxUrlInfo.url}'; },
-                data: function (node) { return { treeNodeId: node.id, treeNodeName: (node.li_attr && node.li_attr.treeNodeName ? node.li_attr.treeNodeName : ''), moquiSessionToken: "${(ec.web.sessionToken)!}"<#if .node["@open-path"]??>, treeOpenPath: "${ec.resource.expand(.node["@open-path"], "")}"</#if><#list ajaxParms.keySet() as pKey>, "${pKey}": "${ajaxParms.get(pKey)!""}"</#list> }; }
+                data: function (node) { return { treeNodeId: node.id,
+                    treeNodeName: (node.li_attr && node.li_attr.treeNodeName ? node.li_attr.treeNodeName : ''),
+                    moquiSessionToken: "${(ec.web.sessionToken)!}"
+                    <#if .node["@open-path"]??>, treeOpenPath: "${ec.resource.expand(.node["@open-path"], "")}"</#if>
+                    <#list ajaxParms.keySet() as pKey>, "${pKey}": "${ajaxParms.get(pKey)!""}"</#list> }; }
             }
         }
     });
-    </#assign>
-    <#t>${sri.appendToScriptWriter(afterScreenScript)}
+    </script>
 </#macro>
 <#macro "tree-node"><#-- shouldn't be called directly, but just in case --></#macro>
 <#macro "tree-sub-node"><#-- shouldn't be called directly, but just in case --></#macro>
@@ -1317,8 +1319,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <option<#if fvPeriod == "year"> selected="selected"</#if>>Year</option>
     </select>
     <#assign afterFormScript>
-        $("#${id}_poffset").puidropdown();
-        $("#${id}_period").puidropdown();
+        $("#${id}_poffset").select2({ minimumResultsForSearch:10, theme:'bootstrap' });
+        $("#${id}_period").select2({ minimumResultsForSearch:10, theme:'bootstrap' });
     </#assign>
     <#t>${sri.appendToScriptWriter(afterFormScript)}
 </#macro>
