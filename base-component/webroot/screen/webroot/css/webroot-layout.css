@@ -139,6 +139,7 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 input[type=radio], input[type=checkbox] { height: auto; }
 
 .select2-container { min-width: 60px; }
+.date-period .select2-container--bootstrap { display: inline-block; }
 
 a.jstree-anchor { white-space: normal; }
 .jstree-default .jstree-anchor { height: auto; }

@@ -1172,7 +1172,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#t><#if !isHeaderField && isMulti && isMultiFinalRow && !fieldSubNode["submit"]?has_content><#return/></#if>
     <#if fieldSubNode["hidden"]?has_content><#recurse fieldSubNode/><#return/></#if>
     <#assign containerStyle = ec.resource.expand(fieldSubNode["@container-style"]!, "")>
-    <#if !isMultiFinalRow && !isHeaderField><#if skipCell><div class="form-list-cell-item<#if containerStyle?has_content> ${containerStyle}</#if>"><#else><td<#if containerStyle?has_content> class="${containerStyle}"</#if>></#if></#if>
+    <#if !isMultiFinalRow && !isHeaderField><#if skipCell><div<#if containerStyle?has_content>class="${containerStyle}"</#if>><#else><td<#if containerStyle?has_content> class="${containerStyle}"</#if>></#if></#if>
         ${sri.pushContext()}
         <#list fieldSubNode?children as widgetNode><#if widgetNode?node_name == "set">${sri.setInContext(widgetNode)}</#if></#list>
         <#list fieldSubNode?children as widgetNode>
@@ -1245,56 +1245,28 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <span class="form-date-find">
       <span>${ec.l10n.localize("From")}&nbsp;</span>
     <#if .node["@type"]! != "time">
-        <#if .node["@type"]! == "date">
-            <div class="input-group input-append date" id="${id}_from" data-date="${fieldValueFrom?html}" data-date-format="${datepickerFormat}">
-                <input type="text" class="form-control" name="${curFieldName}_from" value="${fieldValueFrom?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-                <span class="input-group-addon add-on"><i class="glyphicon glyphicon-calendar"></i></span>
-            </div>
-            <#assign afterFormScript>$('#${id}_from').datetimepicker({minView:2, pickerPosition:'bottom-left', autoclose:true});</#assign>
-            <#t>${sri.appendToScriptWriter(afterFormScript)}
-        <#else>
-            <div class="input-group input-append date" id="${id}_from" data-date="${fieldValueFrom?html}" data-date-format="${datepickerFormat}">
-                <input type="text" class="form-control" name="${curFieldName}_from" value="${fieldValueFrom?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-                <span class="input-group-addon add-on"><i class="glyphicon glyphicon-calendar"></i></span>
-            </div>
-            <#assign afterFormScript>$('#${id}_from').datetimepicker({pickerPosition:'bottom-left', autoclose:true});</#assign>
-            <#t>${sri.appendToScriptWriter(afterFormScript)}
-        </#if>
-    <#else>
-        <div class="input-group input-append date" id="${id}_from" data-date="${fieldValueFrom?html}" data-date-format="${datepickerFormat}">
+        <div class="input-group input-append date" id="${id}_from">
             <input type="text" class="form-control" name="${curFieldName}_from" value="${fieldValueFrom?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-            <span class="input-group-addon add-on"><i class="glyphicon glyphicon-time"></i></span>
+            <span class="input-group-addon add-on"><i class="glyphicon glyphicon-calendar"></i></span>
         </div>
-        <#assign afterFormScript>$('#${id}_from').datetimepicker({startView:1, maxView:1, pickerPosition:'bottom-left', autoclose:true});</#assign>
-        <#t>${sri.appendToScriptWriter(afterFormScript)}
+        <script>$('#${id}_from').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValueFrom?html}', format:'${datepickerFormat}', stepping:5});</script>
+    <#else>
+        <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"
+               name="${curFieldName}_from" value="${fieldValueFrom?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
     </#if>
     </span>
 
     <span class="form-date-find">
       <span>${ec.l10n.localize("Thru")}&nbsp;</span>
     <#if .node["@type"]! != "time">
-        <#if .node["@type"]! == "date">
-            <div class="input-group input-append date" id="${id}_thru" data-date="${fieldValueThru?html}" data-date-format="${datepickerFormat}">
-                <input type="text" class="form-control" name="${curFieldName}_thru" value="${fieldValueThru?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-                <span class="input-group-addon add-on"><i class="glyphicon glyphicon-calendar"></i></span>
-            </div>
-            <#assign afterFormScript>$('#${id}_thru').datetimepicker({minView:2, pickerPosition:'bottom-left', autoclose:true});</#assign>
-            <#t>${sri.appendToScriptWriter(afterFormScript)}
-        <#else>
-            <div class="input-group input-append date" id="${id}_thru" data-date="${fieldValueThru?html}" data-date-format="${datepickerFormat}">
-                <input type="text" class="form-control" name="${curFieldName}_thru" value="${fieldValueThru?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-                <span class="input-group-addon add-on"><i class="glyphicon glyphicon-calendar"></i></span>
-            </div>
-            <#assign afterFormScript>$('#${id}_thru').datetimepicker({pickerPosition:'bottom-left', autoclose:true});</#assign>
-            <#t>${sri.appendToScriptWriter(afterFormScript)}
-        </#if>
-    <#else>
-        <div class="input-group input-append date" id="${id}_thru" data-date="${fieldValueThru?html}" data-date-format="${datepickerFormat}">
+        <div class="input-group input-append date" id="${id}_thru">
             <input type="text" class="form-control" name="${curFieldName}_thru" value="${fieldValueThru?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-            <span class="input-group-addon add-on"><i class="glyphicon glyphicon-time"></i></span>
+            <span class="input-group-addon add-on"><i class="glyphicon glyphicon-calendar"></i></span>
         </div>
-        <#assign afterFormScript>$('#${id}_thru').datetimepicker({startView:1, maxView:1, pickerPosition:'bottom-left', autoclose:true});</#assign>
-        <#t>${sri.appendToScriptWriter(afterFormScript)}
+        <script>$('#${id}_thru').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValueThru?html}', format:'${datepickerFormat}', stepping:5});</script>
+    <#else>
+        <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"
+               name="${curFieldName}_thru" value="${fieldValueThru?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
     </#if>
     </span>
 </#macro>
@@ -1305,34 +1277,35 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign fvOffset = ec.context.get(curFieldName + "_poffset")!>
     <#assign fvPeriod = ec.context.get(curFieldName + "_period")!?lower_case>
     <#assign allowEmpty = .node["@allow-empty"]!"true">
-    <select name="${curFieldName}_poffset" id="${id}_poffset"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-        <#if (allowEmpty! != "false")>
+    <div class="date-period">
+        <select name="${curFieldName}_poffset" id="${id}_poffset"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
+            <#if (allowEmpty! != "false")>
+                <option value="">&nbsp;</option>
+            </#if>
+            <option value="0"<#if fvOffset == "0"> selected="selected"</#if>>This</option>
+            <option value="-1"<#if fvOffset == "-1"> selected="selected"</#if>>Last</option>
+            <option value="-2"<#if fvOffset == "-2"> selected="selected"</#if>>-2</option>
+            <option value="-3"<#if fvOffset == "-3"> selected="selected"</#if>>-3</option>
+            <option value="-4"<#if fvOffset == "-4"> selected="selected"</#if>>-4</option>
+            <option value="1"<#if fvOffset == "1"> selected="selected"</#if>>Next</option>
+            <option value="2"<#if fvOffset == "2"> selected="selected"</#if>>+2</option>
+            <option value="3"<#if fvOffset == "3"> selected="selected"</#if>>+3</option>
+            <option value="4"<#if fvOffset == "4"> selected="selected"</#if>>+4</option>
+        </select>
+        <select name="${curFieldName}_period" id="${id}_period"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
+            <#if (allowEmpty! != "false")>
             <option value="">&nbsp;</option>
-        </#if>
-        <option value="0"<#if fvOffset == "0"> selected="selected"</#if>>This</option>
-        <option value="-1"<#if fvOffset == "-1"> selected="selected"</#if>>Last</option>
-        <option value="-2"<#if fvOffset == "-2"> selected="selected"</#if>>-2</option>
-        <option value="-3"<#if fvOffset == "-3"> selected="selected"</#if>>-3</option>
-        <option value="-4"<#if fvOffset == "-4"> selected="selected"</#if>>-4</option>
-        <option value="1"<#if fvOffset == "1"> selected="selected"</#if>>Next</option>
-        <option value="2"<#if fvOffset == "2"> selected="selected"</#if>>+2</option>
-        <option value="3"<#if fvOffset == "3"> selected="selected"</#if>>+3</option>
-        <option value="4"<#if fvOffset == "4"> selected="selected"</#if>>+4</option>
-    </select>
-    <select name="${curFieldName}_period" id="${id}_period"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-        <#if (allowEmpty! != "false")>
-        <option value="">&nbsp;</option>
-        </#if>
-        <option<#if fvPeriod == "day"> selected="selected"</#if>>Day</option>
-        <option<#if fvPeriod == "week"> selected="selected"</#if>>Week</option>
-        <option<#if fvPeriod == "month"> selected="selected"</#if>>Month</option>
-        <option<#if fvPeriod == "year"> selected="selected"</#if>>Year</option>
-    </select>
-    <#assign afterFormScript>
-        $("#${id}_poffset").select2({ minimumResultsForSearch:10, theme:'bootstrap' });
-        $("#${id}_period").select2({ minimumResultsForSearch:10, theme:'bootstrap' });
-    </#assign>
-    <#t>${sri.appendToScriptWriter(afterFormScript)}
+            </#if>
+            <option<#if fvPeriod == "day"> selected="selected"</#if>>Day</option>
+            <option<#if fvPeriod == "week"> selected="selected"</#if>>Week</option>
+            <option<#if fvPeriod == "month"> selected="selected"</#if>>Month</option>
+            <option<#if fvPeriod == "year"> selected="selected"</#if>>Year</option>
+        </select>
+        <script>
+            $("#${id}_poffset").select2({ minimumResultsForSearch:20, theme:'bootstrap' });
+            $("#${id}_period").select2({ minimumResultsForSearch:20, theme:'bootstrap' });
+        </script>
+    </div>
 </#macro>
 
 <#--
@@ -1383,29 +1356,14 @@ a => A, d => D, y => Y
     <#assign maxlength = .node["@max-length"]!maxlength>
 
     <#if .node["@type"]! != "time">
-        <#if .node["@type"]! == "date">
-            <div class="input-group date" id="${id}">
-                <input type="text" class="form-control" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
-            </div>
-            <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValue?html}', format:'${datepickerFormat}'});</script>
-        <#else>
-            <div class="input-group date" id="${id}">
-                <input type="text" class="form-control" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
-            </div>
-            <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValue?html}', format:'${datepickerFormat}', stepping:5});</script>
-        </#if>
-    <#else>
-        <#-- use a regex to validate time format -->
-        <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-        <#-- datetimepicker does not support time only, even with plain HH:mm format
         <div class="input-group date" id="${id}">
             <input type="text" class="form-control" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-            <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+            <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
         </div>
         <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValue?html}', format:'${datepickerFormat}', stepping:5});</script>
-        -->
+    <#else>
+        <#-- datetimepicker does not support time only, even with plain HH:mm format; use a regex to validate time format -->
+        <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
     </#if>
 </#macro>
 
@@ -1616,7 +1574,7 @@ a => A, d => D, y => Y
         <input id="${id}" type="hidden" name="${name}" value="${fieldValue?html}">
         <#if acShowValue><span id="${id}_value" class="form-autocomplete-value"><#if valueText?has_content>${valueText?html}<#else>&nbsp;</#if></span></#if>
         <#assign depNodeList = .node["depends-on"]>
-        <#assign afterFormScript>
+        <script>
 
             $("#${id}_ac").autocomplete({
                 source: function(request, response) { $.ajax({
@@ -1642,22 +1600,11 @@ a => A, d => D, y => Y
                 });
             }
             </#if>
-        </#assign>
-        <#t>${sri.appendToScriptWriter(afterFormScript)}
+
+        </script>
     <#else>
         <input id="${id}" type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>" name="${name}" value="${fieldValue?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if ec.resource.condition(.node.@disabled!"false", "")> disabled="disabled"</#if> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if>"<#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
     </#if>
-    <#-- OLD approach for validate() with regexp (with validVal just goes in pattern attribute):
-    <#assign regexpInfo = sri.getFormFieldValidationRegexpInfo(.node?parent?parent?parent["@name"], .node?parent?parent["@name"])!>
-    <#if regexpInfo?has_content>
-    <#assign afterFormScript>
-    $("#${ec.resource.expand(formNode["@name"], "")}").validate();
-    $.validator.addMethod("${id}_v", function (value, element) { return this.optional(element) || /${regexpInfo.regexp}/.test(value); }, "${regexpInfo.message!"Input invalid"}");
-    $("#${id}").rules("add", { ${id}_v:true })
-    </#assign>
-    <#t>${sri.appendToScriptWriter(afterFormScript)}
-    </#if>
-    -->
 </#macro>
 
 <#macro "text-find">
