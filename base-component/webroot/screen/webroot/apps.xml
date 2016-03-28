@@ -65,7 +65,10 @@ along with this software (see the LICENSE.md file). If not, see
         html_stylesheets.add('/lib/jstree/themes/default/style.min.css')
         // Inline Editable
         html_scripts.add('/lib/jeditable/jquery.jeditable.min.js')
-    ]]></script></pre-actions>
+
+        // Moqui webroot layout
+        html_stylesheets.add('/css/webroot-layout.css')
+        ]]></script></pre-actions>
 
     <widgets>
         <container id="top">

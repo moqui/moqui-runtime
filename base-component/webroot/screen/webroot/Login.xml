@@ -31,6 +31,8 @@ along with this software (see the LICENSE.md file). If not, see
         // Bootstrap
         html_scripts.add('/lib/bootstrap/bootstrap.min.js')
         html_stylesheets.add('/lib/bootstrap/bootstrap.min.css')
+        // Moqui webroot layout
+        html_stylesheets.add('/css/webroot-layout.css')
     </script></pre-actions>
     <widgets>
         <!-- NOTE: this screen is not under the apps screen, but uses similar header/footer/etc -->

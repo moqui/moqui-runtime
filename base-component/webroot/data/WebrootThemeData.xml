@@ -17,7 +17,7 @@ along with this software (see the LICENSE.md file). If not, see
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="10" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="/lib/jquery/themes/smoothness/theme.css"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="20" resourceTypeEnumId="STRT_STYLESHEET"
-            resourceValue="/css/default.css"/>
+            resourceValue="/css/webroot-theme.css"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="100" resourceTypeEnumId="STRT_HEADER_LOGO"
             resourceValue="/images/MoquiLogoSmall.png"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="101" resourceTypeEnumId="STRT_SHORTCUT_ICON"
