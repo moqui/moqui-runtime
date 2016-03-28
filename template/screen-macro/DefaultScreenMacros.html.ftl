@@ -1466,10 +1466,12 @@ a => A, d => D, y => Y
     </select>
     <#-- <span>[${currentValue}]; <#list currentValueList as curValue>[${curValue!''}], </#list></span> -->
     <#if allowMultiple><input type="hidden" id="${id}_op" name="${name}_op" value="in"></#if>
+
+    <#assign select2DefaultOptions = "minimumResultsForSearch:10, theme:'bootstrap'">
     <#if .node["@combo-box"]! == "true">
-        <script>$("#${id}").puidropdown({ editable: true });</script>
+        <script>$("#${id}").select2({ tags: true, tokenSeparators:[',',' '], theme:'bootstrap' });</script>
     <#elseif .node["@search"]! != "false">
-        <script>$("#${id}").puidropdown({ filter: true, filterMatchMode: 'contains', caseSensitiveFilter: false });</script>
+        <script>$("#${id}").select2({ ${select2DefaultOptions} });</script>
     </#if>
 
     <#if isDynamicOptions>
@@ -1481,28 +1483,30 @@ a => A, d => D, y => Y
             function populate_${id}() {
                 var hasAllParms = true;
                 <#list depNodeList as depNode>if (!$('#<@fieldIdByName depNode["@field"]/>').val()) { hasAllParms = false; } </#list>
-                if (!hasAllParms) { $('#${id}').puidropdown('removeAllOptions'); <#-- alert("not has all"); --> return; }
+                if (!hasAllParms) { $("#${id}").select2("destroy"); $('#${id}').html(""); $("#${id}").select2({ ${select2DefaultOptions} }); <#-- alert("not has all parms"); --> return; }
                 $.ajax({ type:'POST', url:'${doUrlInfo.url}', data:{ moquiSessionToken: "${(ec.web.sessionToken)!}"<#list depNodeList as depNode>, '${depNode["@field"]}': $('#<@fieldIdByName depNode["@field"]/>').val()</#list><#list doUrlParameterMap?keys as parameterKey><#if doUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${doUrlParameterMap.get(parameterKey)}"</#if></#list> }, dataType:'json' }).done(
                     function(list) {
                         if (list) {
-                            $('#${id}').puidropdown('removeAllOptions'); /* clear out the drop-down */
+                            $("#${id}").select2("destroy");
+                            $('#${id}').html(""); /* clear out the drop-down */
                             <#if allowEmpty! == "true">
-                            $('#${id}').puidropdown('addOption', { label:'', value:'' });
+                            $('#${id}').append('<option value="">&nbsp;</option>');
                             </#if>
                             $.each(list, function(key, value) {
                                 var optionValue = value["${doNode["@value-field"]!"value"}"];
-                                $('#${id}').puidropdown('addOption', { label:value["${doNode["@label-field"]!"label"}"], value:optionValue });
                                 if (optionValue == "${currentValue}") {
-                                    $('#${id}').puidropdown('selectValue', { value:optionValue });
+                                    $('#${id}').append("<option selected='selected' value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");
+                                } else {
+                                    $('#${id}').append("<option value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");
                                 }
                             });
+                            $("#${id}").select2({ ${select2DefaultOptions} });
                         }
                     }
                 );
             }
             <#list depNodeList as depNode>
-                $("#<@fieldIdByName depNode["@field"]/>").on('puidropdownchange', function() { populate_${id}(); });
-                $("#<@fieldIdByName depNode["@field"]/>").change(function() { populate_${id}(); });
+            $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${id}(); });
             </#list>
             populate_${id}();
         </script>
