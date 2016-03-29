@@ -23,8 +23,8 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <pre-actions>
-        <script>html_scripts.add(sri.buildUrl("/toolstatic/lib/prism/prism.js").url)</script>
-        <script>html_stylesheets.add(sri.buildUrl("/toolstatic/lib/prism/prism.css").url)</script>
+        <script>html_scripts.add("/toolstatic/lib/prism/prism.js")</script>
+        <script>html_stylesheets.add("/toolstatic/lib/prism/prism.css")</script>
     </pre-actions>
     <actions>
         <set field="sd" from="ec.service.getServiceDefinition(serviceName)"/>

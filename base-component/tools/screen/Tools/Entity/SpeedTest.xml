@@ -344,13 +344,13 @@ along with this software (see the LICENSE.md file). If not, see
 
                     logger.info("Rendered ${screenTest.renderCount} screens (${screenTest.errorCount} errors) in ${ec.l10n.format(milliseconds/1000, "0.000")}s, output ${ec.l10n.format(screenTest.renderTotalChars/1000, "#,##0")}k chars")
 
-                    // Get default.css
+                    // Get webroot-layout.css
                     calls = (baseCallsNum / 10).intValue() ?: 1
                     ScreenTest screenTestRoot = ec.screen.makeTest()
                     startTime = System.nanoTime()
-                    for (int i = 0; i < calls; i++) screenTestRoot.render("css/default.css", null, null)
+                    for (int i = 0; i < calls; i++) screenTestRoot.render("css/webroot-layout.css", null, null)
                     milliseconds = ((System.nanoTime() - startTime) / 1E6)
-                    performanceList.add([operation     : "Get default.css", entity: "",
+                    performanceList.add([operation     : "Get webroot-layout.css", entity: "",
                                          calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
                                          callsPerSecond: ((calls / milliseconds) * 1000)])
 
