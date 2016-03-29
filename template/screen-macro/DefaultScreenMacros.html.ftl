@@ -428,7 +428,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign iconClass = linkNode["@icon"]!>
     <#if !iconClass?has_content && linkNode["@text"]?has_content><#assign iconClass = sri.getThemeIconClass(linkNode["@text"])!></#if>
     <#if urlInstance.disableLink>
-        <a href="#"<#if linkFormId?has_content> id="${linkFormId}"</#if>class="disabled text-muted <#if linkNode["@link-type"]! != "anchor" && linkNode["@link-type"]! != "hidden-form-link">btn btn-metis-5 btn-sm</#if><#if .node["@style"]?has_content> ${ec.resource.expand(.node["@style"], "")}</#if>"><#if iconClass?has_content><i class="${iconClass}"></i></#if><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if></a>
+        <a href="#"<#if linkFormId?has_content> id="${linkFormId}"</#if>class="disabled text-muted <#if linkNode["@link-type"]! != "anchor" && linkNode["@link-type"]! != "hidden-form-link">btn btn-primary btn-sm</#if><#if .node["@style"]?has_content> ${ec.resource.expand(.node["@style"], "")}</#if>"><#if iconClass?has_content><i class="${iconClass}"></i></#if><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if></a>
     <#else>
         <#assign confirmationMessage = ec.resource.expand(linkNode["@confirmation"]!, "")/>
         <#if (linkNode["@link-type"]! == "anchor" || linkNode["@link-type"]! == "anchor-button") ||
@@ -1615,7 +1615,7 @@ a => A, d => D, y => Y
         <input type="hidden" name="${curFieldName}_op" value="${defaultOperator}">
     <#else>
         <span><input type="checkbox" class="form-control" name="${curFieldName}_not" value="Y"<#if ec.web.parameters.get(curFieldName + "_not")! == "Y"> checked="checked"</#if>>&nbsp;${ec.l10n.localize("Not")}</span>
-        <select name="${curFieldName}_op">
+        <select name="${curFieldName}_op" class="form-control">
             <option value="equals"<#if defaultOperator == "equals"> selected="selected"</#if>>${ec.l10n.localize("Equals")}</option>
             <option value="like"<#if defaultOperator == "like"> selected="selected"</#if>>${ec.l10n.localize("Like")}</option>
             <option value="contains"<#if defaultOperator == "contains"> selected="selected"</#if>>${ec.l10n.localize("Contains")}</option>
