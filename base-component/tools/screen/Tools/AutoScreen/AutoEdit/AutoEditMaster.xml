@@ -58,22 +58,23 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
     <transition name="getFormXml">
         <actions><script><![CDATA[
-            StringWriter xmlWriter = new StringWriter()
-            XmlNodePrinter printer = new XmlNodePrinter(new PrintWriter(xmlWriter))
-            xmlWriter.append('<?xml version="1.0" encoding="UTF-8"?>\n')
+            import org.moqui.util.MNode
 
-            Node screenNode = new Node(null, "screen", ["xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance", "xsi:noNamespaceSchemaLocation":"http://moqui.org/xsd/xml-screen-1.6.xsd"])
-            Node updateTransNode = screenNode.appendNode("transition", [name:"update"])
-            updateTransNode.appendNode("service-call", [name:"update#${aen}"])
-            updateTransNode.appendNode("default-response", [url:"."])
+            StringBuilder xmlBuilder = new StringBuilder()
+            xmlBuilder.append('<?xml version="1.0" encoding="UTF-8"?>\n')
 
-            Node actionsNode = screenNode.appendNode("actions")
-            actionsNode.appendNode("entity-find-one", ["entity-name":aen, "value-field":"fieldValues"])
-            Node widgetsNode = screenNode.appendNode("widgets")
+            MNode screenNode = new MNode("screen", ["xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance", "xsi:noNamespaceSchemaLocation":"http://moqui.org/xsd/xml-screen-1.6.xsd"])
+            MNode updateTransNode = screenNode.append("transition", [name:"update"])
+            updateTransNode.append("service-call", [name:"update#${aen}".toString()])
+            updateTransNode.append("default-response", [url:"."])
+
+            MNode actionsNode = screenNode.append("actions", null)
+            actionsNode.append("entity-find-one", ["entity-name":aen, "value-field":"fieldValues"])
+            MNode widgetsNode = screenNode.append("widgets", null)
             widgetsNode.append(sri.getActiveScreenDef().getForm("UpdateMasterEntityValue").getAutoCleanedNode())
-            printer.print(screenNode)
+            screenNode.addToSb(xmlBuilder, 0)
 
-            ec.web.sendTextResponse(xmlWriter.toString(), "text/xml", "Edit${ec.entity.getEntityDefinition(aen).entityName}.xml")
+            ec.web.sendTextResponse(xmlBuilder.toString(), "text/xml", "Edit${ec.entity.getEntityDefinition(aen).entityName}.xml")
         ]]></script></actions>
         <default-response type="none"/>
     </transition>

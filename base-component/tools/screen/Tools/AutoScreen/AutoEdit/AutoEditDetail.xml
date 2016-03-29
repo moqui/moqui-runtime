@@ -35,27 +35,28 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
     <transition name="getFormXml">
         <actions><script><![CDATA[
-            StringWriter xmlWriter = new StringWriter()
-            XmlNodePrinter printer = new XmlNodePrinter(new PrintWriter(xmlWriter))
-            xmlWriter.append('<?xml version="1.0" encoding="UTF-8"?>\n')
+            import org.moqui.util.MNode
 
-            Node screenNode = new Node(null, "screen", ["xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance", "xsi:noNamespaceSchemaLocation":"http://moqui.org/xsd/xml-screen-1.6.xsd"])
-            Node createTransNode = screenNode.appendNode("transition", [name:"create"])
-            createTransNode.appendNode("service-call", [name:"create#${den}"])
-            createTransNode.appendNode("default-response", [url:"."])
-            Node updateTransNode = screenNode.appendNode("transition", [name:"update"])
-            updateTransNode.appendNode("service-call", [name:"update#${den}"])
-            updateTransNode.appendNode("default-response", [url:"."])
+            StringBuilder xmlBuilder = new StringBuilder()
+            xmlBuilder.append('<?xml version="1.0" encoding="UTF-8"?>\n')
 
-            Node actionsNode = screenNode.appendNode("actions")
-            actionsNode.appendNode("entity-find", ["entity-name":den, list:"entityValueList"]).appendNode("search-form-inputs")
+            MNode screenNode = new MNode("screen", ["xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance", "xsi:noNamespaceSchemaLocation":"http://moqui.org/xsd/xml-screen-1.6.xsd"])
+            MNode createTransNode = screenNode.append("transition", [name:"create"])
+            createTransNode.append("service-call", [name:"create#${den}".toString()])
+            createTransNode.append("default-response", [url:"."])
+            MNode updateTransNode = screenNode.append("transition", [name:"update"])
+            updateTransNode.append("service-call", [name:"update#${den}".toString()])
+            updateTransNode.append("default-response", [url:"."])
 
-            Node widgetsNode = screenNode.appendNode("widgets")
+            MNode actionsNode = screenNode.append("actions", null)
+            actionsNode.append("entity-find", ["entity-name":den, list:"entityValueList"]).append("search-form-inputs", null)
+
+            MNode widgetsNode = screenNode.append("widgets", null)
             widgetsNode.append(sri.getActiveScreenDef().getForm("CreateEntityValue").getAutoCleanedNode())
             widgetsNode.append(sri.getActiveScreenDef().getForm("ListEntityValue").getAutoCleanedNode())
-            printer.print(screenNode)
+            screenNode.addToSb(xmlBuilder, 0)
 
-            ec.web.sendTextResponse(xmlWriter.toString(), "text/xml", "${ec.entity.getEntityDefinition(aen).entityName}${ec.entity.getEntityDefinition(den).entityName}s.xml")
+            ec.web.sendTextResponse(xmlBuilder.toString(), "text/xml", "${ec.entity.getEntityDefinition(aen).entityName}${ec.entity.getEntityDefinition(den).entityName}s.xml")
         ]]></script></actions>
         <default-response type="none"/>
     </transition>
