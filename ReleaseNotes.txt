@@ -10,8 +10,39 @@ with the release of Moqui Framework.
 
 TODO
 
+Non Backward Compatible Changes
+
+- The webroot/assets directory and all libraries in it, including all Metis
+  files, have been removed and replaced by updated and more limited
+  JS/CSS libraries in webroot/lib
+- All JS/CSS libraries used in the default XML Screen macros are included
+  in moqui-runtime, while all libraries not used in XML Screen macros are
+  moved to other components where they are used (ElFinder, Prism, Swagger
+  UI in the tools component; FullCalendar in SimpleScreens; SimpleMDE and
+  Sparkline in HiveMind)
+- If you have explicit references to JS/CSS libraries from the assets
+  directory in your code they will need to be updated to the new location
+  under lib, and some libraries may need to be added to your component that
+  are no longer in moqui-runtime
+- Existing ScreenThemeResource records will need to be updated for new
+  locations and removed for files that no longer exist (see the updated
+  WebrootThemeData.xml file)
+
 New Features
 
+- Updated Bootstrap to 3.3.6, jQuery to 2.2.2, jQuery UI to 1.11.4, Font
+  Awesome to 4.5.0, jquery-form to 3.51.0, jquery-validation to 1.15.0,
+  jsTree to 3.3.0, Moment to 2.12.0
+- Removed Metis Admin Template files altogether, going back to plain
+  Bootstrap and jQuery UI as a foundation
+- Significant cleanups in JS/CSS libraries, in HTML produced in the default
+  XML Screen macros, and in the webroot CSS files
+- Now using Select2 (4.0.2) for dropdowns instead of Chosen
+- Now using eonasdan/bootstrap-datetimepicker (4.17.37) instead of
+  smalot/bootstrap-datetimepicker for date and date/time widgets, and for
+  time using simple text-line input with a regular expression to validate
+- Split default.css file into webroot-layout.css and webroot-theme.css
+  (with all fonts, colors, etc) to make more common theming easier
 
 Bug Fixes
 
