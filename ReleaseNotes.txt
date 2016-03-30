@@ -27,6 +27,11 @@ Non Backward Compatible Changes
 - Existing ScreenThemeResource records will need to be updated for new
   locations and removed for files that no longer exist (see the updated
   WebrootThemeData.xml file)
+- The webroot.xml screen no longer adds any JS or CSS files leaving it
+  clean for sub-screens outside of the apps.xml screen; this makes it
+  easier to have other screen trees with very different web artifacts, but
+  means any existing ones that are directly under webroot need to be
+  updated to include scripts and stylesheets as needed (like PopCommerce)
 
 New Features
 
@@ -43,6 +48,9 @@ New Features
   time using simple text-line input with a regular expression to validate
 - Split default.css file into webroot-layout.css and webroot-theme.css
   (with all fonts, colors, etc) to make more common theming easier
+- Using icons instead of +/- characters for order-by links
+- form-list pagination control now using Bootstrap pagination component,
+  forward/backward icons, and has more convenient links
 
 Bug Fixes
 
