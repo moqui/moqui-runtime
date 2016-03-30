@@ -39,11 +39,6 @@ input:focus:valid, textarea:focus:valid { background-color: #EEE; }
 
 /* ======================= XML Form Styles ======================= */
 
-/* This is for the pagination links above a form-list */
-.form-list-paginate a, .form-list-paginate span { padding-right: 4px;
-    font-family: "Courier New", monospace; font-weight: bold; font-size: .8em; vertical-align: top; }
-/* This is the +/- (or icons) in the header, use fixed width font for consistent sizing, Courier New has the best vertical alignment with + and - */
-.form-title a.form-order-by { font-family: "Courier New", monospace; font-weight: bold; }
 .form-title a.form-order-by:hover { color: blue; }
 .form-title a.form-order-by.active { color: red; }
 .form-title a.form-order-by.active:hover { color: darkred; }
@@ -75,6 +70,8 @@ ul.float-box li { background: #EEEEEE; box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 
 
 .navbar-inverse .navbar-nav > li > a { font-size: 1.1em; color: #BBB; }
 .navbar-inverse .navbar-nav > li > a:hover, .navbar-inverse .navbar-nav > li > a:focus { color: #fff; background-color: transparent; }
+
+.pagination > li > span { color: inherit; }
 
 .bg-dark .panel-heading { background-color: #333; color: inherit; }
 .bg-dark .panel, .bg-dark .panel-heading { border-color: #222; }

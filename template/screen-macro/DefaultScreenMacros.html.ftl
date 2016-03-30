@@ -860,28 +860,65 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if !(formNode["@paginate"]! == "false") && context[listName + "Count"]?exists &&
             (context[listName + "Count"]! > 0) &&
             (!formNode["@paginate-always-show"]?has_content || formNode["@paginate-always-show"]! == "true" || (context[listName + "PageMaxIndex"] > 0))>
-        <div class="form-list-paginate">
-            <!-- page ${context[listName + "PageIndex"]} of ${context[listName + "PageMaxIndex"]} -->
-            <#if (context[listName + "PageIndex"] > 0)>
+        <#assign curPageIndex = context[listName + "PageIndex"]>
+        <#assign curPageMaxIndex = context[listName + "PageMaxIndex"]>
+        <#assign prevPageIndexMin = curPageIndex - 3><#if (prevPageIndexMin < 0)><#assign prevPageIndexMin = 0></#if>
+        <#assign prevPageIndexMax = curPageIndex - 1>
+        <#assign nextPageIndexMin = curPageIndex + 1>
+        <#assign nextPageIndexMax = curPageIndex + 3><#if (nextPageIndexMax > curPageMaxIndex)><#assign nextPageIndexMax = curPageMaxIndex></#if>
+        <nav>
+            <ul class="pagination">
+            <#if (curPageIndex > 0)>
                 <#assign firstUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", 0)>
-                <#assign previousUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", (context[listName + "PageIndex"] - 1))>
-                <a href="${firstUrlInfo.getUrlWithParams()}">|&lt;</a>
-                <a href="${previousUrlInfo.getUrlWithParams()}">&lt;</a>
+                <#assign previousUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", (curPageIndex - 1))>
+                <li><a href="${firstUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-fast-backward"></i></a></li>
+                <li><a href="${previousUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-backward"></i></a></li>
             <#else>
-                <span>|&lt;</span>
-                <span>&lt;</span>
+                <li><span><i class="glyphicon glyphicon-fast-backward"></i></span></li>
+                <li><span><i class="glyphicon glyphicon-backward"></i></span></li>
             </#if>
-            <span>${context[listName + "PageRangeLow"]} - ${context[listName + "PageRangeHigh"]} / ${context[listName + "Count"]}</span>
-            <#if (context[listName + "PageIndex"] < context[listName + "PageMaxIndex"])>
-                <#assign lastUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", context[listName + "PageMaxIndex"])>
-                <#assign nextUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", context[listName + "PageIndex"] + 1)>
-                <a href="${nextUrlInfo.getUrlWithParams()}">&gt;</a>
-                <a href="${lastUrlInfo.getUrlWithParams()}">&gt;|</a>
+
+            <#if (prevPageIndexMax >= 0)><#list prevPageIndexMin..prevPageIndexMax as pageLinkIndex>
+                <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
+                <li><a href="${pageLinkUrlInfo.getUrlWithParams()}">${pageLinkIndex + 1}</a></li>
+            </#list></#if>
+
+            <li><span>${ec.l10n.localize("Page")} ${curPageIndex + 1} ${ec.l10n.localize("of")} ${curPageMaxIndex + 1} (${context[listName + "PageRangeLow"]} - ${context[listName + "PageRangeHigh"]} ${ec.l10n.localize("of")} ${context[listName + "Count"]})</span></li>
+
+            <#if (nextPageIndexMin <= curPageMaxIndex)><#list nextPageIndexMin..nextPageIndexMax as pageLinkIndex>
+                <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
+                <li><a href="${pageLinkUrlInfo.getUrlWithParams()}">${pageLinkIndex + 1}</a></li>
+            </#list></#if>
+
+            <#if (curPageIndex < curPageMaxIndex)>
+                <#assign lastUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", curPageMaxIndex)>
+                <#assign nextUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", curPageIndex + 1)>
+                <li><a href="${nextUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-forward"></i></a></li>
+                <li><a href="${lastUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-fast-forward"></i></a></li>
             <#else>
-                <span>&gt;</span>
-                <span>&gt;|</span>
+                <li><span><i class="glyphicon glyphicon-forward"></i></span></li>
+                <li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li>
             </#if>
-        </div>
+            </ul>
+            <#if (curPageMaxIndex > 4)>
+                <form class="form-inline" id="${formId}_GoPage" target="${sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").getUrlWithParams()}">
+                    <div class="form-group">
+                        <label class="sr-only" for="${formId}_GoPage_pageIndex">Page number</label>
+                        <input type="text" class="form-control" size="4" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="Page #">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">Go</button>
+                </form>
+                <script>
+                    $("#${formId}_GoPage").validate({ errorClass: 'help-block', errorElement: 'span',
+                        rules: { pageIndex: { required:true, min:1, max:${curPageMaxIndex + 1} } },
+                        highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
+                        unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); },
+                        <#-- show 1-based index to user but server expects 0-based index -->
+                        submitHandler: function(form) { $("#${formId}_GoPage_pageIndex").val($("#${formId}_GoPage_pageIndex").val() - 1); form.submit(); }
+                    });
+                </script>
+            </#if>
+        </nav>
     </#if>
     <#if formListColumnList?? && (formListColumnList?size > 0)>
         <#if !skipStart>

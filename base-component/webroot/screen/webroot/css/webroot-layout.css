@@ -37,9 +37,7 @@ tt, pre, pre code { font-family: "Courier New", Courier, monospace; }
 p, pre { white-space: pre-line; word-wrap: normal; word-break: normal; }
 .bg-dark pre { background-color: #3a3a3a; color: #EEE; border-color: #222; }
 pre.pre-plain { white-space: pre; }
-p { margin: 0 0 8px 0; line-height: 16px; }
-a { white-space: normal; }
-label { white-space: normal; }
+p { margin: 0 0 8px 0; }
 .padding-top-8 { padding-top: 8px; }
 .padding-top-16 { padding-top: 16px; }
 
@@ -67,6 +65,7 @@ div.container-panel-footer { width: 100%; }
 .big-row-item { display: inline-block; margin-left: 17px; margin-right: 17px; }
 .big-row-item input, .big-row-item select, .big-row-item span.select2-container { display: inline-block; }
 
+/* These are for form-list titles and order by links */
 .form-title { white-space: nowrap; height: 1.5em; font-weight: bold; }
 .form-title a.form-order-by { margin: 0; padding: 0 0 0 0.25em; white-space: nowrap; vertical-align: top; }
 .form-header-field { white-space: nowrap; padding-top: 4px; }
@@ -118,6 +117,9 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 /* Bootstrap has no margin for a.navbar-btn so add them; note margin-right in bootstrap is -15px because of other styles, so for a margin of 10px set to -5px */
 .navbar-right.btn { margin-right: -6px; margin-left: 10px; }
 .navbar-right.btn-group { margin-right: -6px; margin-left: 0px; }
+
+nav .pagination { margin: 4px 0 0 0; }
+nav form.form-inline { display: inline-block; margin: 4px 0 0 0; float: right; }
 
 /* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */
 .panel .panel-heading { position: relative; }
