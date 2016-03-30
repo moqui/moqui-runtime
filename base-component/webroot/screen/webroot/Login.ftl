@@ -1,5 +1,4 @@
 
-<#-- <div class="text-center"><img src="assets/img/logo.png" alt="Metis Logo"></div> -->
 <div class="tab-content">
     <div id="login" class="tab-pane active">
         <form method="post" action="${sri.makeUrlByType("login", "transition", null, "false").getUrl()}" class="form-signin">
@@ -52,16 +51,3 @@
         <li><a class="text-muted" href="#change" data-toggle="tab">Change Password</a></li>
     </ul>
 </div>
-
-<script>
-  $(document).ready(function() {
-    $('.list-inline li > a').click(function() {
-        var activeForm = $(this).attr('href') + ' > form';
-        $(activeForm).addClass('animated zoomIn');
-        //set timer to 1 seconds, after that, unload the magic animation
-        setTimeout(function() {
-            $(activeForm).removeClass('animated zoomIn');
-        }, 1000);
-    });
-  });
-</script>

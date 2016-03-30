@@ -37,10 +37,9 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <pre-actions>
-        <script>footer_scripts.add("/assets/lib/elfinder-2.0-rc1/js/elfinder.min.js")</script>
-        <script>html_stylesheets.add("/assets/lib/elfinder-2.0-rc1/css/elfinder.min.css")</script>
-        <script>html_stylesheets.add("/assets/lib/elfinder-2.0-rc1/css/theme.css")</script>
-        <script>html_stylesheets.add("/assets/css/elfinder.css")</script>
+        <script>footer_scripts.add("/toolstatic/lib/elfinder/js/elfinder.min.js")</script>
+        <script>html_stylesheets.add("/toolstatic/lib/elfinder/css/elfinder.min.css")</script>
+        <script>html_stylesheets.add("/toolstatic/lib/elfinder/css/theme.css")</script>
     </pre-actions>
     <actions>
         <set field="rootOptions" from="[mantleContentRoot, 'dbresource://', 'component://webroot']"/>
