@@ -68,6 +68,7 @@ div.container-panel-footer { width: 100%; }
 .big-row-item input, .big-row-item select, .big-row-item span.select2-container { display: inline-block; }
 
 .form-title { white-space: nowrap; height: 1.5em; font-weight: bold; }
+.form-title a.form-order-by { margin: 0; padding: 0 0 0 0.25em; white-space: nowrap; vertical-align: top; }
 .form-header-field { white-space: nowrap; padding-top: 4px; }
 
 td span.form-display { display: inline-block; width: 100%; }

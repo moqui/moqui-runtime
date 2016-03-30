@@ -42,11 +42,11 @@ input:focus:valid, textarea:focus:valid { background-color: #EEE; }
 /* This is for the pagination links above a form-list */
 .form-list-paginate a, .form-list-paginate span { padding-right: 4px;
     font-family: "Courier New", monospace; font-weight: bold; font-size: .8em; vertical-align: top; }
-/* This is the +/- in the header, use fixed width font for consistent sizing, Courier New has the best vertical alignment with + and - */
-a.form-order-by { margin: 0; padding: 0 0 0 0.25em; vertical-align: top;
-    font-family: "Courier New", monospace; font-weight: bold; font-size: 1.0em;  }
-a.form-order-by:hover { color: blue; }
-a.active { color: red; }
+/* This is the +/- (or icons) in the header, use fixed width font for consistent sizing, Courier New has the best vertical alignment with + and - */
+.form-title a.form-order-by { font-family: "Courier New", monospace; font-weight: bold; }
+.form-title a.form-order-by:hover { color: blue; }
+.form-title a.form-order-by.active { color: red; }
+.form-title a.form-order-by.active:hover { color: darkred; }
 
 /* ======================= Handy Styles ======================= */
 
