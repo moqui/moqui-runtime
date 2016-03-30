@@ -39,9 +39,9 @@ input:focus:valid, textarea:focus:valid { background-color: #EEE; }
 
 /* ======================= XML Form Styles ======================= */
 
-.form-title a.form-order-by:hover { color: blue; }
-.form-title a.form-order-by.active { color: red; }
-.form-title a.form-order-by.active:hover { color: darkred; }
+.form-order-by a:hover { color: blue; }
+.form-order-by a.active { color: red; }
+.form-order-by a.active:hover { color: darkred; }
 
 /* ======================= Handy Styles ======================= */
 

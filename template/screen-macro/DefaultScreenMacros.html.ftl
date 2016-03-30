@@ -883,7 +883,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <li><a href="${pageLinkUrlInfo.getUrlWithParams()}">${pageLinkIndex + 1}</a></li>
             </#list></#if>
 
-            <li><span>${ec.l10n.localize("Page")} ${curPageIndex + 1} ${ec.l10n.localize("of")} ${curPageMaxIndex + 1} (${context[listName + "PageRangeLow"]} - ${context[listName + "PageRangeHigh"]} ${ec.l10n.localize("of")} ${context[listName + "Count"]})</span></li>
+            <li><a href="${sri.getScreenUrlInstance().getUrlWithParams()}">${ec.l10n.localize("Page")} ${curPageIndex + 1} ${ec.l10n.localize("of")} ${curPageMaxIndex + 1} (${context[listName + "PageRangeLow"]} - ${context[listName + "PageRangeHigh"]} ${ec.l10n.localize("of")} ${context[listName + "Count"]})</a></li>
 
             <#if (nextPageIndexMin <= curPageMaxIndex)><#list nextPageIndexMin..nextPageIndexMax as pageLinkIndex>
                 <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
@@ -1169,15 +1169,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </#list>
             </#if>
             <#assign ascActive = orderByField?has_content && orderByField?contains(fieldNode["@name"]) && !orderByField?starts_with("-")>
-            <#assign ascOrderByUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("orderByField", "+" + caseInsensitive?string("^","") + fieldNode["@name"])>
             <#assign descActive = orderByField?has_content && orderByField?contains(fieldNode["@name"]) && orderByField?starts_with("-")>
+            <#assign ascOrderByUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("orderByField", "+" + caseInsensitive?string("^","") + fieldNode["@name"])>
             <#assign descOrderByUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("orderByField", "-" + caseInsensitive?string("^","") + fieldNode["@name"])>
-            <a href="${ascOrderByUrlInfo.getUrlWithParams()}" class="form-order-by<#if ascActive> active</#if>"><i class="glyphicon glyphicon-triangle-top"></i></a><a href="${descOrderByUrlInfo.getUrlWithParams()}" class="form-order-by<#if descActive> active</#if>"><i class="glyphicon glyphicon-triangle-bottom"></i></a>
-            <#-- the old way, show + or -:
-            <#if !orderByField?has_content || orderByField?starts_with("-") || !orderByField?contains(fieldNode["@name"])><#assign orderByField = ("+" + fieldNode["@name"])><#else><#assign orderByField = ("-" + fieldNode["@name"])></#if>
-            <#assign orderByUrlInfo = sri.getCurrentScreenUrl().getInstance().addParameter("orderByField", orderByField)>
-            <a href="${orderByUrlInfo.getUrlWithParams()}" class="form-order-by">${orderByField?substring(0,1)}</a>
-            -->
+            <#if ascActive><#assign ascOrderByUrlInfo = descOrderByUrlInfo></#if>
+            <#if descActive><#assign descOrderByUrlInfo = ascOrderByUrlInfo></#if>
+            <span class="form-order-by">
+                <a href="${ascOrderByUrlInfo.getUrlWithParams()}"<#if ascActive> class="active"</#if>><i class="glyphicon glyphicon-triangle-top"></i></a>
+                <a href="${descOrderByUrlInfo.getUrlWithParams()}"<#if descActive> class="active"</#if>><i class="glyphicon glyphicon-triangle-bottom"></i></a>
+            </span>
         </#if>
     </div>
     <#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>

@@ -66,8 +66,9 @@ div.container-panel-footer { width: 100%; }
 .big-row-item input, .big-row-item select, .big-row-item span.select2-container { display: inline-block; }
 
 /* These are for form-list titles and order by links */
-.form-title { white-space: nowrap; height: 1.5em; font-weight: bold; }
-.form-title a.form-order-by { margin: 0; padding: 0 0 0 0.25em; white-space: nowrap; vertical-align: top; }
+.form-title { white-space: nowrap; font-weight: bold; }
+.form-order-by { margin: 0; white-space: nowrap; height: 18px; display: inline-block; vertical-align: top; }
+.form-order-by a { display: block; height: 10px; font-size: 10px; margin: -1px 0; }
 .form-header-field { white-space: nowrap; padding-top: 4px; }
 
 td span.form-display { display: inline-block; width: 100%; }
