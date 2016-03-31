@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-This software is in the public domain under CC0 1.0 Universal plus a 
+This software is in the public domain under CC0 1.0 Universal plus a
 Grant of Patent License.
 
 To the extent possible under law, the author(s) have dedicated all
@@ -63,6 +63,12 @@ along with this software (see the LICENSE.md file). If not, see
             <id name="enumId">
                 <method type="get"><entity name="enums" masterName="default" operation="one"/></method>
                 <method type="patch"><entity name="enums" operation="update"/></method>
+            </id>
+        </resource>
+        <resource name="enumTypes">
+            <method type="get"><entity name="moqui.basic.EnumerationType" operation="list"/></method>
+            <id name="enumTypeId">
+                <method type="get"><entity name="moqui.basic.EnumerationType" operation="one"/></method>
             </id>
         </resource>
         <resource name="geos">
