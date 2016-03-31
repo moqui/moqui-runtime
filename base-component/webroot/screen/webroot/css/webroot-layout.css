@@ -109,7 +109,7 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .form-control { display: inline; min-width: 20px; width: auto; }
 .input-group { display: inline-block; white-space: nowrap; margin-right: 39px; }
 .input-group .form-control { display: inline; min-width: 20px; width: auto; }
-.input-group .input-group-addon { display: inline; line-height: 34px; padding: 8px 12px; }
+.input-group .input-group-addon, .input-group .input-group-btn { display: inline; line-height: 34px; padding: 8px 12px; }
 
 .nav.nav-tabs { margin-bottom: 8px; }
 
@@ -125,7 +125,8 @@ nav form.form-inline { display: inline-block; margin: 4px 0 0 0; float: right; }
 /* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */
 .panel .panel-heading { position: relative; }
 .panel .panel-heading .panel-toolbar { position: absolute; top: 0px; right: 0px; }
-.panel .panel-heading h5, .panel .panel-heading span { margin-top: 0; margin-bottom: 0; font-size: 16px; color: inherit; }
+.panel .panel-toolbar .label { display: inline-block; margin: 4px 4px 4px 0; }
+.panel .panel-heading h5, .panel .panel-heading span { display: inline-block; margin-top: 0; margin-bottom: 0; font-size: 16px; color: inherit; }
 .panel, .panel .panel-body { background: transparent; }
 
 .btn { margin: 4px 4px 4px 0; }
