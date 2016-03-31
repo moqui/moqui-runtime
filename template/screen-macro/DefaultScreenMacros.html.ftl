@@ -1282,9 +1282,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <span class="form-date-find">
       <span>${ec.l10n.localize("From")}&nbsp;</span>
     <#if .node["@type"]! != "time">
-        <div class="input-group input-append date" id="${id}_from">
+        <div class="input-group date" id="${id}_from">
             <input type="text" class="form-control" name="${curFieldName}_from" value="${fieldValueFrom?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-            <span class="input-group-addon add-on"><i class="glyphicon glyphicon-calendar"></i></span>
+            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
         </div>
         <script>$('#${id}_from').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValueFrom?html}', format:'${datepickerFormat}', stepping:5});</script>
     <#else>
@@ -1296,9 +1296,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <span class="form-date-find">
       <span>${ec.l10n.localize("Thru")}&nbsp;</span>
     <#if .node["@type"]! != "time">
-        <div class="input-group input-append date" id="${id}_thru">
+        <div class="input-group date" id="${id}_thru">
             <input type="text" class="form-control" name="${curFieldName}_thru" value="${fieldValueThru?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-            <span class="input-group-addon add-on"><i class="glyphicon glyphicon-calendar"></i></span>
+            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
         </div>
         <script>$('#${id}_thru').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValueThru?html}', format:'${datepickerFormat}', stepping:5});</script>
     <#else>
