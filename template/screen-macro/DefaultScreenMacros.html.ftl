@@ -667,7 +667,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                   <#if collapsible && !collapsibleOpened><#assign collapsibleOpened = true>
                     <div id="${accordionId}">
                   </#if>
-                    <h3><a href="#">${layoutNode["@title"]?default("Section " + layoutNode_index)}</a></h3>
+                    <h3><a href="#">${ec.l10n.localize(layoutNode["@title"]?default("Section " + layoutNode_index))}</a></h3>
                     <div<#if layoutNode["@style"]?has_content> class="${layoutNode["@style"]}"</#if>>
                         <#list layoutNode?children as groupNode>
                             <#if groupNode?node_name == "field-ref">
