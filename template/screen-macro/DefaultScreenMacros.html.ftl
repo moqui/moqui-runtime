@@ -882,8 +882,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
                 <li><a href="${pageLinkUrlInfo.getUrlWithParams()}">${pageLinkIndex + 1}</a></li>
             </#list></#if>
-
-            <li><a href="${sri.getScreenUrlInstance().getUrlWithParams()}">${ec.l10n.localize("Page")} ${curPageIndex + 1} ${ec.l10n.localize("of")} ${curPageMaxIndex + 1} (${context[listName + "PageRangeLow"]} - ${context[listName + "PageRangeHigh"]} ${ec.l10n.localize("of")} ${context[listName + "Count"]})</a></li>
+            <#assign paginationTemplate = ec.l10n.localize("PaginationTemplate")?interpret>
+            <li><a href="${sri.getScreenUrlInstance().getUrlWithParams()}"><@paginationTemplate /></a></li>
 
             <#if (nextPageIndexMin <= curPageMaxIndex)><#list nextPageIndexMin..nextPageIndexMax as pageLinkIndex>
                 <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
@@ -904,9 +904,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <form class="form-inline" id="${formId}_GoPage" target="${sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").getUrlWithParams()}">
                     <div class="form-group">
                         <label class="sr-only" for="${formId}_GoPage_pageIndex">Page number</label>
-                        <input type="text" class="form-control" size="4" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="Page #">
+                        <input type="text" class="form-control" size="4" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="${ec.l10n.localize("Page #")}">
                     </div>
-                    <button type="submit" class="btn btn-primary btn-sm">Go</button>
+                    <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Go##Page")}</button>
                 </form>
                 <script>
                     $("#${formId}_GoPage").validate({ errorClass: 'help-block', errorElement: 'span',
@@ -1286,7 +1286,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <input type="text" class="form-control" name="${curFieldName}_from" value="${fieldValueFrom?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
         </div>
-        <script>$('#${id}_from').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValueFrom?html}', format:'${datepickerFormat}', stepping:5});</script>
+        <script>$('#${id}_from').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValueFrom?html}', format:'${datepickerFormat}', stepping:5, locale:"${ec.user.locale.toLanguageTag()}"});</script>
     <#else>
         <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"
                name="${curFieldName}_from" value="${fieldValueFrom?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
@@ -1300,7 +1300,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <input type="text" class="form-control" name="${curFieldName}_thru" value="${fieldValueThru?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
         </div>
-        <script>$('#${id}_thru').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValueThru?html}', format:'${datepickerFormat}', stepping:5});</script>
+        <script>$('#${id}_thru').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValueThru?html}', format:'${datepickerFormat}', stepping:5, locale:"${ec.user.locale.toLanguageTag()}"});</script>
     <#else>
         <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"
                name="${curFieldName}_thru" value="${fieldValueThru?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
@@ -1319,12 +1319,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if (allowEmpty! != "false")>
                 <option value="">&nbsp;</option>
             </#if>
-            <option value="0"<#if fvOffset == "0"> selected="selected"</#if>>This</option>
-            <option value="-1"<#if fvOffset == "-1"> selected="selected"</#if>>Last</option>
+            <option value="0"<#if fvOffset == "0"> selected="selected"</#if>>${ec.l10n.localize("This")}</option>
+            <option value="-1"<#if fvOffset == "-1"> selected="selected"</#if>>${ec.l10n.localize("Last")}</option>
             <option value="-2"<#if fvOffset == "-2"> selected="selected"</#if>>-2</option>
             <option value="-3"<#if fvOffset == "-3"> selected="selected"</#if>>-3</option>
             <option value="-4"<#if fvOffset == "-4"> selected="selected"</#if>>-4</option>
-            <option value="1"<#if fvOffset == "1"> selected="selected"</#if>>Next</option>
+            <option value="1"<#if fvOffset == "1"> selected="selected"</#if>>${ec.l10n.localize("Next")}</option>
             <option value="2"<#if fvOffset == "2"> selected="selected"</#if>>+2</option>
             <option value="3"<#if fvOffset == "3"> selected="selected"</#if>>+3</option>
             <option value="4"<#if fvOffset == "4"> selected="selected"</#if>>+4</option>
@@ -1333,10 +1333,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if (allowEmpty! != "false")>
             <option value="">&nbsp;</option>
             </#if>
-            <option<#if fvPeriod == "day"> selected="selected"</#if>>Day</option>
-            <option<#if fvPeriod == "week"> selected="selected"</#if>>Week</option>
-            <option<#if fvPeriod == "month"> selected="selected"</#if>>Month</option>
-            <option<#if fvPeriod == "year"> selected="selected"</#if>>Year</option>
+            <option<#if fvPeriod == "day"> selected="selected"</#if>>${ec.l10n.localize("Day")}</option>
+            <option<#if fvPeriod == "week"> selected="selected"</#if>>${ec.l10n.localize("Week")}</option>
+            <option<#if fvPeriod == "month"> selected="selected"</#if>>${ec.l10n.localize("Month")}</option>
+            <option<#if fvPeriod == "year"> selected="selected"</#if>>${ec.l10n.localize("Year")}</option>
         </select>
         <script>
             $("#${id}_poffset").select2({ minimumResultsForSearch:20, theme:'bootstrap' });
@@ -1397,7 +1397,7 @@ a => A, d => D, y => Y
             <input type="text" class="form-control" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
             <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
         </div>
-        <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValue?html}', format:'${datepickerFormat}', stepping:5});</script>
+        <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValue?html}', format:'${datepickerFormat}', stepping:5, locale:"${ec.user.locale.toLanguageTag()}"});</script>
     <#else>
         <#-- datetimepicker does not support time only, even with plain HH:mm format; use a regex to validate time format -->
         <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
