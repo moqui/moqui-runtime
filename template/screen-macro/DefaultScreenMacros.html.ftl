@@ -1444,9 +1444,9 @@ a => A, d => D, y => Y
     <#assign currentValueList = (currentValue?split(","))!>
 
     <#assign currentDescription = (options.get(currentValue))!>
-    <#if !currentDescription?has_content && .node["@current-description"]?has_content>
-        <#assign currentDescription = ec.resource.expand(.node["@current-description"], "")/>
-    </#if>
+    <#assign optionsHasCurrent = currentDescription?has_content>
+    <#if !optionsHasCurrent && .node["@current-description"]?has_content>
+        <#assign currentDescription = ec.resource.expand(.node["@current-description"], "")/></#if>
     <#assign id><@fieldId .node/></#assign>
     <#assign allowMultiple = ec.resource.expand(.node["@allow-multiple"]!, "") == "true"/>
     <#assign isDynamicOptions = .node["dynamic-options"]?has_content>
@@ -1455,6 +1455,8 @@ a => A, d => D, y => Y
     <#if currentValue?has_content && (.node["@current"]! == "first-in-list") && !(allowMultiple)>
         <option selected="selected" value="${currentValue}"><#if currentDescription?has_content>${currentDescription}<#else>${currentValue}</#if></option><#rt/>
         <option value="${currentValue}">---</option><#rt/>
+    <#elseif !optionsHasCurrent>
+        <option selected="selected" value="${currentValue}"><#if currentDescription?has_content>${currentDescription}<#else>${currentValue}</#if></option><#rt/>
     </#if>
     <#assign allowEmpty = ec.resource.expand(.node["@allow-empty"]!, "")/>
     <#if (allowEmpty! == "true") || !(options?has_content)>
