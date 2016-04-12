@@ -20,6 +20,11 @@ along with this software (see the LICENSE.md file). If not, see
 
     <transition name="updateUserAccount"><service-call name="update#moqui.security.UserAccount"/>
         <default-response url="."/></transition>
+    <transition name="updatePassword"><service-call name="org.moqui.impl.UserServices.update#Password"/>
+        <default-response url="."/></transition>
+    <transition name="enableUserAccount"><service-call name="org.moqui.impl.UserServices.enable#UserAccount"/>
+        <default-response url="."/></transition>
+
     <transition name="visitList"><default-response url="../../../Visit/VisitList"/></transition>
     <transition name="visitDetail"><default-response url="../../../Visit/VisitDetail"/></transition>
 
@@ -63,10 +68,20 @@ along with this software (see the LICENSE.md file). If not, see
             <econdition field-name="userId"/></entity-find-count>
     </actions>
     <widgets>
-        <!-- TODO: update password form? or better not to allow here? -->
         <container-row>
             <row-col lg="5">
                 <link url="visitList" text="Visits" parameter-map="[userId:userId]"/>
+                <container-dialog id="UpdatePassword" button-text="Change Password">
+                    <form-single name="UpdatePasswordForm" transition="updatePassword">
+                        <field name="userId"><default-field><hidden/></default-field></field>
+                        <field name="oldPassword"><default-field><hidden default-value="ignored"/></default-field></field>
+                        <field name="newPassword"><default-field><password size="20"/></default-field></field>
+                        <field name="newPasswordVerify"><default-field><password size="20"/></default-field></field>
+                        <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+                <link url="enableUserAccount" text="Enable Account" parameter-map="[userId:userId]"
+                        condition="userAccount.disabled == 'Y'"/>
                 <form-single name="UserAccountForm" map="userAccount" transition="updateUserAccount">
                     <field name="userId"><default-field><display/></default-field></field>
                     <field name="username"><default-field><text-line size="20"/></default-field></field>
@@ -77,8 +92,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="requirePasswordChange"><default-field>
                         <drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></default-field></field>
                     <field name="successiveFailedLogins"><default-field title="Failed Logins"><display/></default-field></field>
-                    <field name="disabled"><default-field>
-                        <drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></default-field></field>
+                    <field name="disabled"><default-field><display text="${disabled ?: 'N'}"/></default-field></field>
                     <field name="disabledDateTime"><default-field title="Disabled Date"><display/></default-field></field>
 
                     <field name="locale"><default-field>

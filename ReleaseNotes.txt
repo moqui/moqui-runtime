@@ -51,6 +51,7 @@ New Features
 - Using icons instead of +/- characters for order-by links
 - form-list pagination control now using Bootstrap pagination component,
   forward/backward icons, and has more convenient links
+- Added password change and enable account to UserAccountDetail in System
 
 Bug Fixes
 
