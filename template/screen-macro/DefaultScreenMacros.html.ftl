@@ -302,6 +302,7 @@ ${sri.renderSection(.node["@name"])}
             </div>
         </div>
     </div>
+    <script>$('#${divId}').on('shown.bs.modal', function() {$("#${divId} select").select2();})</script>
 </#macro>
 
 <#macro "dynamic-container">
