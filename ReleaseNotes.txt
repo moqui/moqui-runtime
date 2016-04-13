@@ -55,6 +55,9 @@ New Features
 
 Bug Fixes
 
+- Fixed ElFinder rm (GitHub issue #23), and response for upload; also
+  updated ElFinder in tools component to 2.1.11
+
 ===========================================================================
 Release 1.6.2 - 26 Mar 2016
 ===========================================================================
