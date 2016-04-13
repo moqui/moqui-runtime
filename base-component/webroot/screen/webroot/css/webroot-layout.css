@@ -126,7 +126,7 @@ nav form.form-inline { display: inline-block; margin: 4px 0 0 0; float: right; }
 .panel .panel-heading { position: relative; }
 .panel .panel-heading .panel-toolbar { position: absolute; top: 0px; right: 0px; }
 .panel .panel-toolbar .label { display: inline-block; margin: 4px 4px 4px 0; }
-.panel .panel-heading h5, .panel .panel-heading span { display: inline-block; margin-top: 0; margin-bottom: 0; font-size: 16px; color: inherit; }
+.panel .panel-heading>h5, .panel .panel-heading>span { display: inline-block; margin-top: 0; margin-bottom: 0; font-size: 16px; color: inherit; }
 .panel, .panel .panel-body { background: transparent; }
 
 .btn { margin: 4px 4px 4px 0; }
