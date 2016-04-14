@@ -12,6 +12,9 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 
+<#-- set here because used in drop-down, container-dialog and dynamic-dialog -->
+<#assign select2DefaultOptions = "minimumResultsForSearch:10, theme:'bootstrap'">
+
 <#macro @element><p>=== Doing nothing for element ${.node?node_name}, not yet implemented. ===</p></#macro>
 
 <#macro screen>
@@ -302,18 +305,17 @@ ${sri.renderSection(.node["@name"])}
             </div>
         </div>
     </div>
-    <script>$('#${divId}').on('shown.bs.modal', function() {$("#${divId} select").select2();})</script>
+    <script>$('#${divId}').on('shown.bs.modal', function() {$("#${divId} select").select2({ ${select2DefaultOptions} });})</script>
 </#macro>
 
 <#macro "dynamic-container">
     <#assign divId><@nodeId .node/></#assign>
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", divId)>
     <div id="${divId}"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>
-    <#assign afterScreenScript>
+    <script>
         function load${divId}() { $("#${divId}").load("${urlInstance.passThroughSpecialParameters().urlWithParams}", function() { <#-- activateAllButtons() --> }) }
         load${divId}();
-    </#assign>
-    <#t>${sri.appendToScriptWriter(afterScreenScript)}
+    </script>
 </#macro>
 
 <#macro "dynamic-dialog">
@@ -336,8 +338,12 @@ ${sri.renderSection(.node["@name"])}
             </div>
         </div>
     </div>
-    <script>$("#${divId}").on("show.bs.modal", function (e) { $("#${divId}-body").load('${urlInstance.urlWithParams}'); }); $("#${divId}").on("hidden.bs.modal", function (e) { $("#${divId}-body").empty(); $("#${divId}-body").append('<img src="/images/wait_anim_16x16.gif" alt="Loading...">'); });</script>
-    <#if _openDialog! == divId><#assign afterScreenScript>$('#${divId}').modal('show')</#assign><#t>${sri.appendToScriptWriter(afterScreenScript)}</#if>
+    <script>
+        $("#${divId}").on("show.bs.modal", function (e) { $("#${divId}-body").load('${urlInstance.urlWithParams}'); });
+        $("#${divId}").on("hidden.bs.modal", function (e) { $("#${divId}-body").empty(); $("#${divId}-body").append('<img src="/images/wait_anim_16x16.gif" alt="Loading...">'); });
+        $('#${divId}').on('shown.bs.modal', function() {$("#${divId} select").select2({ ${select2DefaultOptions} });});
+        <#if _openDialog! == divId>$('#${divId}').modal('show');</#if>
+    </script>
 </#macro>
 
 <#-- ==================== Includes ==================== -->
@@ -1477,7 +1483,6 @@ a => A, d => D, y => Y
     <#-- <span>[${currentValue}]; <#list currentValueList as curValue>[${curValue!''}], </#list></span> -->
     <#if allowMultiple><input type="hidden" id="${id}_op" name="${name}_op" value="in"></#if>
 
-    <#assign select2DefaultOptions = "minimumResultsForSearch:10, theme:'bootstrap'">
     <#if .node["@combo-box"]! == "true">
         <script>$("#${id}").select2({ tags: true, tokenSeparators:[',',' '], theme:'bootstrap' });</script>
     <#elseif .node["@search"]! != "false">
