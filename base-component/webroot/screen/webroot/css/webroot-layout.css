@@ -64,6 +64,7 @@ div.container-panel-footer { width: 100%; }
 /* these are still used when a row has more than 2 fields in it */
 .big-row-item { display: inline-block; margin-left: 17px; margin-right: 17px; }
 .big-row-item input, .big-row-item select, .big-row-item span.select2-container { display: inline-block; }
+.big-row-item>.form-group { margin-bottom: 0; }
 
 /* These are for form-list titles and order by links */
 .form-title { white-space: nowrap; font-weight: bold; }
@@ -111,6 +112,10 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .input-group .form-control { display: inline; min-width: 20px; width: auto; }
 .input-group .input-group-addon, .input-group .input-group-btn { display: inline; line-height: 34px; padding: 8px 12px; }
 
+/* Similar styles to Bootstrap .form-control-static, applied more specifically and without explicit class */
+.form-group>div>p, .form-group>div>a { display:inline-block;
+    min-height: 34px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 0; }
+
 .nav.nav-tabs { margin-bottom: 8px; }
 
 /* Bootstrap by default has a 20px height for this, for 30px height shift up 5px */
@@ -142,7 +147,7 @@ nav form.form-inline { display: inline-block; margin: 4px 0 0 0; float: right; }
 
 input[type=radio], input[type=checkbox] { height: auto; }
 
-.select2-container { min-width: 60px; }
+.select2-container { display: inline-block; min-width: 60px; }
 .date-period .select2-container--bootstrap { display: inline-block; }
 
 a.jstree-anchor { white-space: normal; }
