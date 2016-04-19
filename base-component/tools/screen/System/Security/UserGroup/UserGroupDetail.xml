@@ -108,7 +108,7 @@ along with this software (see the LICENSE.md file). If not, see
                             <form-single name="CreateExistingUserGroupPermission" transition="createUserGroupPermission">
                                 <field name="userGroupId"><default-field><hidden/></default-field></field>
                                 <field name="userPermissionId"><default-field title="Permission">
-                                    <drop-down style="chosen-wider">
+                                    <drop-down>
                                         <entity-options key="${userPermissionId}" text="${userPermissionId} - ${description}">
                                             <entity-find entity-name="moqui.security.UserPermission">
                                                 <order-by field-name="userPermissionId"/></entity-find>
@@ -152,7 +152,7 @@ along with this software (see the LICENSE.md file). If not, see
                             extends="component://tools/screen/System/Security/ArtifactGroup/ArtifactGroupDetail.xml#CreateArtifactAuthz">
                         <field name="userGroupId"><default-field><hidden/></default-field></field>
                         <field name="artifactGroupId"><default-field title="Artifact Group">
-                            <drop-down style="chosen-wider">
+                            <drop-down>
                                 <entity-options key="${artifactGroupId}" text="${description} [${artifactGroupId}]">
                                     <entity-find entity-name="moqui.security.ArtifactGroup">
                                         <order-by field-name="description"/></entity-find>
@@ -182,7 +182,7 @@ along with this software (see the LICENSE.md file). If not, see
                             extends="component://tools/screen/System/Security/ArtifactGroup/ArtifactGroupDetail.xml#CreateArtifactTarpit">
                         <field name="userGroupId"><default-field><hidden/></default-field></field>
                         <field name="artifactGroupId"><default-field title="Artifact Group">
-                            <drop-down style="chosen-wider">
+                            <drop-down>
                                 <entity-options key="${artifactGroupId}" text="${description} [${artifactGroupId}]">
                                     <entity-find entity-name="moqui.security.ArtifactGroup">
                                         <order-by field-name="description"/></entity-find>
