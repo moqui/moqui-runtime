@@ -1444,30 +1444,35 @@ a => A, d => D, y => Y
 </#macro>
 
 <#macro "drop-down">
+    <#assign id><@fieldId .node/></#assign>
+    <#assign allowMultiple = ec.resource.expand(.node["@allow-multiple"]!, "") == "true"/>
+    <#assign isDynamicOptions = .node["dynamic-options"]?has_content>
+    <#assign name><@fieldName .node/></#assign>
+
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)/>
     <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)/>
     <#if !currentValue?has_content><#assign currentValue = ec.resource.expand(.node["@no-current-selected-key"]!, "")/></#if>
     <#if currentValue?starts_with("[")><#assign currentValue = currentValue?substring(1, currentValue?length - 1)?replace(" ", "")></#if>
     <#assign currentValueList = (currentValue?split(","))!>
+    <#if (allowMultiple && currentValueList?exists && currentValueList?size > 1)><#assign currentValue=""></#if>
 
     <#assign currentDescription = (options.get(currentValue))!>
     <#assign optionsHasCurrent = currentDescription?has_content>
     <#if !optionsHasCurrent && .node["@current-description"]?has_content>
         <#assign currentDescription = ec.resource.expand(.node["@current-description"], "")/></#if>
-    <#assign id><@fieldId .node/></#assign>
-    <#assign allowMultiple = ec.resource.expand(.node["@allow-multiple"]!, "") == "true"/>
-    <#assign isDynamicOptions = .node["dynamic-options"]?has_content>
-    <#assign name><@fieldName .node/></#assign>
     <select name="${name}" class="<#if isDynamicOptions>dynamic-options</#if><#if .node["@style"]?has_content> ${ec.resource.expand(.node["@style"], "")}</#if>" id="${id}"<#if allowMultiple> multiple="multiple"</#if><#if .node["@size"]?has_content> size="${.node["@size"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
     <#if currentValue?has_content && (.node["@current"]! == "first-in-list") && !(allowMultiple)>
         <option selected="selected" value="${currentValue}"><#if currentDescription?has_content>${currentDescription}<#else>${currentValue}</#if></option><#rt/>
         <option value="${currentValue}">---</option><#rt/>
-    <#elseif !optionsHasCurrent>
+    <#elseif !optionsHasCurrent && !allowMultiple>
         <option selected="selected" value="${currentValue}"><#if currentDescription?has_content>${currentDescription}<#else>${currentValue}</#if></option><#rt/>
     </#if>
-    <#assign allowEmpty = ec.resource.expand(.node["@allow-empty"]!, "")/>
-    <#if (allowEmpty! == "true") || !(options?has_content)>
-        <option value="">&nbsp;</option>
+    <#if !allowMultiple>
+        <#-- don't add empty option if allowMultiple (can deselect all to be empty, including empty option allows selection of empty which isn't the point) -->
+        <#assign allowEmpty = ec.resource.expand(.node["@allow-empty"]!, "")/>
+        <#if (allowEmpty! == "true") || !(options?has_content)>
+            <option value="">&nbsp;</option>
+        </#if>
     </#if>
 
     <#if !isDynamicOptions>
