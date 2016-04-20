@@ -17,7 +17,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <widget-template name="enumDropDown">
         <drop-down allow-empty="${allowEmpty ?: 'false'}" no-current-selected-key="${noCurrentSelectedKey?:''}"
-                style="${style?:'chosen-wide'}" allow-multiple="${allowMultiple ?: 'false'}">
+                style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}">
             <entity-options key="${enumId}" text="${description}">
                 <entity-find entity-name="moqui.basic.Enumeration">
                     <econdition field-name="enumTypeId"/>
@@ -28,7 +28,7 @@ along with this software (see the LICENSE.md file). If not, see
     </widget-template>
     <widget-template name="enumWithParentDropDown">
         <drop-down allow-empty="${allowEmpty ?: 'false'}" no-current-selected-key="${noCurrentSelectedKey?:''}"
-                style="${style?:'chosen-wide'}" allow-multiple="${allowMultiple ?: 'false'}">
+                style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}">
             <entity-options key="${enumId}" text="${description}">
                 <entity-find entity-name="moqui.basic.Enumeration">
                     <econdition field-name="enumTypeId"/>
@@ -51,7 +51,7 @@ along with this software (see the LICENSE.md file). If not, see
         </drop-down>
     </widget-template>
     <widget-template name="statusTransitionDropDown">
-        <drop-down allow-empty="false" current-description="${currentDescription?:''}" style="${style?:'chosen-wide'}">
+        <drop-down allow-empty="false" current-description="${currentDescription?:''}" style="${style?:''}">
             <entity-options key="${toStatusId}" text="StatusTransitionNameTemplate">
                 <entity-find entity-name="moqui.basic.StatusFlowTransitionToDetail">
                     <econdition field-name="statusId"/>
@@ -60,7 +60,7 @@ along with this software (see the LICENSE.md file). If not, see
         </drop-down>
     </widget-template>
     <widget-template name="statusTransitionWithFlowDropDown">
-        <drop-down allow-empty="false" current-description="${currentDescription?:''}" style="${style?:'chosen-wide'}">
+        <drop-down allow-empty="false" current-description="${currentDescription?:''}" style="${style?:''}">
             <entity-options key="${toStatusId}" text="StatusTransitionNameTemplate">
                 <entity-find entity-name="moqui.basic.StatusFlowTransitionToDetail">
                     <econdition field-name="statusId"/>
