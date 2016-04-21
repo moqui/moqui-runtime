@@ -734,7 +734,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
                 unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
             });
-            $('[data-toggle="tooltip"]').tooltip();
+            $('#${formId} [data-toggle="tooltip"]').tooltip();
 
             <#-- if background-submit=true init ajaxForm; for examples see http://www.malsup.com/jquery/form/#ajaxForm -->
             <#if formNode["@background-submit"]! == "true">
@@ -1043,7 +1043,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if isMulti && !skipStart && !skipForm>
             <#assign afterFormScript>
                 $("#${formId}").validate();
-                $('[data-toggle="tooltip"]').tooltip();
+                $('#${formId} [data-toggle="tooltip"]').tooltip();
             </#assign>
             <#t>${sri.appendToScriptWriter(afterFormScript)}
         </#if>
@@ -1141,7 +1141,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if isMulti && !skipStart && !skipForm>
             <#assign afterFormScript>
                 $("#${formId}").validate();
-                $('[data-toggle="tooltip"]').tooltip();
+                $('#${formId} [data-toggle="tooltip"]').tooltip();
             </#assign>
             <#t>${sri.appendToScriptWriter(afterFormScript)}
         </#if>
