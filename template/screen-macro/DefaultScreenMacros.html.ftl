@@ -906,7 +906,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#if>
             </ul>
             <#if (curPageMaxIndex > 4)>
-                <form class="form-inline" id="${formId}_GoPage" target="${sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").getUrlWithParams()}">
+                <#assign goPageUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName")>
+                <#assign goPageUrlParms = goPageUrl.getParameterMap()>
+                <form class="form-inline" id="${formId}_GoPage" target="${goPageUrl.getUrl()}">
+                    <#list goPageUrlParms.keySet() as parmName>
+                        <input type="hidden" name="${parmName}" value="${goPageUrlParms.get(parmName)!?html}"/></#list>
                     <div class="form-group">
                         <label class="sr-only" for="${formId}_GoPage_pageIndex">Page number</label>
                         <input type="text" class="form-control" size="4" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="${ec.l10n.localize("Page #")}">
