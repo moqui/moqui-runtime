@@ -44,7 +44,7 @@ input:focus:valid, textarea:focus:valid { background-color: #EEE; }
 .form-order-by a.active:hover { color: darkred; }
 
 nav.form-list-nav, table.table>thead th { background: #EEE; }
-.bg-dark .form-list-nav, .bg-dark table.table>thead th { background: #333; }
+.bg-dark nav.form-list-nav, .bg-dark table.table>thead th { background: #333; }
 
 /* ======================= Handy Styles ======================= */
 
