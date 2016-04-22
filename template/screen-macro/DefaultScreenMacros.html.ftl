@@ -871,7 +871,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign prevPageIndexMax = curPageIndex - 1>
         <#assign nextPageIndexMin = curPageIndex + 1>
         <#assign nextPageIndexMax = curPageIndex + 3><#if (nextPageIndexMax > curPageMaxIndex)><#assign nextPageIndexMax = curPageMaxIndex></#if>
-        <nav>
+        <nav class="form-list-nav">
             <ul class="pagination">
             <#if (curPageIndex > 0)>
                 <#assign firstUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", 0)>
