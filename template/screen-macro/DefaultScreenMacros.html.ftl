@@ -847,21 +847,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
 </#macro>
 
-<#macro "form-list">
-<#if sri.doBoundaryComments()><!-- BEGIN form-list[@name=${.node["@name"]}] --></#if>
-    <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
-    <#assign formNode = sri.getFtlFormNode(.node["@name"])>
-    <#assign formId>${ec.resource.expand(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
-    <#assign isMulti = formNode["@multi"]! == "true">
-    <#assign isMultiFinalRow = false>
-    <#assign skipStart = (formNode["@skip-start"]! == "true")>
-    <#assign skipEnd = (formNode["@skip-end"]! == "true")>
-    <#assign skipForm = (formNode["@skip-form"]! == "true")>
-    <#assign skipHeader = (formNode["@skip-header"]! == "true")>
-    <#assign formListUrlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
-    <#assign listName = formNode["@list"]>
-    <#assign listObject = ec.resource.expression(listName, "")!>
-    <#assign formListColumnList = formNode["form-list-column"]!>
+<#macro paginationHeader numColumns>
     <#if !(formNode["@paginate"]! == "false") && context[listName + "Count"]?exists &&
             (context[listName + "Count"]! > 0) &&
             (!formNode["@paginate-always-show"]?has_content || formNode["@paginate-always-show"]! == "true" || (context[listName + "PageMaxIndex"] > 0))>
@@ -871,6 +857,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign prevPageIndexMax = curPageIndex - 1>
         <#assign nextPageIndexMin = curPageIndex + 1>
         <#assign nextPageIndexMax = curPageIndex + 3><#if (nextPageIndexMax > curPageMaxIndex)><#assign nextPageIndexMax = curPageMaxIndex></#if>
+        <tr><th colspan="${numColumns}">
         <nav class="form-list-nav">
             <ul class="pagination">
             <#if (curPageIndex > 0)>
@@ -928,12 +915,31 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </script>
             </#if>
         </nav>
+        </th></tr>
     </#if>
+</#macro>
+<#macro "form-list">
+<#if sri.doBoundaryComments()><!-- BEGIN form-list[@name=${.node["@name"]}] --></#if>
+    <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
+    <#assign formNode = sri.getFtlFormNode(.node["@name"])>
+    <#assign formId>${ec.resource.expand(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
+    <#assign isMulti = formNode["@multi"]! == "true">
+    <#assign isMultiFinalRow = false>
+    <#assign skipStart = (formNode["@skip-start"]! == "true")>
+    <#assign skipEnd = (formNode["@skip-end"]! == "true")>
+    <#assign skipForm = (formNode["@skip-form"]! == "true")>
+    <#assign skipHeader = (formNode["@skip-header"]! == "true")>
+    <#assign formListUrlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
+    <#assign listName = formNode["@list"]>
+    <#assign listObject = ec.resource.expression(listName, "")!>
+    <#assign formListColumnList = formNode["form-list-column"]!>
     <#if formListColumnList?? && (formListColumnList?size > 0)>
         <#if !skipStart>
         <table class="table table-striped table-hover table-condensed" id="${formId}-table">
             <#if !skipHeader>
             <thead>
+                <@paginationHeader formListColumnList?size/>
+
                 <#assign needHeaderForm = sri.isFormHeaderForm(formNode["@name"])>
                 <#if needHeaderForm>
                     <#assign curUrlInstance = sri.getCurrentScreenUrl()>
@@ -1057,6 +1063,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <table class="table table-striped table-hover table-condensed" id="${formId}-table">
             <#if !skipHeader>
             <thead>
+                <@paginationHeader 100/>
+
                 <#assign needHeaderForm = sri.isFormHeaderForm(formNode["@name"])>
                 <#if needHeaderForm && !skipStart>
                     <#assign curUrlInfo = sri.getCurrentScreenUrl()>
@@ -1067,24 +1075,24 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#else>
                     <tr>
                 </#if>
-                    <#list fieldNodeList as fieldNode>
-                        <#assign allHidden = true>
-                        <#assign hasSubmit = false>
-                        <#list fieldNode?children as fieldSubNode>
-                            <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
-                            <#if fieldSubNode?node_name != "header-field" && fieldSubNode["submit"]?has_content><#assign hasSubmit = true></#if>
-                        </#list>
-                        <#if !(ec.resource.condition(fieldNode["@hide"]!, "") || allHidden ||
-                                ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                (fieldNode["header-field"][0]?if_exists["hidden"]?has_content || fieldNode["header-field"][0]?if_exists["ignored"]?has_content))) &&
-                                !(isMulti && hasSubmit)>
-                            <th>
-                                <@formListHeaderField fieldNode/>
-                            </th>
-                        <#elseif fieldNode["header-field"][0]?if_exists["hidden"]?has_content>
-                            <#recurse fieldNode["header-field"][0]/>
-                        </#if>
+                <#list fieldNodeList as fieldNode>
+                    <#assign allHidden = true>
+                    <#assign hasSubmit = false>
+                    <#list fieldNode?children as fieldSubNode>
+                        <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
+                        <#if fieldSubNode?node_name != "header-field" && fieldSubNode["submit"]?has_content><#assign hasSubmit = true></#if>
                     </#list>
+                    <#if !(ec.resource.condition(fieldNode["@hide"]!, "") || allHidden ||
+                            ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
+                            (fieldNode["header-field"][0]?if_exists["hidden"]?has_content || fieldNode["header-field"][0]?if_exists["ignored"]?has_content))) &&
+                            !(isMulti && hasSubmit)>
+                        <th>
+                            <@formListHeaderField fieldNode/>
+                        </th>
+                    <#elseif fieldNode["header-field"][0]?if_exists["hidden"]?has_content>
+                        <#recurse fieldNode["header-field"][0]/>
+                    </#if>
+                </#list>
                 <#if needHeaderForm && !skipStart>
                     </form>
                     </tr>
