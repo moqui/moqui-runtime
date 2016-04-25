@@ -62,7 +62,7 @@ div.container-panel-footer { width: 100%; }
 /* ======================= XML Form Styles ======================= */
 
 /* these are still used when a row has more than 2 fields in it */
-.big-row-item { display: inline-block; margin-left: 17px; margin-right: 17px; }
+.big-row-item { display: inline-block; margin-left: 15px; margin-right: 15px; }
 .big-row-item input, .big-row-item select, .big-row-item span.select2-container { display: inline-block; }
 .big-row-item>.form-group { margin-bottom: 0; }
 
