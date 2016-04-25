@@ -208,9 +208,14 @@ ${sri.renderSection(.node["@name"])}
                 </div>
             </#if>
         </div>
-        <div class="panel-body">
-            <#recurse .node["box-body"][0]>
-        </div>
+        <#if .node["box-body"]?has_content>
+            <div class="panel-body">
+                <#recurse .node["box-body"][0]>
+            </div>
+        </#if>
+        <#if .node["box-body-nopad"]?has_content>
+            <#recurse .node["box-body-nopad"][0]>
+        </#if>
     </div>
 </#macro>
 
