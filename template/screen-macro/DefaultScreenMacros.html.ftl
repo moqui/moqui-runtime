@@ -191,14 +191,14 @@ ${sri.renderSection(.node["@name"])}
 <#macro nodeId widgetNode><#if .node["@id"]?has_content>${ec.resource.expand(widgetNode["@id"], "")}<#if listEntryIndex?has_content>_${listEntryIndex}</#if><#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#if></#macro>
 
 <#macro container>
-    <#assign divId><@nodeId .node/></#assign>
-    <${.node["@type"]!"div"}<#if divId??> id="${divId}"</#if><#if .node["@style"]?has_content> class="${ec.resource.expand(.node["@style"], "")}"</#if>><#recurse>
+    <#assign contDivId><@nodeId .node/></#assign>
+    <${.node["@type"]!"div"}<#if contDivId??> id="${contDivId}"</#if><#if .node["@style"]?has_content> class="${ec.resource.expand(.node["@style"], "")}"</#if>><#recurse>
     </${.node["@type"]!"div"}>
 </#macro>
 
 <#macro "container-box">
-    <#assign divId><@nodeId .node/></#assign>
-    <div class="panel panel-default"<#if divId??> id="${divId}"</#if>>
+    <#assign contBoxDivId><@nodeId .node/></#assign>
+    <div class="panel panel-default"<#if contBoxDivId??> id="${contBoxDivId}"</#if>>
         <div class="panel-heading">
             <#recurse .node["box-header"][0]>
 
@@ -220,8 +220,8 @@ ${sri.renderSection(.node["@name"])}
 </#macro>
 
 <#macro "container-row">
-    <#assign divId><@nodeId .node/></#assign>
-    <div class="row<#if .node["@style"]?has_content> ${ec.resource.expand(.node["@style"], "")}</#if>"<#if divId?has_content> id="${divId}"</#if>>
+    <#assign contRowDivId><@nodeId .node/></#assign>
+    <div class="row<#if .node["@style"]?has_content> ${ec.resource.expand(.node["@style"], "")}</#if>"<#if contRowDivId?has_content> id="${contRowDivId}"</#if>>
         <#list .node["row-col"] as rowColNode>
             <div class="<#if rowColNode["@lg"]?has_content> col-lg-${rowColNode["@lg"]}</#if><#if rowColNode["@md"]?has_content> col-md-${rowColNode["@md"]}</#if><#if rowColNode["@sm"]?has_content> col-sm-${rowColNode["@sm"]}</#if><#if rowColNode["@xs"]?has_content> col-xs-${rowColNode["@xs"]}</#if><#if rowColNode["@style"]?has_content> ${ec.resource.expand(rowColNode["@style"], "")}</#if>">
                 <#recurse rowColNode>
@@ -293,10 +293,10 @@ ${sri.renderSection(.node["@name"])}
 
 <#macro "container-dialog">
     <#assign buttonText = ec.resource.expand(.node["@button-text"], "")>
-    <#assign divId><@nodeId .node/></#assign>
-    <button id="${divId}-button" type="button" data-toggle="modal" data-target="#${divId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
-    <#if _openDialog! == divId><#assign afterScreenScript>$('#${divId}').modal('show'); </#assign><#t>${sri.appendToScriptWriter(afterScreenScript)}</#if>
-    <div id="${divId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
+    <#assign cdDivId><@nodeId .node/></#assign>
+    <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+    <#if _openDialog! == cdDivId><#assign afterScreenScript>$('#${cdDivId}').modal('show'); </#assign><#t>${sri.appendToScriptWriter(afterScreenScript)}</#if>
+    <div id="${cdDivId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
         <div class="modal-dialog" style="width: ${.node["@width"]!"600"}px;">
             <div class="modal-content">
                 <div class="modal-header">
@@ -310,33 +310,33 @@ ${sri.renderSection(.node["@name"])}
             </div>
         </div>
     </div>
-    <script>$('#${divId}').on('shown.bs.modal', function() {$("#${divId} select").select2({ ${select2DefaultOptions} });})</script>
+    <script>$('#${cdDivId}').on('shown.bs.modal', function() {$("#${cdDivId} select").select2({ ${select2DefaultOptions} });})</script>
 </#macro>
 
 <#macro "dynamic-container">
-    <#assign divId><@nodeId .node/></#assign>
-    <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", divId)>
-    <div id="${divId}"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>
+    <#assign dcDivId><@nodeId .node/></#assign>
+    <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", dcDivId)>
+    <div id="${dcDivId}"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>
     <script>
-        function load${divId}() { $("#${divId}").load("${urlInstance.passThroughSpecialParameters().urlWithParams}", function() { <#-- activateAllButtons() --> }) }
-        load${divId}();
+        function load${dcDivId}() { $("#${dcDivId}").load("${urlInstance.passThroughSpecialParameters().urlWithParams}", function() { <#-- activateAllButtons() --> }) }
+        load${dcDivId}();
     </script>
 </#macro>
 
 <#macro "dynamic-dialog">
     <#assign buttonText = ec.resource.expand(.node["@button-text"], "")>
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
-    <#assign divId><@nodeId .node/></#assign>
+    <#assign ddDivId><@nodeId .node/></#assign>
 
-    <button id="${divId}-button" type="button" data-toggle="modal" data-target="#${divId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
-    <div id="${divId}" class="modal fade dynamic-dialog" aria-hidden="true" style="display: none;">
+    <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+    <div id="${ddDivId}" class="modal fade dynamic-dialog" aria-hidden="true" style="display: none;">
         <div class="modal-dialog" style="width: ${.node["@width"]!"600"}px;">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h4 class="modal-title">${buttonText}</h4>
                 </div>
-                <div class="modal-body" id="${divId}-body">
+                <div class="modal-body" id="${ddDivId}-body">
                     <img src="/images/wait_anim_16x16.gif" alt="Loading...">
                 </div>
                 <#-- <div class="modal-footer"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></div> -->
@@ -344,10 +344,10 @@ ${sri.renderSection(.node["@name"])}
         </div>
     </div>
     <script>
-        $("#${divId}").on("show.bs.modal", function (e) { $("#${divId}-body").load('${urlInstance.urlWithParams}'); });
-        $("#${divId}").on("hidden.bs.modal", function (e) { $("#${divId}-body").empty(); $("#${divId}-body").append('<img src="/images/wait_anim_16x16.gif" alt="Loading...">'); });
-        $('#${divId}').on('shown.bs.modal', function() {$("#${divId} select").select2({ ${select2DefaultOptions} });});
-        <#if _openDialog! == divId>$('#${divId}').modal('show');</#if>
+        $("#${ddDivId}").on("show.bs.modal", function (e) { $("#${ddDivId}-body").load('${urlInstance.urlWithParams}'); });
+        $("#${ddDivId}").on("hidden.bs.modal", function (e) { $("#${ddDivId}-body").empty(); $("#${ddDivId}-body").append('<img src="/images/wait_anim_16x16.gif" alt="Loading...">'); });
+        $('#${ddDivId}').on('shown.bs.modal', function() {$("#${ddDivId} select").select2({ ${select2DefaultOptions} });});
+        <#if _openDialog! == ddDivId>$('#${ddDivId}').modal('show');</#if>
     </script>
 </#macro>
 
@@ -431,9 +431,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
         <#if !linkNode["@encode"]?has_content || linkNode["@encode"] == "true"><#assign linkText = linkText?html></#if>
         <#assign urlInstance = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
-        <#assign divId><@nodeId .node/></#assign>
-        <@linkFormForm linkNode divId linkText urlInstance/>
-        <@linkFormLink linkNode divId linkText urlInstance/>
+        <#assign linkDivId><@nodeId .node/></#assign>
+        <@linkFormForm linkNode linkDivId linkText urlInstance/>
+        <@linkFormLink linkNode linkDivId linkText urlInstance/>
     </#if>
 </#macro>
 <#macro linkFormLink linkNode linkFormId linkText urlInstance>
@@ -518,9 +518,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#else>
             <#assign labelValue = ec.resource.expand(.node["@text"], "")/>
         </#if>
-        <#assign divId><@nodeId .node/></#assign>
+        <#assign labelDivId><@nodeId .node/></#assign>
         <#if labelValue?trim?has_content>
-        <${labelType}<#if divId?has_content> id="${divId}"</#if><#if .node["@style"]?has_content> class="${ec.resource.expand(.node["@style"], "")}"</#if>><#if !.node["@encode"]?has_content || .node["@encode"] == "true">${labelValue?html?replace("\n", "<br>")}<#else>${labelValue}</#if></${labelType}>
+        <${labelType}<#if labelDivId?has_content> id="${labelDivId}"</#if><#if .node["@style"]?has_content> class="${ec.resource.expand(.node["@style"], "")}"</#if>><#if !.node["@encode"]?has_content || .node["@encode"] == "true">${labelValue?html?replace("\n", "<br>")}<#else>${labelValue}</#if></${labelType}>
         </#if>
     </#if>
 </#macro>
@@ -528,14 +528,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#-- for docs on JS usage see: http://www.appelsiini.net/projects/jeditable -->
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
     <#assign urlParms = urlInstance.getParameterMap()>
-    <#assign divId><@nodeId .node/></#assign>
+    <#assign editableDivId><@nodeId .node/></#assign>
     <#assign labelType = .node["@type"]?default("span")>
     <#assign labelValue = ec.resource.expand(.node["@text"], "")>
     <#assign parameterName = .node["@parameter-name"]!"value">
     <#if labelValue?trim?has_content>
-        <${labelType} id="${divId}" class="editable-label"><#if .node["@encode"]! == "true">${labelValue?html?replace("\n", "<br>")}<#else>${labelValue}</#if></${labelType}>
+        <${labelType} id="${editableDivId}" class="editable-label"><#if .node["@encode"]! == "true">${labelValue?html?replace("\n", "<br>")}<#else>${labelValue}</#if></${labelType}>
         <#assign afterScreenScript>
-        $("#${divId}").editable("${urlInstance.url}", { indicator:"${ec.l10n.localize("Saving")}",
+        $("#${editableDivId}").editable("${urlInstance.url}", { indicator:"${ec.l10n.localize("Saving")}",
             tooltip:"${ec.l10n.localize("Click to edit")}", cancel:"${ec.l10n.localize("Cancel")}",
             submit:"${ec.l10n.localize("Save")}", name:"${parameterName}",
             type:"${.node["@widget-type"]!"textarea"}", cssclass:"editable-form",
