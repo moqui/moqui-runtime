@@ -19,7 +19,7 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <script><![CDATA[
             import groovy.transform.CompileStatic
-            import org.moqui.context.Cache
+            import javax.cache.Cache
             import org.moqui.context.ExecutionContext
             import org.moqui.entity.EntityFacade
             import org.moqui.entity.EntityValue
@@ -63,7 +63,8 @@ along with this software (see the LICENSE.md file). If not, see
                 // direct cache writes and reads with EC
                 int calls = baseCallsNum * 2
                 BigDecimal milliseconds = 0
-                Cache testCache = ec.cache.getCache("test.cache")
+                Cache testDistCache = ec.cache.getCache("test.cache.dist")
+                Cache testLocalCache = ec.cache.getLocalCache("test.cache.local")
                 EntityValue testEnumValue =
                         ef.find("moqui.basic.Enumeration").condition("enumId", "_NA_").useCache(true).one()
                 // to measure the cache time and not the condition creation time, create those in advance
@@ -81,16 +82,30 @@ along with this software (see the LICENSE.md file). If not, see
                                          callsPerSecond: ((calls / milliseconds) * 1000)])
 
                     startTime = System.nanoTime()
-                    for (int i = 0; i < calls; i++) testCache.put(conditionList[i], testEnumValue)
+                    for (int i = 0; i < calls; i++) testDistCache.put(conditionList[i], testEnumValue)
                     milliseconds = ((System.nanoTime() - startTime) / 1E6)
-                    performanceList.add([operation     : "direct cache writes", entity: "moqui.basic.Enumeration",
+                    performanceList.add([operation     : "direct cache writes - dist", entity: "moqui.basic.Enumeration",
                                          calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
                                          callsPerSecond: ((calls / milliseconds) * 1000)])
 
                     startTime = System.nanoTime()
-                    for (int i = 0; i < calls; i++) testCache.get(conditionList[i])
+                    for (int i = 0; i < calls; i++) testDistCache.get(conditionList[i])
                     milliseconds = ((System.nanoTime() - startTime) / 1E6)
-                    performanceList.add([operation     : "direct cache reads", entity: "moqui.basic.Enumeration",
+                    performanceList.add([operation     : "direct cache reads - dist", entity: "moqui.basic.Enumeration",
+                                         calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
+                                         callsPerSecond: ((calls / milliseconds) * 1000)])
+
+                    startTime = System.nanoTime()
+                    for (int i = 0; i < calls; i++) testLocalCache.put(conditionList[i], testEnumValue)
+                    milliseconds = ((System.nanoTime() - startTime) / 1E6)
+                    performanceList.add([operation     : "direct cache writes - local", entity: "moqui.basic.Enumeration",
+                                         calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
+                                         callsPerSecond: ((calls / milliseconds) * 1000)])
+
+                    startTime = System.nanoTime()
+                    for (int i = 0; i < calls; i++) testLocalCache.get(conditionList[i])
+                    milliseconds = ((System.nanoTime() - startTime) / 1E6)
+                    performanceList.add([operation     : "direct cache reads - local", entity: "moqui.basic.Enumeration",
                                          calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
                                          callsPerSecond: ((calls / milliseconds) * 1000)])
 
