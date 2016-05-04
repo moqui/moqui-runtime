@@ -288,8 +288,9 @@ ${sri.renderSection(.node["@name"])}
 
 <#macro "container-dialog">
     <#assign buttonText = ec.resource.expand(.node["@button-text"], "")>
+    <#assign buttonIcon = ec.resource.expand(.node["@button-icon"], "")>
     <#assign divId><@nodeId .node/></#assign>
-    <button id="${divId}-button" type="button" data-toggle="modal" data-target="#${divId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+    <button id="${divId}-button" type="button" data-toggle="modal" data-target="#${divId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="<#if buttonIcon?? && buttonIcon != "">${buttonIcon}<#else>glyphicon glyphicon-share</#if>"></i> ${buttonText}</button>
     <#if _openDialog! == divId><#assign afterScreenScript>$('#${divId}').modal('show'); </#assign><#t>${sri.appendToScriptWriter(afterScreenScript)}</#if>
     <div id="${divId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
         <div class="modal-dialog" style="width: ${.node["@width"]!"600"}px;">
@@ -320,10 +321,11 @@ ${sri.renderSection(.node["@name"])}
 
 <#macro "dynamic-dialog">
     <#assign buttonText = ec.resource.expand(.node["@button-text"], "")>
+    <#assign buttonIcon = ec.resource.expand(.node["@button-icon"], "")>
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
     <#assign divId><@nodeId .node/></#assign>
 
-    <button id="${divId}-button" type="button" data-toggle="modal" data-target="#${divId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+    <button id="${divId}-button" type="button" data-toggle="modal" data-target="#${divId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="<#if buttonIcon?? && buttonIcon != "">${buttonIcon}<#else>glyphicon glyphicon-share</#if>"></i> ${buttonText}</button>
     <div id="${divId}" class="modal fade dynamic-dialog" aria-hidden="true" style="display: none;">
         <div class="modal-dialog" style="width: ${.node["@width"]!"600"}px;">
             <div class="modal-content">
