@@ -22,10 +22,10 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="clearArtifactCaches">
         <actions><script>
             ['entity.definition', 'entity.location', 'entity.data.feed.info', 'service.location',
-            'service.java.class', 'kie.component.releaseId', 'screen.location', 'screen.url',
+            'kie.component.releaseId', 'kie.session.component', 'screen.location', 'screen.url',
             'screen.template.mode', 'screen.template.location', 'screen.find.path',
-            'resource.xml-actions.location', 'resource.groovy.location', 'resource.groovy.expression',
-            'resource.javascript.location', 'resource.ftl.location', 'resource.gstring.location',
+            'resource.xml-actions.location', 'resource.groovy.location',
+            'resource.ftl.location', 'resource.gstring.location',
             'resource.wiki.location', 'resource.markdown.location', 'resource.text.location', 'resource.text.location',
             'resource.reference.location', 'l10n.message'].each {
                 cacheName -> ec.cache.getCache(cacheName).clear()
@@ -69,42 +69,47 @@ along with this software (see the LICENSE.md file). If not, see
             </form-single>
         </row-col></container-row>
 
-        <form-list name="CacheList" list="cacheList">
+        <form-list name="CacheList" list="cacheList" skip-form="true">
             <field name="name">
                 <header-field show-order-by="true"/>
-                <default-field><link text="${name}" url="cacheElements" link-type="anchor"><parameter name="cacheName" from="name"/></link></default-field>
+                <default-field><link text="${name}" url="cacheElements" link-type="anchor">
+                    <parameter name="cacheName" from="name"/></link></default-field>
             </field>
             <field name="size">
                 <header-field show-order-by="true"/>
-                <default-field><display also-hidden="false"/></default-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="putCount">
+                <header-field title="Puts" show-order-by="true"/>
+                <default-field><display/></default-field>
             </field>
             <field name="hitCount">
                 <header-field title="Hits" show-order-by="true"/>
-                <default-field><display also-hidden="false"/></default-field>
+                <default-field><display/></default-field>
             </field>
             <field name="missCountTotal">
-                <header-field title="Misses (NF/EX)" show-order-by="true"/>
-                <default-field>
-                    <display text="${missCountTotal} (${missCountNotFound}/${missCountExpired})" also-hidden="false"/>
-                </default-field>
+                <header-field title="Misses" show-order-by="true"/>
+                <default-field><display/></default-field>
             </field>
             <field name="removeCount">
                 <header-field title="Removes" show-order-by="true"/>
-                <default-field><display also-hidden="false"/></default-field>
+                <default-field><display/></default-field>
             </field>
-            <field name="expireTimeIdle">
-                <default-field title="Exp Idle"><display also-hidden="false"/></default-field>
+            <field name="expireCount">
+                <header-field title="Expires" show-order-by="true"/>
+                <default-field><display/></default-field>
             </field>
-            <field name="expireTimeList">
-                <default-field title="Exp Live"><display also-hidden="false"/></default-field>
+            <field name="evictionCount">
+                <header-field title="Evicts" show-order-by="true"/>
+                <default-field><display/></default-field>
             </field>
-            <field name="maxElements">
-                <default-field title="Max (Evct)">
-                    <display text="${maxElements} (${evictionStrategy})" also-hidden="false"/>
-                </default-field>
-            </field>
+            <field name="expireTimeIdle"><default-field title="Exp Idle"><display/></default-field></field>
+            <field name="expireTimeList"><default-field title="Exp Live"><display/></default-field></field>
+            <field name="maxElements"><default-field title="Max (Evct)">
+                <display text="${maxElements} (${evictionStrategy})"/></default-field></field>
             <field name="clear">
-                <default-field><link text="Clear" url="clearCache" link-type="hidden-form-link"><parameter name="cacheName" from="name"/></link></default-field>
+                <default-field><link text="Clear" url="clearCache" link-type="hidden-form-link">
+                    <parameter name="cacheName" from="name"/></link></default-field>
             </field>
         </form-list>
     </widgets>

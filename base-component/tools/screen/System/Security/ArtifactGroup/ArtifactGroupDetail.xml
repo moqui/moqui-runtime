@@ -119,7 +119,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <form-single name="CreateArtifactAuthz" transition="createArtifactAuthz">
                         <field name="artifactGroupId"><default-field><hidden/></default-field></field>
                         <field name="userGroupId"><default-field title="User Group">
-                            <drop-down style="chosen-wider">
+                            <drop-down>
                                 <entity-options key="${userGroupId}" text="UserGroupNameTemplate">
                                     <entity-find entity-name="moqui.security.UserGroup">
                                         <order-by field-name="description"/></entity-find>
@@ -200,7 +200,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <form-single name="CreateArtifactTarpit" transition="createArtifactTarpit">
                         <field name="artifactGroupId"><default-field><hidden/></default-field></field>
                         <field name="userGroupId"><default-field title="User Group">
-                            <drop-down style="chosen-wider">
+                            <drop-down>
                                 <entity-options key="${userGroupId}" text="UserGroupNameTemplate">
                                     <entity-find entity-name="moqui.security.UserGroup">
                                         <order-by field-name="description"/></entity-find>

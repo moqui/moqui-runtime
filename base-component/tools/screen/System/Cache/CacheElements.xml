@@ -20,13 +20,13 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="clearCacheElement">
         <actions>
             <script><![CDATA[
-                org.moqui.context.Cache theCache = ec.cache.getCache(cacheName)
-                // key is a String containsKey not work
-                net.sf.ehcache.Ehcache ehc = theCache.getInternalCache()
-                List<Object> keys = (List<Object>) ehc.getKeys()
-                for (Object keyObj in keys) {
-                    if (key == (keyObj as String)) {
-                        Object cacheValue = theCache.remove(keyObj)
+                ec.logger.info("trying to clear key ${key}")
+                javax.cache.Cache theCache = ec.cache.getCache(cacheName)
+                Iterator iter = theCache.iterator()
+                while (iter.hasNext()) {
+                    javax.cache.Cache.Entry entry = iter.next()
+                    if (key == (entry.key as String)) {
+                        Object cacheValue = theCache.getAndRemove(keyObj)
                         ec.message.addMessage("Cleared [${key}] from cache [${cacheName}] had value [${cacheValue}]")
                         return
                     }
@@ -42,7 +42,7 @@ along with this software (see the LICENSE.md file). If not, see
             <return error="true" message="Cache with name ${cacheName} not found"/></if>
 
         <set field="pageSize" from="pageSize ?: 40"/>
-        <set field="cacheElementList" from="ec.cache.getCache(cacheName)?.makeElementInfoList(orderByField?:'+key')"/>
+        <set field="cacheElementList" from="ec.cache.makeElementInfoList(cacheName, orderByField?:'+key')"/>
         <script>StupidUtilities.paginateList("cacheElementList", null, context)</script>
     </actions>
     <widgets>
@@ -70,10 +70,6 @@ along with this software (see the LICENSE.md file). If not, see
             </field>
             <field name="lastAccessTime">
                 <header-field title="Last Access" show-order-by="true"/>
-                <default-field><display also-hidden="false"/></default-field>
-            </field>
-            <field name="version">
-                <header-field show-order-by="true"/>
                 <default-field><display also-hidden="false"/></default-field>
             </field>
             <field name="clear">

@@ -62,7 +62,7 @@ div.container-panel-footer { width: 100%; }
 /* ======================= XML Form Styles ======================= */
 
 /* these are still used when a row has more than 2 fields in it */
-.big-row-item { display: inline-block; margin-left: 17px; margin-right: 17px; }
+.big-row-item { display: inline-block; margin-left: 15px; margin-right: 15px; }
 .big-row-item input, .big-row-item select, .big-row-item span.select2-container { display: inline-block; }
 .big-row-item>.form-group { margin-bottom: 0; }
 
@@ -113,7 +113,7 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .input-group .input-group-addon, .input-group .input-group-btn { display: inline; line-height: 34px; padding: 8px 12px; }
 
 /* Similar styles to Bootstrap .form-control-static, applied more specifically and without explicit class */
-.form-group>div>p, .form-group>div>a { display:inline-block;
+.form-group>div>p, .form-group>div>span:not(.select2-container), .form-group>div>a { display:inline-block;
     min-height: 34px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 0; }
 
 .nav.nav-tabs { margin-bottom: 8px; }
@@ -124,8 +124,8 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .navbar-right.btn { margin-right: -6px; margin-left: 10px; }
 .navbar-right.btn-group { margin-right: -6px; margin-left: 0px; }
 
-nav .pagination { margin: 4px 0 0 0; }
-nav form.form-inline { display: inline-block; margin: 4px 0 0 0; float: right; }
+nav.form-list-nav .pagination { margin: 6px 0 0 6px; }
+nav.form-list-nav form.form-inline { display: inline-block; margin: 6px 6px 0 0; float: right; }
 
 /* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */
 .panel .panel-heading { position: relative; }
@@ -133,6 +133,7 @@ nav form.form-inline { display: inline-block; margin: 4px 0 0 0; float: right; }
 .panel .panel-toolbar .label { display: inline-block; margin: 4px 4px 4px 0; }
 .panel .panel-heading>h5, .panel .panel-heading>span { display: inline-block; margin-top: 0; margin-bottom: 0; font-size: 16px; color: inherit; }
 .panel, .panel .panel-body { background: transparent; }
+.panel-body>table.table { margin: -15px; width: calc(100% + 30px); max-width: none; }
 
 .btn { margin: 4px 4px 4px 0; }
 .btn-group .btn { margin-right: 0; }

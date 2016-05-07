@@ -32,6 +32,8 @@ Non Backward Compatible Changes
   easier to have other screen trees with very different web artifacts, but
   means any existing ones that are directly under webroot need to be
   updated to include scripts and stylesheets as needed (like PopCommerce)
+- Export on Auto Screen master and entity Data Export now support a master
+  name to export using master def for entities with one matching the name
 
 New Features
 

@@ -24,7 +24,7 @@
 
     <screen-facade boundary-comments="false"/>
 
-    <entity-facade crypt-pass="MoquiDefaultPassword:CHANGEME">
+    <entity-facade crypt-pass="MoquiDefaultPassword:CHANGEME" distributed-cache-invalidate="true">
         <!-- add datasource elements here to configure databases -->
     </entity-facade>
 

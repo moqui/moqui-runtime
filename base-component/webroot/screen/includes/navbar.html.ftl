@@ -60,6 +60,7 @@
         </div>
         <#-- dark/light switch JS method -->
         <script>
+            $('.navbar [data-toggle="tooltip"]').tooltip();
             $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
             function switchDarkLight() {
                 $("body").toggleClass("bg-dark");

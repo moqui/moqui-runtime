@@ -17,44 +17,42 @@ along with this software (see the LICENSE.md file). If not, see
         default-menu-title="Import">
 
     <transition name="load">
-        <actions>
-            <script><![CDATA[
-                org.moqui.entity.EntityDataLoader edl = ec.entity.makeDataLoader()
-                String source = ""
-                if (context.types) {
-                    edl.dataTypes(new HashSet(Arrays.asList(context.types.split(","))))
-                    edl.componentNameList(Arrays.asList(context.components.split(",")))
-                    source = "Types: ${context.types}, Components: ${context.components}"
-                } else if (context.location) {
-                    edl.location(context.location)
-                    source = context.location
-                } else if (context.csvText) {
-                    edl.csvText(context.csvText)
-                    source = "CSV Text Box"
-                } else if (context.jsonText) {
-                    edl.jsonText(context.jsonText)
-                    source = "JSON Text Box"
-                } else if (context.xmlText) {
-                    edl.xmlText(context.xmlText)
-                    source = "XML Text Box"
-                }
-                if (context.timeout) edl.transactionTimeout(context.timeout as Integer)
-                if (context.dummyFks) edl.dummyFks(true)
-                if (context.useTryInsert) edl.useTryInsert(true)
+        <actions><script><![CDATA[
+            org.moqui.entity.EntityDataLoader edl = ec.entity.makeDataLoader()
+            String source = ""
+            if (types) {
+                edl.dataTypes(new HashSet(Arrays.asList(types.split(","))))
+                if (components) edl.componentNameList(Arrays.asList(components.split(",")))
+                source = "Types: ${types}, Components: ${components}"
+            } else if (location) {
+                edl.location(location)
+                source = location
+            } else if (csvText) {
+                edl.csvText(csvText)
+                source = "CSV Text Box"
+            } else if (jsonText) {
+                edl.jsonText(jsonText)
+                source = "JSON Text Box"
+            } else if (xmlText) {
+                edl.xmlText(xmlText)
+                source = "XML Text Box"
+            }
+            if (timeout) edl.transactionTimeout(timeout as Integer)
+            if (dummyFks) edl.dummyFks(true)
+            if (useTryInsert) edl.useTryInsert(true)
 
-                if (context.checkOnly) {
-                    List messages = edl.check()
-                    if (messages) {
-                        ec.message.messages.addAll(messages)
-                    } else {
-                        ec.message.addMessage("No differences found in check")
-                    }
+            if (checkOnly) {
+                List messages = edl.check()
+                if (messages) {
+                    ec.message.messages.addAll(messages)
                 } else {
-                    long recordsLoaded = edl.load()
-                    ec.message.addMessage("Loaded ${recordsLoaded} records from [${source}]")
+                    ec.message.addMessage("No differences found in check")
                 }
-            ]]></script>
-        </actions>
+            } else {
+                long recordsLoaded = edl.load()
+                ec.message.addMessage("Loaded ${recordsLoaded} records from [${source}]")
+            }
+        ]]></script></actions>
         <default-response url="."/>
     </transition>
 

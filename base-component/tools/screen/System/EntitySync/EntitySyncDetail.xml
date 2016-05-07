@@ -82,7 +82,7 @@ along with this software (see the LICENSE.md file). If not, see
                             <form-single name="CreateEntitySyncArtifact" transition="createEntitySyncArtifact">
                                 <field name="entitySyncId"><default-field><hidden/></default-field></field>
                                 <field name="artifactGroupId"><default-field title="Artifact Group">
-                                    <drop-down style="chosen-wider">
+                                    <drop-down>
                                         <entity-options key="${artifactGroupId}" text="${description} [${artifactGroupId}]">
                                             <entity-find entity-name="moqui.security.ArtifactGroup">
                                                 <order-by field-name="description"/></entity-find>
@@ -90,7 +90,7 @@ along with this software (see the LICENSE.md file). If not, see
                                     </drop-down>
                                 </default-field></field>
                                 <field name="applEnumId"><default-field title="Appl Type">
-                                    <drop-down style="chosen-wide">
+                                    <drop-down>
                                         <entity-options key="${enumId}" text="${description}">
                                             <entity-find entity-name="moqui.basic.Enumeration">
                                                 <econdition field-name="enumTypeId" value="EntitySyncArtifactAppl"/>

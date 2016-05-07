@@ -43,6 +43,9 @@ input:focus:valid, textarea:focus:valid { background-color: #EEE; }
 .form-order-by a.active { color: red; }
 .form-order-by a.active:hover { color: darkred; }
 
+nav.form-list-nav, table.table>thead th { background: #EEE; }
+.bg-dark nav.form-list-nav, .bg-dark table.table>thead th { background: #333; }
+
 /* ======================= Handy Styles ======================= */
 
 ul.float-box li { background: #EEEEEE; box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 0 1px #CCCCCC;

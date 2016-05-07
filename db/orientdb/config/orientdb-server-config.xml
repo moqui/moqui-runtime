@@ -34,7 +34,10 @@
                 <parameter name="enabled" value="${distributed}"/>
                 <parameter name="configuration.db.default"
                            value="${ORIENTDB_HOME}/config/default-distributed-db-config.json"/>
+
+                <!-- to use the same configuration as the rest of moqui, try 'classpath://hazelcast.xml' -->
                 <parameter name="configuration.hazelcast" value="${ORIENTDB_HOME}/config/hazelcast.xml"/>
+                <!-- NOTE: any way to use the same HazelcastInstance as Moqui? (instance name = 'moqui') -->
             </parameters>
         </handler>
         <!-- JMX SERVER, TO TURN ON SET THE 'ENABLED' PARAMETER TO 'true' -->
