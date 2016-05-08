@@ -2,10 +2,10 @@
 Moqui Runtime Release Notes
 
 ===========================================================================
-Release 1.6.3 - TBD
+Release 2.0.0 - TBD
 ===========================================================================
 
-Moqui Runtime 1.6.3 is a minor new feature and bug fix release, in parallel
+Moqui Runtime 2.0.0 is a minor new feature and bug fix release, in parallel
 with the release of Moqui Framework.
 
 TODO
