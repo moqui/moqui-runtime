@@ -21,6 +21,13 @@
             <root-screen host=".*" location="component://webroot/screen/webroot.xml"/>
         </webapp>
     </webapp-list>
+    <artifact-execution-facade>
+        <!-- turn off tarpit in dev mode -->
+        <artifact-execution type="AT_XML_SCREEN" tarpit-enabled="false"/>
+        <artifact-execution type="AT_XML_SCREEN_TRANS" tarpit-enabled="false"/>
+        <artifact-execution type="AT_SERVICE" tarpit-enabled="false"/>
+        <artifact-execution type="AT_ENTITY" tarpit-enabled="false"/>
+    </artifact-execution-facade>
 
     <screen-facade boundary-comments="true">
         <!-- The default conf file has a macro location defined for html already, but this is an example of how to
