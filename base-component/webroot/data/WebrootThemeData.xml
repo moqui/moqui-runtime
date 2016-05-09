@@ -56,8 +56,4 @@ along with this software (see the LICENSE.md file). If not, see
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="201" resourceTypeEnumId="STRT_FOOTER_ITEM">
         <resourceValue><![CDATA[<p><a href="/apps/ScreenTree">${ec.l10n.localize('Site Map')}</a></p>]]></resourceValue>
     </moqui.screen.ScreenThemeResource>
-
-    <!-- Error Theme (note that ERROR ScreenTheme record defined in ScreenEntities.xml) -->
-    <moqui.screen.ScreenThemeResource screenThemeId="ERROR" sequenceNum="3" resourceTypeEnumId="STRT_STYLESHEET"
-            resourceValue="/lib/bootstrap/css/bootstrap.min.css"/>
 </entity-facade-xml>
