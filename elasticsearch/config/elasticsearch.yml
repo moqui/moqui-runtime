@@ -111,6 +111,8 @@ script.engine.groovy.inline.search: off
 script.engine.groovy.inline.update: off
 script.engine.groovy.inline.plugin: off
 
+plugin.mandatory: lang-groovy
+
 # ---------------------------------- Various -----------------------------------
 #
 # Disable starting multiple nodes on a single system:
