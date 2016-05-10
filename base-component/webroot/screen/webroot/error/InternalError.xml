@@ -16,7 +16,13 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         require-authentication="false">
     <widgets>
-        <label text="Internal Server Error (${errorCode})" type="h2"/>
-        <label text="${errorMessage}" type="strong"/>
+        <label text="&amp;nbsp;" type="p" encode="false"/>
+        <container style="jumbotron">
+            <!-- TODO: add glyphicon glyphicon-flash for internal error, may be better to move all of this to inline HTML -->
+            <label text="Internal Server Error (${errorCode})" type="h1"/>
+            <label text="${errorMessage}" type="p" style="text-danger"/>
+            <link url="/" text="Go Home" link-type="anchor-button"/>
+            <link url="javascript:window.history.back();" url-type="plain" text="Go Back" link-type="anchor-button"/>
+        </container>
     </widgets>
 </screen>
