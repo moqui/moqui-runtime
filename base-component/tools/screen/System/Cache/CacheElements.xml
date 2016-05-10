@@ -27,7 +27,7 @@ along with this software (see the LICENSE.md file). If not, see
                     javax.cache.Cache.Entry entry = iter.next()
                     if (key == (entry.key as String)) {
                         Object cacheValue = theCache.getAndRemove(keyObj)
-                        ec.message.addMessage("Cleared [${key}] from cache [${cacheName}] had value [${cacheValue}]")
+                        ec.message.addMessage(ec.resource.expand('Cleared [${key}] from cache [${cacheName}] had value [${cacheValue}]',''))
                         return
                     }
                 }
