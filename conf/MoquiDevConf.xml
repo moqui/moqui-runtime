@@ -49,10 +49,10 @@
     <webapp-list>
         <webapp name="webroot" http-port="" https-enabled="false">
             <root-screen host=".*" location="component://webroot/screen/webroot.xml"/>
-            <error-screen error="unauthorized" screen-path="error/InternalError"/>
-            <error-screen error="forbidden" screen-path="error/InternalError"/>
-            <error-screen error="not-found" screen-path="error/InternalError"/>
-            <error-screen error="too-many" screen-path="error/InternalError"/>
+            <error-screen error="unauthorized" screen-path="error/Unauthorized"/>
+            <error-screen error="forbidden" screen-path="error/Forbidden"/>
+            <error-screen error="not-found" screen-path="error/NotFound"/>
+            <error-screen error="too-many" screen-path="error/TooMany"/>
             <error-screen error="internal-error" screen-path="error/InternalError"/>
         </webapp>
     </webapp-list>
