@@ -16,7 +16,7 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         require-authentication="false">
     <widgets>
-        <label text="${errorCode} Error" type="h2"/>
+        <label text="Internal Server Error (${errorCode})" type="h2"/>
         <label text="${errorMessage}" type="strong"/>
     </widgets>
 </screen>
