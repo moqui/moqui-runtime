@@ -23,7 +23,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <p class="text-danger">${errorMessage!""}</p>
                 <a href="${sri.buildUrl("/").url}" class="btn btn-primary btn-lg" role="button">Go Home</a>
                 <a href="javascript:window.history.back();" class="btn btn-primary btn-lg" role="button">Go Back</a>
-                <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#ErrorDetailModal">See Detail</button>
+                <#if errorThrowable??><button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#ErrorDetailModal">See Detail</button></#if>
             </div>
             <#if errorThrowable??>
                 <#assign stackList = errorThrowable.getStackTrace()>
