@@ -42,7 +42,7 @@ along with this software (see the LICENSE.md file). If not, see
                     ec.web.response.addHeader("Content-Disposition", contentDisposition)
                     IOUtils.write(bytes, ec.web.response.outputStream)
                 } else {
-                    ec.message.addError("No document found in PrintJob [${printJobId}]")
+                    ec.message.addError(ec.resource.expand('No document found in PrintJob [${printJobId}]',''))
                 }
             </script>
         </actions>

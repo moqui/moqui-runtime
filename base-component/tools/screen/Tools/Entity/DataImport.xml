@@ -46,7 +46,7 @@ along with this software (see the LICENSE.md file). If not, see
                 if (messages) {
                     ec.message.messages.addAll(messages)
                 } else {
-                    ec.message.addMessage("No differences found in check")
+                    ec.message.addMessage(ec.l10n.localize("No differences found in check"))
                 }
             } else {
                 long recordsLoaded = edl.load()
