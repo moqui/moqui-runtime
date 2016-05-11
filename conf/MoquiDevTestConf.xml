@@ -9,18 +9,14 @@
 
     <server-stats stats-skip-condition="pathInfo?.startsWith('/rpc') || pathInfo?.startsWith('/rest') || pathInfo?.startsWith('/status')">
         <!-- for dev testing tone down the stats, don't persist low-level hits -->
-        <artifact-stats type="screen" persist-bin="true" persist-hit="true"/>
-        <artifact-stats type="screen-content" persist-bin="true" persist-hit="true"/>
-        <artifact-stats type="transition" persist-bin="true" persist-hit="true"/>
+        <artifact-stats type="screen" persist-bin="true" persist-hit="false"/>
+        <artifact-stats type="screen-content" persist-bin="true" persist-hit="false"/>
+        <artifact-stats type="transition" persist-bin="true" persist-hit="false"/>
         <artifact-stats type="service" persist-bin="true" persist-hit="false"/>
         <artifact-stats type="entity" persist-bin="true"/>
     </server-stats>
 
-    <webapp-list>
-        <webapp name="webroot" http-port="8080" https-enabled="false">
-            <root-screen host=".*" location="component://webroot/screen/webroot.xml"/>
-        </webapp>
-    </webapp-list>
+    <webapp-list><webapp name="webroot" https-enabled="false"/></webapp-list>
     <artifact-execution-facade>
         <!-- turn off tarpit in dev mode -->
         <artifact-execution type="AT_XML_SCREEN" tarpit-enabled="false"/>

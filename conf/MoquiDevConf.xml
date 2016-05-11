@@ -46,16 +46,7 @@
         <artifact-stats type="entity" persist-bin="true"/>
     </server-stats>
 
-    <webapp-list>
-        <webapp name="webroot" http-port="" https-enabled="false">
-            <root-screen host=".*" location="component://webroot/screen/webroot.xml"/>
-            <error-screen error="unauthorized" screen-path="error/Unauthorized"/>
-            <error-screen error="forbidden" screen-path="error/Forbidden"/>
-            <error-screen error="not-found" screen-path="error/NotFound"/>
-            <error-screen error="too-many" screen-path="error/TooMany"/>
-            <error-screen error="internal-error" screen-path="error/InternalError"/>
-        </webapp>
-    </webapp-list>
+    <webapp-list><webapp name="webroot" https-enabled="false"/></webapp-list>
     <artifact-execution-facade>
         <!-- turn off tarpit in dev mode -->
         <artifact-execution type="AT_XML_SCREEN" tarpit-enabled="false"/>

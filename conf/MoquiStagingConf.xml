@@ -13,11 +13,7 @@
         <artifact-stats type="entity" persist-bin="false"/>
     </server-stats>
 
-    <webapp-list>
-        <webapp name="webroot">
-            <root-screen host=".*" location="component://webroot/screen/webroot.xml"/>
-        </webapp>
-    </webapp-list>
+    <webapp-list><webapp name="webroot" https-enabled="false"/></webapp-list>
 
     <screen-facade boundary-comments="true"/>
 
