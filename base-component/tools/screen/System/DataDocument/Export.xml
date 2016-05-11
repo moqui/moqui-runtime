@@ -28,7 +28,7 @@ along with this software (see the LICENSE.md file). If not, see
                 EntityDataDocument edd = ec.entity.getEntityDataDocument()
 
                 if (!context.dataDocumentIds) {
-                    ec.message.addError("No Data Documents specified, not exporting anything.")
+                    ec.message.addError(ec.l10n.localize("No Data Documents specified, not exporting anything."))
                     return
                 }
 

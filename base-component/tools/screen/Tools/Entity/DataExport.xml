@@ -26,7 +26,7 @@ along with this software (see the LICENSE.md file). If not, see
 
                 // handle entityNames
                 if (!context.entityNames) {
-                    ec.message.addError("No entity names specified, not exporting anything.")
+                    ec.message.addError(ec.l10n.localize("No entity names specified, not exporting anything."))
                     return
                 }
 
@@ -35,13 +35,13 @@ along with this software (see the LICENSE.md file). If not, see
                     for (String entityName in entityNames) {
                         def entDef = ec.entity.getEntityDefinition(entityName)
                         if (entDef == null || entDef.getEntityGroupName() == 'tenantcommon')
-                            ec.message.addError("Could not find entity with name ${entityName}")
+                            ec.message.addError(ec.resource.expand('Could not find entity with name ${entityName}',''))
                     }
                     edw.entityNames(entityNames)
                 } else {
                     def entDef = ec.entity.getEntityDefinition(entityNames)
                     if (entDef == null || entDef.getEntityGroupName() == 'tenantcommon')
-                        ec.message.addError("Could not find entity with name ${entityNames}")
+                        ec.message.addError(ec.resource.expand('Could not find entity with name ${entityNames}'))
                     edw.entityName(entityNames)
                 }
 

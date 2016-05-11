@@ -79,7 +79,7 @@ along with this software (see the LICENSE.md file). If not, see
                         entityName = masterEntityName
                         fieldName = field.substring(field.lastIndexOf('.') + 1)
                     } else {
-                        ec.message.addError("No relationship definition found for name ${relationshipName}")
+                        ec.message.addError(ec.resource.expand('No relationship definition found for name ${relationshipName}',''))
                         continue
                     }
 
