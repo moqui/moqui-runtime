@@ -504,8 +504,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 
 <#macro image>
-    <#if .node["@condition"]?has_content><#assign conditionResult = ec.resource.condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
-    <#if conditionResult><img src="${sri.makeUrlByType(.node["@url"], .node["@url-type"]!"content", .node, "true").getUrlWithParams()}" alt="${.node["@alt"]!"image"}"<#if .node["@id"]?has_content> id="${.node["@id"]}"</#if><#if .node["@width"]?has_content> width="${.node["@width"]}"</#if><#if .node["@height"]?has_content> height="${.node["@height"]}"</#if><#if .node["@style"]?has_content> class="${ec.resource.expand(.node["@style"], "")}"</#if>/></#if>
+    <#if .node["@condition"]?has_content><#assign conditionResult = ec.resource.condition(.node["@condition"], "")>
+        <#else><#assign conditionResult = true></#if>
+    <#if conditionResult>
+        <#if .node["@hover"]! == "true"><span class="hover-image-container"></#if>
+        <img src="${sri.makeUrlByType(.node["@url"], .node["@url-type"]!"content", .node, "true").getUrlWithParams()}" alt="${.node["@alt"]!"image"}"<#if .node["@id"]?has_content> id="${.node["@id"]}"</#if><#if .node["@width"]?has_content> width="${.node["@width"]}"</#if><#if .node["@height"]?has_content>height="${.node["@height"]}"</#if><#if .node["@style"]?has_content> class="${ec.resource.expand(.node["@style"], "")}"</#if>/>
+        <#if .node["@hover"]! == "true"><img src="${sri.makeUrlByType(.node["@url"], .node["@url-type"]!"content", .node, "true").getUrlWithParams()}" class="hover-image" alt="${.node["@alt"]!"image"}"/></span></#if>
+    </#if>
 </#macro>
 <#macro label>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.resource.condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
