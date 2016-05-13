@@ -847,12 +847,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
 </#macro>
 
-<#macro paginationHeader formNode formId numColumns isHeaderDialog>
-    <#assign headerFormDialogId>${formId}-hdialog</#assign>
-    <#assign headerFormButtonText = ec.l10n.localize("Find Options")>
+<#macro paginationHeader formNode formId formListColumnList isHeaderDialog>
+    <#assign numColumns = (formListColumnList?size)!100>
+    <#assign isSelectColumns = formNode["@select-columns"]! == "true">
     <#if isHeaderDialog>
+        <#assign headerFormDialogId>${formId}-hdialog</#assign>
+        <#assign headerFormButtonText = ec.l10n.localize("Find Options")>
         <div id="${headerFormDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
-            <div class="modal-dialog" style="width: ${.node["@width"]!"600"}px;">
+            <div class="modal-dialog" style="width: 600px;">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -892,7 +894,59 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </div>
             </div>
         </div>
-    <script>$('#${headerFormDialogId}').on('shown.bs.modal', function() {$("#${headerFormDialogId} select").select2({ ${select2DefaultOptions} });})</script>
+        <script>$('#${headerFormDialogId}').on('shown.bs.modal', function() {$("#${headerFormDialogId} select").select2({ ${select2DefaultOptions} });})</script>
+    </#if>
+    <#if isSelectColumns>
+        <#assign selectColumnsDialogId>${formId}-selcols</#assign>
+        <#assign selectColumnsSortableId>${formId}-sortable</#assign>
+        <div id="${selectColumnsDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
+            <div class="modal-dialog" style="width: 600px;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">${ec.l10n.localize("Column Fields")}</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Drag fields to the desired column or under hidden to not display</p>
+                        <ul id="${selectColumnsSortableId}">
+                            <li id="hidden"><div>Hidden</div><ul>
+                                <#list formNode["field"] as fieldNode>
+                                    <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
+                                    <#assign allHidden = true>
+                                    <#assign hasSubmit = false>
+                                    <#list fieldNode?children as fieldSubNode>
+                                        <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
+                                        <#if fieldSubNode?node_name != "header-field" && fieldSubNode["submit"]?has_content><#assign hasSubmit = true></#if>
+                                    </#list>
+                                    <#if !(ec.resource.condition(fieldNode["@hide"]!, "") || allHidden ||
+                                            ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
+                                            ((fieldNode["header-field"][0]["hidden"])?has_content || (fieldNode["header-field"][0]["ignored"])?has_content))) &&
+                                            !(isMulti && hasSubmit)>
+                                        <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
+                                    </#if>
+                                </#list>
+                            </ul></li>
+                            <li id="column_1"><div>Column 1</div></li>
+                            <li id="column_2"><div>Column 2</div></li>
+                            <li id="column_3"><div>Column 3</div></li>
+                            <li id="column_4"><div>Column 4</div></li>
+                            <li id="column_5"><div>Column 5</div></li>
+                            <li id="column_6"><div>Column 6</div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>$('#${selectColumnsDialogId}').on('shown.bs.modal', function() {$("#${selectColumnsSortableId}").sortableLists({
+            isAllowed: function(currEl, hint, target) {
+                <#-- don't allow hidden and column items to be moved; only allow others to be under hidden or column items -->
+                if (currEl.attr('id') === 'hidden' || currEl.attr('id').startsWith('column_')) { hint.css('background-color', '#ff9999'); return false; }
+                if (target.attr('id') && (target.attr('id') === 'hidden' || target.attr('id').startsWith('column_'))) { hint.css('background-color', '#99ff99'); return true; }
+                else { hint.css('background-color', '#ff9999'); return false; }
+            },
+            <#-- jquery-sortable-lists currently logs an error if opener.as is not set to html or class -->
+            opener: { active:false, as:'html', close:'', open:'' }
+        });})</script>
     </#if>
     <#if isHeaderDialog || !(formNode["@paginate"]! == "false") && context[listName + "Count"]?exists &&
             (context[listName + "Count"]! > 0) &&
@@ -906,6 +960,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <tr><th colspan="${numColumns}">
         <nav class="form-list-nav">
             <#if isHeaderDialog><button id="${headerFormDialogId}-button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
+            <#if isSelectColumns><button id="${selectColumnsDialogId}-button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.l10n.localize("Columns")}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${ec.l10n.localize("Columns")}</button></#if>
             <ul class="pagination">
             <#if (curPageIndex > 0)>
                 <#assign firstUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", 0)>
@@ -987,7 +1042,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <thead>
                 <#assign needHeaderForm = sri.isFormHeaderForm(formNode["@name"])>
                 <#assign isHeaderDialog = needHeaderForm && formNode["@header-dialog"]! == "true">
-                <@paginationHeader formNode formId formListColumnList?size isHeaderDialog/>
+                <@paginationHeader formNode formId formListColumnList isHeaderDialog/>
 
                 <#if needHeaderForm>
                     <#assign curUrlInstance = sri.getCurrentScreenUrl()>
@@ -1110,7 +1165,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <thead>
                 <#assign needHeaderForm = sri.isFormHeaderForm(formNode["@name"])>
                 <#assign isHeaderDialog = needHeaderForm && formNode["@header-dialog"]! == "true">
-                <@paginationHeader formNode formId 100 isHeaderDialog/>
+                <@paginationHeader formNode formId formListColumnList isHeaderDialog/>
 
                 <#if needHeaderForm && !skipStart>
                     <#assign curUrlInfo = sri.getCurrentScreenUrl()>
