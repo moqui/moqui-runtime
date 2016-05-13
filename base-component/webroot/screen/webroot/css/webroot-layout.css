@@ -1,12 +1,12 @@
 /*
- * This software is in the public domain under CC0 1.0 Universal plus a 
+ * This software is in the public domain under CC0 1.0 Universal plus a
  * Grant of Patent License.
- * 
+ *
  * To the extent possible under law, the author(s) have dedicated all
  * copyright and related and neighboring rights to this software to the
  * public domain worldwide. This software is distributed without any
  * warranty.
- * 
+ *
  * You should have received a copy of the CC0 Public Domain Dedication
  * along with this software (see the LICENSE.md file). If not, see
  * <http://creativecommons.org/publicdomain/zero/1.0/>.
@@ -125,7 +125,8 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .navbar-right.btn-group { margin-right: -6px; margin-left: 0px; }
 
 nav.form-list-nav .pagination { margin: 6px 0 0 6px; }
-nav.form-list-nav form.form-inline { display: inline-block; margin: 6px 6px 0 0; float: right; }
+nav.form-list-nav form.form-inline { display: inline-block; margin: 6px 6px 0 0; float: left; }
+nav.form-list-nav>button { display: inline-block; margin: 8px 6px 0 6px; float: left; }
 
 /* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */
 .panel .panel-heading { position: relative; }
@@ -172,3 +173,12 @@ a.jstree-anchor { white-space: normal; }
 #wiki-page-area th, #wiki-page-area td { padding: 2px 4px 2px 4px; border: thin solid lightgrey; }
 .CodeMirror, .CodeMirror-scroll { min-height: 600px; min-width: 800px; }
 
+/* ======================= Image thumbnail hover styles ======================= */
+
+span.hover-image-container img.hover-image { position: absolute; display: none;}
+
+span.hover-image-container img.hover-image { background-color: #FFF6E8; padding: 6px;
+    -webkit-box-shadow: 0 0 6px rgba(132, 132, 132, .75); -moz-box-shadow: 0 0 6px rgba(132, 132, 132, .75); box-shadow: 0 0 6px rgba(132, 132, 132, .75);
+    -webkit-border-radius: 4px; -moz-border-radius: 4px;border-radius: 4px; }
+
+span.hover-image-container:hover img.hover-image { display: initial; margin : 10px 0 0 5px; }
