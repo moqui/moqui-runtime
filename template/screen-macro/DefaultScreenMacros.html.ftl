@@ -562,14 +562,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro "form-single">
 <#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
-    <#assign formNode = sri.getFtlFormNode(.node["@name"])>
+    <#assign formInstance = sri.getFormInstance(.node["@name"])>
+    <#assign formNode = formInstance.getFtlFormNode()>
     ${sri.pushSingleFormMapContext(formNode)}
     <#assign skipStart = (formNode["@skip-start"]! == "true")>
     <#assign skipEnd = (formNode["@skip-end"]! == "true")>
     <#assign urlInstance = sri.makeUrlByType(formNode["@transition"], "transition", null, "true")>
     <#assign formId>${ec.resource.expand(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#if !skipStart>
-    <form name="${formId}" id="${formId}" class="validation-engine-init" method="post" action="${urlInstance.url}"<#if sri.isFormUpload(formNode["@name"])> enctype="multipart/form-data"</#if>>
+    <form name="${formId}" id="${formId}" class="validation-engine-init" method="post" action="${urlInstance.url}"<#if formInstance.isUpload()> enctype="multipart/form-data"</#if>>
         <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
         <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
     </#if>
@@ -600,7 +601,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <@formSingleSubField fieldNode false false/>
                     </#if>
                 <#elseif layoutNode?node_name == "fields-not-referenced">
-                    <#assign nonReferencedFieldList = sri.getFtlFormFieldLayoutNonReferencedFieldList(.node["@name"])>
+                    <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                     <#list nonReferencedFieldList as nonReferencedField>
                         <@formSingleSubField nonReferencedField false false/></#list>
                 <#elseif layoutNode?node_name == "field-row">
@@ -627,7 +628,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 </#if>
                             </div><!-- /col-md-6 not bigRow -->
                         <#elseif rowChildNode?node_name == "fields-not-referenced">
-                            <#assign nonReferencedFieldList = sri.getFtlFormFieldLayoutNonReferencedFieldList(.node["@name"])>
+                            <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                             <#list nonReferencedFieldList as nonReferencedField>
                                 <@formSingleSubField nonReferencedField true false/></#list>
                         </#if>
@@ -656,7 +657,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                     <@formSingleSubField fieldNode true true/>
                                 </#if>
                             <#elseif rowChildNode?node_name == "fields-not-referenced">
-                                <#assign nonReferencedFieldList = sri.getFtlFormFieldLayoutNonReferencedFieldList(.node["@name"])>
+                                <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                                 <#list nonReferencedFieldList as nonReferencedField>
                                     <@formSingleSubField nonReferencedField true true/></#list>
                             </#if>
@@ -692,7 +693,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                     <@formSingleSubField fieldNode false false/>
                                 </#if>
                             <#elseif groupNode?node_name == "fields-not-referenced">
-                                <#assign nonReferencedFieldList = sri.getFtlFormFieldLayoutNonReferencedFieldList(.node["@name"])>
+                                <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                                 <#list nonReferencedFieldList as nonReferencedField>
                                     <@formSingleSubField nonReferencedField false false/></#list>
                             <#elseif groupNode?node_name == "field-row">
@@ -710,7 +711,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                             </#if>
                                         </div><#-- /col-md-6 not bigRow -->
                                     <#elseif rowChildNode?node_name == "fields-not-referenced">
-                                        <#assign nonReferencedFieldList = sri.getFtlFormFieldLayoutNonReferencedFieldList(.node["@name"])>
+                                        <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                                         <#list nonReferencedFieldList as nonReferencedField>
                                             <@formSingleSubField nonReferencedField true false/></#list>
                                     </#if>
@@ -1028,7 +1029,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro "form-list">
 <#if sri.doBoundaryComments()><!-- BEGIN form-list[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
-    <#assign formNode = sri.getFtlFormNode(.node["@name"])>
+    <#assign formInstance = sri.getFormInstance(.node["@name"])>
+    <#assign formNode = formInstance.getFtlFormNode()>
+    <#-- Get a List<Map> with information about each column; fields not in a form-list-column elements are in the first entry -->
+    <#assign formListColumnList = formInstance.getFormListColumnInfo()>
     <#assign formId>${ec.resource.expand(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#assign isMulti = formNode["@multi"]! == "true">
     <#assign isMultiFinalRow = false>
@@ -1039,13 +1043,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign formListUrlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
     <#assign listName = formNode["@list"]>
     <#assign listObject = ec.resource.expression(listName, "")!>
-    <#assign formListColumnList = formNode["form-list-column"]!>
-    <#if formListColumnList?? && (formListColumnList?size > 0)>
+    <#-- <#if (formListColumnList?size > 0)> -->
         <#if !skipStart>
         <table class="table table-striped table-hover table-condensed" id="${formId}-table">
             <#if !skipHeader>
             <thead>
-                <#assign needHeaderForm = sri.isFormHeaderForm(formNode["@name"])>
+                <#assign needHeaderForm = formInstance.isHeaderForm()>
                 <#assign isHeaderDialog = needHeaderForm && formNode["@header-dialog"]! == "true">
                 <@paginationHeader formNode formId formListColumnList isHeaderDialog/>
 
@@ -1056,25 +1059,19 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
                         <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-                        <#assign nonReferencedFieldList = sri.getFtlFormListColumnNonReferencedHiddenFieldList(.node["@name"])>
-                        <#list nonReferencedFieldList as nonReferencedField><#if nonReferencedField["header-field"]?has_content><#recurse nonReferencedField["header-field"][0]/></#if></#list>
+                        <#assign hiddenFieldList = formInstance.getListHiddenFieldList()>
+                        <#list hiddenFieldList as hiddenField><#if hiddenField["header-field"]?has_content><#recurse hiddenField["header-field"][0]/></#if></#list>
                 <#else>
                     <tr>
                 </#if>
-                <#list formListColumnList as fieldListColumn>
-                    <th<#if fieldListColumn["@style"]?has_content> class="${fieldListColumn["@style"]}"</#if>>
-                    <#list fieldListColumn["field-ref"] as fieldRef>
-                        <#assign fieldRefName = fieldRef["@name"]>
-                        <#assign fieldNode = "invalid">
-                        <#list formNode["field"] as fn><#if fn["@name"] == fieldRefName><#assign fieldNode = fn><#break></#if></#list>
-                        <#if fieldNode == "invalid">
-                            <div>Error: could not find field with name [${fieldRefName}] referred to in a form-list-column.field-ref.@name attribute.</div>
-                        <#else>
-                            <#if !(ec.resource.condition(fieldNode["@hide"]!, "") ||
-                                    ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                    (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
-                                <div><@formListHeaderField fieldNode isHeaderDialog/></div>
-                            </#if>
+                <#list formListColumnList as columnFieldList>
+                    <#-- TODO: how to handle column style? <th<#if fieldListColumn["@style"]?has_content> class="${fieldListColumn["@style"]}"</#if>> -->
+                    <th>
+                    <#list columnFieldList as fieldNode>
+                        <#if !(ec.resource.condition(fieldNode["@hide"]!, "") ||
+                                ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
+                                (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
+                            <div><@formListHeaderField fieldNode isHeaderDialog/></div>
                         </#if>
                     </#list>
                     </th>
@@ -1104,39 +1101,35 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#list listObject! as listEntry>
             <#assign listEntryIndex = listEntry_index>
             <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-            ${sri.startFormListRow(formNode["@name"], listEntry, listEntry_index, listEntry_has_next)}
+            ${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
             <#if isMulti || skipForm>
-            <tr>
+                <tr>
             <#else>
-            <tr>
-            <form name="${formId}_${listEntryIndex}" id="${formId}_${listEntryIndex}" method="post" action="${formListUrlInfo.url}">
-                <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
+                <tr>
+                <form name="${formId}_${listEntryIndex}" id="${formId}_${listEntryIndex}" method="post" action="${formListUrlInfo.url}">
+                    <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
             </#if>
-            <#assign nonReferencedFieldList = sri.getFtlFormListColumnNonReferencedHiddenFieldList(.node["@name"])>
-            <#list nonReferencedFieldList as nonReferencedField><@formListSubField nonReferencedField/></#list>
-            <#list formListColumnList as fieldListColumn>
-                <td<#if fieldListColumn["@style"]?has_content> class="${fieldListColumn["@style"]}"</#if>>
-                <#list fieldListColumn["field-ref"] as fieldRef>
-                    <#assign fieldRefName = fieldRef["@name"]>
-                    <#assign fieldNode = "invalid">
-                    <#list formNode["field"] as fn><#if fn["@name"] == fieldRefName><#assign fieldNode = fn><#break></#if></#list>
-                    <#if fieldNode == "invalid">
-                        <td><div>Error: could not find field with name [${fieldRefName}] referred to in a form-list-column.field-ref.@name attribute.</div></td>
-                    <#else>
-                        <@formListSubField fieldNode true/>
-                    </#if>
+            <#-- hidden fields -->
+            <#assign hiddenFieldList = formInstance.getListHiddenFieldList()>
+            <#list hiddenFieldList as hiddenField><@formListSubField hiddenField/></#list>
+            <#-- actual columns -->
+            <#list formListColumnList as columnFieldList>
+                <#-- TODO: how to handle column style? <td<#if fieldListColumn["@style"]?has_content> class="${fieldListColumn["@style"]}"</#if>> -->
+                <td>
+                <#list columnFieldList as fieldNode>
+                    <@formListSubField fieldNode true/>
                 </#list>
                 </td>
             </#list>
             <#if isMulti || skipForm>
-            </tr>
+                </tr>
             <#else>
                 <#assign afterFormScript>
                     $("#${formId}_${listEntryIndex}").validate();
                 </#assign>
                 <#t>${sri.appendToScriptWriter(afterFormScript)}
-            </form>
-            </tr>
+                </form>
+                </tr>
             </#if>
             ${sri.endFormListRow()}
         </#list>
@@ -1162,13 +1155,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#assign>
             <#t>${sri.appendToScriptWriter(afterFormScript)}
         </#if>
+    <#--
     <#else>
         <#assign fieldNodeList = formNode["field"]>
         <#if !skipStart>
         <table class="table table-striped table-hover table-condensed" id="${formId}-table">
             <#if !skipHeader>
             <thead>
-                <#assign needHeaderForm = sri.isFormHeaderForm(formNode["@name"])>
+                <#assign needHeaderForm = formInstance.isHeaderForm()>
                 <#assign isHeaderDialog = needHeaderForm && formNode["@header-dialog"]! == "true">
                 <@paginationHeader formNode formId formListColumnList isHeaderDialog/>
 
@@ -1204,8 +1198,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </form>
                     </tr>
                     <#if _dynamic_container_id?has_content>
-                        <#-- if we have an _dynamic_container_id this was loaded in a dynamic-container so init ajaxForm; for examples see http://www.malsup.com/jquery/form/#ajaxForm -->
-                        <script>$("#${headerFormId}").ajaxForm({ target: '#${_dynamic_container_id}', <#-- success: activateAllButtons, --> resetForm: false });</script>
+                        <#- - if we have an _dynamic_container_id this was loaded in a dynamic-container so init ajaxForm; for examples see http://www.malsup.com/jquery/form/#ajaxForm - ->
+                        <script>$("#${headerFormId}").ajaxForm({ target: '#${_dynamic_container_id}', <#- - success: activateAllButtons, - -> resetForm: false });</script>
                     </#if>
                 <#else>
                     </tr>
@@ -1224,7 +1218,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
         <#list listObject! as listEntry>
             <#assign listEntryIndex = listEntry_index>
-            <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
+            <#- - NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: - ->
             ${sri.startFormListRow(formNode["@name"], listEntry, listEntry_index, listEntry_has_next)}
             <#if isMulti || skipForm>
                 <tr>
@@ -1247,7 +1241,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             ${sri.endFormListRow()}
         </#list>
         <#assign listEntryIndex = "">
-        ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
+        ${sri.safeCloseList(listObject)}<#- - if listObject is an EntityListIterator, close it - ->
         <#if !skipEnd>
             <#if isMulti && !skipForm>
                 <tr><td colspan="${fieldNodeList?size}">
@@ -1269,6 +1263,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#t>${sri.appendToScriptWriter(afterFormScript)}
         </#if>
     </#if>
+    -->
 <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
 </#macro>
 <#macro formListHeaderField fieldNode isHeaderDialog>
@@ -1684,7 +1679,8 @@ a => A, d => D, y => Y
 -->
 
 <#macro password>
-    <#assign validationClasses = sri.getFormFieldValidationClasses(.node?parent?parent?parent["@name"], .node?parent?parent["@name"])>
+    <#assign formInstance = sri.getFormInstance(.node?parent?parent?parent["@name"])>
+    <#assign validationClasses = formInstance.getFieldValidationClasses(.node?parent?parent["@name"])>
     <input type="password" name="<@fieldName .node/>" id="<@fieldId .node/>" class="form-control<#if validationClasses?has_content> ${validationClasses}</#if>" size="${.node.@size!"25"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if><#if validationClasses?contains("required")> required</#if>>
 </#macro>
 
@@ -1732,8 +1728,9 @@ a => A, d => D, y => Y
     <#assign id><@fieldId .node/></#assign>
     <#assign name><@fieldName .node/></#assign>
     <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, .node["@default-value"]!"", .node["@format"]!)>
-    <#assign validationClasses = sri.getFormFieldValidationClasses(.node?parent?parent?parent["@name"], .node?parent?parent["@name"])>
-    <#assign regexpInfo = sri.getFormFieldValidationRegexpInfo(.node?parent?parent?parent["@name"], .node?parent?parent["@name"])!>
+    <#assign formInstance = sri.getFormInstance(.node?parent?parent?parent["@name"])>
+    <#assign validationClasses = formInstance.getFieldValidationClasses(.node?parent?parent["@name"])>
+    <#assign regexpInfo = formInstance.getFieldValidationRegexpInfo(.node?parent?parent["@name"])!>
     <#assign isAutoComplete = .node["@ac-transition"]?has_content>
     <#-- NOTE: removed number type (<#elseif validationClasses?contains("number")>number) because on Safari, maybe others, ignores size and behaves funny for decimal values -->
     <#if isAutoComplete>

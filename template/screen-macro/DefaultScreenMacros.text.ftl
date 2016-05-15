@@ -162,7 +162,8 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro "form-list">
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
-    <#assign formNode = sri.getFtlFormNode(.node["@name"])>
+    <#assign formInstance = sri.getFormInstance(.node["@name"])>
+    <#assign formNode = formInstance.getFtlFormNode()>
     <#assign listName = formNode["@list"]>
     <#assign listObject = ec.resource.expression(listName, "")?if_exists>
     <#assign formListColumnList = formNode["form-list-column"]?if_exists>
@@ -183,7 +184,7 @@ along with this software (see the LICENSE.md file). If not, see
         <#list listObject as listEntry>
             <#assign listEntryIndex = listEntry_index>
             <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-            <#t>${sri.startFormListRow(formNode["@name"], listEntry, listEntry_index, listEntry_has_next)}
+            <#t>${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
             <#list formNode["form-list-column"] as fieldListColumn>
                 <#list fieldListColumn["field-ref"] as fieldRef>
                     <#assign fieldRef = fieldRef["@name"]>
@@ -208,7 +209,7 @@ along with this software (see the LICENSE.md file). If not, see
         <#list listObject as listEntry>
             <#assign listEntryIndex = listEntry_index>
             <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-            <#t>${sri.startFormListRow(formNode["@name"], listEntry, listEntry_index, listEntry_has_next)}
+            <#t>${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
             <#list formNode["field"] as fieldNode>
                 <#t><@formListSubField fieldNode/>${"\t"}
             </#list>

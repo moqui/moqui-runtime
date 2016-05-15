@@ -266,7 +266,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 <#macro "form-list">
 <#if sri.doBoundaryComments()><!-- BEGIN form-list[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
-    <#assign formNode = sri.getFtlFormNode(.node["@name"])>
+    <#assign formInstance = sri.getFormInstance(.node["@name"])>
+    <#assign formNode = formInstance.getFtlFormNode()>
     <#assign isMulti = formNode["@multi"]?if_exists == "true">
     <#assign isMultiFinalRow = false>
     <#assign urlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
@@ -279,7 +280,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
     </#if>
     <#if formListColumnList?exists && (formListColumnList?size > 0)>
         <fo:table>
-        <#assign needHeaderForm = sri.isFormHeaderForm(formNode["@name"])>
             <fo:table-header>
                 <fo:table-row class="form-header">
                     <#list formListColumnList as fieldListColumn>
@@ -306,7 +306,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
                 <#list listObject as listEntry>
                     <#assign listEntryIndex = listEntry_index>
                     <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-                    ${sri.startFormListRow(formNode["@name"], listEntry, listEntry_index, listEntry_has_next)}
+                    ${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
                     <fo:table-row>
                         <#list formNode["form-list-column"] as fieldListColumn>
                             <fo:table-cell wrap-option="wrap" padding="2pt">
@@ -347,7 +347,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
                 <#list listObject as listEntry>
                     <#assign listEntryIndex = listEntry_index>
                     <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-                    ${sri.startFormListRow(formNode["@name"], listEntry, listEntry_index, listEntry_has_next)}
+                    ${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
                     <fo:table-row>
                         <#list formNode["field"] as fieldNode>
                             <fo:table-cell wrap-option="wrap" padding="2pt">
