@@ -853,7 +853,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
 </#macro>
 
-<#macro paginationHeader formNode formId formListColumnList isHeaderDialog>
+<#macro paginationHeader formInstance formId isHeaderDialog>
+    <#assign formNode = formInstance.getFtlFormNode()>
+    <#assign formListColumnList = formInstance.getFormListColumnInfo()>
     <#assign numColumns = (formListColumnList?size)!100>
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
     <#if isHeaderDialog>
@@ -905,6 +907,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if isSelectColumns>
         <#assign selectColumnsDialogId>${formId}-selcols</#assign>
         <#assign selectColumnsSortableId>${formId}-sortable</#assign>
+        <#assign fieldsNotInColumns = formInstance.getFieldsNotReferencedInFormListColumn()>
         <div id="${selectColumnsDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
             <div class="modal-dialog" style="width: 600px;">
                 <div class="modal-content">
@@ -913,10 +916,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <h4 class="modal-title">${ec.l10n.localize("Column Fields")}</h4>
                     </div>
                     <div class="modal-body">
-                        <p>Drag fields to the desired column or under hidden to not display</p>
+                        <p>Drag fields to the desired column or do not display</p>
                         <ul id="${selectColumnsSortableId}">
-                            <li id="hidden"><div>Hidden</div><ul>
-                                <#list formNode["field"] as fieldNode>
+                            <li id="hidden"><div>Do Not Display</div><ul>
+                                <#list fieldsNotInColumns as fieldNode>
                                     <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
                                     <#assign allHidden = true>
                                     <#assign hasSubmit = false>
@@ -932,12 +935,17 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                     </#if>
                                 </#list>
                             </ul></li>
-                            <li id="column_1"><div>Column 1</div></li>
-                            <li id="column_2"><div>Column 2</div></li>
-                            <li id="column_3"><div>Column 3</div></li>
-                            <li id="column_4"><div>Column 4</div></li>
-                            <li id="column_5"><div>Column 5</div></li>
-                            <li id="column_6"><div>Column 6</div></li>
+                            <#list formListColumnList as columnFieldList>
+                                <li id="column_${columnFieldList_index}"><div>Column ${columnFieldList_index + 1}</div><ul>
+                                <#list columnFieldList as fieldNode>
+                                    <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
+                                    <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
+                                </#list>
+                                </ul></li>
+                            </#list>
+                            <#if formListColumnList?size < 8><#list formListColumnList?size..7 as ind>
+                                <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
+                            </#list></#if>
                         </ul>
                     </div>
                 </div>
@@ -954,7 +962,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             opener: { active:false, as:'html', close:'', open:'' }
         });})</script>
     </#if>
-    <#if isHeaderDialog || !(formNode["@paginate"]! == "false") && context[listName + "Count"]?exists &&
+    <#if isHeaderDialog || isSelectColumns || !(formNode["@paginate"]! == "false") && context[listName + "Count"]?exists &&
             (context[listName + "Count"]! > 0) &&
             (!formNode["@paginate-always-show"]?has_content || formNode["@paginate-always-show"]! == "true" || (context[listName + "PageMaxIndex"] > 0))>
         <#assign curPageIndex = context[listName + "PageIndex"]>
@@ -1031,7 +1039,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFtlFormNode()>
-    <#-- Get a List<Map> with information about each column; fields not in a form-list-column elements are in the first entry -->
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
     <#assign formId>${ec.resource.expand(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#assign isMulti = formNode["@multi"]! == "true">
@@ -1050,7 +1057,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <thead>
                 <#assign needHeaderForm = formInstance.isHeaderForm()>
                 <#assign isHeaderDialog = needHeaderForm && formNode["@header-dialog"]! == "true">
-                <@paginationHeader formNode formId formListColumnList isHeaderDialog/>
+                <@paginationHeader formInstance formId isHeaderDialog/>
 
                 <#if needHeaderForm>
                     <#assign curUrlInstance = sri.getCurrentScreenUrl()>
