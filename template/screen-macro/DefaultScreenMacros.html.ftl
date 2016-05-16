@@ -905,8 +905,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <script>$('#${headerFormDialogId}').on('shown.bs.modal', function() {$("#${headerFormDialogId} select").select2({ ${select2DefaultOptions} });})</script>
     </#if>
     <#if isSelectColumns>
-        <#assign selectColumnsDialogId>${formId}-selcols</#assign>
-        <#assign selectColumnsSortableId>${formId}-sortable</#assign>
+        <#assign selectColumnsDialogId>${formId}-SelColsDialog</#assign>
+        <#assign selectColumnsSortableId>${formId}-SelColsSortable</#assign>
         <#assign fieldsNotInColumns = formInstance.getFieldsNotReferencedInFormListColumn()>
         <div id="${selectColumnsDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
             <div class="modal-dialog" style="width: 600px;">
@@ -921,18 +921,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <li id="hidden"><div>Do Not Display</div><ul>
                                 <#list fieldsNotInColumns as fieldNode>
                                     <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
-                                    <#assign allHidden = true>
-                                    <#assign hasSubmit = false>
-                                    <#list fieldNode?children as fieldSubNode>
-                                        <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
-                                        <#if fieldSubNode?node_name != "header-field" && fieldSubNode["submit"]?has_content><#assign hasSubmit = true></#if>
-                                    </#list>
-                                    <#if !(ec.resource.condition(fieldNode["@hide"]!, "") || allHidden ||
-                                            ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                            ((fieldNode["header-field"][0]["hidden"])?has_content || (fieldNode["header-field"][0]["ignored"])?has_content))) &&
-                                            !(isMulti && hasSubmit)>
-                                        <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
-                                    </#if>
+                                    <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
                                 </#list>
                             </ul></li>
                             <#list formListColumnList as columnFieldList>
@@ -947,6 +936,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
                             </#list></#if>
                         </ul>
+                        <form class="form-inline" id="${formId}-SelColsForm" target="${sri.buildUrl(".").url}">
+                        <#-- TODO: formSelectColumns -->
+                            <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
+                            <input type="hidden" id="${formId}-SelColsForm-columnsTree" name="columnsTree" value="">
+                            <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Save Columns")}</button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -959,7 +954,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 else { hint.css('background-color', '#ff9999'); return false; }
             },
             <#-- jquery-sortable-lists currently logs an error if opener.as is not set to html or class -->
-            opener: { active:false, as:'html', close:'', open:'' }
+            opener: { active:false, as:'html', close:'', open:'' },
+            onChange: function(cEl) {
+                var sortableHierarchy = $('#${selectColumnsSortableId}').sortableListsToHierarchy();
+                // console.log(sortableHierarchy); console.log(JSON.stringify(sortableHierarchy));
+                $("#${formId}-SelColsForm-columnsTree").val(JSON.stringify(sortableHierarchy));
+            }
         });})</script>
     </#if>
     <#if isHeaderDialog || isSelectColumns || !(formNode["@paginate"]! == "false") && context[listName + "Count"]?exists &&
