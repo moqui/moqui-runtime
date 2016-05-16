@@ -854,6 +854,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
 <#macro paginationHeader formNode formId formListColumnList isHeaderDialog>
     <#assign numColumns = (formListColumnList?size)!100>
+    <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
     <#if isHeaderDialog>
         <#assign headerFormDialogId>${formId}-hdialog</#assign>
