@@ -919,12 +919,16 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <div class="modal-body">
                         <p>Drag fields to the desired column or do not display</p>
                         <ul id="${selectColumnsSortableId}">
-                            <li id="hidden"><div>Do Not Display</div><ul>
+                            <li id="hidden"><div>Do Not Display</div>
+                                <#if fieldsNotInColumns?has_content>
+                                <ul>
                                 <#list fieldsNotInColumns as fieldNode>
                                     <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
                                     <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
                                 </#list>
-                            </ul></li>
+                                </ul>
+                                </#if>
+                            </li>
                             <#list formListColumnList as columnFieldList>
                                 <li id="column_${columnFieldList_index}"><div>Column ${columnFieldList_index + 1}</div><ul>
                                 <#list columnFieldList as fieldNode>
@@ -937,8 +941,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
                             </#list></#if>
                         </ul>
-                        <form class="form-inline" id="${formId}-SelColsForm" target="${sri.buildUrl("formSelectColumns").url}">
-                        <#-- TODO: formSelectColumns -->
+                        <form class="form-inline" id="${formId}-SelColsForm" method="post" action="${sri.buildUrl("formSelectColumns").url}">
                             <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
                             <input type="hidden" id="${formId}-SelColsForm-columnsTree" name="columnsTree" value="">
                             <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Save Columns")}</button>
@@ -1012,7 +1015,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if (curPageMaxIndex > 4)>
                 <#assign goPageUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName")>
                 <#assign goPageUrlParms = goPageUrl.getParameterMap()>
-                <form class="form-inline" id="${formId}_GoPage" target="${goPageUrl.getUrl()}">
+                <form class="form-inline" id="${formId}_GoPage" method="post" action="${goPageUrl.getUrl()}">
                     <#list goPageUrlParms.keySet() as parmName>
                         <input type="hidden" name="${parmName}" value="${goPageUrlParms.get(parmName)!?html}"/></#list>
                     <div class="form-group">
