@@ -937,7 +937,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
                             </#list></#if>
                         </ul>
-                        <form class="form-inline" id="${formId}-SelColsForm" target="${sri.buildUrl(".").url}">
+                        <form class="form-inline" id="${formId}-SelColsForm" target="${sri.buildUrl("formSelectColumns").url}">
                         <#-- TODO: formSelectColumns -->
                             <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
                             <input type="hidden" id="${formId}-SelColsForm-columnsTree" name="columnsTree" value="">
