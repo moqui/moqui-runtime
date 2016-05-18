@@ -268,99 +268,51 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFtlFormNode()>
-    <#assign isMulti = formNode["@multi"]?if_exists == "true">
+    <#assign isMulti = formNode["@multi"]! == "true">
     <#assign isMultiFinalRow = false>
     <#assign urlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
     <#assign listName = formNode["@list"]>
-    <#assign listObject = ec.resource.expression(listName, "")?if_exists>
-    <#assign formListColumnList = formNode["form-list-column"]?if_exists>
+    <#assign listObject = ec.resource.expression(listName, "")!>
+    <#assign formListColumnList = formInstance.getFormListColumnInfo()>
 
     <#if !(formNode["@paginate"]?if_exists == "false") && context[listName + "Count"]?exists && (context[listName + "Count"]?if_exists > 0)>
         <fo:block>${context[listName + "PageRangeLow"]} - ${context[listName + "PageRangeHigh"]} / ${context[listName + "Count"]}</fo:block>
     </#if>
-    <#if formListColumnList?exists && (formListColumnList?size > 0)>
-        <fo:table>
-            <fo:table-header>
-                <fo:table-row class="form-header">
-                    <#list formListColumnList as fieldListColumn>
+    <fo:table>
+        <fo:table-header>
+            <fo:table-row class="form-header">
+                <#list formListColumnList as columnFieldList>
+                    <fo:table-cell wrap-option="wrap" padding="2pt">
+                    <#list columnFieldList as fieldNode>
+                        <#if !(fieldNode["@hide"]?if_exists == "true" ||
+                                ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
+                                (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
+                            <fo:block><@formListHeaderField fieldNode/></fo:block>
+                        </#if>
+                    </#list>
+                    </fo:table-cell>
+                </#list>
+            </fo:table-row>
+        </fo:table-header>
+        <fo:table-body>
+            <#list listObject as listEntry>
+                <#assign listEntryIndex = listEntry_index>
+                <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
+                ${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
+                <fo:table-row>
+                    <#list formListColumnList as columnFieldList>
                         <fo:table-cell wrap-option="wrap" padding="2pt">
-                        <#list fieldListColumn["field-ref"] as fieldRef>
-                            <#assign fieldRefName = fieldRef["@name"]>
-                            <#assign fieldNode = "invalid">
-                            <#list formNode["field"] as fn><#if fn["@name"] == fieldRefName><#assign fieldNode = fn><#break></#if></#list>
-                            <#if fieldNode == "invalid">
-                                <fo:block>Error: could not find field with name [${fieldRefName}] referred to in a form-list-column.field-ref.@name attribute.</fo:block>
-                            <#else>
-                                <#if !(fieldNode["@hide"]?if_exists == "true" ||
-                                        ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                        (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
-                                    <fo:block><@formListHeaderField fieldNode/></fo:block>
-                                </#if>
-                            </#if>
+                        <#list columnFieldList as fieldNode>
+                            <@formListSubField fieldNode/>
                         </#list>
                         </fo:table-cell>
                     </#list>
                 </fo:table-row>
-            </fo:table-header>
-            <fo:table-body>
-                <#list listObject as listEntry>
-                    <#assign listEntryIndex = listEntry_index>
-                    <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-                    ${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
-                    <fo:table-row>
-                        <#list formNode["form-list-column"] as fieldListColumn>
-                            <fo:table-cell wrap-option="wrap" padding="2pt">
-                            <#list fieldListColumn["field-ref"] as fieldRef>
-                                <#assign fieldRefName = fieldRef["@name"]>
-                                <#assign fieldNode = "invalid">
-                                <#list formNode["field"] as fn><#if fn["@name"] == fieldRefName><#assign fieldNode = fn><#break></#if></#list>
-                                <#if fieldNode == "invalid">
-                                    <fo:block>Error: could not find field with name [${fieldRefName}] referred to in a form-list-column.field-ref.@name attribute.</fo:block>
-                                <#else>
-                                    <@formListSubField fieldNode/>
-                                </#if>
-                            </#list>
-                            </fo:table-cell>
-                        </#list>
-                    </fo:table-row>
-                    ${sri.endFormListRow()}
-                </#list>
-            </fo:table-body>
-            ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
-        </fo:table>
-    <#else>
-        <fo:table>
-            <fo:table-header>
-                <fo:table-row>
-                    <#list formNode["field"] as fieldNode>
-                        <#if !(fieldNode["@hide"]?if_exists == "true" ||
-                                ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
-                            <fo:table-cell wrap-option="wrap" padding="2pt">
-                                <@formListHeaderField fieldNode/>
-                            </fo:table-cell>
-                        </#if>
-                    </#list>
-                </fo:table-row>
-            </fo:table-header>
-            <fo:table-body>
-                <#list listObject as listEntry>
-                    <#assign listEntryIndex = listEntry_index>
-                    <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-                    ${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
-                    <fo:table-row>
-                        <#list formNode["field"] as fieldNode>
-                            <fo:table-cell wrap-option="wrap" padding="2pt">
-                                <@formListSubField fieldNode/>
-                            </fo:table-cell>
-                        </#list>
-                    </fo:table-row>
-                    ${sri.endFormListRow()}
-                </#list>
-            </fo:table-body>
-            ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
-        </fo:table>
-    </#if>
+                ${sri.endFormListRow()}
+            </#list>
+        </fo:table-body>
+        ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
+    </fo:table>
 <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
 </#macro>
 <#macro formListHeaderField fieldNode>

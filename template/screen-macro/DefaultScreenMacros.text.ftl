@@ -157,7 +157,7 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 <#macro formSingleWidget fieldSubNode>
     <#if fieldSubNode["ignored"]?has_content || fieldSubNode["hidden"]?has_content || fieldSubNode["submit"]?has_content ||
-            fieldSubNode?parent["@hide"]?if_exists == "true"><#return/></#if>
+            fieldSubNode?parent["@hide"]! == "true"><#return/></#if>
 <@fieldTitle fieldSubNode/>: <#recurse fieldSubNode/> </#macro>
 
 <#macro "form-list">
@@ -165,60 +165,31 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFtlFormNode()>
     <#assign listName = formNode["@list"]>
-    <#assign listObject = ec.resource.expression(listName, "")?if_exists>
-    <#assign formListColumnList = formNode["form-list-column"]?if_exists>
-    <#if formListColumnList?exists && (formListColumnList?size > 0)>
-        <#list formListColumnList as fieldListColumn>
-            <#list fieldListColumn["field-ref"] as fieldRef>
-                <#assign fieldRef = fieldRef["@name"]>
-                <#assign fieldNode = "invalid">
-                <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                <#if !(fieldNode["@hide"]?if_exists == "true" ||
-                        ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                        (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
-                    <#t><@formListHeaderField fieldNode/>${"\t"}
-                </#if>
-            </#list>
-        </#list>
-
-        <#list listObject as listEntry>
-            <#assign listEntryIndex = listEntry_index>
-            <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-            <#t>${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
-            <#list formNode["form-list-column"] as fieldListColumn>
-                <#list fieldListColumn["field-ref"] as fieldRef>
-                    <#assign fieldRef = fieldRef["@name"]>
-                    <#assign fieldNode = "invalid">
-                    <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                    <#t><@formListSubField fieldNode/>${"\t"}
-                </#list>
-            </#list>
-
-            <#t>${sri.endFormListRow()}
-        </#list>
-        <#t>${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
-    <#else>
-        <#list formNode["field"] as fieldNode>
-            <#if !(fieldNode["@hide"]?if_exists == "true" ||
+    <#assign listObject = ec.resource.expression(listName, "")!>
+    <#assign formListColumnList = formInstance.getFormListColumnInfo()>
+    <#list formListColumnList as columnFieldList>
+        <#list columnFieldList as fieldNode>
+            <#if !(fieldNode["@hide"]! == "true" ||
                     ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
                     (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
                 <#t><@formListHeaderField fieldNode/>${"\t"}
             </#if>
         </#list>
+    </#list>
 
-        <#list listObject as listEntry>
-            <#assign listEntryIndex = listEntry_index>
-            <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-            <#t>${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
-            <#list formNode["field"] as fieldNode>
+    <#list listObject as listEntry>
+        <#assign listEntryIndex = listEntry_index>
+        <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
+        <#t>${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
+        <#list formListColumnList as columnFieldList>
+            <#list columnFieldList as fieldNode>
                 <#t><@formListSubField fieldNode/>${"\t"}
             </#list>
-
-            <#t>${sri.endFormListRow()}
         </#list>
-        <#t>${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
-    </#if>
 
+        <#t>${sri.endFormListRow()}
+    </#list>
+    <#t>${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
 </#macro>
 <#macro formListHeaderField fieldNode>
     <#if fieldNode["header-field"]?has_content>
