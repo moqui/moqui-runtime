@@ -157,6 +157,7 @@ a.jstree-anchor { white-space: normal; }
 
 .modal-dialog { text-align: left; } /* needed when right aligning the dialog button */
 
+.datepicker {white-space: initial; } /* needed to wrap the months in select month panel */
 /* ======================= Screen-specific ======================= */
 
 .app-list-link { font-size: 1.5em; display: block; width: 320px; margin: 8px auto 8px auto; }
