@@ -43,8 +43,8 @@ input:focus:valid, textarea:focus:valid { background-color: #EEE; }
 .form-order-by a.active { color: red; }
 .form-order-by a.active:hover { color: darkred; }
 
-nav.form-list-nav, table.table>thead th { background: #EEE; }
-.bg-dark nav.form-list-nav, .bg-dark table.table>thead th { background: #333; }
+nav.form-list-nav, table.table>thead>tr>th { background: #EEE; }
+.bg-dark nav.form-list-nav, .bg-dark table.table>thead>tr>th { background: #333; }
 
 /* ======================= Handy Styles ======================= */
 

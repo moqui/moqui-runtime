@@ -113,7 +113,7 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .input-group .input-group-addon, .input-group .input-group-btn { display: inline; line-height: 34px; padding: 8px 12px; }
 
 /* Similar styles to Bootstrap .form-control-static, applied more specifically and without explicit class */
-.form-group>div>p, .form-group>div>span:not(.select2-container), .form-group>div>a { display:inline-block;
+.form-group>div>p, .form-group>div>span:not(.select2-container), .form-group>div>a:not(.btn) { display:inline-block;
     min-height: 34px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 0; }
 
 .nav.nav-tabs { margin-bottom: 8px; }
@@ -157,6 +157,7 @@ a.jstree-anchor { white-space: normal; }
 
 .modal-dialog { text-align: left; } /* needed when right aligning the dialog button */
 
+.datepicker {white-space: initial; } /* needed to wrap the months in select month panel */
 /* ======================= Screen-specific ======================= */
 
 .app-list-link { font-size: 1.5em; display: block; width: 320px; margin: 8px auto 8px auto; }
