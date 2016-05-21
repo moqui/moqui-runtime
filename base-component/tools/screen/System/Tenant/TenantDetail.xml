@@ -111,7 +111,7 @@ along with this software (see the LICENSE.md file). If not, see
                             <field name="tenantId"><default-field><hidden/></default-field></field>
                             <field name="entityGroupName"><default-field title="Entity Group">
                                 <drop-down><option key="transactional"/><option key="analytical"/>
-                                    <option key="nosql"/></drop-down>
+                                    <option key="nontransactional"/></drop-down>
                             </default-field></field>
                             <field name="submitButton"><default-field title="Add">
                                 <submit/></default-field></field>
