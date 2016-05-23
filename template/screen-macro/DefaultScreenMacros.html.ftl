@@ -937,14 +937,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 </#list>
                                 </ul></li>
                             </#list>
-                            <#if formListColumnList?size < 8><#list formListColumnList?size..7 as ind>
+                            <#if formListColumnList?size < 10><#list formListColumnList?size..9 as ind>
                                 <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
                             </#list></#if>
                         </ul>
                         <form class="form-inline" id="${formId}-SelColsForm" method="post" action="${sri.buildUrl("formSelectColumns").url}">
                             <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
                             <input type="hidden" id="${formId}-SelColsForm-columnsTree" name="columnsTree" value="">
-                            <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Save Columns")}</button>
+                            <input type="submit" name="SaveColumns" value="${ec.l10n.localize("Save Columns")}" class="btn btn-primary btn-sm"/>
+                            <input type="submit" name="ResetColumns" value="${ec.l10n.localize("Reset to Default")}" class="btn btn-primary btn-sm"/>
                         </form>
                     </div>
                 </div>
