@@ -953,10 +953,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <script>$('#${selectColumnsDialogId}').on('shown.bs.modal', function() {$("#${selectColumnsSortableId}").sortableLists({
             isAllowed: function(currEl, hint, target) {
                 <#-- don't allow hidden and column items to be moved; only allow others to be under hidden or column items -->
-                if (currEl.attr('id') === 'hidden' || currEl.attr('id').startsWith('column_')) { hint.css('background-color', '#ff9999'); return false; }
+                if (currEl.attr('id') === 'hidden' || currEl.attr('id').startsWith('column_')) {
+                    if (!target.attr('id') || (target.attr('id') != 'hidden' && !currEl.attr('id').startsWith('column_'))) { hint.css('background-color', '#99ff99'); return true; }
+                    else { hint.css('background-color', '#ff9999'); return false; }
+                }
                 if (target.attr('id') && (target.attr('id') === 'hidden' || target.attr('id').startsWith('column_'))) { hint.css('background-color', '#99ff99'); return true; }
                 else { hint.css('background-color', '#ff9999'); return false; }
             },
+            placeholderCss: {'background-color':'#999999'}, insertZone: 50,
             <#-- jquery-sortable-lists currently logs an error if opener.as is not set to html or class -->
             opener: { active:false, as:'html', close:'', open:'' },
             onChange: function(cEl) {
