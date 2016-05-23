@@ -54,6 +54,11 @@ New Features
 - form-list pagination control now using Bootstrap pagination component,
   forward/backward icons, and has more convenient links
 - Added password change and enable account to UserAccountDetail in System
+- form-list now supports @header-dialog to put header-field widgets in a
+  dialog instead of in the header
+- form-list now supports @select-columns to allow users to select which
+  fields are displayed in which columns, or not displayed
+- Significant cleanups for form-list and form-single macros
 
 Bug Fixes
 
