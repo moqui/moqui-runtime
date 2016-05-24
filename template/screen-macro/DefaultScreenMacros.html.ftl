@@ -598,12 +598,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#if fieldNode == "invalid">
                         <div>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</div>
                     <#else>
-                        <@formSingleSubField fieldNode false false/>
+                        <@formSingleSubField fieldNode formId false false/>
                     </#if>
                 <#elseif layoutNode?node_name == "fields-not-referenced">
                     <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                     <#list nonReferencedFieldList as nonReferencedField>
-                        <@formSingleSubField nonReferencedField false false/></#list>
+                        <@formSingleSubField nonReferencedField formId false false/></#list>
                 <#elseif layoutNode?node_name == "field-row">
                   <#if collapsibleOpened>
                     <#assign collapsibleOpened = false>
@@ -624,13 +624,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <#if fieldNode == "invalid">
                                     <div>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</div>
                                 <#else>
-                                    <@formSingleSubField fieldNode true false/>
+                                    <@formSingleSubField fieldNode formId true false/>
                                 </#if>
                             </div><!-- /col-md-6 not bigRow -->
                         <#elseif rowChildNode?node_name == "fields-not-referenced">
                             <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                             <#list nonReferencedFieldList as nonReferencedField>
-                                <@formSingleSubField nonReferencedField true false/></#list>
+                                <@formSingleSubField nonReferencedField formId true false/></#list>
                         </#if>
                     </#list>
                     </div><#-- /row -->
@@ -654,12 +654,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <#if fieldNode == "invalid">
                                     <div>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</div>
                                 <#else>
-                                    <@formSingleSubField fieldNode true true/>
+                                    <@formSingleSubField fieldNode formId true true/>
                                 </#if>
                             <#elseif rowChildNode?node_name == "fields-not-referenced">
                                 <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                                 <#list nonReferencedFieldList as nonReferencedField>
-                                    <@formSingleSubField nonReferencedField true true/></#list>
+                                    <@formSingleSubField nonReferencedField formId true true/></#list>
                             </#if>
                         </#list>
                     </#assign>
@@ -690,12 +690,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <#if fieldNode == "invalid">
                                     <div>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</div>
                                 <#else>
-                                    <@formSingleSubField fieldNode false false/>
+                                    <@formSingleSubField fieldNode formId false false/>
                                 </#if>
                             <#elseif groupNode?node_name == "fields-not-referenced">
                                 <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                                 <#list nonReferencedFieldList as nonReferencedField>
-                                    <@formSingleSubField nonReferencedField false false/></#list>
+                                    <@formSingleSubField nonReferencedField formId false false/></#list>
                             <#elseif groupNode?node_name == "field-row">
                                 <div class="row">
                                 <#list groupNode?children as rowChildNode>
@@ -707,13 +707,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                             <#if fieldNode == "invalid">
                                                 <div>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</div>
                                             <#else>
-                                                <@formSingleSubField fieldNode true false/>
+                                                <@formSingleSubField fieldNode formId true false/>
                                             </#if>
                                         </div><#-- /col-md-6 not bigRow -->
                                     <#elseif rowChildNode?node_name == "fields-not-referenced">
                                         <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                                         <#list nonReferencedFieldList as nonReferencedField>
-                                            <@formSingleSubField nonReferencedField true false/></#list>
+                                            <@formSingleSubField nonReferencedField formId true false/></#list>
                                     </#if>
                                 </#list>
                                 </div><#-- /row -->
@@ -730,7 +730,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#t>${sri.appendToScriptWriter(afterFormScript)}
             </#if>
     <#else>
-        <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode false false/></#list>
+        <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode formId false false/></#list>
     </#if>
         </fieldset>
     <#if !skipEnd></form></#if>
@@ -770,19 +770,19 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
     <#if sri.doBoundaryComments()><!-- END   form-single[@name=${.node["@name"]}] --></#if>
 </#macro>
-<#macro formSingleSubField fieldNode inFieldRow bigRow>
+<#macro formSingleSubField fieldNode formId inFieldRow bigRow>
     <#list fieldNode["conditional-field"] as fieldSubNode>
         <#if ec.resource.condition(fieldSubNode["@condition"], "")>
-            <@formSingleWidget fieldSubNode inFieldRow bigRow/>
+            <@formSingleWidget fieldSubNode formId inFieldRow bigRow/>
             <#return>
         </#if>
     </#list>
     <#if fieldNode["default-field"]?has_content>
-        <@formSingleWidget fieldNode["default-field"][0] inFieldRow bigRow/>
+        <@formSingleWidget fieldNode["default-field"][0] formId inFieldRow bigRow/>
         <#return>
     </#if>
 </#macro>
-<#macro formSingleWidget fieldSubNode inFieldRow bigRow>
+<#macro formSingleWidget fieldSubNode formId inFieldRow bigRow>
     <#assign fieldSubParent = fieldSubNode?parent>
     <#if fieldSubNode["ignored"]?has_content><#return></#if>
     <#if ec.resource.condition(fieldSubParent["@hide"]!, "")><#return></#if>
@@ -808,6 +808,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
     <#-- NOTE: this style is only good for 2 fields in a field-row! in field-row cols are double size because are inside a col-md-6 element -->
     ${sri.pushContext()}
+    <#assign fieldFormId = formId><#-- set this globally so fieldId macro picks up the proper formId, clear after -->
     <#list fieldSubNode?children as widgetNode><#if widgetNode?node_name == "set">${sri.setInContext(widgetNode)}</#if></#list>
     <#list fieldSubNode?children as widgetNode>
         <#if widgetNode?node_name == "link">
@@ -836,6 +837,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#else><#t><#visit widgetNode>
         </#if>
     </#list>
+    <#assign fieldFormId = ""><#-- clear after field so nothing else picks it up -->
     ${sri.popContext()}
     <#if bigRow>
         <#if curFieldTitle?has_content>
@@ -863,93 +865,105 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign headerFormDialogId>${formId}-hdialog</#assign>
         <#assign headerFormButtonText = ec.l10n.localize("Find Options")>
         <div id="${headerFormDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
-            <div class="modal-dialog" style="width: 600px;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title">${headerFormButtonText}</h4>
-                    </div>
-                    <div class="modal-body">
-                        <#assign headerFormId>${formId}-header</#assign>
-                        <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-                        <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
-                            <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
-                            <fieldset class="form-horizontal"><#-- was form-single-outer -->
-                            <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+            <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">${headerFormButtonText}</h4>
+                </div>
+                <div class="modal-body">
+                    <#assign headerFormId = formId + "_header">
+                    <#assign curUrlInstance = sri.getCurrentScreenUrl()>
+                    <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
+                        <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
+                        <fieldset class="form-horizontal">
+                            <#-- Always add an orderByField to select one or more columns to order by -->
+                            <div class="form-group">
+                                <label class="control-label col-md-2" for="${headerFormId}_orderByField">${ec.l10n.localize("Order By")}</label>
+                                <div class="col-md-10">
+                                    <select name="orderByField" id="${headerFormId}_orderByField" multiple="multiple">
+                                        <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content>
+                                            <#assign headerFieldNode = fieldNode["header-field"][0]>
+                                            <#assign showOrderBy = (headerFieldNode["@show-order-by"])!>
+                                            <#if showOrderBy?has_content && showOrderBy != "false">
+                                                <#assign orderFieldName = fieldNode["@name"]>
+                                                <#assign orderFieldTitle><@fieldTitle headerFieldNode/></#assign>
+                                                <option value="+${orderFieldName}">${orderFieldTitle} (+)</option>
+                                                <option value="-${orderFieldName}">${orderFieldTitle} (-)</option>
+                                            </#if>
+                                        </#if></#list>
+                                    </select>
+                                    <input type="text" id="${headerFormId}_orderByField2" name="orderByField2" value="${orderByField!""}">
+                                </div>
+                            </div>
                             <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
                                 <#assign headerFieldNode = fieldNode["header-field"][0]>
                                 <#assign defaultFieldNode = (fieldNode["default-field"][0])!>
                                 <#assign allHidden = true>
-                                <#assign hasSubmit = false>
                                 <#list fieldNode?children as fieldSubNode>
                                     <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
-                                    <#if fieldSubNode?node_name != "header-field" && fieldSubNode["submit"]?has_content><#assign hasSubmit = true></#if>
                                 </#list>
 
                                 <#if !(ec.resource.condition(fieldNode["@hide"]!, "") || allHidden ||
                                         ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                        ((fieldNode["header-field"][0]["hidden"])?has_content || (fieldNode["header-field"][0]["ignored"])?has_content))) &&
-                                        !(isMulti && hasSubmit)>
-                                    <div>
-                                        <@formSingleWidget headerFieldNode false false/>
-                                    </div>
+                                        ((fieldNode["header-field"][0]["hidden"])?has_content || (fieldNode["header-field"][0]["ignored"])?has_content)))>
+                                    <@formSingleWidget headerFieldNode headerFormId false false/>
                                 <#elseif (headerFieldNode["hidden"])?has_content>
                                     <#recurse headerFieldNode/>
                                 </#if>
                             </#if></#list>
-                            </fieldset>
-                        </form>
-                    </div>
+                        </fieldset>
+                    </form>
                 </div>
-            </div>
+            </div></div>
         </div>
-        <script>$('#${headerFormDialogId}').on('shown.bs.modal', function() {$("#${headerFormDialogId} select").select2({ ${select2DefaultOptions} });})</script>
+        <script>$('#${headerFormDialogId}').on('shown.bs.modal', function() {
+            $("#${headerFormId} select").select2({ ${select2DefaultOptions} });
+            $("#${headerFormId}_orderByField").select2({ theme:'bootstrap', insertTag: function(data, tag) { window.alert("pushing " + tag); data.push(tag); } });
+        })</script>
     </#if>
     <#if isSelectColumns>
-        <#assign selectColumnsDialogId>${formId}-SelColsDialog</#assign>
-        <#assign selectColumnsSortableId>${formId}-SelColsSortable</#assign>
+        <#assign selectColumnsDialogId = formId + "_SelColsDialog">
+        <#assign selectColumnsSortableId = formId + "_SelColsSortable">
         <#assign fieldsNotInColumns = formInstance.getFieldsNotReferencedInFormListColumn()>
         <div id="${selectColumnsDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
-            <div class="modal-dialog" style="width: 600px;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title">${ec.l10n.localize("Column Fields")}</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>Drag fields to the desired column or do not display</p>
-                        <ul id="${selectColumnsSortableId}">
-                            <li id="hidden"><div>Do Not Display</div>
-                                <#if fieldsNotInColumns?has_content>
-                                <ul>
-                                <#list fieldsNotInColumns as fieldNode>
-                                    <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
-                                    <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
-                                </#list>
-                                </ul>
-                                </#if>
-                            </li>
-                            <#list formListColumnList as columnFieldList>
-                                <li id="column_${columnFieldList_index}"><div>Column ${columnFieldList_index + 1}</div><ul>
-                                <#list columnFieldList as fieldNode>
-                                    <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
-                                    <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
-                                </#list>
-                                </ul></li>
-                            </#list>
-                            <#if formListColumnList?size < 10><#list formListColumnList?size..9 as ind>
-                                <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
-                            </#list></#if>
-                        </ul>
-                        <form class="form-inline" id="${formId}-SelColsForm" method="post" action="${sri.buildUrl("formSelectColumns").url}">
-                            <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
-                            <input type="hidden" id="${formId}-SelColsForm-columnsTree" name="columnsTree" value="">
-                            <input type="submit" name="SaveColumns" value="${ec.l10n.localize("Save Columns")}" class="btn btn-primary btn-sm"/>
-                            <input type="submit" name="ResetColumns" value="${ec.l10n.localize("Reset to Default")}" class="btn btn-primary btn-sm"/>
-                        </form>
-                    </div>
+            <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">${ec.l10n.localize("Column Fields")}</h4>
                 </div>
-            </div>
+                <div class="modal-body">
+                    <p>Drag fields to the desired column or do not display</p>
+                    <ul id="${selectColumnsSortableId}">
+                        <li id="hidden"><div>Do Not Display</div>
+                            <#if fieldsNotInColumns?has_content>
+                            <ul>
+                            <#list fieldsNotInColumns as fieldNode>
+                                <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
+                                <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
+                            </#list>
+                            </ul>
+                            </#if>
+                        </li>
+                        <#list formListColumnList as columnFieldList>
+                            <li id="column_${columnFieldList_index}"><div>Column ${columnFieldList_index + 1}</div><ul>
+                            <#list columnFieldList as fieldNode>
+                                <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
+                                <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
+                            </#list>
+                            </ul></li>
+                        </#list>
+                        <#if formListColumnList?size < 10><#list formListColumnList?size..9 as ind>
+                            <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
+                        </#list></#if>
+                    </ul>
+                    <form class="form-inline" id="${formId}-SelColsForm" method="post" action="${sri.buildUrl("formSelectColumns").url}">
+                        <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
+                        <input type="hidden" id="${formId}-SelColsForm-columnsTree" name="columnsTree" value="">
+                        <input type="submit" name="SaveColumns" value="${ec.l10n.localize("Save Columns")}" class="btn btn-primary btn-sm"/>
+                        <input type="submit" name="ResetColumns" value="${ec.l10n.localize("Reset to Default")}" class="btn btn-primary btn-sm"/>
+                    </form>
+                </div>
+            </div></div>
         </div>
         <script>$('#${selectColumnsDialogId}').on('shown.bs.modal', function() {$("#${selectColumnsSortableId}").sortableLists({
             isAllowed: function(currEl, hint, target) {
@@ -1051,7 +1065,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
     <#assign formId>${ec.resource.expand(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#assign isMulti = formNode["@multi"]! == "true">
-    <#assign isMultiFinalRow = false>
     <#assign skipStart = (formNode["@skip-start"]! == "true")>
     <#assign skipEnd = (formNode["@skip-end"]! == "true")>
     <#assign skipForm = (formNode["@skip-form"]! == "true")>
@@ -1061,7 +1074,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign listObject = ec.resource.expression(listName, "")!>
 
     <#if !skipStart>
-        <table class="table table-striped table-hover table-condensed" id="${formId}-table">
+        <table class="table table-striped table-hover table-condensed" id="${formId}_table">
         <#if !skipHeader>
             <thead>
                 <#assign needHeaderForm = formInstance.isHeaderForm()>
@@ -1070,7 +1083,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
                 <#if needHeaderForm>
                     <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-                    <#assign headerFormId>${formId}-header</#assign>
+                    <#assign headerFormId = formId + "_header">
                     <tr>
                     <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
@@ -1127,13 +1140,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
         <#-- hidden fields -->
         <#assign hiddenFieldList = formInstance.getListHiddenFieldList()>
-        <#list hiddenFieldList as hiddenField><@formListSubField hiddenField/></#list>
+        <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
         <#-- actual columns -->
         <#list formListColumnList as columnFieldList>
             <#-- TODO: how to handle column style? <td<#if fieldListColumn["@style"]?has_content> class="${fieldListColumn["@style"]}"</#if>> -->
             <td>
             <#list columnFieldList as fieldNode>
-                <@formListSubField fieldNode true/>
+                <@formListSubField fieldNode true false isMulti false/>
             </#list>
             </td>
         </#list>
@@ -1154,8 +1167,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if !skipEnd>
         <#if isMulti && !skipForm>
             <tr><td colspan="${formListColumnList?size}">
-                <#assign isMultiFinalRow = true>
-                <#list formNode["field"] as fieldNode><@formListSubField fieldNode/></#list>
+                <#list formNode["field"] as fieldNode><@formListSubField fieldNode false false true true/></#list>
             </td></tr>
             </form>
             </tbody>
@@ -1212,25 +1224,25 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </div>
     <#if !isHeaderDialog && fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
         <div class="form-header-field<#if containerStyle?has_content> ${containerStyle}</#if>">
-            <@formListWidget fieldNode["header-field"][0] true true/>
+            <@formListWidget fieldNode["header-field"][0] true true false false/>
             <#-- <#recurse fieldNode["header-field"][0]/> -->
         </div>
     </#if>
 </#macro>
-<#macro formListSubField fieldNode skipCell=false>
+<#macro formListSubField fieldNode skipCell isHeaderField isMulti isMultiFinalRow>
     <#list fieldNode["conditional-field"] as fieldSubNode>
         <#if ec.resource.condition(fieldSubNode["@condition"], "")>
-            <@formListWidget fieldSubNode skipCell/>
+            <@formListWidget fieldSubNode skipCell isHeaderField isMulti isMultiFinalRow/>
             <#return>
         </#if>
     </#list>
     <#if fieldNode["default-field"]?has_content>
         <#assign isHeaderField=false>
-        <@formListWidget fieldNode["default-field"][0] skipCell/>
+        <@formListWidget fieldNode["default-field"][0] skipCell isHeaderField isMulti isMultiFinalRow/>
         <#return>
     </#if>
 </#macro>
-<#macro formListWidget fieldSubNode skipCell=false isHeaderField=false>
+<#macro formListWidget fieldSubNode skipCell isHeaderField isMulti isMultiFinalRow>
     <#if fieldSubNode["ignored"]?has_content><#return/></#if>
     <#assign fieldSubParent = fieldSubNode?parent>
     <#if ec.resource.condition(fieldSubParent["@hide"]!, "")><#return></#if>
@@ -1274,9 +1286,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro "row-actions"><#-- do nothing, these are run by the SRI --></#macro>
 
 <#macro fieldName widgetNode><#assign fieldNode=widgetNode?parent?parent/>${fieldNode["@name"]?html}<#if isMulti?exists && isMulti && listEntryIndex?has_content>_${listEntryIndex}</#if></#macro>
-<#macro fieldId widgetNode><#assign fieldNode=widgetNode?parent?parent/>${ec.resource.expand(fieldNode?parent["@name"], "")}_${fieldNode["@name"]}<#if listEntryIndex?has_content>_${listEntryIndex}</#if><#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#macro>
+<#macro fieldId widgetNode><#assign fieldNode=widgetNode?parent?parent/><#if fieldFormId?has_content>${fieldFormId}<#else>${ec.resource.expand(fieldNode?parent["@name"], "")}</#if>_${fieldNode["@name"]}<#if listEntryIndex?has_content>_${listEntryIndex}</#if><#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#macro>
 <#macro fieldTitle fieldSubNode><#assign titleValue><#if fieldSubNode["@title"]?has_content>${ec.resource.expand(fieldSubNode["@title"], "")}<#else><#list fieldSubNode?parent["@name"]?split("(?=[A-Z])", "r") as nameWord>${nameWord?cap_first?replace("Id", "ID")}<#if nameWord_has_next> </#if></#list></#if></#assign>${ec.l10n.localize(titleValue)}</#macro>
-<#macro fieldIdByName fieldName><#assign formName = ec.resource.expand(formNode["@name"], "")>${formName}_${fieldName}<#if listEntryIndex?has_content>_${listEntryIndex}</#if><#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#macro>
+<#macro fieldIdByName fieldName><#if fieldFormId?has_content>${fieldFormId}<#else>${ec.resource.expand(formNode["@name"], "")}</#if>_${fieldName}<#if listEntryIndex?has_content>_${listEntryIndex}</#if><#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#macro>
 
 <#macro field><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 <#macro "conditional-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
