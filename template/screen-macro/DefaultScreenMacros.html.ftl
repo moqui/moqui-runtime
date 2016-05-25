@@ -880,24 +880,26 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <div class="form-group">
                                 <label class="control-label col-md-2" for="${headerFormId}_orderByField">${ec.l10n.localize("Order By")}</label>
                                 <div class="col-md-10">
-                                    <select name="orderBySelect" id="${headerFormId}_orderBySelect" multiple="multiple">
+                                    <select name="orderBySelect" id="${headerFormId}_orderBySelect" multiple="multiple" style="width: 100%;">
                                         <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content>
                                             <#assign headerFieldNode = fieldNode["header-field"][0]>
                                             <#assign showOrderBy = (headerFieldNode["@show-order-by"])!>
                                             <#if showOrderBy?has_content && showOrderBy != "false">
+                                                <#assign caseInsensitive = showOrderBy == "case-insensitive">
                                                 <#assign orderFieldName = fieldNode["@name"]>
                                                 <#assign orderFieldTitle><@fieldTitle headerFieldNode/></#assign>
-                                                <option value="${orderFieldName}">${orderFieldTitle} (+)</option>
-                                                <option value="-${orderFieldName}">${orderFieldTitle} (-)</option>
+                                                <option value="${"+" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} (Asc)</option>
+                                                <option value="${"-" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} (Desc)</option>
                                             </#if>
                                         </#if></#list>
                                     </select>
-                                    <input type="text" id="${headerFormId}_orderByField" name="orderByField" value="${orderByField!""}">
+                                    <input type="hidden" id="${headerFormId}_orderByField" name="orderByField" value="${orderByField!""}">
                                     <script>
-                                        $("#${headerFormId}_orderBySelect").selectivity();
-                                        $("div#${headerFormId}_orderBySelect").on("change", function() {
-                                            var curValues = $("#${headerFormId}_orderBySelect").selectivity("val");
-                                            $("#${headerFormId}_orderByField").val(curValues.join(","));
+                                        $("#${headerFormId}_orderBySelect").selectivity({ positionDropdown: function(dropdownEl, selectEl) { dropdownEl.css("width", "300px"); } });
+                                        <#assign orderByJsValue = formInstance.getOrderByActualJsString(ec.context.orderByField)>
+                                        <#if orderByJsValue?has_content>$("#${headerFormId}_orderBySelect").selectivity("value", ${orderByJsValue});</#if>
+                                        $("div#${headerFormId}_orderBySelect").on("change", function(evt) {
+                                            if (evt.value) $("#${headerFormId}_orderByField").val(evt.value.join(","));
                                         });
                                     </script>
                                 </div>
@@ -1205,19 +1207,18 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if fieldSubNode["submit"]?has_content>&nbsp;<#else><#if headerFieldNode["@title"]?has_content><@fieldTitle headerFieldNode/><#elseif defaultFieldNode["@title"]?has_content><@fieldTitle defaultFieldNode/><#else><@fieldTitle fieldSubNode/></#if></#if>
         <#if fieldSubNode["@show-order-by"]! == "true" || fieldSubNode["@show-order-by"]! == "case-insensitive">
             <#assign caseInsensitive = fieldSubNode["@show-order-by"]! == "case-insensitive">
-            <#assign orderByField = ec.context.orderByField!>
-            <#if orderByField?has_content && orderByField?contains(",")>
-                <#list (orderByField?split(","))! as orderByFieldCandidate>
-                    <#if orderByFieldCandidate?has_content && orderByFieldCandidate?contains(fieldNode["@name"])>
-                        <#assign orderByField = orderByFieldCandidate>
-                        <#break>
-                    </#if>
+            <#assign curFieldName = fieldNode["@name"]>
+            <#assign curOrderByField = ec.context.orderByField!>
+            <#if curOrderByField?has_content && curOrderByField?contains(",")>
+                <#list curOrderByField?split(",") as curOrderByFieldCandidate>
+                    <#if curOrderByFieldCandidate?has_content && curOrderByFieldCandidate?contains(curFieldName)>
+                        <#assign curOrderByField = curOrderByFieldCandidate><#break></#if>
                 </#list>
             </#if>
-            <#assign ascActive = orderByField?has_content && orderByField?contains(fieldNode["@name"]) && !orderByField?starts_with("-")>
-            <#assign descActive = orderByField?has_content && orderByField?contains(fieldNode["@name"]) && orderByField?starts_with("-")>
-            <#assign ascOrderByUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("orderByField", "+" + caseInsensitive?string("^","") + fieldNode["@name"])>
-            <#assign descOrderByUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("orderByField", "-" + caseInsensitive?string("^","") + fieldNode["@name"])>
+            <#assign ascActive = curOrderByField?has_content && curOrderByField?contains(curFieldName) && !curOrderByField?starts_with("-")>
+            <#assign descActive = curOrderByField?has_content && curOrderByField?contains(curFieldName) && curOrderByField?starts_with("-")>
+            <#assign ascOrderByUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("orderByField", "+" + caseInsensitive?string("^","") + curFieldName)>
+            <#assign descOrderByUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("orderByField", "-" + caseInsensitive?string("^","") + curFieldName)>
             <#if ascActive><#assign ascOrderByUrlInfo = descOrderByUrlInfo></#if>
             <#if descActive><#assign descOrderByUrlInfo = ascOrderByUrlInfo></#if>
             <span class="form-order-by">
@@ -1519,9 +1520,7 @@ a => A, d => D, y => Y
     <#if !isDynamicOptions>
         <#list (options.keySet())! as key>
             <#assign isSelected = currentValue?has_content && currentValue == key>
-            <#if allowMultiple && currentValueList?has_content><#list currentValueList as curValue>
-                <#if curValue == key><#assign isSelected = true></#if>
-            </#list></#if>
+            <#if allowMultiple && currentValueList?has_content><#assign isSelected = currentValueList?seq_contains(key)></#if>
             <option<#if isSelected> selected="selected"</#if> value="${key}">${options.get(key)}</option>
         </#list>
     </#if>
