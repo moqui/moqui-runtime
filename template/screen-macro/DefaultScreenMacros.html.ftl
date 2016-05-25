@@ -880,19 +880,26 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <div class="form-group">
                                 <label class="control-label col-md-2" for="${headerFormId}_orderByField">${ec.l10n.localize("Order By")}</label>
                                 <div class="col-md-10">
-                                    <select name="orderByField" id="${headerFormId}_orderByField" multiple="multiple">
+                                    <select name="orderBySelect" id="${headerFormId}_orderBySelect" multiple="multiple">
                                         <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content>
                                             <#assign headerFieldNode = fieldNode["header-field"][0]>
                                             <#assign showOrderBy = (headerFieldNode["@show-order-by"])!>
                                             <#if showOrderBy?has_content && showOrderBy != "false">
                                                 <#assign orderFieldName = fieldNode["@name"]>
                                                 <#assign orderFieldTitle><@fieldTitle headerFieldNode/></#assign>
-                                                <option value="+${orderFieldName}">${orderFieldTitle} (+)</option>
+                                                <option value="${orderFieldName}">${orderFieldTitle} (+)</option>
                                                 <option value="-${orderFieldName}">${orderFieldTitle} (-)</option>
                                             </#if>
                                         </#if></#list>
                                     </select>
-                                    <input type="text" id="${headerFormId}_orderByField2" name="orderByField2" value="${orderByField!""}">
+                                    <input type="text" id="${headerFormId}_orderByField" name="orderByField" value="${orderByField!""}">
+                                    <script>
+                                        $("#${headerFormId}_orderBySelect").selectivity();
+                                        $("div#${headerFormId}_orderBySelect").on("change", function() {
+                                            var curValues = $("#${headerFormId}_orderBySelect").selectivity("val");
+                                            $("#${headerFormId}_orderByField").val(curValues.join(","));
+                                        });
+                                    </script>
                                 </div>
                             </div>
                             <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
@@ -916,18 +923,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </div>
             </div></div>
         </div>
-        <script>$('#${headerFormDialogId}').on('shown.bs.modal', function() {
-            $("#${headerFormDialogId} select").select2({ ${select2DefaultOptions} });
-            $("#${headerFormId}_orderByField").on("select2:select", function (evt) {
-                // console.log(evt);
-                // console.log($(this));
-                // var s2data = $("#${headerFormId}_orderByField").select2("data");
-                // console.log(s2data);
-                // return false;
-                var element = evt.params.data.element; var $element = $(element);
-                $element.detach(); $(this).append($element); $(this).trigger("change");
-            });
-        })</script>
+        <script>$('#${headerFormDialogId}').on('shown.bs.modal', function() { $("#${headerFormDialogId} select:not([name='orderBySelect'])").select2({ ${select2DefaultOptions} }); })</script>
     </#if>
     <#if isSelectColumns>
         <#assign selectColumnsDialogId = formId + "_SelColsDialog">
@@ -964,9 +960,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
                         </#list></#if>
                     </ul>
-                    <form class="form-inline" id="${formId}-SelColsForm" method="post" action="${sri.buildUrl("formSelectColumns").url}">
+                    <form class="form-inline" id="${formId}_SelColsForm" method="post" action="${sri.buildUrl("formSelectColumns").url}">
                         <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
-                        <input type="hidden" id="${formId}-SelColsForm-columnsTree" name="columnsTree" value="">
+                        <input type="hidden" id="${formId}_SelColsForm_columnsTree" name="columnsTree" value="">
                         <input type="submit" name="SaveColumns" value="${ec.l10n.localize("Save Columns")}" class="btn btn-primary btn-sm"/>
                         <input type="submit" name="ResetColumns" value="${ec.l10n.localize("Reset to Default")}" class="btn btn-primary btn-sm"/>
                     </form>
@@ -989,7 +985,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             onChange: function(cEl) {
                 var sortableHierarchy = $('#${selectColumnsSortableId}').sortableListsToHierarchy();
                 // console.log(sortableHierarchy); console.log(JSON.stringify(sortableHierarchy));
-                $("#${formId}-SelColsForm-columnsTree").val(JSON.stringify(sortableHierarchy));
+                $("#${formId}_SelColsForm_columnsTree").val(JSON.stringify(sortableHierarchy));
             }
         });})</script>
     </#if>
