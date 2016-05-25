@@ -862,7 +862,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
     <#if isHeaderDialog>
-        <#assign headerFormDialogId>${formId}-hdialog</#assign>
+        <#assign headerFormDialogId = formId + "_hdialog">
+        <#assign headerFormId = formId + "_header">
         <#assign headerFormButtonText = ec.l10n.localize("Find Options")>
         <div id="${headerFormDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
             <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
@@ -871,7 +872,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <h4 class="modal-title">${headerFormButtonText}</h4>
                 </div>
                 <div class="modal-body">
-                    <#assign headerFormId = formId + "_header">
                     <#assign curUrlInstance = sri.getCurrentScreenUrl()>
                     <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
@@ -917,8 +917,16 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </div></div>
         </div>
         <script>$('#${headerFormDialogId}').on('shown.bs.modal', function() {
-            $("#${headerFormId} select").select2({ ${select2DefaultOptions} });
-            $("#${headerFormId}_orderByField").select2({ theme:'bootstrap', insertTag: function(data, tag) { window.alert("pushing " + tag); data.push(tag); } });
+            $("#${headerFormDialogId} select").select2({ ${select2DefaultOptions} });
+            $("#${headerFormId}_orderByField").on("select2:select", function (evt) {
+                // console.log(evt);
+                // console.log($(this));
+                // var s2data = $("#${headerFormId}_orderByField").select2("data");
+                // console.log(s2data);
+                // return false;
+                var element = evt.params.data.element; var $element = $(element);
+                $element.detach(); $(this).append($element); $(this).trigger("change");
+            });
         })</script>
     </#if>
     <#if isSelectColumns>
@@ -1629,9 +1637,9 @@ a => A, d => D, y => Y
 
 <#macro submit>
     <#assign confirmationMessage = ec.resource.expand(.node["@confirmation"]!, "")/>
-    <#assign buttonText><@fieldTitle .node?parent/></#assign>
+    <#assign buttonText><#if .node["@text"]?has_content>${.node["@text"]}<#else><@fieldTitle .node?parent/></#if></#assign>
     <#assign iconClass = .node["@icon"]!>
-    <#if !iconClass?has_content && .node?parent["@title"]?has_content><#assign iconClass = sri.getThemeIconClass(.node?parent["@title"])!></#if>
+    <#if !iconClass?has_content><#assign iconClass = sri.getThemeIconClass(buttonText)!></#if>
     <button type="submit" name="<@fieldName .node/>" value="<@fieldName .node/>" id="<@fieldId .node/>"<#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}');"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if> class="btn btn-primary btn-sm"><#if iconClass?has_content><i class="${iconClass}"></i> </#if>
     <#if .node["image"]?has_content><#assign imageNode = .node["image"][0]>
         <img src="${sri.makeUrlByType(imageNode["@url"],imageNode["@url-type"]!"content",null,"true")}" alt="<#if imageNode["@alt"]?has_content>${imageNode["@alt"]}<#else><@fieldTitle .node?parent/></#if>"<#if imageNode["@width"]?has_content> width="${imageNode["@width"]}"</#if><#if imageNode["@height"]?has_content> height="${imageNode["@height"]}"</#if>>
