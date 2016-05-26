@@ -860,6 +860,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
     <#assign numColumns = (formListColumnList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
+    <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
     <#if isHeaderDialog>
         <#assign headerFormDialogId = formId + "_hdialog">
@@ -927,6 +928,35 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </div>
         <script>$('#${headerFormDialogId}').on('shown.bs.modal', function() { $("#${headerFormDialogId} select:not([name='orderBySelect'])").select2({ ${select2DefaultOptions} }); })</script>
     </#if>
+    <#if isSavedFinds>
+        <#assign savedFindsDialogId = formId + "_SavedFindsDialog">
+        <#assign savedFindsButtonText = ec.l10n.localize("Saved Finds")>
+        <div id="${savedFindsDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
+            <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">${savedFindsButtonText}</h4>
+                </div>
+                <div class="modal-body">
+                    <#assign saveFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName")>
+                    <#assign saveFindUrlParms = saveFindUrl.getParameterMap()>
+                    <#if saveFindUrlParms?has_content>
+                    <#-- TODO: set action to transition to save a find (once exists) -->
+                    <form class="form-inline" id="${formId}_SaveFind" method="post" action="${saveFindUrl.getUrl()}">
+                        <#list saveFindUrlParms.keySet() as parmName>
+                            <input type="hidden" name="${parmName}" value="${saveFindUrlParms.get(parmName)!?html}"/></#list>
+                        <div class="form-group">
+                            <#assign descLabel = ec.l10n.localize("Enter Description")>
+                            <label class="sr-only" for="${formId}_SaveFind_description">${descLabel}</label>
+                            <input type="text" class="form-control" size="40" name="description" id="${formId}_SaveFind_description" placeholder="${descLabel}">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Save Current Find")}</button>
+                    </form>
+                    </#if>
+                </div>
+            </div></div>
+        </div>
+    </#if>
     <#if isSelectColumns>
         <#assign selectColumnsDialogId = formId + "_SelColsDialog">
         <#assign selectColumnsSortableId = formId + "_SelColsSortable">
@@ -991,7 +1021,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             }
         });})</script>
     </#if>
-    <#if isHeaderDialog || isSelectColumns || !(formNode["@paginate"]! == "false") && context[listName + "Count"]?exists &&
+    <#if isHeaderDialog || isSavedFinds || isSelectColumns || !(formNode["@paginate"]! == "false") && context[listName + "Count"]?exists &&
             (context[listName + "Count"]! > 0) &&
             (!formNode["@paginate-always-show"]?has_content || formNode["@paginate-always-show"]! == "true" || (context[listName + "PageMaxIndex"] > 0))>
         <#assign curPageIndex = context[listName + "PageIndex"]>
@@ -1003,6 +1033,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <tr><th colspan="${numColumns}">
         <nav class="form-list-nav">
             <#if isHeaderDialog><button id="${headerFormDialogId}-button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
+            <#if isSavedFinds><button id="${savedFindsDialogId}-button" type="button" data-toggle="modal" data-target="#${savedFindsDialogId}" data-original-title="${savedFindsButtonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${savedFindsButtonText}</button></#if>
             <#if isSelectColumns><button id="${selectColumnsDialogId}-button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.l10n.localize("Columns")}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${ec.l10n.localize("Columns")}</button></#if>
             <ul class="pagination">
             <#if (curPageIndex > 0)>
