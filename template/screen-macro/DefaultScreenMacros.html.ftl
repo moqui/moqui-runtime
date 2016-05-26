@@ -941,8 +941,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#assign saveFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName")>
                     <#assign saveFindUrlParms = saveFindUrl.getParameterMap()>
                     <#if saveFindUrlParms?has_content>
-                    <#-- TODO: set action to transition to save a find (once exists) -->
-                    <form class="form-inline" id="${formId}_SaveFind" method="post" action="${saveFindUrl.getUrl()}">
+                    <form class="form-inline" id="${formId}_SaveFind" method="post" action="${sri.buildUrl("formSaveFind").url}">
+                        <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
+                        <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
                         <#list saveFindUrlParms.keySet() as parmName>
                             <input type="hidden" name="${parmName}" value="${saveFindUrlParms.get(parmName)!?html}"/></#list>
                         <div class="form-group">
@@ -993,6 +994,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         </#list></#if>
                     </ul>
                     <form class="form-inline" id="${formId}_SelColsForm" method="post" action="${sri.buildUrl("formSelectColumns").url}">
+                        <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
                         <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
                         <input type="hidden" id="${formId}_SelColsForm_columnsTree" name="columnsTree" value="">
                         <input type="submit" name="SaveColumns" value="${ec.l10n.localize("Save Columns")}" class="btn btn-primary btn-sm"/>
