@@ -868,7 +868,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
-    <#if isHeaderDialog>
+    <#if isSavedFinds || isHeaderDialog>
         <#assign headerFormDialogId = formId + "_hdialog">
         <#assign headerFormId = formId + "_header">
         <#assign headerFormButtonText = ec.l10n.localize("Find Options")>
@@ -879,6 +879,73 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <h4 class="modal-title">${headerFormButtonText}</h4>
                 </div>
                 <div class="modal-body">
+                <#-- Saved Finds -->
+                <#if isSavedFinds && isHeaderDialog><h4 style="margin-top: 0;">${ec.l10n.localize("Saved Finds")}</h4></#if>
+                <#if isSavedFinds>
+                    <#assign activeFormListFind = formInstance.getActiveFormListFind(ec)!>
+                    <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").url>
+                    <#assign saveFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("formListFindId")>
+                    <#assign saveFindUrlParms = saveFindUrl.getParameterMap()>
+                    <#assign descLabel = ec.l10n.localize("Description")>
+                    <#if activeFormListFind?has_content>
+                        <h5>Active Saved Find: ${activeFormListFind.description?html}</h5>
+                    </#if>
+                    <#if saveFindUrlParms?has_content>
+                        <div><form class="form-inline" id="${formId}_NewFind" method="post" action="${formSaveFindUrl}">
+                            <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
+                            <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
+                            <#list saveFindUrlParms.keySet() as parmName>
+                                <input type="hidden" name="${parmName}" value="${saveFindUrlParms.get(parmName)!?html}">
+                            </#list>
+                            <div class="form-group">
+                                <label class="sr-only" for="${formId}_NewFind_description">${descLabel}</label>
+                                <input type="text" class="form-control" size="40" name="description" id="${formId}_NewFind_description" placeholder="${descLabel}">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Save New Find")}</button>
+                        </form></div>
+                    <#else>
+                        <p>${ec.l10n.localize("No find parameters, choose some to save a new find or update an existing")}</p>
+                    </#if>
+                    <#assign userFindInfoList = formInstance.getUserFormListFinds(ec)>
+                    <#list userFindInfoList as userFindInfo>
+                        <#assign formListFind = userFindInfo.formListFind>
+                        <#assign findParameters = userFindInfo.findParameters>
+                        <#assign doFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameters(findParameters).removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
+                        <#assign saveFindFormId = formId + "_SaveFind" + userFindInfo_index>
+                        <div>
+                        <#if saveFindUrlParms?has_content>
+                            <form class="form-inline" id="${saveFindFormId}" method="post" action="${formSaveFindUrl}">
+                                <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
+                                <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
+                                <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
+                                <#list saveFindUrlParms.keySet() as parmName>
+                                    <input type="hidden" name="${parmName}" value="${saveFindUrlParms.get(parmName)!?html}">
+                                </#list>
+                                <div class="form-group">
+                                    <label class="sr-only" for="${saveFindFormId}_description">${descLabel}</label>
+                                    <input type="text" class="form-control" size="40" name="description" id="${saveFindFormId}_description" value="${formListFind.description?html}">
+                                </div>
+                                <button type="submit" name="UpdateFind" class="btn btn-primary btn-sm">${ec.l10n.localize("Update to Current")}</button>
+                                <#if userFindInfo.isByUserId == "true"><button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.l10n.localize("Delete")} ${formListFind.description?js_string}?');">&times;</button></#if>
+                            </form>
+                            <a href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.l10n.localize("Do Find")}</a>
+                        <#else>
+                            <a href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.l10n.localize("Do Find")}</a>
+                            <#if userFindInfo.isByUserId == "true">
+                            <form class="form-inline" id="${saveFindFormId}" method="post" action="${formSaveFindUrl}">
+                                <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
+                                <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
+                                <button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.l10n.localize("Delete")} ${formListFind.description?js_string}?');">&times;</button>
+                            </form>
+                            </#if>
+                            <strong>${formListFind.description?html}</strong>
+                        </#if>
+                        </div>
+                    </#list>
+                </#if>
+                <#if isSavedFinds && isHeaderDialog><h4>${ec.l10n.localize("Find Parameters")}</h4></#if>
+                <#if isHeaderDialog>
+                    <#-- Find Parameters Form -->
                     <#assign curUrlInstance = sri.getCurrentScreenUrl()>
                     <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
@@ -929,84 +996,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             </#if></#list>
                         </fieldset>
                     </form>
+                </#if>
                 </div>
             </div></div>
         </div>
         <script>$('#${headerFormDialogId}').on('shown.bs.modal', function() { $("#${headerFormDialogId} select:not([name='orderBySelect'])").select2({ ${select2DefaultOptions} }); })</script>
-    </#if>
-    <#if isSavedFinds>
-        <#assign savedFindsDialogId = formId + "_SavedFindsDialog">
-        <#assign savedFindsButtonText = ec.l10n.localize("Saved Finds")>
-        <div id="${savedFindsDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
-            <div class="modal-dialog" style="width: 800px;"><div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">${savedFindsButtonText}</h4>
-                </div>
-                <div class="modal-body">
-                    <#assign activeFormListFind = formInstance.getActiveFormListFind(ec)!>
-                    <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").url>
-                    <#assign saveFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("formListFindId")>
-                    <#assign saveFindUrlParms = saveFindUrl.getParameterMap()>
-                    <#assign descLabel = ec.l10n.localize("Description")>
-                    <#if activeFormListFind?has_content>
-                        <h4>Active Saved Find: ${activeFormListFind.description?html}</h4>
-                    </#if>
-                    <#if saveFindUrlParms?has_content>
-                        <div><form class="form-inline" id="${formId}_NewFind" method="post" action="${formSaveFindUrl}">
-                            <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
-                            <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
-                            <#list saveFindUrlParms.keySet() as parmName>
-                                <input type="hidden" name="${parmName}" value="${saveFindUrlParms.get(parmName)!?html}">
-                            </#list>
-                            <div class="form-group">
-                                <label class="sr-only" for="${formId}_NewFind_description">${descLabel}</label>
-                                <input type="text" class="form-control" size="40" name="description" id="${formId}_NewFind_description" placeholder="${descLabel}">
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Save New Find")}</button>
-                        </form></div>
-                    <#else>
-                        <p>${ec.l10n.localize("No find options selected, choose options to save a new find or update an existing find")}</p>
-                    </#if>
-                    <#assign userFindInfoList = formInstance.getUserFormListFinds(ec)>
-                    <#list userFindInfoList as userFindInfo>
-                        <#assign formListFind = userFindInfo.formListFind>
-                        <#assign findParameters = userFindInfo.findParameters>
-                        <#assign doFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameters(findParameters).removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
-                        <#assign saveFindFormId = formId + "_SaveFind" + userFindInfo_index>
-                        <div>
-                        <#if saveFindUrlParms?has_content>
-                            <form class="form-inline" id="${saveFindFormId}" method="post" action="${formSaveFindUrl}">
-                                <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
-                                <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
-                                <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
-                                <#list saveFindUrlParms.keySet() as parmName>
-                                    <input type="hidden" name="${parmName}" value="${saveFindUrlParms.get(parmName)!?html}">
-                                </#list>
-                                <div class="form-group">
-                                    <label class="sr-only" for="${saveFindFormId}_description">${descLabel}</label>
-                                    <input type="text" class="form-control" size="40" name="description" id="${saveFindFormId}_description" value="${formListFind.description?html}">
-                                </div>
-                                <button type="submit" name="UpdateFind" class="btn btn-primary btn-sm">${ec.l10n.localize("Update to Current")}</button>
-                                <#if userFindInfo.isByUserId == "true"><button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.l10n.localize("Delete")} ${formListFind.description?js_string}?');">&times;</button></#if>
-                            </form>
-                            <a href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.l10n.localize("Do Find")}</a>
-                        <#else>
-                            <a href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.l10n.localize("Do Find")}</a>
-                            <#if userFindInfo.isByUserId == "true">
-                            <form class="form-inline" id="${saveFindFormId}" method="post" action="${formSaveFindUrl}">
-                                <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
-                                <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
-                                <button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.l10n.localize("Delete")} ${formListFind.description?js_string}?');">&times;</button>
-                            </form>
-                            </#if>
-                            <strong>${formListFind.description?html}</strong>
-                        </#if>
-                        </div>
-                    </#list>
-                </div>
-            </div></div>
-        </div>
     </#if>
     <#if isSelectColumns>
         <#assign selectColumnsDialogId = formId + "_SelColsDialog">
@@ -1081,74 +1075,75 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
-    <#if isHeaderDialog || isSavedFinds || isSelectColumns || !(formNode["@paginate"]! == "false") && context[listName + "Count"]?exists &&
-            (context[listName + "Count"]! > 0) &&
+    <#assign isPaginated = !(formNode["@paginate"]! == "false") && context[listName + "Count"]?exists && (context[listName + "Count"]! > 0) &&
             (!formNode["@paginate-always-show"]?has_content || formNode["@paginate-always-show"]! == "true" || (context[listName + "PageMaxIndex"] > 0))>
-        <#assign curPageIndex = context[listName + "PageIndex"]>
-        <#assign curPageMaxIndex = context[listName + "PageMaxIndex"]>
-        <#assign prevPageIndexMin = curPageIndex - 3><#if (prevPageIndexMin < 0)><#assign prevPageIndexMin = 0></#if>
-        <#assign prevPageIndexMax = curPageIndex - 1>
-        <#assign nextPageIndexMin = curPageIndex + 1>
-        <#assign nextPageIndexMax = curPageIndex + 3><#if (nextPageIndexMax > curPageMaxIndex)><#assign nextPageIndexMax = curPageMaxIndex></#if>
+    <#if isHeaderDialog || isSavedFinds || isSelectColumns || isPaginated>
         <tr><th colspan="${numColumns}">
         <nav class="form-list-nav">
-            <#if isHeaderDialog><button id="${headerFormDialogId}-button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
-            <#if isSavedFinds><button id="${savedFindsDialogId}-button" type="button" data-toggle="modal" data-target="#${savedFindsDialogId}" data-original-title="${savedFindsButtonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${savedFindsButtonText}</button></#if>
+            <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}-button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
             <#if isSelectColumns><button id="${selectColumnsDialogId}-button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.l10n.localize("Columns")}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${ec.l10n.localize("Columns")}</button></#if>
-            <ul class="pagination">
-            <#if (curPageIndex > 0)>
-                <#assign firstUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", 0)>
-                <#assign previousUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", (curPageIndex - 1))>
-                <li><a href="${firstUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-fast-backward"></i></a></li>
-                <li><a href="${previousUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-backward"></i></a></li>
-            <#else>
-                <li><span><i class="glyphicon glyphicon-fast-backward"></i></span></li>
-                <li><span><i class="glyphicon glyphicon-backward"></i></span></li>
-            </#if>
 
-            <#if (prevPageIndexMax >= 0)><#list prevPageIndexMin..prevPageIndexMax as pageLinkIndex>
-                <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
-                <li><a href="${pageLinkUrlInfo.getUrlWithParams()}">${pageLinkIndex + 1}</a></li>
-            </#list></#if>
-            <#assign paginationTemplate = ec.l10n.localize("PaginationTemplate")?interpret>
-            <li><a href="${sri.getScreenUrlInstance().getUrlWithParams()}"><@paginationTemplate /></a></li>
+            <#if isPaginated>
+                <#assign curPageIndex = context[listName + "PageIndex"]>
+                <#assign curPageMaxIndex = context[listName + "PageMaxIndex"]>
+                <#assign prevPageIndexMin = curPageIndex - 3><#if (prevPageIndexMin < 0)><#assign prevPageIndexMin = 0></#if>
+                <#assign prevPageIndexMax = curPageIndex - 1><#assign nextPageIndexMin = curPageIndex + 1>
+                <#assign nextPageIndexMax = curPageIndex + 3><#if (nextPageIndexMax > curPageMaxIndex)><#assign nextPageIndexMax = curPageMaxIndex></#if>
+                <ul class="pagination">
+                <#if (curPageIndex > 0)>
+                    <#assign firstUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", 0)>
+                    <#assign previousUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", (curPageIndex - 1))>
+                    <li><a href="${firstUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-fast-backward"></i></a></li>
+                    <li><a href="${previousUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-backward"></i></a></li>
+                <#else>
+                    <li><span><i class="glyphicon glyphicon-fast-backward"></i></span></li>
+                    <li><span><i class="glyphicon glyphicon-backward"></i></span></li>
+                </#if>
 
-            <#if (nextPageIndexMin <= curPageMaxIndex)><#list nextPageIndexMin..nextPageIndexMax as pageLinkIndex>
-                <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
-                <li><a href="${pageLinkUrlInfo.getUrlWithParams()}">${pageLinkIndex + 1}</a></li>
-            </#list></#if>
+                <#if (prevPageIndexMax >= 0)><#list prevPageIndexMin..prevPageIndexMax as pageLinkIndex>
+                    <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
+                    <li><a href="${pageLinkUrlInfo.getUrlWithParams()}">${pageLinkIndex + 1}</a></li>
+                </#list></#if>
+                <#assign paginationTemplate = ec.l10n.localize("PaginationTemplate")?interpret>
+                <li><a href="${sri.getScreenUrlInstance().getUrlWithParams()}"><@paginationTemplate /></a></li>
 
-            <#if (curPageIndex < curPageMaxIndex)>
-                <#assign lastUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", curPageMaxIndex)>
-                <#assign nextUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", curPageIndex + 1)>
-                <li><a href="${nextUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-forward"></i></a></li>
-                <li><a href="${lastUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-fast-forward"></i></a></li>
-            <#else>
-                <li><span><i class="glyphicon glyphicon-forward"></i></span></li>
-                <li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li>
-            </#if>
-            </ul>
-            <#if (curPageMaxIndex > 4)>
-                <#assign goPageUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
-                <#assign goPageUrlParms = goPageUrl.getParameterMap()>
-                <form class="form-inline" id="${formId}_GoPage" method="post" action="${goPageUrl.getUrl()}">
-                    <#list goPageUrlParms.keySet() as parmName>
-                        <input type="hidden" name="${parmName}" value="${goPageUrlParms.get(parmName)!?html}"></#list>
-                    <div class="form-group">
-                        <label class="sr-only" for="${formId}_GoPage_pageIndex">Page number</label>
-                        <input type="text" class="form-control" size="4" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="${ec.l10n.localize("Page #")}">
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Go##Page")}</button>
-                </form>
-                <script>
-                    $("#${formId}_GoPage").validate({ errorClass: 'help-block', errorElement: 'span',
-                        rules: { pageIndex: { required:true, min:1, max:${curPageMaxIndex + 1} } },
-                        highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
-                        unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); },
-                        <#-- show 1-based index to user but server expects 0-based index -->
-                        submitHandler: function(form) { $("#${formId}_GoPage_pageIndex").val($("#${formId}_GoPage_pageIndex").val() - 1); form.submit(); }
-                    });
-                </script>
+                <#if (nextPageIndexMin <= curPageMaxIndex)><#list nextPageIndexMin..nextPageIndexMax as pageLinkIndex>
+                    <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
+                    <li><a href="${pageLinkUrlInfo.getUrlWithParams()}">${pageLinkIndex + 1}</a></li>
+                </#list></#if>
+
+                <#if (curPageIndex < curPageMaxIndex)>
+                    <#assign lastUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", curPageMaxIndex)>
+                    <#assign nextUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", curPageIndex + 1)>
+                    <li><a href="${nextUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-forward"></i></a></li>
+                    <li><a href="${lastUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-fast-forward"></i></a></li>
+                <#else>
+                    <li><span><i class="glyphicon glyphicon-forward"></i></span></li>
+                    <li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li>
+                </#if>
+                </ul>
+                <#if (curPageMaxIndex > 4)>
+                    <#assign goPageUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
+                    <#assign goPageUrlParms = goPageUrl.getParameterMap()>
+                    <form class="form-inline" id="${formId}_GoPage" method="post" action="${goPageUrl.getUrl()}">
+                        <#list goPageUrlParms.keySet() as parmName>
+                            <input type="hidden" name="${parmName}" value="${goPageUrlParms.get(parmName)!?html}"></#list>
+                        <div class="form-group">
+                            <label class="sr-only" for="${formId}_GoPage_pageIndex">Page number</label>
+                            <input type="text" class="form-control" size="4" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="${ec.l10n.localize("Page #")}">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Go##Page")}</button>
+                    </form>
+                    <script>
+                        $("#${formId}_GoPage").validate({ errorClass: 'help-block', errorElement: 'span',
+                            rules: { pageIndex: { required:true, min:1, max:${curPageMaxIndex + 1} } },
+                            highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
+                            unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); },
+                            <#-- show 1-based index to user but server expects 0-based index -->
+                            submitHandler: function(form) { $("#${formId}_GoPage_pageIndex").val($("#${formId}_GoPage_pageIndex").val() - 1); form.submit(); }
+                        });
+                    </script>
+                </#if>
             </#if>
         </nav>
         </th></tr>
