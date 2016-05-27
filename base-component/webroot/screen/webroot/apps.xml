@@ -52,8 +52,9 @@ along with this software (see the LICENSE.md file). If not, see
         // Date/Time (Moment, bootstrap-datetimepicker)
         html_scripts.add('/lib/moment/moment-with-locales.min.js')
         html_scripts.add('/lib/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js')
-        // Drop-down (Select2)
+        // Drop-down (Select2, Selectivity)
         html_scripts.add('/lib/select2/select2.min.js')
+        html_scripts.add('/lib/selectivity/selectivity-full.min.js')
         // Tree (JSTree)
         html_scripts.add('/lib/jstree/jstree.min.js')
         // Inline Editable

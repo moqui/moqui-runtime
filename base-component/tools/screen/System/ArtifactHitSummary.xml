@@ -50,8 +50,8 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="artifactType">
                 <header-field show-order-by="true">
                     <drop-down allow-empty="true">
-                        <option key="screen"/><option key="screen-content"/><option key="transition"/>
-                        <option key="service"/><option key="entity"/>
+                        <option key="AT_XML_SCREEN"/><option key="AT_XML_SCREEN_CONTENT"/><option key="AT_XML_SCREEN_TRANS"/>
+                        <option key="AT_SERVICE"/><option key="AT_ENTITY"/>
                     </drop-down>
                 </header-field>
                 <default-field><display/></default-field>

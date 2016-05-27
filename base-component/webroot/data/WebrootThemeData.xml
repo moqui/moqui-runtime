@@ -29,6 +29,8 @@ along with this software (see the LICENSE.md file). If not, see
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="6" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="/lib/select2/select2-bootstrap.min.css"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="7" resourceTypeEnumId="STRT_STYLESHEET"
+            resourceValue="/lib/selectivity/selectivity-full.css"/>
+    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="8" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="/lib/jstree/themes/default/style.min.css"/>
 
     <!-- jQuery UI Theme -->
