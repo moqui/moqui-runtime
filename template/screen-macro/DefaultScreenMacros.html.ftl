@@ -557,8 +557,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 <#macro parameter><#-- do nothing, used directly in other elements --></#macro>
 
-<#-- ====================================================== -->
-<#-- ======================= Form ========================= -->
+<#-- ============================================================= -->
+<#-- ======================= Form Single ========================= -->
+<#-- ============================================================= -->
+
 <#macro "form-single">
 <#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
@@ -855,6 +857,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
 </#macro>
 
+<#-- =========================================================== -->
+<#-- ======================= Form List ========================= -->
+<#-- =========================================================== -->
+
 <#macro paginationHeaderModals formInstance formId isHeaderDialog>
     <#assign formNode = formInstance.getFtlFormNode()>
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
@@ -938,10 +944,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <h4 class="modal-title">${savedFindsButtonText}</h4>
                 </div>
                 <div class="modal-body">
+                    <#assign activeFormListFind = formInstance.getActiveFormListFind(ec)!>
                     <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").url>
-                    <#assign saveFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
+                    <#assign saveFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("formListFindId")>
                     <#assign saveFindUrlParms = saveFindUrl.getParameterMap()>
                     <#assign descLabel = ec.l10n.localize("Description")>
+                    <#if activeFormListFind?has_content>
+                        <h4>Active Saved Find: ${activeFormListFind.description?html}</h4>
+                    </#if>
                     <#if saveFindUrlParms?has_content>
                         <div><form class="form-inline" id="${formId}_NewFind" method="post" action="${formSaveFindUrl}">
                             <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
@@ -963,10 +973,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#assign formListFind = userFindInfo.formListFind>
                         <#assign findParameters = userFindInfo.findParameters>
                         <#assign doFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameters(findParameters).removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
+                        <#assign saveFindFormId = formId + "_SaveFind" + userFindInfo_index>
                         <div>
                         <#if saveFindUrlParms?has_content>
-                            <#assign safeFindFormId = formId + "_SaveFind" + userFindInfo_index>
-                            <form class="form-inline" id="${safeFindFormId}" method="post" action="${formSaveFindUrl}">
+                            <form class="form-inline" id="${saveFindFormId}" method="post" action="${formSaveFindUrl}">
                                 <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
                                 <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
                                 <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
@@ -974,14 +984,22 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                     <input type="hidden" name="${parmName}" value="${saveFindUrlParms.get(parmName)!?html}">
                                 </#list>
                                 <div class="form-group">
-                                    <label class="sr-only" for="${safeFindFormId}_description">${descLabel}</label>
-                                    <input type="text" class="form-control" size="40" name="description" id="${safeFindFormId}_description" value="${formListFind.description?html}">
+                                    <label class="sr-only" for="${saveFindFormId}_description">${descLabel}</label>
+                                    <input type="text" class="form-control" size="40" name="description" id="${saveFindFormId}_description" value="${formListFind.description?html}">
                                 </div>
-                                <button type="submit" name="UpdateFind" class="btn btn-primary btn-sm">${ec.l10n.localize("Update Find")}</button>
+                                <button type="submit" name="UpdateFind" class="btn btn-primary btn-sm">${ec.l10n.localize("Update to Current")}</button>
+                                <#if userFindInfo.isByUserId == "true"><button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.l10n.localize("Delete")} ${formListFind.description?js_string}?');">&times;</button></#if>
                             </form>
                             <a href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.l10n.localize("Do Find")}</a>
                         <#else>
                             <a href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.l10n.localize("Do Find")}</a>
+                            <#if userFindInfo.isByUserId == "true">
+                            <form class="form-inline" id="${saveFindFormId}" method="post" action="${formSaveFindUrl}">
+                                <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
+                                <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
+                                <button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.l10n.localize("Delete")} ${formListFind.description?js_string}?');">&times;</button>
+                            </form>
+                            </#if>
                             <strong>${formListFind.description?html}</strong>
                         </#if>
                         </div>
@@ -1364,6 +1382,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 <#macro "row-actions"><#-- do nothing, these are run by the SRI --></#macro>
 
+<#-- ========================================================== -->
+<#-- ================== Form Field Widgets ==================== -->
+<#-- ========================================================== -->
+
 <#macro fieldName widgetNode><#assign fieldNode=widgetNode?parent?parent/>${fieldNode["@name"]?html}<#if isMulti?exists && isMulti && listEntryIndex?has_content>_${listEntryIndex}</#if></#macro>
 <#macro fieldId widgetNode><#assign fieldNode=widgetNode?parent?parent/><#if fieldFormId?has_content>${fieldFormId}<#else>${ec.resource.expand(fieldNode?parent["@name"], "")}</#if>_${fieldNode["@name"]}<#if listEntryIndex?has_content>_${listEntryIndex}</#if><#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#macro>
 <#macro fieldTitle fieldSubNode><#assign titleValue><#if fieldSubNode["@title"]?has_content>${ec.resource.expand(fieldSubNode["@title"], "")}<#else><#list fieldSubNode?parent["@name"]?split("(?=[A-Z])", "r") as nameWord>${nameWord?cap_first?replace("Id", "ID")}<#if nameWord_has_next> </#if></#list></#if></#assign>${ec.l10n.localize(titleValue)}</#macro>
@@ -1373,8 +1395,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro "conditional-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 <#macro "default-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 <#macro set><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
-
-<#-- ================== Form Field Widgets ==================== -->
 
 <#macro check>
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
@@ -1562,14 +1582,12 @@ a => A, d => D, y => Y
     <#assign allowMultiple = ec.resource.expand(.node["@allow-multiple"]!, "") == "true"/>
     <#assign isDynamicOptions = .node["dynamic-options"]?has_content>
     <#assign name><@fieldName .node/></#assign>
-
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)/>
     <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)/>
     <#if !currentValue?has_content><#assign currentValue = ec.resource.expand(.node["@no-current-selected-key"]!, "")/></#if>
     <#if currentValue?starts_with("[")><#assign currentValue = currentValue?substring(1, currentValue?length - 1)?replace(" ", "")></#if>
     <#assign currentValueList = (currentValue?split(","))!>
     <#if (allowMultiple && currentValueList?exists && currentValueList?size > 1)><#assign currentValue=""></#if>
-
     <#assign currentDescription = (options.get(currentValue))!>
     <#assign optionsHasCurrent = currentDescription?has_content>
     <#if !optionsHasCurrent && .node["@current-description"]?has_content>
@@ -1590,7 +1608,6 @@ a => A, d => D, y => Y
             <option value="">&nbsp;</option>
         </#if>
     </#if>
-
     <#if !isDynamicOptions>
         <#list (options.keySet())! as key>
             <#assign isSelected = currentValue?has_content && currentValue == key>
@@ -1601,13 +1618,11 @@ a => A, d => D, y => Y
     </select>
     <#-- <span>[${currentValue}]; <#list currentValueList as curValue>[${curValue!''}], </#list></span> -->
     <#if allowMultiple><input type="hidden" id="${id}_op" name="${name}_op" value="in"></#if>
-
     <#if .node["@combo-box"]! == "true">
         <script>$("#${id}").select2({ tags: true, tokenSeparators:[',',' '], theme:'bootstrap' });</script>
     <#elseif .node["@search"]! != "false">
         <script>$("#${id}").select2({ ${select2DefaultOptions} });</script>
     </#if>
-
     <#if isDynamicOptions>
         <#assign doNode = .node["dynamic-options"][0]>
         <#assign depNodeList = doNode["depends-on"]>
@@ -1741,7 +1756,6 @@ a => A, d => D, y => Y
         <#if acShowValue><span id="${id}_value" class="form-autocomplete-value"><#if valueText?has_content>${valueText?html}<#else>&nbsp;</#if></span></#if>
         <#assign depNodeList = .node["depends-on"]>
         <script>
-
             $("#${id}_ac").autocomplete({
                 source: function(request, response) { $.ajax({
                     url: "${acUrlInfo.url}", type: "POST", dataType: "json", data: { term: request.term, moquiSessionToken: "${(ec.web.sessionToken)!}"<#list depNodeList as depNode>, '${depNode["@field"]}': $('#<@fieldIdByName depNode["@field"]/>').val()</#list><#list acUrlParameterMap?keys as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${acUrlParameterMap.get(parameterKey)}"</#if></#list> },
@@ -1766,7 +1780,6 @@ a => A, d => D, y => Y
                 });
             }
             </#if>
-
         </script>
     <#else>
         <input id="${id}" type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>" name="${name}" value="${fieldValue?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if ec.resource.condition(.node.@disabled!"false", "")> disabled="disabled"</#if> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if>"<#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
@@ -1789,9 +1802,7 @@ a => A, d => D, y => Y
             <option value="empty"<#rt/><#if defaultOperator == "empty"> selected="selected"</#if>>${ec.l10n.localize("Empty")}</option>
         </select>
     </#if>
-
     <input type="text" class="form-control" name="${curFieldName}" value="${sri.getFieldValueString(.node?parent?parent, .node["@default-value"]!"", null)?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if> id="<@fieldId .node/>"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.resource.expand(.node?parent["@tooltip"], "")}"</#if>>
-
     <#assign ignoreCase = (ec.web.parameters.get(curFieldName + "_ic")! == "Y") || !(.node["@ignore-case"]?has_content) || (.node["ignore-case"] == "true")>
     <#if .node["@hide-options"]! == "true" || .node["@hide-options"]! == "ignore-case">
         <input type="hidden" name="${curFieldName}_ic" value="Y"<#if ignoreCase> checked="checked"</#if>>
