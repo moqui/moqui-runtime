@@ -904,7 +904,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Save New Find")}</button>
                         </form></div>
                     <#else>
-                        <p>${ec.l10n.localize("No find parameters, choose some to save a new find or update an existing")}</p>
+                        <p>${ec.l10n.localize("No find parameters, choose some to save a new find or update existing")}</p>
                     </#if>
                     <#assign userFindInfoList = formInstance.getUserFormListFinds(ec)>
                     <#list userFindInfoList as userFindInfo>
@@ -1080,8 +1080,31 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if isHeaderDialog || isSavedFinds || isSelectColumns || isPaginated>
         <tr><th colspan="${numColumns}">
         <nav class="form-list-nav">
-            <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}-button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
-            <#if isSelectColumns><button id="${selectColumnsDialogId}-button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.l10n.localize("Columns")}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${ec.l10n.localize("Columns")}</button></#if>
+            <#if isSavedFinds>
+                <#assign userFindInfoList = formInstance.getUserFormListFinds(ec)>
+                <#if userFindInfoList?has_content>
+                    <#assign quickSavedFindId = formId + "_QuickSavedFind">
+                    <select id="${quickSavedFindId}">
+                        <option></option><#-- empty option for placeholder -->
+                        <option value="_clear" data-action="${sri.getScreenUrlInstance().url}">${ec.l10n.localize("Clear Current Find")}</option>
+                        <#list userFindInfoList as userFindInfo>
+                            <#assign formListFind = userFindInfo.formListFind>
+                            <#assign findParameters = userFindInfo.findParameters>
+                            <#assign doFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameters(findParameters).removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
+                            <option value="${formListFind.formListFindId}" <#if formListFind.formListFindId == ec.context.formListFindId!>selected="selected"</#if>data-action="${doFindUrl.urlWithParams}">${userFindInfo.description?html}</option>
+                        </#list>
+                    </select>
+                    <script>
+                        $("#${quickSavedFindId}").select2({ minimumResultsForSearch:10, theme:'bootstrap', placeholder:'${ec.l10n.localize("Saved Finds")}' });
+                        $("#${quickSavedFindId}").on('select2:select', function(evt) {
+                            var dataAction = $(evt.params.data.element).attr("data-action");
+                            if (dataAction) window.open(dataAction, "_self");
+                        } );
+                    </script>
+                </#if>
+            </#if>
+            <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}-button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
+            <#if isSelectColumns><button id="${selectColumnsDialogId}-button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.l10n.localize("Columns")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.l10n.localize("Columns")}</button></#if>
 
             <#if isPaginated>
                 <#assign curPageIndex = context[listName + "PageIndex"]>
@@ -1132,7 +1155,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <label class="sr-only" for="${formId}_GoPage_pageIndex">Page number</label>
                             <input type="text" class="form-control" size="4" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="${ec.l10n.localize("Page #")}">
                         </div>
-                        <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Go##Page")}</button>
+                        <button type="submit" class="btn btn-default">${ec.l10n.localize("Go##Page")}</button>
                     </form>
                     <script>
                         $("#${formId}_GoPage").validate({ errorClass: 'help-block', errorElement: 'span',
