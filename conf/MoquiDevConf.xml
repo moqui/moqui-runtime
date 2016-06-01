@@ -68,7 +68,8 @@
     </entity-facade>
 
     <repository-list>
-        <!-- <repository name="main" location="http://localhost:8081/rmi" type="rmi" workspace="default"
-                    username="admin" password="admin"/> -->
+        <!-- requires 'org.apache.jackrabbit:jackrabbit-jcr-rmi' in the classpath:
+        <repository name="main" workspace="default" username="admin" password="admin">
+            <parameter name="org.apache.jackrabbit.repository.uri" value="http://localhost:8081/rmi"/></repository> -->
     </repository-list>
 </moqui-conf>
