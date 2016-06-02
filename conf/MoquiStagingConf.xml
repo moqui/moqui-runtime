@@ -18,7 +18,7 @@
     </entity-facade>
 
     <repository-list>
-        <!-- <repository name="main" location="http://localhost:8081/rmi" type="rmi" workspace="staging"
-                    username="admin" password="admin"/> -->
+        <!-- <repository name="main" workspace="staging" username="admin" password="admin">
+            <parameter name="org.apache.jackrabbit.repository.uri" value="http://localhost:8081/rmi"/></repository> -->
     </repository-list>
 </moqui-conf>
