@@ -962,14 +962,17 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                                 <#assign caseInsensitive = showOrderBy == "case-insensitive">
                                                 <#assign orderFieldName = fieldNode["@name"]>
                                                 <#assign orderFieldTitle><@fieldTitle headerFieldNode/></#assign>
-                                                <option value="${"+" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} (Asc)</option>
-                                                <option value="${"-" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} (Desc)</option>
+                                                <option value="${"+" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} ${ec.l10n.localize("(Asc)")}</option>
+                                                <option value="${"-" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} ${ec.l10n.localize("(Desc)")}</option>
                                             </#if>
                                         </#if></#list>
                                     </select>
                                     <input type="hidden" id="${headerFormId}_orderByField" name="orderByField" value="${orderByField!""}">
                                     <script>
-                                        $("#${headerFormId}_orderBySelect").selectivity({ positionDropdown: function(dropdownEl, selectEl) { dropdownEl.css("width", "300px"); } });
+                                        $("#${headerFormId}_orderBySelect").selectivity({ positionDropdown: function(dropdownEl, selectEl) { dropdownEl.css("width", "300px"); } })[0].selectivity.filterResults = function(results) {
+                                            // Filter out asc and desc options if anyone selected.
+                                            return results.filter(function(item){return !this._data.some(function(data_item) {return data_item.id.substring(1) === item.id.substring(1);});}, this);
+                                        };
                                         <#assign orderByJsValue = formInstance.getOrderByActualJsString(ec.context.orderByField)>
                                         <#if orderByJsValue?has_content>$("#${headerFormId}_orderBySelect").selectivity("value", ${orderByJsValue});</#if>
                                         $("div#${headerFormId}_orderBySelect").on("change", function(evt) {
@@ -1291,7 +1294,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign defaultFieldNode = fieldNode["default-field"][0]!>
     <#assign containerStyle = ec.resource.expand(headerFieldNode["@container-style"]!, "")>
     <div class="form-title<#if containerStyle?has_content> ${containerStyle}</#if>">
-        <#if fieldSubNode["submit"]?has_content>&nbsp;<#else><#if headerFieldNode["@title"]?has_content><@fieldTitle headerFieldNode/><#elseif defaultFieldNode["@title"]?has_content><@fieldTitle defaultFieldNode/><#else><@fieldTitle fieldSubNode/></#if></#if>
+        <#if fieldSubNode["submit"]?has_content>&nbsp;<#else><@fieldTitle fieldSubNode/></#if>
         <#if fieldSubNode["@show-order-by"]! == "true" || fieldSubNode["@show-order-by"]! == "case-insensitive">
             <#assign caseInsensitive = fieldSubNode["@show-order-by"]! == "case-insensitive">
             <#assign curFieldName = fieldNode["@name"]>
@@ -1383,7 +1386,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
 <#macro fieldName widgetNode><#assign fieldNode=widgetNode?parent?parent/>${fieldNode["@name"]?html}<#if isMulti?exists && isMulti && listEntryIndex?has_content>_${listEntryIndex}</#if></#macro>
 <#macro fieldId widgetNode><#assign fieldNode=widgetNode?parent?parent/><#if fieldFormId?has_content>${fieldFormId}<#else>${ec.resource.expand(fieldNode?parent["@name"], "")}</#if>_${fieldNode["@name"]}<#if listEntryIndex?has_content>_${listEntryIndex}</#if><#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#macro>
-<#macro fieldTitle fieldSubNode><#assign titleValue><#if fieldSubNode["@title"]?has_content>${ec.resource.expand(fieldSubNode["@title"], "")}<#else><#list fieldSubNode?parent["@name"]?split("(?=[A-Z])", "r") as nameWord>${nameWord?cap_first?replace("Id", "ID")}<#if nameWord_has_next> </#if></#list></#if></#assign>${ec.l10n.localize(titleValue)}</#macro>
+<#macro fieldTitle fieldSubNode><#t>
+    <#t><#if (fieldSubNode?node_name == 'header-field')>
+        <#local fieldNode = fieldSubNode?parent>
+        <#local headerFieldNode = fieldNode["header-field"][0]!>
+        <#local defaultFieldNode = fieldNode["default-field"][0]!>
+        <#t><#if headerFieldNode["@title"]?has_content><#local fieldSubNode = headerFieldNode><#elseif defaultFieldNode["@title"]?has_content><#local fieldSubNode = defaultFieldNode></#if>
+    </#if>
+    <#t><#assign titleValue><#if fieldSubNode["@title"]?has_content>${ec.resource.expand(fieldSubNode["@title"], "")}<#else><#list fieldSubNode?parent["@name"]?split("(?=[A-Z])", "r") as nameWord>${nameWord?cap_first?replace("Id", "ID")}<#if nameWord_has_next> </#if></#list></#if></#assign>${ec.l10n.localize(titleValue)}
+</#macro>
 <#macro fieldIdByName fieldName><#if fieldFormId?has_content>${fieldFormId}<#else>${ec.resource.expand(formNode["@name"], "")}</#if>_${fieldName}<#if listEntryIndex?has_content>_${listEntryIndex}</#if><#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#macro>
 
 <#macro field><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
