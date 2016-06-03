@@ -962,8 +962,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                                 <#assign caseInsensitive = showOrderBy == "case-insensitive">
                                                 <#assign orderFieldName = fieldNode["@name"]>
                                                 <#assign orderFieldTitle><@fieldTitle headerFieldNode/></#assign>
-                                                <option value="${"+" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} (Asc)</option>
-                                                <option value="${"-" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} (Desc)</option>
+                                                <option value="${"+" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} ${ec.l10n.localize("(Asc)")}</option>
+                                                <option value="${"-" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} ${ec.l10n.localize("(Desc)")}</option>
                                             </#if>
                                         </#if></#list>
                                     </select>
