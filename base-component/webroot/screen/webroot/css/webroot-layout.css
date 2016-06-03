@@ -12,6 +12,11 @@
  * <http://creativecommons.org/publicdomain/zero/1.0/>.
  */
 
+IMG.moitloginlogo {
+	display: block;
+	margin-left: auto;
+	margin-right: auto
+}
 
 /* ========================== body, etc ========================== */
 
