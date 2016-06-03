@@ -969,7 +969,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                     </select>
                                     <input type="hidden" id="${headerFormId}_orderByField" name="orderByField" value="${orderByField!""}">
                                     <script>
-                                        $("#${headerFormId}_orderBySelect").selectivity({ positionDropdown: function(dropdownEl, selectEl) { dropdownEl.css("width", "300px"); } });
+                                        $("#${headerFormId}_orderBySelect").selectivity({ positionDropdown: function(dropdownEl, selectEl) { dropdownEl.css("width", "300px"); } })[0].selectivity.filterResults = function(results) {
+                                            // Filter out asc and desc options if anyone selected.
+                                            return results.filter(function(item){return !this._data.some(function(data_item) {return data_item.id.substring(1) === item.id.substring(1);});}, this);
+                                        };
                                         <#assign orderByJsValue = formInstance.getOrderByActualJsString(ec.context.orderByField)>
                                         <#if orderByJsValue?has_content>$("#${headerFormId}_orderBySelect").selectivity("value", ${orderByJsValue});</#if>
                                         $("div#${headerFormId}_orderBySelect").on("change", function(evt) {
