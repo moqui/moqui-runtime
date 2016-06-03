@@ -619,7 +619,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <div class="row">
                     <#list layoutNode?children as rowChildNode>
                         <#if rowChildNode?node_name == "field-ref">
-                            <div class="col-md-6">
+                            <div class="col-sm-6">
                                 <#assign fieldRef = rowChildNode["@name"]>
                                 <#assign fieldNode = "invalid">
                                 <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
@@ -628,7 +628,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <#else>
                                     <@formSingleSubField fieldNode formId true false/>
                                 </#if>
-                            </div><!-- /col-md-6 not bigRow -->
+                            </div><!-- /col-sm-6 not bigRow -->
                         <#elseif rowChildNode?node_name == "fields-not-referenced">
                             <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                             <#list nonReferencedFieldList as nonReferencedField>
@@ -669,13 +669,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#if rowContent?has_content>
                     <div class="form-group">
                         <#if layoutNode["@title"]?has_content>
-                        <label class="control-label col-md-2">${ec.resource.expand(layoutNode["@title"], "")}</label>
-                        <div class="col-md-10">
+                        <label class="control-label col-sm-2">${ec.resource.expand(layoutNode["@title"], "")}</label>
+                        <div class="col-sm-10">
                         <#else>
-                        <div class="col-md-12">
+                        <div class="col-sm-12">
                         </#if>
                             ${rowContent}
-                        </div><#-- /col-md-12 bigRow -->
+                        </div><#-- /col-sm-12 bigRow -->
                     </div><#-- /row -->
                     </#if>
                 <#elseif layoutNode?node_name == "field-group">
@@ -702,7 +702,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <div class="row">
                                 <#list groupNode?children as rowChildNode>
                                     <#if rowChildNode?node_name == "field-ref">
-                                        <div class="col-md-6">
+                                        <div class="col-sm-6">
                                             <#assign fieldRef = rowChildNode["@name"]>
                                             <#assign fieldNode = "invalid">
                                             <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
@@ -711,7 +711,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                             <#else>
                                                 <@formSingleSubField fieldNode formId true false/>
                                             </#if>
-                                        </div><#-- /col-md-6 not bigRow -->
+                                        </div><#-- /col-sm-6 not bigRow -->
                                     <#elseif rowChildNode?node_name == "fields-not-referenced">
                                         <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                                         <#list nonReferencedFieldList as nonReferencedField>
