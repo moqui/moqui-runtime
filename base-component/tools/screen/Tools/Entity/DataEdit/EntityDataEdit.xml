@@ -16,24 +16,24 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         default-menu-title="Edit" default-menu-index="3">
 
-    <parameter name="base_component_tools_EntityUtils_EntityName" required="true"/>
+    <parameter name="selectedEntity" required="true"/>
 
     <transition name="list"><default-response url="../EntityList"/></transition>
     <transition name="find"><default-response url="../EntityDataFind"/></transition>
     <transition name="edit"><default-response url="."/></transition>
     <transition name="update">
-        <actions><service-call name="update#${base_component_tools_EntityUtils_EntityName}" in-map="true"/></actions>
-        <default-response url="." parameter-map="ec.entity.getEntityDefinition(base_component_tools_EntityUtils_EntityName).getPrimaryKeys(context)"/>
+        <actions><service-call name="update#${selectedEntity}" in-map="true"/></actions>
+        <default-response url="." parameter-map="ec.entity.getEntityDefinition(selectedEntity).getPrimaryKeys(context)"/>
     </transition>
 
     <actions>
-        <set field="entityDefinition" from="ec.entity.getEntityDefinition(base_component_tools_EntityUtils_EntityName)"/>
+        <set field="entityDefinition" from="ec.entity.getEntityDefinition(selectedEntity)"/>
         <if condition="entityDefinition.getEntityGroupName() == 'tenantcommon'">
             <message error="true">Data find and edit not allowed for entities in the tenantcommon group</message><return/></if>
 
         <set field="dependentLevels" from="(dependentLevels ?: '0') as int"/>
-        <entity-find-one entity-name="${base_component_tools_EntityUtils_EntityName}" value-field="entityValue"/>
-        <set field="relationshipInfoList" from="ec.entity.getEntityDefinition(base_component_tools_EntityUtils_EntityName).getRelationshipsInfo(false)"/>
+        <entity-find-one entity-name="${selectedEntity}" value-field="entityValue"/>
+        <set field="relationshipInfoList" from="ec.entity.getEntityDefinition(selectedEntity).getRelationshipsInfo(false)"/>
         <script>
             if (entityValue) {
                 Map plainMap = entityValue.getPlainValueMap(dependentLevels)
@@ -48,11 +48,11 @@ along with this software (see the LICENSE.md file). If not, see
             <link url="list" text="Entity List"/>
             <link url="find" text="Find"/>
         </container>
-        <container><label text="Edit '${base_component_tools_EntityUtils_EntityName}' Entity Value" type="h3"/></container>
+        <container><label text="Edit '${selectedEntity}' Entity Value" type="h3"/></container>
         <form-single name="UpdateEntityValue" map="entityValue" transition="update" dynamic="true">
-            <auto-fields-entity entity-name="${base_component_tools_EntityUtils_EntityName}" include="pk" field-type="display"/>
-            <auto-fields-entity entity-name="${base_component_tools_EntityUtils_EntityName}" include="nonpk" field-type="edit"/>
-            <field name="base_component_tools_EntityUtils_EntityName" entry-name="base_component_tools_EntityUtils_EntityName"><default-field title="Entity Name"><hidden/></default-field></field>
+            <auto-fields-entity entity-name="${selectedEntity}" include="pk" field-type="display"/>
+            <auto-fields-entity entity-name="${selectedEntity}" include="nonpk" field-type="edit"/>
+            <field name="selectedEntity" entry-name="selectedEntity"><default-field title="Entity Name"><hidden/></default-field></field>
             <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
         </form-single>
         <form-list name="RelatedEntities" list="relationshipInfoList" list-entry="relInfo">
@@ -65,12 +65,12 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="link">
                 <conditional-field condition="relInfo.type == 'many' &amp;&amp; targetParameterMap">
                     <link text="Find" url="find" parameter-map="targetParameterMap">
-                        <parameter name="base_component_tools_EntityUtils_EntityName" from="relInfo.relatedEntityName"/>
+                        <parameter name="selectedEntity" from="relInfo.relatedEntityName"/>
                     </link>
                 </conditional-field>
                 <conditional-field condition="targetParameterMap">
                     <link text="Edit" url="edit" parameter-map="targetParameterMap">
-                        <parameter name="base_component_tools_EntityUtils_EntityName" from="relInfo.relatedEntityName"/>
+                        <parameter name="selectedEntity" from="relInfo.relatedEntityName"/>
                     </link>
                 </conditional-field>
                 <default-field><display text=" "/></default-field>
@@ -78,8 +78,8 @@ along with this software (see the LICENSE.md file). If not, see
         </form-list>
         <label text="JSON with Dependents" type="h5"/>
         <form-single name="LevelsForm" transition="." dynamic="true">
-            <auto-fields-entity entity-name="${base_component_tools_EntityUtils_EntityName}" field-type="hidden" include="pk"/>
-            <field name="base_component_tools_EntityUtils_EntityName"><default-field title="Entity Name"><hidden/></default-field></field>
+            <auto-fields-entity entity-name="${selectedEntity}" field-type="hidden" include="pk"/>
+            <field name="selectedEntity"><default-field title="Entity Name"><hidden/></default-field></field>
             <field name="dependentLevels"><default-field><text-line size="5"/></default-field></field>
             <field name="submitButton"><default-field title="Submit"><submit/></default-field></field>
             <field-layout><field-row-big><field-ref name="dependentLevels"/><field-ref name="submitButton"/></field-row-big></field-layout>

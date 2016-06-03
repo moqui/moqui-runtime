@@ -16,31 +16,31 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         default-menu-title="Find" default-menu-index="2">
 
-    <parameter name="base_component_tools_EntityUtils_EntityName" required="true"/>
+    <parameter name="selectedEntity" required="true"/>
 
     <transition name="list"><default-response url="../EntityList"/></transition>
     <transition name="find"><default-response url="."/></transition>
     <transition name="create">
-        <actions><service-call name="create#${base_component_tools_EntityUtils_EntityName}" in-map="true"/></actions>
+        <actions><service-call name="create#${selectedEntity}" in-map="true"/></actions>
         <default-response url="."/>
     </transition>
     <transition name="listSubmit">
         <actions>
             <if condition="delete">
-                <service-call name="delete#${base_component_tools_EntityUtils_EntityName}" in-map="true"/>
+                <service-call name="delete#${selectedEntity}" in-map="true"/>
             </if>
         </actions>
         <conditional-response url=".">
             <condition><expression>delete</expression></condition>
         </conditional-response>
-        <default-response url="../EntityDataEdit" parameter-map="ec.entity.getEntityDefinition(base_component_tools_EntityUtils_EntityName).getPrimaryKeys(context)"/>
+        <default-response url="../EntityDataEdit" parameter-map="ec.entity.getEntityDefinition(selectedEntity).getPrimaryKeys(context)"/>
     </transition>
 
     <actions>
-        <set field="entityDefinition" from="ec.entity.getEntityDefinition(base_component_tools_EntityUtils_EntityName)"/>
+        <set field="entityDefinition" from="ec.entity.getEntityDefinition(selectedEntity)"/>
         <if condition="entityDefinition.getEntityGroupName() == 'tenantcommon'">
             <message error="true">Data find and edit not allowed for entities in the tenantcommon group</message><return/></if>
-        <entity-find entity-name="${base_component_tools_EntityUtils_EntityName}" list="entityValueList" offset="0" limit="50">
+        <entity-find entity-name="${selectedEntity}" list="entityValueList" offset="0" limit="50">
             <search-form-inputs/>
         </entity-find>
     </actions>
@@ -49,25 +49,25 @@ along with this software (see the LICENSE.md file). If not, see
             <link url="list" text="Entity List"/>
             <container-dialog id="FindValueDialog" button-text="Find">
                 <form-single name="FindEntityValue" transition="find" dynamic="true">
-                    <auto-fields-entity entity-name="${base_component_tools_EntityUtils_EntityName}" field-type="find"/>
-                    <field name="base_component_tools_EntityUtils_EntityName"><default-field title="Entity Name"><hidden/></default-field></field>
+                    <auto-fields-entity entity-name="${selectedEntity}" field-type="find"/>
+                    <field name="selectedEntity"><default-field title="Entity Name"><hidden/></default-field></field>
                     <field name="submitButton"><default-field title="Find"><submit/></default-field></field>
                 </form-single>
             </container-dialog>
             <container-dialog id="CreateValueDialog" button-text="New Value">
                 <form-single name="CreateEntityValue" transition="create" dynamic="true">
-                    <auto-fields-entity entity-name="${base_component_tools_EntityUtils_EntityName}" field-type="edit"/>
-                    <field name="base_component_tools_EntityUtils_EntityName"><default-field title="Entity Name"><hidden/></default-field></field>
+                    <auto-fields-entity entity-name="${selectedEntity}" field-type="edit"/>
+                    <field name="selectedEntity"><default-field title="Entity Name"><hidden/></default-field></field>
                     <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
                 </form-single>
             </container-dialog>
         </container>
-        <container><label text="Find '${base_component_tools_EntityUtils_EntityName}' Entity Value" type="h3"/></container>
+        <container><label text="Find '${selectedEntity}' Entity Value" type="h3"/></container>
         <form-list name="ListEntityValue" list="entityValueList" transition="listSubmit" multi="false" dynamic="true">
-            <field name="base_component_tools_EntityUtils_EntityName"><default-field title="Entity Name"><hidden/></default-field></field>
+            <field name="selectedEntity"><default-field title="Entity Name"><hidden/></default-field></field>
             <field name="edit"><default-field title="Edit"><submit/></default-field></field>
             <field name="delete"><default-field title="Delete"><submit/></default-field></field>
-            <auto-fields-entity entity-name="${base_component_tools_EntityUtils_EntityName}" field-type="display"/>
+            <auto-fields-entity entity-name="${selectedEntity}" field-type="display"/>
         </form-list>
     </widgets>
 </screen>

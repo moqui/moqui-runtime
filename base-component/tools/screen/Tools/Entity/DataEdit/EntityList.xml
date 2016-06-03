@@ -50,10 +50,10 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><display also-hidden="false"/></default-field>
             </field>
             <field name="Find"><default-field>
-                <link url="find" text="Find" link-type="anchor" parameter-map="[base_component_tools_EntityUtils_EntityName:entityName]"/>
+                <link url="find" text="Find" link-type="anchor" parameter-map="[selectedEntity:entityName]"/>
             </default-field></field>
             <field name="Detail"><default-field>
-                <link url="detail" text="Detail" link-type="anchor" parameter-map="[base_component_tools_EntityUtils_EntityName:fullEntityName]"/>
+                <link url="detail" text="Detail" link-type="anchor" parameter-map="[selectedEntity:fullEntityName]"/>
             </default-field></field>
         </form-list>
     </widgets>
