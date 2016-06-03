@@ -296,7 +296,7 @@ ${sri.renderSection(.node["@name"])}
     <#assign cdDivId><@nodeId .node/></#assign>
     <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
     <#if _openDialog! == cdDivId><#assign afterScreenScript>$('#${cdDivId}').modal('show'); </#assign><#t>${sri.appendToScriptWriter(afterScreenScript)}</#if>
-    <div id="${cdDivId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
+    <div id="${cdDivId}" class="modal container-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
         <div class="modal-dialog" style="width: ${.node["@width"]!"600"}px;">
             <div class="modal-content">
                 <div class="modal-header">
@@ -310,7 +310,7 @@ ${sri.renderSection(.node["@name"])}
             </div>
         </div>
     </div>
-    <script>$('#${cdDivId}').on('shown.bs.modal', function() {$("#${cdDivId} select").select2({ ${select2DefaultOptions} });})</script>
+    <script>$('#${cdDivId}').on('shown.bs.modal', function() {$("#${cdDivId} select").select2({ ${select2DefaultOptions} });});</script>
 </#macro>
 
 <#macro "dynamic-container">
@@ -318,7 +318,7 @@ ${sri.renderSection(.node["@name"])}
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", dcDivId)>
     <div id="${dcDivId}"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>
     <script>
-        function load${dcDivId}() { $("#${dcDivId}").load("${urlInstance.passThroughSpecialParameters().urlWithParams}", function() { <#-- activateAllButtons() --> }) }
+        function load${dcDivId}() { $("#${dcDivId}").load("${urlInstance.passThroughSpecialParameters().urlWithParams}", function() { <#-- activateAllButtons() --> }); }
         load${dcDivId}();
     </script>
 </#macro>
@@ -329,7 +329,7 @@ ${sri.renderSection(.node["@name"])}
     <#assign ddDivId><@nodeId .node/></#assign>
 
     <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
-    <div id="${ddDivId}" class="modal fade dynamic-dialog" aria-hidden="true" style="display: none;">
+    <div id="${ddDivId}" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
         <div class="modal-dialog" style="width: ${.node["@width"]!"600"}px;">
             <div class="modal-content">
                 <div class="modal-header">
@@ -872,7 +872,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign headerFormDialogId = formId + "_hdialog">
         <#assign headerFormId = formId + "_header">
         <#assign headerFormButtonText = ec.l10n.localize("Find Options")>
-        <div id="${headerFormDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
+        <div id="${headerFormDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
             <div class="modal-dialog" style="width: 800px;"><div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -1009,7 +1009,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign selectColumnsDialogId = formId + "_SelColsDialog">
         <#assign selectColumnsSortableId = formId + "_SelColsSortable">
         <#assign fieldsNotInColumns = formInstance.getFieldsNotReferencedInFormListColumn()>
-        <div id="${selectColumnsDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
+        <div id="${selectColumnsDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
             <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
