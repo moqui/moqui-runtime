@@ -16,22 +16,22 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         default-menu-title="Entity Detail">
 
-    <parameter name="entityName" required="true"/>
+    <parameter name="base_component_tools_EntityUtils_EntityName" required="true"/>
     <parameter name="refresh" required="false"/>
 
     <transition name="list"><default-response url="../EntityList"/></transition>
     <transition name="find"><default-response url="../EntityDataFind"/></transition>
     <transition name="checkTable">
-        <actions><script>ec.entity.entityDbMeta.forceCheckTableRuntime(ec.entity.getEntityDefinition(entityName))</script></actions>
+        <actions><script>ec.entity.entityDbMeta.forceCheckTableRuntime(ec.entity.getEntityDefinition(base_component_tools_EntityUtils_EntityName))</script></actions>
         <default-response url="."/>
     </transition>
 
     <actions>
-        <set field="entityDefinition" from="ec.entity.getEntityDefinition(entityName)"/>
+        <set field="entityDefinition" from="ec.entity.getEntityDefinition(base_component_tools_EntityUtils_EntityName)"/>
         <set field="entityNode" from="entityDefinition.getEntityNode()"/>
         <set field="fieldNodes" from="entityDefinition.getFieldNodes(true, true, false)"/>
         <entity-find entity-name="moqui.entity.UserField" list="userFieldList">
-            <econdition field-name="entityName" from="entityDefinition.fullEntityName"/>
+            <econdition field-name="base_component_tools_EntityUtils_EntityName" from="entityDefinition.fullEntityName"/>
             <order-by field-name="fieldName"/>
         </entity-find>
         <set field="relationshipInfoList" from="entityDefinition.getRelationshipsInfo(false)"/>
@@ -85,8 +85,8 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="keyMap"><default-field><display/></default-field></field>
             <field name="link">
                 <default-field title="">
-                    <link text="Detail" url="." link-type="anchor"><parameter name="entityName" from="relInfo.relatedEntityName"/></link>
-                    <link text="Find" url="find" link-type="anchor"><parameter name="entityName" from="relInfo.relatedEntityName"/></link>
+                    <link text="Detail" url="." link-type="anchor"><parameter name="base_component_tools_EntityUtils_EntityName" from="relInfo.relatedEntityName"/></link>
+                    <link text="Find" url="find" link-type="anchor"><parameter name="base_component_tools_EntityUtils_EntityName" from="relInfo.relatedEntityName"/></link>
                 </default-field>
             </field>
         </form-list>
@@ -95,7 +95,7 @@ along with this software (see the LICENSE.md file). If not, see
         <label text="${dependents.toString()}" type="pre" encode="true"/>
         <label text="All Descendants:" type="h5"/>
         <section-iterate name="DescendantList" list="dependents.allDescendants" entry="descendantName">
-            <widgets><container><link url="." text="${descendantName}" parameter-map="[entityName:descendantName]" link-type="anchor"/></container></widgets>
+            <widgets><container><link url="." text="${descendantName}" parameter-map="[base_component_tools_EntityUtils_EntityName:descendantName]" link-type="anchor"/></container></widgets>
         </section-iterate>
     </widgets>
 </screen>
