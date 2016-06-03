@@ -30,6 +30,7 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <form-list name="HistoryList" list="historyList" skip-form="true">
+            <field name="entitySyncId"><header-field><hidden/></header-field></field>
             <field name="startDate">
                 <header-field show-order-by="true"><date-period/></header-field>
                 <default-field><display/></default-field>
@@ -67,10 +68,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><display/></default-field>
             </field>
             <field name="errorMessage">
+                <header-field><submit text="Find"/></header-field>
                 <default-field><display/></default-field>
-            </field>
-            <field name="find">
-                <header-field title="Find"><submit/></header-field>
             </field>
 
             <form-list-column><field-ref name="startDate"/><field-ref name="finishDate"/></form-list-column>
@@ -78,7 +77,6 @@ along with this software (see the LICENSE.md file). If not, see
             <form-list-column><field-ref name="exclusiveFromTime"/><field-ref name="inclusiveThruTime"/></form-list-column>
             <form-list-column><field-ref name="recordsStored"/><field-ref name="runningTimeMillis"/></form-list-column>
             <form-list-column><field-ref name="errorMessage"/></form-list-column>
-            <form-list-column><field-ref name="find"/></form-list-column>
         </form-list>
     </widgets>
 </screen>
