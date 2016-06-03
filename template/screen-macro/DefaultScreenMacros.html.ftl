@@ -78,7 +78,7 @@ along with this software (see the LICENSE.md file). If not, see
             </ul>
         </#if>
         <#-- add to navbar bread crumbs too -->
-        <div id="${menuId}-crumb" class="navbar-text">${ec.resource.expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></div>
+        <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.resource.expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
         <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
     </#if>
 </#macro>
@@ -148,7 +148,7 @@ along with this software (see the LICENSE.md file). If not, see
             </ul>
         </#if>
         <#-- add to navbar bread crumbs too -->
-        <div id="${menuId}-crumb" class="navbar-text">${ec.resource.expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></div>
+        <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.resource.expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
         <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
 
         <#if !dynamic || !displayMenu>
