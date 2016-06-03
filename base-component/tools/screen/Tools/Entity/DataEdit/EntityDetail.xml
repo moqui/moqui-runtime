@@ -31,7 +31,7 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="entityNode" from="entityDefinition.getEntityNode()"/>
         <set field="fieldNodes" from="entityDefinition.getFieldNodes(true, true, false)"/>
         <entity-find entity-name="moqui.entity.UserField" list="userFieldList">
-            <econdition field-name="selectedEntity" from="entityDefinition.fullEntityName"/>
+            <econdition field-name="entityName" from="entityDefinition.fullEntityName"/>
             <order-by field-name="fieldName"/>
         </entity-find>
         <set field="relationshipInfoList" from="entityDefinition.getRelationshipsInfo(false)"/>
