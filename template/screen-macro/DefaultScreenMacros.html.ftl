@@ -775,12 +775,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro formSingleSubField fieldNode formId inFieldRow bigRow>
     <#list fieldNode["conditional-field"] as fieldSubNode>
         <#if ec.resource.condition(fieldSubNode["@condition"], "")>
-            <@formSingleWidget fieldSubNode formId "col-md" inFieldRow bigRow/>
+            <@formSingleWidget fieldSubNode formId "col-sm" inFieldRow bigRow/>
             <#return>
         </#if>
     </#list>
     <#if fieldNode["default-field"]?has_content>
-        <@formSingleWidget fieldNode["default-field"][0] formId "col-md" inFieldRow bigRow/>
+        <@formSingleWidget fieldNode["default-field"][0] formId "col-sm" inFieldRow bigRow/>
         <#return>
     </#if>
 </#macro>
