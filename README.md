@@ -4,7 +4,11 @@
 [![release](http://img.shields.io/github/release/moqui/moqui-runtime.svg)](https://github.com/moqui/moqui-runtime/releases)
 [![commits since release](http://img.shields.io/github/commits-since/moqui/moqui-runtime/v1.6.2.svg)](https://github.com/moqui/moqui-runtime/commits/master)
 [![downloads](http://img.shields.io/github/downloads/moqui/moqui-runtime/total.svg)](https://github.com/moqui/moqui-runtime/releases)
-[![Join the chat at https://gitter.im/moqui/moqui-framework](https://badges.gitter.im/moqui/moqui-framework.svg)](https://gitter.im/moqui/moqui-framework?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+[![LinkedIn Group](https://img.shields.io/badge/linked%20in%20group-moqui-blue.svg)](https://www.linkedin.com/groups/4640689)
+[![Google Group](https://img.shields.io/badge/google%20group-moqui-blue.svg)](https://groups.google.com/d/forum/moqui)
+[![Gitter Chat at https://gitter.im/moqui/moqui-framework](https://badges.gitter.im/moqui/moqui-framework.svg)](https://gitter.im/moqui/moqui-framework?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Stack Overflow](https://img.shields.io/badge/stack%20overflow-moqui-blue.svg)](http://stackoverflow.com/questions/tagged/moqui)
 
 The default runtime directory for Moqui Framework. A runtime directory is required for Moqui Framework to run.
 
