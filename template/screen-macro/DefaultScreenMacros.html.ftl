@@ -868,6 +868,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
+    <#assign currentFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("formListFindId")>
+    <#assign currentFindUrlParms = currentFindUrl.getParameterMap()>
     <#if isSavedFinds || isHeaderDialog>
         <#assign headerFormDialogId = formId + "_hdialog">
         <#assign headerFormId = formId + "_header">
@@ -884,18 +886,16 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if isSavedFinds>
                     <#assign activeFormListFind = formInstance.getActiveFormListFind(ec)!>
                     <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").url>
-                    <#assign saveFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("formListFindId")>
-                    <#assign saveFindUrlParms = saveFindUrl.getParameterMap()>
                     <#assign descLabel = ec.l10n.localize("Description")>
                     <#if activeFormListFind?has_content>
                         <h5>Active Saved Find: ${activeFormListFind.description?html}</h5>
                     </#if>
-                    <#if saveFindUrlParms?has_content>
+                    <#if currentFindUrlParms?has_content>
                         <div><form class="form-inline" id="${formId}_NewFind" method="post" action="${formSaveFindUrl}">
                             <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
                             <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
-                            <#list saveFindUrlParms.keySet() as parmName>
-                                <input type="hidden" name="${parmName}" value="${saveFindUrlParms.get(parmName)!?html}">
+                            <#list currentFindUrlParms.keySet() as parmName>
+                                <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
                             </#list>
                             <div class="form-group">
                                 <label class="sr-only" for="${formId}_NewFind_description">${descLabel}</label>
@@ -913,13 +913,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#assign doFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameters(findParameters).removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
                         <#assign saveFindFormId = formId + "_SaveFind" + userFindInfo_index>
                         <div>
-                        <#if saveFindUrlParms?has_content>
+                        <#if currentFindUrlParms?has_content>
                             <form class="form-inline" id="${saveFindFormId}" method="post" action="${formSaveFindUrl}">
                                 <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
                                 <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
                                 <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
-                                <#list saveFindUrlParms.keySet() as parmName>
-                                    <input type="hidden" name="${parmName}" value="${saveFindUrlParms.get(parmName)!?html}">
+                                <#list currentFindUrlParms.keySet() as parmName>
+                                    <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
                                 </#list>
                                 <div class="form-group">
                                     <label class="sr-only" for="${saveFindFormId}_description">${descLabel}</label>
@@ -1044,6 +1044,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
                         <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
                         <input type="hidden" id="${formId}_SelColsForm_columnsTree" name="columnsTree" value="">
+                        <#if currentFindUrlParms?has_content><#list currentFindUrlParms.keySet() as parmName>
+                            <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
+                        </#list></#if>
                         <input type="submit" name="SaveColumns" value="${ec.l10n.localize("Save Columns")}" class="btn btn-primary btn-sm"/>
                         <input type="submit" name="ResetColumns" value="${ec.l10n.localize("Reset to Default")}" class="btn btn-primary btn-sm"/>
                     </form>
