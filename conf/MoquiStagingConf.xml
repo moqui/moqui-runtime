@@ -16,9 +16,4 @@
     <entity-facade crypt-pass="MoquiDefaultPassword:CHANGEME">
         <!-- add datasource elements here to configure databases -->
     </entity-facade>
-
-    <repository-list>
-        <!-- <repository name="main" workspace="staging" username="admin" password="admin">
-            <parameter name="org.apache.jackrabbit.repository.uri" value="http://localhost:8081/rmi"/></repository> -->
-    </repository-list>
 </moqui-conf>
