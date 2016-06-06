@@ -47,7 +47,14 @@
         <artifact-stats type="AT_ENTITY" persist-bin="true"/>
     </server-stats>
 
-    <webapp-list><webapp name="webroot" https-enabled="false"/></webapp-list>
+    <webapp-list>
+        <webapp name="webroot" https-enabled="false">
+            <servlet name="H2Console" class="org.h2.server.web.WebServlet" load-on-startup="1">
+                <!-- <init-param name="webAllowOthers" value=""/><init-param name="trace" value=""/> -->
+                <url-pattern>/h2/*</url-pattern>
+            </servlet>
+        </webapp>
+    </webapp-list>
     <artifact-execution-facade>
         <!-- turn off tarpit in dev mode -->
         <artifact-execution type="AT_XML_SCREEN" tarpit-enabled="false"/>
