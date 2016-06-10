@@ -78,7 +78,7 @@ along with this software (see the LICENSE.md file). If not, see
             </ul>
         </#if>
         <#-- add to navbar bread crumbs too -->
-        <div id="${menuId}-crumb" class="navbar-text">${ec.resource.expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></div>
+        <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.resource.expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
         <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
     </#if>
 </#macro>
@@ -148,7 +148,7 @@ along with this software (see the LICENSE.md file). If not, see
             </ul>
         </#if>
         <#-- add to navbar bread crumbs too -->
-        <div id="${menuId}-crumb" class="navbar-text">${ec.resource.expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></div>
+        <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.resource.expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
         <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
 
         <#if !dynamic || !displayMenu>
@@ -296,7 +296,7 @@ ${sri.renderSection(.node["@name"])}
     <#assign cdDivId><@nodeId .node/></#assign>
     <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
     <#if _openDialog! == cdDivId><#assign afterScreenScript>$('#${cdDivId}').modal('show'); </#assign><#t>${sri.appendToScriptWriter(afterScreenScript)}</#if>
-    <div id="${cdDivId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
+    <div id="${cdDivId}" class="modal container-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
         <div class="modal-dialog" style="width: ${.node["@width"]!"600"}px;">
             <div class="modal-content">
                 <div class="modal-header">
@@ -310,7 +310,7 @@ ${sri.renderSection(.node["@name"])}
             </div>
         </div>
     </div>
-    <script>$('#${cdDivId}').on('shown.bs.modal', function() {$("#${cdDivId} select").select2({ ${select2DefaultOptions} });})</script>
+    <script>$('#${cdDivId}').on('shown.bs.modal', function() {$("#${cdDivId} select").select2({ ${select2DefaultOptions} });});</script>
 </#macro>
 
 <#macro "dynamic-container">
@@ -318,7 +318,7 @@ ${sri.renderSection(.node["@name"])}
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", dcDivId)>
     <div id="${dcDivId}"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>
     <script>
-        function load${dcDivId}() { $("#${dcDivId}").load("${urlInstance.passThroughSpecialParameters().urlWithParams}", function() { <#-- activateAllButtons() --> }) }
+        function load${dcDivId}() { $("#${dcDivId}").load("${urlInstance.passThroughSpecialParameters().urlWithParams}", function() { <#-- activateAllButtons() --> }); }
         load${dcDivId}();
     </script>
 </#macro>
@@ -329,7 +329,7 @@ ${sri.renderSection(.node["@name"])}
     <#assign ddDivId><@nodeId .node/></#assign>
 
     <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
-    <div id="${ddDivId}" class="modal fade dynamic-dialog" aria-hidden="true" style="display: none;">
+    <div id="${ddDivId}" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
         <div class="modal-dialog" style="width: ${.node["@width"]!"600"}px;">
             <div class="modal-content">
                 <div class="modal-header">
@@ -619,7 +619,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <div class="row">
                     <#list layoutNode?children as rowChildNode>
                         <#if rowChildNode?node_name == "field-ref">
-                            <div class="col-md-6">
+                            <div class="col-sm-6">
                                 <#assign fieldRef = rowChildNode["@name"]>
                                 <#assign fieldNode = "invalid">
                                 <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
@@ -628,7 +628,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <#else>
                                     <@formSingleSubField fieldNode formId true false/>
                                 </#if>
-                            </div><!-- /col-md-6 not bigRow -->
+                            </div><!-- /col-sm-6 not bigRow -->
                         <#elseif rowChildNode?node_name == "fields-not-referenced">
                             <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                             <#list nonReferencedFieldList as nonReferencedField>
@@ -669,13 +669,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#if rowContent?has_content>
                     <div class="form-group">
                         <#if layoutNode["@title"]?has_content>
-                        <label class="control-label col-md-2">${ec.resource.expand(layoutNode["@title"], "")}</label>
-                        <div class="col-md-10">
+                        <label class="control-label col-sm-2">${ec.resource.expand(layoutNode["@title"], "")}</label>
+                        <div class="col-sm-10">
                         <#else>
-                        <div class="col-md-12">
+                        <div class="col-sm-12">
                         </#if>
                             ${rowContent}
-                        </div><#-- /col-md-12 bigRow -->
+                        </div><#-- /col-sm-12 bigRow -->
                     </div><#-- /row -->
                     </#if>
                 <#elseif layoutNode?node_name == "field-group">
@@ -702,7 +702,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <div class="row">
                                 <#list groupNode?children as rowChildNode>
                                     <#if rowChildNode?node_name == "field-ref">
-                                        <div class="col-md-6">
+                                        <div class="col-sm-6">
                                             <#assign fieldRef = rowChildNode["@name"]>
                                             <#assign fieldNode = "invalid">
                                             <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
@@ -711,7 +711,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                             <#else>
                                                 <@formSingleSubField fieldNode formId true false/>
                                             </#if>
-                                        </div><#-- /col-md-6 not bigRow -->
+                                        </div><#-- /col-sm-6 not bigRow -->
                                     <#elseif rowChildNode?node_name == "fields-not-referenced">
                                         <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
                                         <#list nonReferencedFieldList as nonReferencedField>
@@ -775,12 +775,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro formSingleSubField fieldNode formId inFieldRow bigRow>
     <#list fieldNode["conditional-field"] as fieldSubNode>
         <#if ec.resource.condition(fieldSubNode["@condition"], "")>
-            <@formSingleWidget fieldSubNode formId "col-md" inFieldRow bigRow/>
+            <@formSingleWidget fieldSubNode formId "col-sm" inFieldRow bigRow/>
             <#return>
         </#if>
     </#list>
     <#if fieldNode["default-field"]?has_content>
-        <@formSingleWidget fieldNode["default-field"][0] formId "col-md" inFieldRow bigRow/>
+        <@formSingleWidget fieldNode["default-field"][0] formId "col-sm" inFieldRow bigRow/>
         <#return>
     </#if>
 </#macro>
@@ -868,11 +868,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
+    <#assign currentFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("formListFindId")>
+    <#assign currentFindUrlParms = currentFindUrl.getParameterMap()>
     <#if isSavedFinds || isHeaderDialog>
         <#assign headerFormDialogId = formId + "_hdialog">
         <#assign headerFormId = formId + "_header">
         <#assign headerFormButtonText = ec.l10n.localize("Find Options")>
-        <div id="${headerFormDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
+        <div id="${headerFormDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
             <div class="modal-dialog" style="width: 800px;"><div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -884,18 +886,16 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if isSavedFinds>
                     <#assign activeFormListFind = formInstance.getActiveFormListFind(ec)!>
                     <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").url>
-                    <#assign saveFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("formListFindId")>
-                    <#assign saveFindUrlParms = saveFindUrl.getParameterMap()>
                     <#assign descLabel = ec.l10n.localize("Description")>
                     <#if activeFormListFind?has_content>
                         <h5>Active Saved Find: ${activeFormListFind.description?html}</h5>
                     </#if>
-                    <#if saveFindUrlParms?has_content>
+                    <#if currentFindUrlParms?has_content>
                         <div><form class="form-inline" id="${formId}_NewFind" method="post" action="${formSaveFindUrl}">
                             <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
                             <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
-                            <#list saveFindUrlParms.keySet() as parmName>
-                                <input type="hidden" name="${parmName}" value="${saveFindUrlParms.get(parmName)!?html}">
+                            <#list currentFindUrlParms.keySet() as parmName>
+                                <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
                             </#list>
                             <div class="form-group">
                                 <label class="sr-only" for="${formId}_NewFind_description">${descLabel}</label>
@@ -904,7 +904,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Save New Find")}</button>
                         </form></div>
                     <#else>
-                        <p>${ec.l10n.localize("No find parameters, choose some to save a new find or update an existing")}</p>
+                        <p>${ec.l10n.localize("No find parameters, choose some to save a new find or update existing")}</p>
                     </#if>
                     <#assign userFindInfoList = formInstance.getUserFormListFinds(ec)>
                     <#list userFindInfoList as userFindInfo>
@@ -913,13 +913,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#assign doFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameters(findParameters).removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
                         <#assign saveFindFormId = formId + "_SaveFind" + userFindInfo_index>
                         <div>
-                        <#if saveFindUrlParms?has_content>
+                        <#if currentFindUrlParms?has_content>
                             <form class="form-inline" id="${saveFindFormId}" method="post" action="${formSaveFindUrl}">
                                 <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
                                 <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
                                 <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
-                                <#list saveFindUrlParms.keySet() as parmName>
-                                    <input type="hidden" name="${parmName}" value="${saveFindUrlParms.get(parmName)!?html}">
+                                <#list currentFindUrlParms.keySet() as parmName>
+                                    <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
                                 </#list>
                                 <div class="form-group">
                                     <label class="sr-only" for="${saveFindFormId}_description">${descLabel}</label>
@@ -1009,7 +1009,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign selectColumnsDialogId = formId + "_SelColsDialog">
         <#assign selectColumnsSortableId = formId + "_SelColsSortable">
         <#assign fieldsNotInColumns = formInstance.getFieldsNotReferencedInFormListColumn()>
-        <div id="${selectColumnsDialogId}" class="modal fade container-dialog" aria-hidden="true" style="display: none;">
+        <div id="${selectColumnsDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
             <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -1044,6 +1044,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <input type="hidden" name="moquiSessionToken" value="${(ec.web.sessionToken)!}">
                         <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
                         <input type="hidden" id="${formId}_SelColsForm_columnsTree" name="columnsTree" value="">
+                        <#if currentFindUrlParms?has_content><#list currentFindUrlParms.keySet() as parmName>
+                            <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
+                        </#list></#if>
                         <input type="submit" name="SaveColumns" value="${ec.l10n.localize("Save Columns")}" class="btn btn-primary btn-sm"/>
                         <input type="submit" name="ResetColumns" value="${ec.l10n.localize("Reset to Default")}" class="btn btn-primary btn-sm"/>
                     </form>
@@ -1083,8 +1086,31 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if isHeaderDialog || isSavedFinds || isSelectColumns || isPaginated>
         <tr><th colspan="${numColumns}">
         <nav class="form-list-nav">
-            <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}-button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
-            <#if isSelectColumns><button id="${selectColumnsDialogId}-button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.l10n.localize("Columns")}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${ec.l10n.localize("Columns")}</button></#if>
+            <#if isSavedFinds>
+                <#assign userFindInfoList = formInstance.getUserFormListFinds(ec)>
+                <#if userFindInfoList?has_content>
+                    <#assign quickSavedFindId = formId + "_QuickSavedFind">
+                    <select id="${quickSavedFindId}">
+                        <option></option><#-- empty option for placeholder -->
+                        <option value="_clear" data-action="${sri.getScreenUrlInstance().url}">${ec.l10n.localize("Clear Current Find")}</option>
+                        <#list userFindInfoList as userFindInfo>
+                            <#assign formListFind = userFindInfo.formListFind>
+                            <#assign findParameters = userFindInfo.findParameters>
+                            <#assign doFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameters(findParameters).removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
+                            <option value="${formListFind.formListFindId}" <#if formListFind.formListFindId == ec.context.formListFindId!>selected="selected"</#if>data-action="${doFindUrl.urlWithParams}">${userFindInfo.description?html}</option>
+                        </#list>
+                    </select>
+                    <script>
+                        $("#${quickSavedFindId}").select2({ minimumResultsForSearch:10, theme:'bootstrap', placeholder:'${ec.l10n.localize("Saved Finds")}' });
+                        $("#${quickSavedFindId}").on('select2:select', function(evt) {
+                            var dataAction = $(evt.params.data.element).attr("data-action");
+                            if (dataAction) window.open(dataAction, "_self");
+                        } );
+                    </script>
+                </#if>
+            </#if>
+            <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}-button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
+            <#if isSelectColumns><button id="${selectColumnsDialogId}-button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.l10n.localize("Columns")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.l10n.localize("Columns")}</button></#if>
 
             <#if isPaginated>
                 <#assign curPageIndex = context[listName + "PageIndex"]>
@@ -1135,7 +1161,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <label class="sr-only" for="${formId}_GoPage_pageIndex">Page number</label>
                             <input type="text" class="form-control" size="4" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="${ec.l10n.localize("Page #")}">
                         </div>
-                        <button type="submit" class="btn btn-primary btn-sm">${ec.l10n.localize("Go##Page")}</button>
+                        <button type="submit" class="btn btn-default">${ec.l10n.localize("Go##Page")}</button>
                     </form>
                     <script>
                         $("#${formId}_GoPage").validate({ errorClass: 'help-block', errorElement: 'span',

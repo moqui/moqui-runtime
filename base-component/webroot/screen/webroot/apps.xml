@@ -55,6 +55,8 @@ along with this software (see the LICENSE.md file). If not, see
         // Drop-down (Select2, Selectivity)
         html_scripts.add('/lib/select2/select2.min.js')
         html_scripts.add('/lib/selectivity/selectivity-full.min.js')
+        // Notify/Growl (Bootstrap Notify)
+        html_scripts.add('/lib/bootstrap-notify/bootstrap-notify.min.js')
         // Tree (JSTree)
         html_scripts.add('/lib/jstree/jstree.min.js')
         // Inline Editable
