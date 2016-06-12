@@ -45,9 +45,14 @@
             }
         }
         function NotifySettings(type) {
-            this.delay = 5000; this.offset = { x:20, y:70 };
+            this.delay = 6000; this.offset = { x:20, y:70 };
             this.animate = { enter:'animated fadeInDown', exit:'animated fadeOutUp' };
             if (type) { this.type = type; } else { this.type = 'info'; }
+            this.template = '<div data-notify="container" class="notify-container col-xs-11 col-sm-3 alert alert-{0}" role="alert">' +
+            		'<button type="button" aria-hidden="true" class="close" data-notify="dismiss">&times;</button>' +
+            		'<span data-notify="icon"></span> <span data-notify="message">{2}</span>' +
+            		'<a href="{3}" target="{4}" data-notify="url"></a>' +
+            	'</div>'
         }
         function NotificationClient(webSocketUrl) {
             this.displayEnable = true;
