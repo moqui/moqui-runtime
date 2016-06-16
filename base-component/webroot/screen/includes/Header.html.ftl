@@ -75,6 +75,8 @@
                     var jsonObj = JSON.parse(event.data);
                     var callbacks = this.clientObj.topicListeners[jsonObj.topic];
                     if (callbacks) callbacks.forEach(function(callback) { callback(jsonObj, this) }, this);
+                    var allCallbacks = this.clientObj.topicListeners["ALL"];
+                    if (allCallbacks) allCallbacks.forEach(function(allCallbacks) { allCallbacks(jsonObj, this) }, this);
                 };
                 this.webSocket.onclose = function(event) { console.log(event); };
                 this.webSocket.onerror = function(event) { console.log(event); };
@@ -107,7 +109,7 @@
     you can register more than one listener method for the same topic):
 <#if ec.factory.serverContainer?has_content>
     <script>
-        notificationClient.registerListener("MantleTask");
+        notificationClient.registerListener("ALL"); // register for all topics
         notificationClient.registerListener("MantleEvent", notificationClient.displayNotify);
     </script>
 </#if>
