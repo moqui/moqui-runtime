@@ -5,13 +5,12 @@
     https://github.com/moqui/moqui-framework/blob/master/framework/src/main/resources/MoquiDefaultConf.xml -->
 <moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-2.0.xsd">
 
-    <tools empty-db-load="seed,seed-initial,install"/>
-
     <server-stats stats-skip-condition="pathInfo?.startsWith('/rpc') || pathInfo?.startsWith('/rest') || pathInfo?.startsWith('/status')"/>
 
-    <webapp-list><webapp name="webroot" https-enabled="false"/></webapp-list>
-
-    <screen-facade boundary-comments="true"/>
+    <webapp-list>
+        <!-- NOTE: when you set https-enabled="true" make sure to set the http-port and https-port attributes -->
+        <webapp name="webroot" http-port="" http-host="" https-port="" https-host="" https-enabled="false"/>
+    </webapp-list>
 
     <entity-facade crypt-pass="MoquiDefaultPassword:CHANGEME">
         <!-- add datasource elements here to configure databases -->
