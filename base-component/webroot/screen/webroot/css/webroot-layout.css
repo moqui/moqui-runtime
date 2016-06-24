@@ -152,7 +152,7 @@ input[type=radio], input[type=checkbox] { height: auto; }
 
 .select2-container { display: inline-block; min-width: 60px; }
 .date-period .select2-container--bootstrap { display: inline-block; }
-.select2-container--bootstrap .select2-selection--single { padding: 6px 20px 6px 12px; }
+.select2-container--bootstrap .select2-selection--single { padding: 6px 12px 6px 12px; }
 
 a.jstree-anchor { white-space: normal; }
 .jstree-default .jstree-anchor { height: auto; }
