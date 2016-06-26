@@ -60,7 +60,6 @@
         <artifact-execution type="AT_XML_SCREEN" tarpit-enabled="false"/>
         <artifact-execution type="AT_XML_SCREEN_TRANS" tarpit-enabled="false"/>
         <artifact-execution type="AT_SERVICE" tarpit-enabled="false"/>
-        <artifact-execution type="AT_ENTITY" tarpit-enabled="false"/>
     </artifact-execution-facade>
 
     <screen-facade boundary-comments="true">

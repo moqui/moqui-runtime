@@ -1165,7 +1165,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </form>
                     <script>
                         $("#${formId}_GoPage").validate({ errorClass: 'help-block', errorElement: 'span',
-                            rules: { pageIndex: { required:true, min:1, max:${curPageMaxIndex + 1} } },
+                            rules: { pageIndex: { required:true, min:1, max:${(curPageMaxIndex + 1)?c} } },
                             highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
                             unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); },
                             <#-- show 1-based index to user but server expects 0-based index -->

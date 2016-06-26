@@ -17,7 +17,12 @@ along with this software (see the LICENSE.md file). If not, see
         default-menu-title="Index" default-menu-index="2">
 
     <transition name="indexFeedDocuments">
-        <service-call name="org.moqui.impl.EntityServices.index#DataFeedDocuments" in-map="context"/>
+        <!-- <service-call name="org.moqui.impl.EntityServices.index#DataFeedDocuments" in-map="context"/> -->
+        <actions>
+            <script>jobRunId = ec.service.job("IndexDataFeedDocuments").parameter("dataFeedId", dataFeedId)
+                    .parameter("fromUpdateStamp", fromUpdateStamp).parameter("thruUpdateStamp", thruUpdateStamp).run()</script>
+            <message>Started Index DataFeed Documents Job (Job ID ${jobRunId})</message>
+        </actions>
         <default-response url="."/>
     </transition>
 
@@ -27,8 +32,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <drop-down combo-box="true">
                     <entity-options key="${dataFeedId}" text="${feedName} [${dataFeedId}]">
                         <entity-find entity-name="moqui.entity.feed.DataFeed">
-                            <order-by field-name="feedName"/>
-                        </entity-find>
+                            <order-by field-name="feedName"/></entity-find>
                     </entity-options>
                 </drop-down>
             </default-field></field>

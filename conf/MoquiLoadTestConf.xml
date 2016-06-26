@@ -9,8 +9,17 @@
 
     <webapp-list>
         <!-- NOTE: when you set https-enabled="true" make sure to set the http-port and https-port attributes -->
-        <webapp name="webroot" http-port="" http-host="" https-port="" https-host="" https-enabled="false"/>
+        <webapp name="webroot" http-port="" http-host=""
+                https-port="" https-host="" https-enabled="false"/>
     </webapp-list>
+
+    <!-- turn off tarpit in dev mode -->
+    <artifact-execution-facade>
+        <artifact-execution type="AT_XML_SCREEN" tarpit-enabled="false"/>
+        <artifact-execution type="AT_XML_SCREEN_TRANS" tarpit-enabled="false"/>
+        <artifact-execution type="AT_SERVICE" tarpit-enabled="false"/>
+    </artifact-execution-facade>
+    <user-facade><login history-store="false"/></user-facade>
 
     <entity-facade crypt-pass="MoquiDefaultPassword:CHANGEME">
         <!-- add datasource elements here to configure databases -->
