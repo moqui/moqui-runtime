@@ -30,7 +30,6 @@ along with this software (see the LICENSE.md file). If not, see
         html_scripts.add('/lib/jquery/jquery.min.js')
         // Bootstrap
         html_scripts.add('/lib/bootstrap/bootstrap.min.js')
-        html_stylesheets.add('/lib/bootstrap/bootstrap.min.css')
         // Moqui webroot layout
         html_stylesheets.add('/css/webroot-layout.css')
     </script></pre-actions>
