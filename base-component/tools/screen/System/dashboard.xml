@@ -52,7 +52,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <box-header><label text="Data Admin" type="h5"/></box-header>
                     <box-body>
                         <link url="../Localization" text="Localization"/>
-                        <link url="../DataDocument" text="Data Documents"/>
+                        <!-- TODO: need some way to only show link if screen exists: <link url="../DataDocument" text="Data Documents" condition="ec.factory.getToolFactory('ElasticSearch') != null"/> -->
                         <link url="../Resource" text="Resource Finder"/>
                     </box-body>
                 </container-box>
