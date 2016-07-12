@@ -115,6 +115,7 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 /* Similar styles to Bootstrap .form-control-static, applied more specifically and without explicit class */
 .form-group>div>p, .form-group>div>span:not(.select2-container,.form-text-find,.input-group-addon), .form-group>div>a:not(.btn) {
     display:inline-block; min-height: 34px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 0; }
+form-header-field>button.btn,.form-group>div>a.btn { margin-top: 2px !important; }
 
 .nav.nav-tabs { margin-bottom: 8px; }
 
@@ -150,7 +151,7 @@ nav.form-list-nav>span.select2-container { float: left; margin: 6px 0 6px 0; min
 
 input[type=radio], input[type=checkbox] { height: auto; }
 
-.select2-container { display: inline-block; min-width: 60px; }
+.select2-container { display: inline-block; min-width: 60px; margin-top: -2px; }
 .date-period .select2-container--bootstrap { display: inline-block; }
 .select2-container--bootstrap .select2-selection--single { padding: 6px 12px 6px 12px; }
 
