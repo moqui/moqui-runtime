@@ -29,6 +29,9 @@
     <link rel="shortcut icon" href="${sri.buildUrl(iconLocation).url}">
 </#list>
 
+    <#-- this is a fix for Select2 search input within Bootstrap Modal -->
+    <script>$.fn.modal.Constructor.prototype.enforceFocus = function() {};</script>
+
 <#if ec.factory.serverContainer?has_content><#-- make sure WebSocket server is in place -->
     <#-- NotificationClient, note that does not connect the WebSocket until notificationClient.registerListener() is called the first time -->
     <script>
