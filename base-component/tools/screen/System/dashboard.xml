@@ -43,6 +43,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <box-header><label text="Server Admin" type="h5"/></box-header>
                     <box-body>
                         <link url="../Cache" text="Cache Stats and Mgmt"/>
+                        <link url="../ServiceJob" text="Service Jobs"/>
                         <link url="../Print" text="Print Servers and Jobs"/>
                         <!-- Tenant link is conditional, and Tenant screen locked to DEFAULT tenant -->
                         <link url="../Tenant" text="Tenant Admin" condition="ec.tenantId == 'DEFAULT'"/>

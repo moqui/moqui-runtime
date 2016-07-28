@@ -63,8 +63,8 @@ along with this software (see the LICENSE.md file). If not, see
         <form-list name="UserGroupList" list="ugmList" transition="updateUserGroupMember">
             <field name="userGroupId"><default-field><hidden/></default-field></field>
             <field name="userId">
-                <header-field show-order-by="true"/>
-                <default-field title="User Account">
+                <header-field title="User Account" show-order-by="true"/>
+                <default-field>
                     <display-entity entity-name="moqui.security.UserAccount" text="${username} - ${userFullName}"/>
                     <link url="userAccountDetail" text="${userId}" link-type="anchor"/>
                 </default-field>
