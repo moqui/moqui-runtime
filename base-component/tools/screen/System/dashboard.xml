@@ -15,56 +15,107 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         default-menu-index="1" menu-image="glyphicon glyphicon-dashboard" menu-image-type="icon">
 
+    <transition name="threadList"><default-response url="../ThreadList"/></transition>
+
     <actions>
+        <set field="memoryMXBean" from="java.lang.management.ManagementFactory.getMemoryMXBean()"/>
+        <set field="heapMemoryUsage" from="memoryMXBean.getHeapMemoryUsage()"/>
+        <set field="nonHeapMemoryUsage" from="memoryMXBean.getNonHeapMemoryUsage()"/>
+
+        <set field="osMXBean" from="java.lang.management.ManagementFactory.getOperatingSystemMXBean()"/>
+        <set field="runtimeMXBean" from="java.lang.management.ManagementFactory.getRuntimeMXBean()"/>
+        <set field="uptime" from="org.joda.time.Duration.millis(runtimeMXBean.getUptime()).toPeriod()"/>
+        <set field="uptimeFormatter" from="new org.joda.time.format.PeriodFormatterBuilder().appendDays().appendSuffix('d ')
+                .appendHours().appendSuffix('h ').appendMinutes().appendSuffix('m ').appendSeconds().appendSuffix('s').toFormatter()"/>
+
+        <set field="gcMXBeans" from="java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()"/>
+        <set field="gcCount" from="0"/><set field="gcTime" from="0"/>
+        <iterate list="gcMXBeans" entry="gcMXBean">
+            <set field="gcCount" from="gcCount + gcMXBean.getCollectionCount()"/>
+            <set field="gcTime" from="gcTime + gcMXBean.getCollectionTime()"/>
+        </iterate>
+        <set field="jitMXBean" from="java.lang.management.ManagementFactory.getCompilationMXBean()"/>
+        <set field="classMXBean" from="java.lang.management.ManagementFactory.getClassLoadingMXBean()"/>
+
+        <set field="threadMXBean" from="java.lang.management.ManagementFactory.getThreadMXBean()"/>
     </actions>
     <widgets>
-        <container-row>
-            <row-col lg="6" md="6">
-                <container-box>
-                    <box-header><label text="Usage" type="h5"/></box-header>
-                    <box-body>
-                        <link url="../ArtifactHitSummary" text="Artifact Hit Summary"/>
-                        <link url="../ArtifactHitBins" text="Artifact Hit Bins"/>
-                        <link url="../AuditLog" text="Audit Log"/>
-                        <link url="../Visit" text="Visits"/>
-                    </box-body>
-                </container-box>
-                <container-box>
-                    <box-header><label text="Security" type="h5"/></box-header>
-                    <box-body>
-                        <link url="../Security/UserAccount" text="Users"/>
-                        <link url="../Security/UserGroup" text="User Groups"/>
-                        <link url="../Security/ArtifactGroup" text="Artifact Groups"/>
-                    </box-body>
-                </container-box>
-            </row-col>
-            <row-col lg="6" md="6">
-                <container-box>
-                    <box-header><label text="Server Admin" type="h5"/></box-header>
-                    <box-body>
-                        <link url="../Cache" text="Cache Stats and Mgmt"/>
-                        <link url="../ServiceJob" text="Service Jobs"/>
-                        <link url="../Print" text="Print Servers and Jobs"/>
-                        <!-- Tenant link is conditional, and Tenant screen locked to DEFAULT tenant -->
-                        <link url="../Tenant" text="Tenant Admin" condition="ec.tenantId == 'DEFAULT'"/>
-                    </box-body>
-                </container-box>
-                <container-box>
-                    <box-header><label text="Data Admin" type="h5"/></box-header>
-                    <box-body>
-                        <link url="../Localization" text="Localization"/>
-                        <link url="../DataDocument" text="Data Documents"/>
-                        <link url="../Resource" text="Resource Finder"/>
-                    </box-body>
-                </container-box>
-                <container-box>
-                    <box-header><label text="Integration Admin" type="h5"/></box-header>
-                    <box-body>
-                        <link url="../EntitySync" text="Entity Data Sync"/>
-                        <link url="../SystemMessage" text="System-System Messages"/>
-                    </box-body>
-                </container-box>
-            </row-col>
-        </container-row>
+        <container-row><row-col md="6">
+            <container-box><box-header><label text="Usage" type="h5"/></box-header><box-body>
+                <link url="../ArtifactHitSummary" text="Artifact Hit Summary"/>
+                <link url="../ArtifactHitBins" text="Artifact Hit Bins"/>
+                <link url="../AuditLog" text="Audit Log"/>
+                <link url="../Visit" text="Visits"/>
+            </box-body></container-box>
+            <container-box><box-header><label text="Security" type="h5"/></box-header><box-body>
+                <link url="../Security/UserAccount" text="Users"/>
+                <link url="../Security/UserGroup" text="User Groups"/>
+                <link url="../Security/ArtifactGroup" text="Artifact Groups"/>
+            </box-body></container-box>
+        </row-col><row-col md="6">
+            <container-box><box-header><label text="Server Admin" type="h5"/></box-header><box-body>
+                <link url="../Cache" text="Cache Stats and Mgmt"/>
+                <link url="../ServiceJob" text="Service Jobs"/>
+                <link url="../Print" text="Print Servers and Jobs"/>
+                <!-- Tenant link is conditional, and Tenant screen locked to DEFAULT tenant -->
+                <link url="../Tenant" text="Tenant Admin" condition="ec.tenantId == 'DEFAULT'"/>
+            </box-body></container-box>
+            <container-box><box-header><label text="Data Admin" type="h5"/></box-header><box-body>
+                <link url="../Localization" text="Localization"/>
+                <link url="../DataDocument" text="Data Documents"/>
+                <link url="../Resource" text="Resource Finder"/>
+            </box-body></container-box>
+            <container-box><box-header><label text="Integration Admin" type="h5"/></box-header><box-body>
+                <link url="../EntitySync" text="Entity Data Sync"/>
+                <link url="../SystemMessage" text="System-System Messages"/>
+            </box-body></container-box>
+        </row-col></container-row>
+        <container-box><box-header><label text="System Information" type="h5"/></box-header><box-toolbar>
+            <link url="threadList" text="Thread List"/>
+        </box-toolbar><box-body>
+            <container-row><row-col md="4">
+                <label text="Heap" type="strong"/>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Used" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(heapMemoryUsage.getUsed()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Committed" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(heapMemoryUsage.getCommitted()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Max" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(heapMemoryUsage.getMax()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+
+                <label text="Non-Heap" type="strong"/>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Used" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(nonHeapMemoryUsage.getUsed()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Committed" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(nonHeapMemoryUsage.getCommitted()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+            </row-col><row-col md="4">
+                <label text="System" type="strong"/>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Load" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(osMXBean.getSystemLoadAverage(), '#,##0.00')} (avg last minute)"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="CPU" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${osMXBean.getArch()} (${osMXBean.getAvailableProcessors()} threads)"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="OS" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${osMXBean.getName()} ${osMXBean.getVersion()}"/></row-col></container-row>
+
+                <label text="JVM" type="strong"/>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Version" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${runtimeMXBean.getSpecVersion()} (${runtimeMXBean.getVmVendor()} ${runtimeMXBean.getVmVersion()})"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Start" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${new Timestamp(runtimeMXBean.getStartTime())}"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Uptime" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${uptimeFormatter.print(uptime)}"/></row-col></container-row>
+            </row-col><row-col md="4">
+                <label text="Java" type="strong"/>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="GC" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${gcCount}, ${ec.l10n.format(gcTime/1000, '#,##0.00')}s total"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="JIT" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${jitMXBean.getName()}"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Compile Time" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(jitMXBean.getTotalCompilationTime()/1000, '#,##0.00')}s total"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Loaded Classes" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${classMXBean.getLoadedClassCount()} (${classMXBean.getTotalLoadedClassCount()} tot, ${classMXBean.getUnloadedClassCount()} unl)"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Threads" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${threadMXBean.getThreadCount()} (${threadMXBean.getPeakThreadCount()} peak)"/></row-col></container-row>
+            </row-col></container-row>
+        </box-body></container-box>
     </widgets>
 </screen>
