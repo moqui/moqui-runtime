@@ -22,6 +22,8 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="heapMemoryUsage" from="memoryMXBean.getHeapMemoryUsage()"/>
         <set field="nonHeapMemoryUsage" from="memoryMXBean.getNonHeapMemoryUsage()"/>
 
+        <set field="runtimeFile" from="new File(ec.factory.runtimePath)"/>
+
         <set field="osMXBean" from="java.lang.management.ManagementFactory.getOperatingSystemMXBean()"/>
         <set field="runtimeMXBean" from="java.lang.management.ManagementFactory.getRuntimeMXBean()"/>
         <set field="uptime" from="org.joda.time.Duration.millis(runtimeMXBean.getUptime()).toPeriod()"/>
@@ -74,7 +76,7 @@ along with this software (see the LICENSE.md file). If not, see
             <link url="threadList" text="Thread List"/>
         </box-toolbar><box-body>
             <container-row><row-col md="4">
-                <label text="Heap" type="strong"/>
+                <label text="Heap Memory" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Used" type="strong"/></row-col>
                     <row-col xs="7"><label text="${ec.l10n.format(heapMemoryUsage.getUsed()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Committed" type="strong"/></row-col>
@@ -82,11 +84,17 @@ along with this software (see the LICENSE.md file). If not, see
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Max" type="strong"/></row-col>
                     <row-col xs="7"><label text="${ec.l10n.format(heapMemoryUsage.getMax()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
 
-                <label text="Non-Heap" type="strong"/>
+                <label text="Non-Heap Memory" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Used" type="strong"/></row-col>
                     <row-col xs="7"><label text="${ec.l10n.format(nonHeapMemoryUsage.getUsed()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Committed" type="strong"/></row-col>
                     <row-col xs="7"><label text="${ec.l10n.format(nonHeapMemoryUsage.getCommitted()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+
+                <label text="Disk (runtime)" type="strong"/>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Usable" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(runtimeFile.getUsableSpace()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Total" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(runtimeFile.getTotalSpace()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
             </row-col><row-col md="4">
                 <label text="System" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Load" type="strong"/></row-col>
