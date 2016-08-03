@@ -1656,7 +1656,7 @@ a => A, d => D, y => Y
     <#if .node["@combo-box"]! == "true">
         <script>$("#${id}").select2({ tags: true, tokenSeparators:[',',' '], theme:'bootstrap' });</script>
     <#elseif .node["@search"]! != "false">
-        <script>$("#${id}").select2({ ${select2DefaultOptions} });</script>
+        <script>$("#${id}").select2({ ${select2DefaultOptions} }); $("#${id}").on("select2:select", function (e) { $("#${id}").select2("open").select2("close"); });</script>
     </#if>
     <#if isDynamicOptions>
         <#assign doNode = .node["dynamic-options"][0]>
