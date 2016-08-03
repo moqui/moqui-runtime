@@ -129,23 +129,26 @@ along with this software (see the LICENSE.md file). If not, see
         <h1>LATER wizard type subscreens-panel not yet supported.</h1>
     <#else>
         <#-- default to type=tab -->
-        <div<#if .node["@id"]?has_content> id="${.node["@id"]}-menu"</#if>>
-        <#if displayMenu!>
-            <ul<#if .node["@id"]?has_content> id="${.node["@id"]}-menu"</#if> class="nav nav-tabs" role="tablist">
-            <#list sri.getActiveScreenDef().getMenuSubscreensItems() as subscreensItem>
-                <#assign urlInstance = sri.buildUrl(subscreensItem.name)>
-                <#if urlInstance.isPermitted()>
-                    <#if dynamic>
-                        <#assign urlInstance = urlInstance.addParameter("lastStandalone", "true")>
-                        <#if urlInstance.inCurrentScreenPath>
-                            <#assign dynamicActive = subscreensItem_index>
-                            <#assign urlInstance = urlInstance.addParameters(ec.web.requestParameters)>
+        <#assign menuSubscreensItems=sri.getActiveScreenDef().getMenuSubscreensItems()>
+        <#if menuSubscreensItems?has_content && (menuSubscreensItems?size > 1)>
+            <div<#if .node["@id"]?has_content> id="${.node["@id"]}-menu"</#if>>
+            <#if displayMenu!>
+                <ul<#if .node["@id"]?has_content> id="${.node["@id"]}-menu"</#if> class="nav nav-tabs" role="tablist">
+                <#list menuSubscreensItems as subscreensItem>
+                    <#assign urlInstance = sri.buildUrl(subscreensItem.name)>
+                    <#if urlInstance.isPermitted()>
+                        <#if dynamic>
+                            <#assign urlInstance = urlInstance.addParameter("lastStandalone", "true")>
+                            <#if urlInstance.inCurrentScreenPath>
+                                <#assign dynamicActive = subscreensItem_index>
+                                <#assign urlInstance = urlInstance.addParameters(ec.web.requestParameters)>
+                            </#if>
                         </#if>
+                        <li class="<#if urlInstance.disableLink>disabled<#elseif urlInstance.inCurrentScreenPath>active</#if>"><a href="<#if urlInstance.disableLink>#<#else>${urlInstance.minimalPathUrlWithParams}</#if>">${ec.resource.expand(subscreensItem.menuTitle, "")}</a></li>
                     </#if>
-                    <li class="<#if urlInstance.disableLink>disabled<#elseif urlInstance.inCurrentScreenPath>active</#if>"><a href="<#if urlInstance.disableLink>#<#else>${urlInstance.minimalPathUrlWithParams}</#if>">${ec.resource.expand(subscreensItem.menuTitle, "")}</a></li>
-                </#if>
-            </#list>
-            </ul>
+                </#list>
+                </ul>
+            </#if>
         </#if>
         <#-- add to navbar bread crumbs too -->
         <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.resource.expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
