@@ -17,6 +17,9 @@ along with this software (see the LICENSE.md file). If not, see
 
     <parameter name="jobName" required="true"/>
 
+    <transition name="jobRunList"><default-response url="../../JobRuns/JobRunList"/></transition>
+    <transition name="jobRunDetail"><default-response url="../../JobRuns/JobRunDetail"/></transition>
+
     <transition name="createJobParameter"><service-call name="create#moqui.service.job.ServiceJobParameter"/>
         <default-response url="."/></transition>
     <transition name="updateJobParameter"><service-call name="update#moqui.service.job.ServiceJobParameter"/>
@@ -44,7 +47,9 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
 
         <container-row><row-col md="6">
-            <container-box><box-header><label text="Job Run Info" type="h5"/></box-header><box-body>
+            <container-box><box-header><label text="Job Run Info" type="h5"/></box-header><box-toolbar>
+                <link url="jobRunList" text="Job Runs" parameter-map="[jobName:jobName, startTime_poffset:'0', startTime_period:'Month']"/>
+            </box-toolbar><box-body>
                 <container-row>
                     <row-col md="2"><label text="Last Run" type="strong"/></row-col>
                     <row-col md="4"><label text="${ec.l10n.format(runLock?.lastRunTime, '')}"/></row-col>
@@ -52,8 +57,9 @@ along with this software (see the LICENSE.md file). If not, see
                 <section name="ActiveJobSection" condition="runLock?.jobRunId"><widgets>
                     <container-row>
                         <row-col md="2"><label text="Active Job" type="strong"/></row-col>
-                        <row-col md="4"><link url="." text="${runLock.jobRunId}" link-type="anchor" parameter-map="[jobRunId:runLock.jobRunId]"/></row-col>
-                        <!-- TODO: add link target for job run, add kill button -->
+                        <row-col md="4"><link url="jobRunDetail" text="${runLock.jobRunId}" link-type="anchor"
+                                parameter-map="[jobRunId:runLock.jobRunId]"/></row-col>
+                        <!-- TODO: add kill/reset button? -->
                     </container-row>
                 </widgets><fail-widgets>
                     <!-- TODO: add button to run job now (with parameters like the service run screen) -->
@@ -64,11 +70,13 @@ along with this software (see the LICENSE.md file). If not, see
                 <form-single name="ServiceJobForm" map="serviceJob">
                     <field name="jobName"><default-field><display/></default-field></field>
                     <auto-fields-entity entity-name="moqui.service.job.ServiceJob" field-type="edit" include="nonpk"/>
-                    <!--
                     <field name="description"><default-field><text-line size="60"/></default-field></field>
                     <field name="serviceName"><default-field><text-line size="60"/></default-field></field>
-                    -->
                     <field name="submitButton"><default-field title="Update Job"><submit/></default-field></field>
+                    <field-layout>
+                        <field-ref name="jobName"/><field-ref name="description"/><field-ref name="serviceName"/>
+                        <fields-not-referenced/>
+                    </field-layout>
                 </form-single>
             </box-body></container-box>
         </row-col><row-col md="6">
