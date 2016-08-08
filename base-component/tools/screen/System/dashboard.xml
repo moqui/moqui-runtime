@@ -53,6 +53,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="../Security/UserAccount" text="Users"/>
                 <link url="../Security/UserGroup" text="User Groups"/>
                 <link url="../Security/ArtifactGroup" text="Artifact Groups"/>
+                <link url="../Security/ActiveUsers" text="Active Users"/>
             </box-body></container-box>
         </row-col><row-col md="6">
             <container-box><box-header><label text="Server Admin" type="h5"/></box-header><box-body>

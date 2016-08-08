@@ -30,7 +30,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <econdition field-name="visitId"/></entity-find-count>
             </row-actions>
             <field name="fromDate">
-                <header-field show-order-by="true"><text-find hide-options="true" size="16"/></header-field>
+                <header-field show-order-by="true"><date-period allow-empty="true"/></header-field>
                 <default-field><display/></default-field>
             </field>
             <field name="visitId">
