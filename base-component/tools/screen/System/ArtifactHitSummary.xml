@@ -97,7 +97,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <header-field title="Slow Hits" show-order-by="true"/>
                 <default-field><display/></default-field>
             </field>
-            <field name="find"><header-field title="Find"><submit/></header-field></field>
+            <field name="find"><header-field title="Find"><submit/></header-field><default-field>
+                <display text=" "/></default-field></field>
         </form-list>
     </widgets>
 </screen>
