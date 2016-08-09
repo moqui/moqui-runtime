@@ -156,18 +156,6 @@ input[type=radio], input[type=checkbox] { height: auto; }
 .select2-container { display: inline-block; min-width: 60px; margin-top: -2px; }
 .date-period .select2-container--bootstrap { display: inline-block; }
 
-/* Fixes for insufficient width in Select2 with down arrow */
-.select2-container--bootstrap { margin-right: 18px; }
-.select2-container--bootstrap .select2-selection--single { padding: 6px 12px 6px 12px; width: calc(100% + 18px); }
-.select2-container--bootstrap .select2-selection--single .select2-selection__arrow { right: -8px; }
-.select2-results { width: calc(100% + 18px); }
-/* Would be better to make the 'select2-dropdown select2-dropdown--below' wider, but it is styled on the same element
-   as the calculated width is set so there doesn't seem to be a way to do that without JS changes; at least make the
-   border look a little better: */
-.select2-container--bootstrap.select2-container--open.select2-container--below .select2-selection {
-    border-bottom-right-radius: 4px; border-bottom-color: #66afe9; }
-
-
 a.jstree-anchor { white-space: normal; }
 .jstree-default .jstree-anchor { height: auto; }
 
