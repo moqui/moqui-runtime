@@ -75,6 +75,7 @@ ul.float-box li { background: #EEEEEE; box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 
 .navbar-inverse .navbar-nav > li > a:hover, .navbar-inverse .navbar-nav > li > a:focus { color: #fff; background-color: transparent; }
 
 .pagination > li > span { color: inherit; }
+.bg-dark ul.pagination > li { color: #222222 }
 
 .bg-dark .panel-heading { background-color: #333; color: inherit; }
 .bg-dark .panel, .bg-dark .panel-heading { border-color: #222; }
@@ -86,6 +87,9 @@ ul.float-box li { background: #EEEEEE; box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 
 
 .bg-light .table-striped>tbody>tr:nth-child(odd)>td { background-color: rgba(243, 243, 243, 0.5); }
 .bg-light .table-hover > tbody > tr:hover > td { background-color: rgba(234, 234, 234, 0.5); }
+
+/* prevent extra padding at the bottom of form-single within container-box (panel) */
+.panel-body fieldset > .form-group:last-child { margin-bottom: 0; }
 
 /* ================ Other, Fix Styles =============== */
 
@@ -102,8 +106,10 @@ form.editable-form button { background: white; color: #333; border: 1px solid; b
 .bg-dark form.editable-form button { background: #333; color: #EEE; }
 .bg-dark form.editable-form textarea { background-color: #3a3a3a; border-color: #222; }
 
+/* invert images in dark theme, good for black and white, may not be good otherwise so use img.invertible class */
+.bg-dark img.invertible { -webkit-filter: invert(90%); filter: invert(90%); }
+
 /* ======================= Screen-specific ======================= */
 
 .bg-light.Login { background: url("../images/pattern/cream_pixels.png") repeat #444; }
 .bg-dark.Login { background: url("../images/pattern/irongrip.png") repeat #444; }
-

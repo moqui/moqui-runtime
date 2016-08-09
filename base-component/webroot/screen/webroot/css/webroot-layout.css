@@ -113,11 +113,13 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .input-group .input-group-addon, .input-group .input-group-btn { display: inline; line-height: 34px; padding: 8px 12px; }
 
 /* Similar styles to Bootstrap .form-control-static, applied more specifically and without explicit class */
-.form-group>div>p, .form-group>div>span:not(.select2-container,.form-text-find,.input-group-addon), .form-group>div>a:not(.btn) {
-    display:inline-block; min-height: 34px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 0; }
-.form-header-field>button.btn,.form-group>div>a.btn { margin-top: 2px !important; }
+.form-group > div > p, .form-group > div > span:not(.select2-container,.form-text-find,.input-group-addon), .form-group > div > a:not(.btn) {
+    display: inline-block; min-height: 34px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 0; }
+.form-header-field > button.btn, .form-group > div > a.btn { margin-top: 2px !important; }
 
 .nav.nav-tabs { margin-bottom: 8px; }
+/* Make it apparent that you can click the current or current parent tab */
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus { cursor: pointer; }
 
 /* Bootstrap by default has a 20px height for this, for 30px height shift up 5px */
 .navbar-brand>img { height: 30px; margin-top: -5px; }
