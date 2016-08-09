@@ -63,7 +63,10 @@ along with this software (see the LICENSE.md file). If not, see
         html_scripts.add('/lib/jeditable/jquery.jeditable.min.js')
         // Sortable Hierarchical List
         html_scripts.add('/lib/jquery-sortable-lists/jquery-sortable-lists.min.js')
-        ]]></script></pre-actions>
+
+        // Moqui Notification Client
+        html_scripts.add('/js/NotificationClient.js')
+    ]]></script></pre-actions>
 
     <widgets>
         <container id="top">

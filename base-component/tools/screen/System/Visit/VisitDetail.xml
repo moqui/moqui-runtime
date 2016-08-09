@@ -23,37 +23,76 @@ along with this software (see the LICENSE.md file). If not, see
 
     <actions>
         <entity-find-one entity-name="moqui.server.Visit" value-field="visit"/>
+        <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
+            <field-map field-name="userId" from="visit.userId"/></entity-find-one>
         <entity-find entity-name="moqui.server.ArtifactHit" list="artifactHitList">
             <search-form-inputs default-order-by="startDateTime"/>
             <econdition field-name="visitId"/>
         </entity-find>
     </actions>
     <widgets>
-        <link url="getVisitClientIpData" text="Get Client IP Data"/>
-        <form-single name="VisitDetail" map="visit">
-            <auto-fields-entity entity-name="moqui.server.Visit" field-type="display"/>
-            <field name="userId"><default-field title="User">
-                <display-entity entity-name="moqui.security.UserAccount" text="UsernameTemplate"/>
-                <link url="userAccountDetail" text="${visit.userId}" link-type="anchor"
-                        parameter-map="[userId:visit.userId]" condition="visit.userId"/>
-            </default-field></field>
-            <field-layout>
-                <field-row><field-ref name="visitId"/><field-ref name="visitorId"/></field-row>
-                <field-row><field-ref name="userId"/><field-ref name="userCreated"/></field-row>
-                <field-row><field-ref name="sessionId"/><field-ref name="webappName"/></field-row>
-                <field-row><field-ref name="serverHostName"/><field-ref name="serverIpAddress"/></field-row>
-                <field-row><field-ref name="initialLocale"/><field-ref name="initialRequest"/></field-row>
-                <field-row><field-ref name="initialReferrer"/><field-ref name="initialUserAgent"/></field-row>
-                <field-row><field-ref name="clientIpAddress"/><field-ref name="clientHostName"/></field-row>
-                <field-row><field-ref name="clientUser"/><field-ref name="clientIpIspName"/></field-row>
-                <field-row><field-ref name="clientIpPostalCode"/><field-ref name="clientIpCity"/></field-row>
-                <field-row><field-ref name="clientIpRegionCode"/><field-ref name="clientIpRegionName"/></field-row>
-                <field-row><field-ref name="clientIpStateProvGeoId"/><field-ref name="clientIpCountryGeoId"/></field-row>
-                <field-row><field-ref name="clientIpLatitude"/><field-ref name="clientIpLongitude"/></field-row>
-                <field-row><field-ref name="clientIpTimeZone"/><field-ref name="clientIpMetroCode"/></field-row>
-                <field-row><field-ref name="fromDate"/><field-ref name="thruDate"/></field-row>
-            </field-layout>
-        </form-single>
+        <container-box><box-header><label text="Visit #${visitId}" type="h5"/></box-header><box-toolbar>
+            <section name="ClientIpLinkSection" condition="visit != null &amp;&amp; !visit.clientIpIspName"><widgets>
+                <link url="getVisitClientIpData" text="Get Client IP Data"/></widgets></section>
+        </box-toolbar><box-body>
+            <container-row><row-col md="4">
+                <container-row><row-col xs="4" style="text-right"><label text="Visitor ID" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.visitorId}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Session ID" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.sessionId}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Webapp" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.webappName}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="From Date" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${ec.l10n.format(visit.fromDate, '')}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Thru Date" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${ec.l10n.format(visit.thruDate, '')}"/></row-col></container-row>
+            </row-col><row-col md="4">
+                <container-row><row-col xs="4" style="text-right"><label text="User" type="strong"/></row-col>
+                    <row-col xs="8"><link url="userAccountDetail" text="UsernameTemplate" text-map="userAccount" link-type="anchor"
+                            parameter-map="[userId:visit.userId]" condition="visit.userId"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="User Created" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.userCreated ?: 'N'}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Locale" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.initialLocale}"/></row-col></container-row>
+
+                <container-row><row-col xs="4" style="text-right"><label text="Client User" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.clientUser ?: 'Unknown'}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Client Host" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.clientHostName}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Client IP" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.clientIpAddress}"/></row-col></container-row>
+            </row-col><row-col md="4">
+                <container-row><row-col xs="4" style="text-right"><label text="Server Host" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.serverHostName}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Server IP" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.serverIpAddress}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Initial Request" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.initialRequest}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Referrer" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.initialReferrer ?: 'None'}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="User Agent" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${visit.initialUserAgent ?: ''}"/></row-col></container-row>
+            </row-col></container-row>
+        </box-body></container-box>
+        <section name="ClientIpSection" condition="visit.clientIpIspName"><widgets>
+            <container-box><box-header><label text="Client IP ${visit.clientIpAddress} Data" type="h5"/></box-header><box-body>
+                <container-row><row-col md="6">
+                    <label text="ISP: ${visit.clientIpIspName}" type="div" condition="visit.clientIpIspName"/>
+                    <label text="Latitude: ${visit.clientIpLatitude}" type="div" condition="visit.clientIpLatitude"/>
+                    <label text="Longitude: ${visit.clientIpLongitude}" type="div" condition="visit.clientIpLongitude"/>
+                    <label text="Time Zone: ${visit.clientIpTimeZone}" type="div" condition="visit.clientIpTimeZone"/>
+                    <label text="Metro Code: ${visit.clientIpMetroCode}" type="div" condition="visit.clientIpMetroCode"/>
+                </row-col><row-col md="6">
+                    <label text="Postal Code: ${visit.clientIpPostalCode}" type="div" condition="visit.clientIpPostalCode"/>
+                    <label text="City: ${visit.clientIpCity}" type="div" condition="visit.clientIpCity"/>
+                    <label text="Region Code: ${visit.clientIpRegionCode}" type="div" condition="visit.clientIpRegionCode"/>
+                    <label text="Region Name: ${visit.clientIpRegionName}" type="div" condition="visit.clientIpRegionName"/>
+                    <label text="State/Province: ${visit.clientIpStateProvGeoId}" type="div" condition="visit.clientIpStateProvGeoId"/>
+                    <label text="Country: ${visit.clientIpCountryGeoId}" type="div" condition="visit.clientIpCountryGeoId"/>
+                </row-col></container-row>
+            </box-body></container-box>
+        </widgets></section>
+
         <form-list name="VisitArtifactHitList" list="artifactHitList" skip-form="true">
             <field name="visitId"><header-field><hidden/></header-field></field>
             <field name="startDateTime">
@@ -69,14 +108,15 @@ along with this software (see the LICENSE.md file). If not, see
                 </drop-down></header-field>
                 <default-field title="Type"><display text="${artifactType?.replace('-',' - ')}"/></default-field>
             </field>
-            <field name="artifactSubType"><default-field title="Sub Type"><display text="${artifactSubType?.replace('/',' / ')}"/></default-field></field>
+            <field name="artifactSubType"><default-field title="Sub Type"><display/></default-field></field>
 
             <field name="artifactName"><header-field show-order-by="true"/>
                 <default-field><display/></default-field>
             </field>
             <field name="parameterString"><default-field><display text="${parameterString?.replace(',',' , ') ?: 'N/A'}"/></default-field></field>
 
-            <field name="runningTimeMillis"><default-field title="Time"><display text="${ec.l10n.format(runningTimeMillis, '0.00')}ms"/></default-field></field>
+            <field name="runningTimeMillis"><header-field title="Time" show-order-by="true"/>
+                <default-field><display text="${ec.l10n.format(runningTimeMillis, '0.00')}ms"/></default-field></field>
             <field name="isSlowHit">
                 <header-field title="Slow" show-order-by="true">
                     <drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></header-field>

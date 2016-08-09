@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
+        default-menu-index="99" default-menu-title="Thread List">
+
+    <actions>
+        <set field="orderByField" from="orderByField ?: '-cpuTime'"/>
+
+        <set field="threadMXBean" from="java.lang.management.ManagementFactory.getThreadMXBean()"/>
+        <set field="deadlockedList" from="threadMXBean.findDeadlockedThreads()"/>
+        <set field="threadInfoList" from="threadMXBean.dumpAllThreads(false, false)"/>
+        <script>
+        threadMapList = []
+        for (java.lang.management.ThreadInfo thread in threadInfoList) {
+            threadMapList.add([threadName:thread.threadName, threadId:thread.threadId, threadState:thread.threadState.name(),
+                    cpuTime:threadMXBean.getThreadCpuTime(thread.threadId), userTime:threadMXBean.getThreadUserTime(thread.threadId),
+                    lockName:thread.lockName, lockOwnerName:thread.lockOwnerName, lockOwnerId:thread.lockOwnerId,
+                    blockedTime:thread.blockedTime, waitedTime:thread.waitedTime])
+        }
+        StupidUtilities.orderMapList(threadMapList, [orderByField])
+        </script>
+    </actions>
+    <widgets>
+        <label text="Threads: ${threadMXBean.getThreadCount()}, Peak: ${threadMXBean.getPeakThreadCount()}"/>
+        <label text="Deadlocked Threads: ${deadlockedList}" style="text-danger" condition="deadlockedList"/>
+
+        <form-list name="ThreadList" list="threadMapList" skip-form="true" select-columns="true">
+            <field name="threadName"><header-field title="Name" show-order-by="case-insensitive"/><default-field><display/></default-field></field>
+            <field name="threadId"><header-field title="ID" show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="threadState"><header-field title="State" show-order-by="true"/><default-field><display/></default-field></field>
+
+            <field name="cpuTime"><header-field title="CPU Time" show-order-by="true"/><default-field>
+                <display text="${ec.l10n.format(cpuTime/1E9, '#,##0.000')}s"/></default-field></field>
+            <field name="userTime"><header-field show-order-by="true"/><default-field>
+                <display text="${ec.l10n.format(cpuTime/1E9, '#,##0.000')}s"/></default-field></field>
+
+            <field name="lockName"><header-field title="Lock" show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="lockOwnerName"><header-field title="Lock Owner" show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="lockOwnerId"><header-field title="Lock Owner ID" show-order-by="true"/><default-field><display/></default-field></field>
+
+            <field name="blockedTime"><header-field title="Blocked Total" show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="waitedTime"><header-field title="Waited Total" show-order-by="true"/><default-field><display/></default-field></field>
+
+            <form-list-column><field-ref name="threadName"/></form-list-column>
+            <form-list-column><field-ref name="threadId"/></form-list-column>
+            <form-list-column><field-ref name="threadState"/></form-list-column>
+            <form-list-column><field-ref name="cpuTime"/></form-list-column>
+            <form-list-column><field-ref name="userTime"/></form-list-column>
+        </form-list>
+    </widgets>
+</screen>

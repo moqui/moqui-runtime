@@ -65,13 +65,11 @@ along with this software (see the LICENSE.md file). If not, see
                         <option key="script"/><option key="java"/>
                     </drop-down>
                 </header-field>
-                <!-- NOTE: was using this to add space to avoid wide cells: ?.replace('/',' / ') -->
-                <default-field><display text="${artifactSubType}"/></default-field>
+                <default-field><display/></default-field>
             </field>
             <field name="artifactName">
                 <header-field show-order-by="true"><text-find hide-options="true" size="20"/></header-field>
-                <!-- NOTE: these replace() calls are to add spaces so that longer artifactNames can wrap instead of making the table super-wide: .replace('/',' / ').replace(' /  / ', '//').replace('.',' . ') -->
-                <default-field><display text="${artifactName}"/></default-field>
+                <default-field><display/></default-field>
             </field>
             <field name="lastHitDateTime">
                 <header-field title="Last Hit" show-order-by="true"/>
@@ -99,7 +97,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <header-field title="Slow Hits" show-order-by="true"/>
                 <default-field><display/></default-field>
             </field>
-            <field name="find"><header-field title="Find"><submit/></header-field></field>
+            <field name="find"><header-field title="Find"><submit/></header-field><default-field>
+                <display text=" "/></default-field></field>
         </form-list>
     </widgets>
 </screen>
