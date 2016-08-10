@@ -28,6 +28,7 @@ along with this software (see the LICENSE.md file). If not, see
             import org.moqui.entity.EntityCondition
             import org.moqui.entity.EntityConditionFactory
             import org.moqui.screen.ScreenTest
+            import org.moqui.service.RestClient
 
             import java.text.DecimalFormat
             import java.sql.Timestamp
@@ -53,6 +54,7 @@ along with this software (see the LICENSE.md file). If not, see
                 boolean directNoSqlCrudTests = true
                 boolean serviceCallTests = true
                 boolean screenRenderTests = true
+                boolean restApiTests = true
 
                 EntityFacade ef = ec.entity
                 Timestamp nowTs = new Timestamp(System.currentTimeMillis())
@@ -398,6 +400,34 @@ along with this software (see the LICENSE.md file). If not, see
                                          callsPerSecond: ((calls / milliseconds) * 1000)])
 
                     logger.info("Rendered ${screenTestRoot.renderCount} screens (${screenTestRoot.errorCount} errors) in ${ec.l10n.format(milliseconds/1000, "0.000")}s, output ${ec.l10n.format(screenTestRoot.renderTotalChars/1000, "#,##0")}k chars")
+
+                    if (!tarpitAlreadyDisabled) ec.artifactExecution.enableTarpit()
+                }
+
+                // ========== Service REST API tests ==========
+                if (restApiTests) {
+                    boolean tarpitAlreadyDisabled = ec.artifactExecution.disableTarpit()
+                    calls = (baseCallsNum / 100).intValue() ?: 1
+                    String apiKey = ec.user.getLoginKey()
+                    String enumUri = ec.web.getWebappRootUrl(true, null) + "/rest/s1/moqui/basic/enums/EsaaAlways"
+
+                    // Render Dashboard (simple screen, mostly screen overhead)
+                    startTime = System.nanoTime()
+                    boolean gotError = false
+                    try {
+                        for (int i = 0; i < calls; i++) {
+                            RestClient rc = ec.service.rest().method(RestClient.GET).uri(enumUri).addHeader("api_key", apiKey)
+                            RestClient.RestResponse response = rc.call()
+                            // logger.warn("REST response: ${response.text()}")
+                        }
+                    } catch (Exception e) {
+                        logger.error("REST API error", e)
+                        gotError = true
+                    }
+                    milliseconds = ((System.nanoTime() - startTime) / 1E6)
+                    performanceList.add([operation     : "REST Client API get /basic/enums" + (gotError ? " GOT ERROR" : ""), entity: "",
+                                         calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
+                                         callsPerSecond: ((calls / milliseconds) * 1000)])
 
                     if (!tarpitAlreadyDisabled) ec.artifactExecution.enableTarpit()
                 }
