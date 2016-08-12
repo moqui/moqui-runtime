@@ -16,12 +16,16 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         default-menu-title="Query Stats">
 
+    <transition name="clearQueryStats"><actions><script>ec.entity.clearQueryStats()</script></actions>
+        <default-response url="."/></transition>
+
     <actions>
         <set field="queryStatsList" from="ec.entity.getQueryStatsList(orderByField?:'-totalTime', entityFilter, sqlFilter)"/>
         <set field="pageSize" from="pageSize ?: '40'"/>
         <script>StupidUtilities.paginateList("queryStatsList", null, context)</script>
     </actions>
     <widgets>
+        <link url="clearQueryStats" text="Clear Stats"/>
         <label text="Statistics for queries run since server start. All times are in microseconds."/>
         <form-single name="FilterForm" transition=".">
             <field name="entityFilter"><default-field><text-line size="30"/></default-field></field>
