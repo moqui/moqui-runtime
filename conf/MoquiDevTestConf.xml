@@ -33,7 +33,7 @@
                             macro-template-location="template/screen-macro/ScreenHtmlMacros.ftl"/>
     </screen-facade>
 
-    <entity-facade crypt-pass="MoquiDefaultPassword:CHANGEME" distributed-cache-invalidate="false">
+    <entity-facade crypt-pass="MoquiDefaultPassword:CHANGEME" distributed-cache-invalidate="false" query-stats="true">
         <!-- add datasource elements here to configure databases -->
     </entity-facade>
 </moqui-conf>

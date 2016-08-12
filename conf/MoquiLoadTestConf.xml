@@ -21,7 +21,7 @@
     </artifact-execution-facade>
     <user-facade><login history-store="false"/></user-facade>
 
-    <entity-facade crypt-pass="MoquiDefaultPassword:CHANGEME">
+    <entity-facade crypt-pass="MoquiDefaultPassword:CHANGEME" query-stats="true">
         <!-- add datasource elements here to configure databases -->
     </entity-facade>
 </moqui-conf>
