@@ -421,7 +421,7 @@ along with this software (see the LICENSE.md file). If not, see
                             // logger.warn("REST response: ${response.text()}")
                         }
                     } catch (Exception e) {
-                        logger.error("REST API error", e)
+                        logger.warn("REST API error, ignoring as web server may not be running: ${e.toString()}")
                         gotError = true
                     }
                     milliseconds = ((System.nanoTime() - startTime) / 1E6)
