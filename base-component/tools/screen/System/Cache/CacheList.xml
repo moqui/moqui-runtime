@@ -28,7 +28,7 @@ along with this software (see the LICENSE.md file). If not, see
             'resource.ftl.location', 'resource.gstring.location',
             'resource.wiki.location', 'resource.markdown.location', 'resource.text.location', 'resource.text.location',
             'resource.reference.location', 'l10n.message'].each {
-                cacheName -> ec.cache.getCache(cacheName).clear()
+                cacheName -> if (ec.cache.cacheExists(cacheName)) ec.cache.getCache(cacheName).clear()
             }
 
             ec.ecfi.warmCache()
