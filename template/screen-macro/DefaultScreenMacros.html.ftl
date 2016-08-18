@@ -1182,7 +1182,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
 </#macro>
 <#macro "form-list">
-<#if sri.doBoundaryComments()><!-- BEGIN form-list[@name=${.node["@name"]}] --></#if>
+    <#if sri.doBoundaryComments()><!-- BEGIN form-list[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFtlFormNode()>
@@ -1279,7 +1279,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </tr>
         <#else>
             <#assign afterFormScript>
-                $("#${formId}_${listEntryIndex}").validate();
+                $("#${formId}_${listEntryIndex}").validate({ errorClass: 'help-block', errorElement: 'span',
+                    highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
+                    unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
+                });
             </#assign>
             <#t>${sri.appendToScriptWriter(afterFormScript)}
             </form>
@@ -1303,7 +1306,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
     <#if isMulti && !skipStart && !skipForm>
         <#assign afterFormScript>
-            $("#${formId}").validate();
+            $("#${formId}").validate({ errorClass: 'help-block', errorElement: 'span',
+                highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
+                unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
+            });
             $('#${formId} [data-toggle="tooltip"]').tooltip();
         </#assign>
         <#t>${sri.appendToScriptWriter(afterFormScript)}
