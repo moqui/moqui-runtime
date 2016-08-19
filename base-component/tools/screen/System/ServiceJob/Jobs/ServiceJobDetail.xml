@@ -20,6 +20,9 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="jobRunList"><default-response url="../../JobRuns/JobRunList"/></transition>
     <transition name="jobRunDetail"><default-response url="../../JobRuns/JobRunDetail"/></transition>
 
+    <transition name="updateJob"><service-call name="update#moqui.service.job.ServiceJob"/>
+        <default-response url="."/></transition>
+
     <transition name="createJobParameter"><service-call name="create#moqui.service.job.ServiceJobParameter"/>
         <default-response url="."/></transition>
     <transition name="updateJobParameter"><service-call name="update#moqui.service.job.ServiceJobParameter"/>
@@ -67,7 +70,7 @@ along with this software (see the LICENSE.md file). If not, see
             </box-body></container-box>
 
             <container-box><box-header><label text="Job Settings" type="h5"/></box-header><box-body>
-                <form-single name="ServiceJobForm" map="serviceJob">
+                <form-single name="ServiceJobForm" map="serviceJob" transition="updateJob">
                     <field name="jobName"><default-field><display/></default-field></field>
                     <auto-fields-entity entity-name="moqui.service.job.ServiceJob" field-type="edit" include="nonpk"/>
                     <field name="description"><default-field><text-line size="60"/></default-field></field>

@@ -19,6 +19,8 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="serviceJobDetail"><default-response url="../ServiceJobDetail"/></transition>
 
     <actions>
+        <set field="jobRunner" from="ec.service.getServiceJobRunner()"/>
+
         <entity-find entity-name="moqui.service.job.ServiceJob" list="serviceJobList">
             <search-form-inputs default-order-by="jobName"/></entity-find>
 
@@ -34,6 +36,7 @@ along with this software (see the LICENSE.md file). If not, see
             <econdition field-name="statusId" value="SmsgError"/></entity-find-count>
     </actions>
     <widgets>
+        <label text="Last job runner execute: &lt;strong&gt;${new Timestamp(jobRunner.getLastExecuteTime())}&lt;/strong&gt;, runner executes: ${jobRunner.getExecuteCount()}, total jobs run: ${jobRunner.getTotalJobsRun()}, last active: ${jobRunner.getLastJobsActive()}, last paused: ${jobRunner.getLastJobsPaused()}" encode="false"/>
         <form-list name="ServiceJobList" list="serviceJobList" skip-form="true">
             <field name="jobName">
                 <header-field show-order-by="true"><text-find hide-options="true" size="20"/></header-field>
