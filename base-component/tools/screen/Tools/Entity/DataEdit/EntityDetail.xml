@@ -62,7 +62,7 @@ along with this software (see the LICENSE.md file). If not, see
         <form-list name="FieldList" list="fieldNodes" list-entry="node">
             <field name="fieldName" entry-name="node.attribute('name')"><default-field><display/></default-field></field>
             <field name="type" entry-name="node.attribute('type')"><default-field><display/></default-field></field>
-            <field name="column" entry-name="entityDefinition.getColumnName(node.attribute('name'), true)"><default-field><display/></default-field></field>
+            <field name="column" entry-name="entityDefinition.getColumnName(node.attribute('name'))"><default-field><display/></default-field></field>
             <field name="isPk" entry-name="node.attribute('is-pk')"><default-field title="Is PK"><display/></default-field></field>
             <field name="audit" entry-name="node.attribute('enable-audit-log')"><default-field><display/></default-field></field>
             <field name="encrypt" entry-name="node.attribute('encrypt')"><default-field><display/></default-field></field>
