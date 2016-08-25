@@ -32,7 +32,7 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 
 <#-- ================ Subscreens ================ -->
-<#macro "subscreens-menu">
+<#macro "subscreens-menu"><#if hideNav! != "true">
     <#assign displayMenu = sri.activeInCurrentMenu!>
     <#assign menuId = .node["@id"]!"subscreensMenu">
     <#assign menuTitle = .node["@title"]!sri.getActiveScreenDef().getDefaultMenuName()!"Menu">
@@ -81,7 +81,7 @@ along with this software (see the LICENSE.md file). If not, see
         <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
         <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
     </#if>
-</#macro>
+</#if></#macro>
 
 <#macro "subscreens-active">
     ${sri.renderSubscreen()}
@@ -90,10 +90,11 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "subscreens-panel">
     <#assign dynamic = .node["@dynamic"]! == "true" && .node["@id"]?has_content>
     <#assign dynamicActive = 0>
-    <#assign displayMenu = sri.activeInCurrentMenu!>
+    <#assign displayMenu = sri.activeInCurrentMenu!true && hideNav! != "true">
     <#assign menuId><#if .node["@id"]?has_content>${.node["@id"]}-menu<#else>subscreensPanelMenu</#if></#assign>
     <#assign menuTitle = .node["@title"]!sri.getActiveScreenDef().getDefaultMenuName()!"Menu">
     <#if .node["@type"]! == "popup">
+        <#if hideNav! != "true">
         <li id="${menuId}" class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
             <ul class="dropdown-menu">
@@ -121,6 +122,7 @@ along with this software (see the LICENSE.md file). If not, see
         <#-- NOTE: not putting this script at the end of the document so that it doesn't appear unstyled for as long -->
         <#-- move the menu to the header menus section -->
         <script>$("#${.node["@header-menus-id"]!"header-menus"}").append($("#${menuId}"));</script>
+        </#if>
 
         ${sri.renderSubscreen()}
     <#elseif .node["@type"]! == "stack">
@@ -129,38 +131,38 @@ along with this software (see the LICENSE.md file). If not, see
         <h1>LATER wizard type subscreens-panel not yet supported.</h1>
     <#else>
         <#-- default to type=tab -->
-        <#assign menuSubscreensItems=sri.getActiveScreenDef().getMenuSubscreensItems()>
-        <#if menuSubscreensItems?has_content && (menuSubscreensItems?size > 1)>
-            <div<#if .node["@id"]?has_content> id="${.node["@id"]}-menu"</#if>>
-            <#if displayMenu!>
-                <ul<#if .node["@id"]?has_content> id="${.node["@id"]}-menu"</#if> class="nav nav-tabs" role="tablist">
-                <#list menuSubscreensItems as subscreensItem>
-                    <#assign urlInstance = sri.buildUrl(subscreensItem.name)>
-                    <#if urlInstance.isPermitted()>
-                        <#if dynamic>
-                            <#assign urlInstance = urlInstance.addParameter("lastStandalone", "true")>
-                            <#if urlInstance.inCurrentScreenPath>
-                                <#assign dynamicActive = subscreensItem_index>
-                                <#assign urlInstance = urlInstance.addParameters(ec.getWeb().requestParameters)>
+        <div<#if .node["@id"]?has_content> id="${.node["@id"]}-tabpanel"</#if>>
+            <#assign menuSubscreensItems=sri.getActiveScreenDef().getMenuSubscreensItems()>
+            <#if menuSubscreensItems?has_content && (menuSubscreensItems?size > 1)>
+                <#if displayMenu>
+                    <ul<#if .node["@id"]?has_content> id="${.node["@id"]}-menu"</#if> class="nav nav-tabs" role="tablist">
+                    <#list menuSubscreensItems as subscreensItem>
+                        <#assign urlInstance = sri.buildUrl(subscreensItem.name)>
+                        <#if urlInstance.isPermitted()>
+                            <#if dynamic>
+                                <#assign urlInstance = urlInstance.addParameter("lastStandalone", "true")>
+                                <#if urlInstance.inCurrentScreenPath>
+                                    <#assign dynamicActive = subscreensItem_index>
+                                    <#assign urlInstance = urlInstance.addParameters(ec.getWeb().requestParameters)>
+                                </#if>
                             </#if>
+                            <li class="<#if urlInstance.disableLink>disabled<#elseif urlInstance.inCurrentScreenPath>active</#if>"><a href="<#if urlInstance.disableLink>#<#else>${urlInstance.minimalPathUrlWithParams}</#if>">${ec.getResource().expand(subscreensItem.menuTitle, "")}</a></li>
                         </#if>
-                        <li class="<#if urlInstance.disableLink>disabled<#elseif urlInstance.inCurrentScreenPath>active</#if>"><a href="<#if urlInstance.disableLink>#<#else>${urlInstance.minimalPathUrlWithParams}</#if>">${ec.getResource().expand(subscreensItem.menuTitle, "")}</a></li>
-                    </#if>
-                </#list>
-                </ul>
+                    </#list>
+                    </ul>
+                </#if>
             </#if>
-        </#if>
-        <#-- add to navbar bread crumbs too -->
-        <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
-        <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
+            <#-- add to navbar bread crumbs too -->
+            <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
+            <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
 
-        <#if !dynamic || !displayMenu>
-        <#-- these make it more similar to the HTML produced when dynamic, but not needed: <div<#if .node["@id"]?has_content> id="${.node["@id"]}-active"</#if> class="ui-tabs-panel"> -->
-        ${sri.renderSubscreen()}
-        <#-- </div> -->
-        </#if>
+            <#if !dynamic || !displayMenu>
+            <#-- these make it more similar to the HTML produced when dynamic, but not needed: <div<#if .node["@id"]?has_content> id="${.node["@id"]}-active"</#if> class="ui-tabs-panel"> -->
+            ${sri.renderSubscreen()}
+            <#-- </div> -->
+            </#if>
         </div>
-        <#if dynamic && displayMenu!>
+        <#if dynamic && displayMenu>
             <#assign afterScreenScript>
                 $("#${.node["@id"]}").tabs({ collapsible: true, selected: ${dynamicActive},
                     spinner: '<span class="ui-loading">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>',
