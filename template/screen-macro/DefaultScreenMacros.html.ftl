@@ -152,9 +152,11 @@ along with this software (see the LICENSE.md file). If not, see
                     </ul>
                 </#if>
             </#if>
-            <#-- add to navbar bread crumbs too -->
-            <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
-            <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
+            <#if hideNav! != "true">
+                <#-- add to navbar bread crumbs too -->
+                <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
+                <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
+            </#if>
 
             <#if !dynamic || !displayMenu>
             <#-- these make it more similar to the HTML produced when dynamic, but not needed: <div<#if .node["@id"]?has_content> id="${.node["@id"]}-active"</#if> class="ui-tabs-panel"> -->
