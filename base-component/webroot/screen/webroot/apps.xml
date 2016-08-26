@@ -69,10 +69,13 @@ along with this software (see the LICENSE.md file). If not, see
     ]]></script></pre-actions>
 
     <widgets>
-        <container id="top">
-            <render-mode><text type="html" location="component://webroot/screen/includes/navbar.html.ftl"/></render-mode>
-            <subscreens-menu type="popup" id="header-menu" title="Application"/>
-        </container>
+        <section name="TopNavSection" condition="hideNav != 'true'"><widgets>
+            <container id="top">
+                <render-mode><text type="html" location="component://webroot/screen/includes/navbar.html.ftl"/></render-mode>
+                <subscreens-menu type="popup" id="header-menu" title="Application"/>
+            </container>
+        </widgets></section>
+
         <container id="content"><container style="inner"><container style="container-fluid">
             <section name="MessagesSection"><widgets>
                 <section-iterate name="headerMessages" list="ec.message.messages" entry="message"><widgets>
@@ -112,8 +115,10 @@ along with this software (see the LICENSE.md file). If not, see
 
             <subscreens-active/>
         </container></container></container>
-        <container id="footer" style="bg-dark">
-            <render-mode><text type="html"><![CDATA[
+
+        <section name="BottomNavSection" condition="hideNav != 'true'"><widgets>
+            <container id="footer" style="bg-dark">
+                <render-mode><text type="html"><![CDATA[
                 <#assign footerItemList = sri.getThemeValues("STRT_FOOTER_ITEM")>
                 <div id="apps-footer-content">
                     <#list footerItemList! as footerItem>
@@ -122,6 +127,7 @@ along with this software (see the LICENSE.md file). If not, see
                     </#list>
                 </div>
             ]]></text></render-mode>
-        </container>
+            </container>
+        </widgets></section>
     </widgets>
 </screen>
