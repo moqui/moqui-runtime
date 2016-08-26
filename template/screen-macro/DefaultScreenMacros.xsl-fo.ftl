@@ -151,95 +151,96 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 <#-- ====================================================== -->
 <#-- ======================= Form ========================= -->
 <#macro "form-single">
-<#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
+    <#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formNode = sri.getFtlFormNode(.node["@name"])>
-    ${sri.setSingleFormMapInContext(formNode)}
-        <#if formNode["field-layout"]?has_content>
-            <#assign fieldLayout = formNode["field-layout"][0]>
-            <fo:block>
-                <#assign accordionId = fieldLayout["@id"]?default(formNode["@name"] + "-accordion")>
-                <#assign collapsible = (fieldLayout["@collapsible"] == "true")>
-                <#assign collapsibleOpened = false>
-                <#list formNode["field-layout"][0]?children as layoutNode>
-                    <#if layoutNode?node_name == "field-ref">
-                      <#if collapsibleOpened>
-                        <#assign collapsibleOpened = false>
-                        </fo:block>
-                        <script>$("#${accordionId}").accordion({ collapsible: true });</script>
-                        <#assign accordionId = accordionId + "_A"><#-- set this just in case another accordion is opened -->
-                      </#if>
-                        <#assign fieldRef = layoutNode["@name"]>
-                        <#assign fieldNode = "invalid">
-                        <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                        <#if fieldNode == "invalid">
-                            <fo:block>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</fo:block>
-                        <#else>
-                            <@formSingleSubField fieldNode/>
-                        </#if>
-                    <#elseif layoutNode?node_name == "field-row">
-                      <#if collapsibleOpened>
-                        <#assign collapsibleOpened = false>
-                        </fo:block>
-                        <script>$("#${accordionId}").accordion({ collapsible: true });</script>
-                        <#assign accordionId = accordionId + "_A"><#-- set this just in case another accordion is opened -->
-                      </#if>
+    <#t>${sri.pushSingleFormMapContext(formNode)}
+    <#if formNode["field-layout"]?has_content>
+        <#assign fieldLayout = formNode["field-layout"][0]>
+        <fo:block>
+            <#assign accordionId = fieldLayout["@id"]?default(formNode["@name"] + "-accordion")>
+            <#assign collapsible = (fieldLayout["@collapsible"]! == "true")>
+            <#assign collapsibleOpened = false>
+            <#list formNode["field-layout"][0]?children as layoutNode>
+                <#if layoutNode?node_name == "field-ref">
+                  <#if collapsibleOpened>
+                    <#assign collapsibleOpened = false>
+                    </fo:block>
+                    <script>$("#${accordionId}").accordion({ collapsible: true });</script>
+                    <#assign accordionId = accordionId + "_A"><#-- set this just in case another accordion is opened -->
+                  </#if>
+                    <#assign fieldRef = layoutNode["@name"]>
+                    <#assign fieldNode = "invalid">
+                    <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
+                    <#if fieldNode == "invalid">
+                        <fo:block>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</fo:block>
+                    <#else>
+                        <@formSingleSubField fieldNode/>
+                    </#if>
+                <#elseif layoutNode?node_name == "field-row">
+                  <#if collapsibleOpened>
+                    <#assign collapsibleOpened = false>
+                    </fo:block>
+                    <script>$("#${accordionId}").accordion({ collapsible: true });</script>
+                    <#assign accordionId = accordionId + "_A"><#-- set this just in case another accordion is opened -->
+                  </#if>
+                    <fo:block>
+                    <#list layoutNode["field-ref"] as rowFieldRefNode>
                         <fo:block>
-                        <#list layoutNode["field-ref"] as rowFieldRefNode>
-                            <fo:block>
-                                <#assign fieldRef = rowFieldRefNode["@name"]>
+                            <#assign fieldRef = rowFieldRefNode["@name"]>
+                            <#assign fieldNode = "invalid">
+                            <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
+                            <#if fieldNode == "invalid">
+                                <fo:block>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</fo:block>
+                            <#else>
+                                <@formSingleSubField fieldNode/>
+                            </#if>
+                        </fo:block>
+                    </#list>
+                    </fo:block>
+                <#elseif layoutNode?node_name == "field-group">
+                  <#if collapsible && !collapsibleOpened><#assign collapsibleOpened = true>
+                    <fo:block>
+                  </#if>
+                    <fo:block>${layoutNode["@title"]?default("Section " + layoutNode_index)}</fo:block>
+                    <fo:block>
+                        <#list layoutNode?children as groupNode>
+                            <#if groupNode?node_name == "field-ref">
+                                <#assign fieldRef = groupNode["@name"]>
                                 <#assign fieldNode = "invalid">
                                 <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                                <#if fieldNode == "invalid">
-                                    <fo:block>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</fo:block>
-                                <#else>
-                                    <@formSingleSubField fieldNode/>
-                                </#if>
-                            </fo:block>
-                        </#list>
-                        </fo:block>
-                    <#elseif layoutNode?node_name == "field-group">
-                      <#if collapsible && !collapsibleOpened><#assign collapsibleOpened = true>
-                        <fo:block>
-                      </#if>
-                        <fo:block>${layoutNode["@title"]?default("Section " + layoutNode_index)}</fo:block>
-                        <fo:block>
-                            <#list layoutNode?children as groupNode>
-                                <#if groupNode?node_name == "field-ref">
-                                    <#assign fieldRef = groupNode["@name"]>
-                                    <#assign fieldNode = "invalid">
-                                    <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                                    <@formSingleSubField fieldNode/>
-                                <#elseif groupNode?node_name == "field-row">
+                                <@formSingleSubField fieldNode/>
+                            <#elseif groupNode?node_name == "field-row">
+                                <fo:block>
+                                <#list groupNode["field-ref"] as rowFieldRefNode>
                                     <fo:block>
-                                    <#list groupNode["field-ref"] as rowFieldRefNode>
-                                        <fo:block>
-                                            <#assign fieldRef = rowFieldRefNode["@name"]>
-                                            <#assign fieldNode = "invalid">
-                                            <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                                            <#if fieldNode == "invalid">
-                                                <fo:block>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</fo:block>
-                                            <#else>
-                                                <@formSingleSubField fieldNode/>
-                                            </#if>
-                                        </fo:block>
-                                    </#list>
+                                        <#assign fieldRef = rowFieldRefNode["@name"]>
+                                        <#assign fieldNode = "invalid">
+                                        <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
+                                        <#if fieldNode == "invalid">
+                                            <fo:block>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</fo:block>
+                                        <#else>
+                                            <@formSingleSubField fieldNode/>
+                                        </#if>
                                     </fo:block>
-                                </#if>
-                            </#list>
-                        </fo:block>
-                    </#if>
-                </#list>
-                <#if collapsibleOpened>
+                                </#list>
+                                </fo:block>
+                            </#if>
+                        </#list>
                     </fo:block>
                 </#if>
-            </fo:block>
-        <#else/>
-            <fo:block>
-                <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode/></#list>
-            </fo:block>
-        </#if>
-<#if sri.doBoundaryComments()><!-- END   form-single[@name=${.node["@name"]}] --></#if>
+            </#list>
+            <#if collapsibleOpened>
+                </fo:block>
+            </#if>
+        </fo:block>
+    <#else/>
+        <fo:block>
+            <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode/></#list>
+        </fo:block>
+    </#if>
+    <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
+    <#if sri.doBoundaryComments()><!-- END   form-single[@name=${.node["@name"]}] --></#if>
 </#macro>
 <#macro formSingleSubField fieldNode>
     <#list fieldNode["conditional-field"] as fieldSubNode>
@@ -262,6 +263,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
         <#recurse fieldSubNode/>
     </fo:block>
 </#macro>
+<#macro set><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 
 <#macro "form-list">
 <#if sri.doBoundaryComments()><!-- BEGIN form-list[@name=${.node["@name"]}] --></#if>
@@ -388,9 +390,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 <#macro "date-find"></#macro>
 <#macro "date-period"></#macro>
 <#macro "date-time">
-    <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
-    <#if .node["@format"]?has_content><#assign fieldValue = ec.l10n.format(fieldValue, .node["@format"])></#if>
-    <#if .node["@type"]?if_exists == "time"><#assign size=9/><#assign maxlength=12/><#elseif .node["@type"]?if_exists == "date"><#assign size=10/><#assign maxlength=10/><#else><#assign size=23/><#assign maxlength=23/></#if>
+    <#assign javaFormat = .node["@format"]!>
+    <#if !javaFormat?has_content>
+        <#if .node["@type"]! == "time"><#assign javaFormat="HH:mm">
+        <#elseif .node["@type"]! == "date"><#assign javaFormat="yyyy-MM-dd">
+        <#else><#assign javaFormat="yyyy-MM-dd HH:mm"></#if>
+    </#if>
+    <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, .node["@default-value"]!"", javaFormat)>
     <#t><@attributeValue fieldValue/>
 </#macro>
 
