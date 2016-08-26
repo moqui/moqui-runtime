@@ -96,7 +96,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "form-single">
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formNode = sri.getFtlFormNode(.node["@name"])>
-    ${sri.setSingleFormMapInContext(formNode)}
+    <#t>${sri.pushSingleFormMapContext(formNode)}
     <#if formNode["field-layout"]?has_content>
         <#assign fieldLayout = formNode["field-layout"][0]>
         <#list formNode["field-layout"][0]?children as layoutNode>
@@ -141,7 +141,7 @@ along with this software (see the LICENSE.md file). If not, see
 
         </#list>
     </#if>
-
+    <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
 </#macro>
 <#macro formSingleSubField fieldNode>
     <#list fieldNode["conditional-field"] as fieldSubNode>
@@ -238,9 +238,13 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro "date-find"></#macro>
 <#macro "date-time">
-    <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
-    <#if .node["@format"]?has_content><#assign fieldValue = ec.l10n.format(fieldValue, .node["@format"])></#if>
-    <#if .node["@type"]?if_exists == "time"><#assign size=9/><#assign maxlength=12/><#elseif .node["@type"]?if_exists == "date"><#assign size=10/><#assign maxlength=10/><#else><#assign size=23/><#assign maxlength=23/></#if>
+    <#assign javaFormat = .node["@format"]!>
+    <#if !javaFormat?has_content>
+        <#if .node["@type"]! == "time"><#assign javaFormat="HH:mm">
+        <#elseif .node["@type"]! == "date"><#assign javaFormat="yyyy-MM-dd">
+        <#else><#assign javaFormat="yyyy-MM-dd HH:mm"></#if>
+    </#if>
+    <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, .node["@default-value"]!"", javaFormat)>
     <#t>${fieldValue}
 </#macro>
 
