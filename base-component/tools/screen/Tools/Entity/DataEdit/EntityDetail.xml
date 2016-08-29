@@ -29,11 +29,7 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <set field="entityDefinition" from="ec.entity.getEntityDefinition(selectedEntity)"/>
         <set field="entityNode" from="entityDefinition.getEntityNode()"/>
-        <set field="fieldNodes" from="entityDefinition.getFieldNodes(true, true, false)"/>
-        <entity-find entity-name="moqui.entity.UserField" list="userFieldList">
-            <econdition field-name="entityName" from="entityDefinition.fullEntityName"/>
-            <order-by field-name="fieldName"/>
-        </entity-find>
+        <set field="fieldNodes" from="entityDefinition.getFieldNodes(true, true)"/>
         <set field="relationshipInfoList" from="entityDefinition.getRelationshipsInfo(false)"/>
         <set field="dependents" from="entityDefinition.getDependentsTree()"/>
     </actions>
@@ -68,13 +64,6 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="encrypt" entry-name="node.attribute('encrypt')"><default-field><display/></default-field></field>
             <field name="localize" entry-name="node.attribute('enable-localization')"><default-field><display/></default-field></field>
             <field name="default" entry-name="node.attribute('default')"><default-field><display/></default-field></field>
-        </form-list>
-        <form-list name="UserFieldList" list="userFieldList">
-            <field name="fieldName"><default-field title="User Field"><display/></default-field></field>
-            <field name="fieldType"><default-field><display/></default-field></field>
-            <field name="userGroupId"><default-field><display/></default-field></field>
-            <field name="enableAuditLog"><default-field title="Audit"><display/></default-field></field>
-            <field name="enableLocalization"><default-field title="Localize"><display/></default-field></field>
         </form-list>
         <form-list name="RelatedEntities" list="relationshipInfoList" list-entry="relInfo">
             <field name="prettyName"><default-field><display/></default-field></field>
