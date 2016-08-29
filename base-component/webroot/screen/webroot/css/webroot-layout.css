@@ -198,3 +198,18 @@ span.hover-image-container:hover img.hover-image { display: initial; margin : 10
 .hide-nav button, .hide-nav a.btn { display: none; }
 .hide-nav .form-list-nav { display: none; }
 .hide-nav .nav { display: none; }
+body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
+
+@media print {
+    /* use white background for all, bootstrap uses white background for tables but leaves all else transparent */
+    *, *:before, *:after { background: white none !important; }
+    /* don't show URL for links as bootstrap does by default, makes a mess */
+    a[href]:after { content: ""; }
+
+    button, a.btn { display: none !important; }
+    .glyphicon, .fa { display: none; }
+    .form-list-nav-row { display: none; }
+    .nav { display: none; }
+    #footer { display: none; }
+    body { padding-top: 0; } /* don't do body padding-top for nav bar */
+}
