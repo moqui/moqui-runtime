@@ -194,7 +194,6 @@ span.hover-image-container:hover img.hover-image { display: initial; margin : 10
 
 /* ======================= hide-nav (mainly for printing) ======================= */
 
-.hide-nav .glyphicon, .hide-nav .fa { display: none; }
 .hide-nav button, .hide-nav a.btn { display: none; }
 .hide-nav .form-list-nav { display: none; }
 .hide-nav .nav { display: none; }
@@ -207,8 +206,7 @@ body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
     a[href]:after { content: ""; }
 
     button, a.btn { display: none !important; }
-    .glyphicon, .fa { display: none; }
-    .form-list-nav-row { display: none; }
+    .form-order-by, .form-list-nav-row { display: none; }
     .nav { display: none; }
     #footer { display: none; }
     body { padding-top: 0; } /* don't do body padding-top for nav bar */
