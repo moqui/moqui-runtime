@@ -26,9 +26,7 @@ along with this software (see the LICENSE.md file). If not, see
 
         <set field="osMXBean" from="java.lang.management.ManagementFactory.getOperatingSystemMXBean()"/>
         <set field="runtimeMXBean" from="java.lang.management.ManagementFactory.getRuntimeMXBean()"/>
-        <set field="uptime" from="org.joda.time.Duration.millis(runtimeMXBean.getUptime()).toPeriod()"/>
-        <set field="uptimeFormatter" from="new org.joda.time.format.PeriodFormatterBuilder().appendDays().appendSuffix('d ')
-                .appendHours().appendSuffix('h ').appendMinutes().appendSuffix('m ').appendSeconds().appendSuffix('s').toFormatter()"/>
+        <set field="uptimeHours" from="runtimeMXBean.getUptime() / (1000*60*60)"/>
 
         <set field="gcMXBeans" from="java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()"/>
         <set field="gcCount" from="0"/><set field="gcTime" from="0"/>
@@ -111,7 +109,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Start" type="strong"/></row-col>
                     <row-col xs="7"><label text="${new Timestamp(runtimeMXBean.getStartTime())}"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Uptime" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${uptimeFormatter.print(uptime)}"/></row-col></container-row>
+                    <row-col xs="7"><label text="${ec.l10n.format(uptimeHours, '#,##0.00')} hours"/></row-col></container-row>
             </row-col><row-col md="4">
                 <label text="Server" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Local IP" type="strong"/></row-col>
