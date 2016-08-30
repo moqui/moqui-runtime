@@ -45,6 +45,10 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 
 <#macro "container-dialog"><#recurse></#macro>
+<#macro "container-box">
+    <#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
+    <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
+</#macro>
 
 <#-- ==================== Includes ==================== -->
 <#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}</#macro>
@@ -68,10 +72,10 @@ along with this software (see the LICENSE.md file). If not, see
     <#if !textToUse?has_content>
         <#list .node["text"] as textNode><#if !textNode["@type"]?has_content || textNode["@type"] == "any"><#assign textToUse = textNode/></#if></#list>
     </#if>
-    <#if textToUse?exists>
+    <#if textToUse??>
         <#if textToUse["@location"]?has_content>
     <#-- NOTE: this still won't encode templates that are rendered to the writer -->
-    <#if .node["@encode"]!"false" == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)?html}<#else/>${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)}</#if>
+    <#if .node["@encode"]!"false" == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else/>${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)}</#if>
         </#if>
         <#assign inlineTemplateSource = textToUse?string/>
         <#if inlineTemplateSource?has_content>
@@ -89,7 +93,24 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro text><#-- do nothing, is used only through "render-mode" --></#macro>
 
 <#-- ================== Standalone Fields ==================== -->
-<#macro link><#if .node?parent?node_name?contains("-field")>${ec.resource.expand(.node["@text"], "")}</#if></#macro>
+<#macro link><#if .node?parent?node_name?ends_with("-field") && (.node["@link-type"]! == "anchor" || .node["@link-type"]! == "hidden-form-link")>
+    <#assign linkNode = .node>
+    <#if linkNode["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(linkNode["@condition"], "")><#else><#assign conditionResult = true></#if>
+    <#if conditionResult>
+        <#if linkNode["@entity-name"]?has_content>
+            <#assign linkText = ""><#assign linkText = sri.getFieldEntityValue(linkNode)>
+        <#else>
+            <#assign textMap = "">
+            <#if linkNode["@text-map"]?has_content><#assign textMap = ec.getResource().expression(linkNode["@text-map"], "")!></#if>
+            <#if textMap?has_content>
+                <#assign linkText = ec.getResource().expand(linkNode["@text"], "", textMap)>
+            <#else>
+                <#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")>
+            </#if>
+        </#if>
+        <#t><@csvValue linkText/>
+    </#if>
+</#if></#macro>
 
 <#macro image><#-- do nothing for image, most likely part of screen and is funny in csv file: <@csvValue .node["@alt"]!"image"/> --></#macro>
 <#macro label><#-- do nothing for label, most likely part of screen and is funny in csv file: <#assign labelValue = ec.resource.expand(.node["@text"], "")><@csvValue labelValue/> --></#macro>
@@ -192,15 +213,22 @@ on the same screen to increase reusability of those screens -->
 
 <#macro "display">
     <#assign fieldValue = ""/>
+    <#assign dispFieldNode = .node?parent?parent>
     <#if .node["@text"]?has_content>
-        <#assign fieldValue = ec.resource.expand(.node["@text"], "")>
+        <#assign textMap = "">
+        <#if .node["@text-map"]?has_content><#assign textMap = ec.getResource().expression(.node["@text-map"], "")!></#if>
+        <#if textMap?has_content>
+            <#assign fieldValue = ec.getResource().expand(.node["@text"], "", textMap)>
+        <#else>
+            <#assign fieldValue = ec.getResource().expand(.node["@text"], "")>
+        </#if>
         <#if .node["@currency-unit-field"]?has_content>
-            <#assign fieldValue = ec.l10n.formatCurrency(fieldValue, ec.resource.expression(.node["@currency-unit-field"], ""))>
+            <#assign fieldValue = ec.getL10n().formatCurrency(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))>
         </#if>
     <#elseif .node["@currency-unit-field"]?has_content>
-        <#assign fieldValue = ec.l10n.formatCurrency(sri.getFieldValue(.node?parent?parent, ""), ec.resource.expression(.node["@currency-unit-field"], ""))>
+        <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
     <#else>
-        <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, "", .node["@format"]?if_exists)>
+        <#assign fieldValue = sri.getFieldValueString(dispFieldNode, "", .node["@format"]!)>
     </#if>
     <#t><@csvValue fieldValue/>
 </#macro>
