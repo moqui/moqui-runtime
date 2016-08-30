@@ -398,21 +398,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if textToUse?exists>
         <#if textToUse["@location"]?has_content>
           <#assign textLocation = ec.getResource().expandNoL10n(textToUse["@location"], "")>
-          <#t><#if sri.doBoundaryComments() && textToUse["@no-boundary-comment"]?if_exists != "true"><!-- BEGIN render-mode.text[@location=${textLocation}][@template=${textToUse["@template"]?default("true")}] --></#if>
+          <#t><#if sri.doBoundaryComments() && textToUse["@no-boundary-comment"]! != "true"><!-- BEGIN render-mode.text[@location=${textLocation}][@template=${textToUse["@template"]!"true"}] --></#if>
           <#t><#-- NOTE: this still won't encode templates that are rendered to the writer -->
           <#t><#if .node["@encode"]!"false" == "true">${sri.renderText(textLocation, textToUse["@template"]!)?html}<#else>${sri.renderText(textLocation, textToUse["@template"]!)}</#if>
-          <#if sri.doBoundaryComments() && textToUse["@no-boundary-comment"]?if_exists != "true"><!-- END   render-mode.text[@location=${textLocation}][@template=${textToUse["@template"]?default("true")}] --></#if>
+          <#if sri.doBoundaryComments() && textToUse["@no-boundary-comment"]! != "true"><!-- END   render-mode.text[@location=${textLocation}][@template=${textToUse["@template"]!"true"}] --></#if>
         </#if>
         <#assign inlineTemplateSource = textToUse.@@text!/>
         <#if inlineTemplateSource?has_content>
-          <#t><#if sri.doBoundaryComments() && textToUse["@no-boundary-comment"]?if_exists != "true"><!-- BEGIN render-mode.text[inline][@template=${textToUse["@template"]?default("true")}] --></#if>
+          <#t><#if sri.doBoundaryComments() && textToUse["@no-boundary-comment"]! != "true"><!-- BEGIN render-mode.text[inline][@template=${textToUse["@template"]!"true"}] --></#if>
           <#if !textToUse["@template"]?has_content || textToUse["@template"] == "true">
             <#assign inlineTemplate = [inlineTemplateSource, sri.getActiveScreenDef().location + ".render_mode.text"]?interpret>
             <@inlineTemplate/>
           <#else>
             <#if .node["@encode"]!"false" == "true">${inlineTemplateSource?html}<#else>${inlineTemplateSource}</#if>
           </#if>
-          <#t><#if sri.doBoundaryComments() && textToUse["@no-boundary-comment"]?if_exists != "true"><!-- END   render-mode.text[inline][@template=${textToUse["@template"]?default("true")}] --></#if>
+          <#t><#if sri.doBoundaryComments() && textToUse["@no-boundary-comment"]! != "true"><!-- END   render-mode.text[inline][@template=${textToUse["@template"]!"true"}] --></#if>
         </#if>
     </#if>
 </#if>
@@ -1180,6 +1180,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         });
                     </script>
                 </#if>
+                <#if formNode["@show-all-button"]! == "true" && (context[listName + 'Count'] < 500)>
+                    <#if context["pageNoLimit"]?has_content>
+                        <#assign csvLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageNoLimit")>
+                        <a href="${csvLinkUrlInfo.getUrlWithParams()}" class="btn btn-default">Paginate</a>
+                    <#else>
+                        <#assign csvLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageNoLimit", "true")>
+                        <a href="${csvLinkUrlInfo.getUrlWithParams()}" class="btn btn-default">Show All</a>
+                    </#if>
+                </#if>
+            </#if>
+
+            <#if formNode["@show-csv-button"]! != "false">
+                <#assign csvLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("renderMode", "csv")
+                        .addParameter("pageNoLimit", "true").addParameter("lastStandalone", "true").addParameter("saveFilename", formNode["@name"] + ".csv")>
+                <a href="${csvLinkUrlInfo.getUrlWithParams()}" class="btn btn-default">CSV</a>
             </#if>
         </nav>
         </th></tr>
