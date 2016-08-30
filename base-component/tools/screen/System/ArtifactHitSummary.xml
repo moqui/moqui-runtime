@@ -16,17 +16,18 @@ along with this software (see the LICENSE.md file). If not, see
         default-menu-title="Artifact Summary" default-menu-index="2">
 
     <transition name="ArtifactHitSummaryStats.csv">
-        <default-response url="."><parameter name="renderMode" value="csv"/>
-            <parameter name="pageNoLimit" value="true"/><parameter name="lastStandalone" value="true"/></default-response>
+        <default-response url="."><parameter name="renderMode" value="csv"/><parameter name="pageNoLimit" value="true"/>
+            <parameter name="lastStandalone" value="true"/><parameter name="saveFilename" value="ArtifactHitSummaryStats.csv"/></default-response>
     </transition>
     <transition name="ArtifactHitSummaryStats.xml">
-        <default-response url="."><parameter name="renderMode" value="xml"/>
-            <parameter name="pageNoLimit" value="true"/><parameter name="lastStandalone" value="true"/></default-response>
+        <default-response url="."><parameter name="renderMode" value="xml"/><parameter name="pageNoLimit" value="true"/>
+            <parameter name="lastStandalone" value="true"/><parameter name="saveFilename" value="ArtifactHitSummaryStats.xml"/></default-response>
     </transition>
     <transition name="ArtifactHitSummaryStats.pdf">
         <default-response url="${ec.web.getWebappRootUrl(false, null)}/fop/apps/system/ArtifactHitSummary" url-type="plain">
             <parameter name="renderMode" value="xsl-fo"/><parameter name="pageNoLimit" value="true"/>
-            <!--<parameter name="lastStandalone" value="true"/>-->
+            <parameter name="filename" value="ArtifactHitSummaryStats.pdf"/>
+            <!-- <parameter name="lastStandalone" value="true"/> -->
         </default-response>
     </transition>
 
@@ -37,9 +38,9 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <container>
-            <link url="ArtifactHitSummaryStats.csv" text="Get as CSV" target-window="_blank" expand-transition-url="false"/>
-            <link url="ArtifactHitSummaryStats.xml" text="Get as XML" target-window="_blank" expand-transition-url="false"/>
-            <link url="ArtifactHitSummaryStats.pdf" text="Get as PDF" target-window="_blank"/>
+            <link url="ArtifactHitSummaryStats.csv" text="Get as CSV"/>
+            <link url="ArtifactHitSummaryStats.xml" text="Get as XML"/>
+            <link url="ArtifactHitSummaryStats.pdf" text="Get as PDF"/>
         </container>
         <form-list name="ArtifactHitSummaryList" list="artifactHitReportList" skip-form="true">
             <row-actions>
