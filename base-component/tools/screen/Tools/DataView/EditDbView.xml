@@ -50,6 +50,7 @@ along with this software (see the LICENSE.md file). If not, see
             <!-- add moqui.entity.view.DbViewEntityAlias record, and moqui.entity.view.DbViewEntityMember/ViewLink if needed -->
             <script>
                 import org.moqui.impl.entity.EntityDefinition
+                import org.moqui.impl.entity.EntityJavaUtil
                 // make sure reverse-one many relationships exist
                 ec.entity.createAllAutoReverseManyRelationships()
 
@@ -71,7 +72,7 @@ along with this software (see the LICENSE.md file). If not, see
                     String fieldName
 
                     String relationshipName = field.substring(0, field.lastIndexOf('.'))
-                    EntityDefinition.RelationshipInfo relInfo = masterEd.getRelationshipInfo(relationshipName)
+                    EntityJavaUtil.RelationshipInfo relInfo = masterEd.getRelationshipInfo(relationshipName)
                     if (relInfo != null) {
                         entityName = relInfo.relatedEntityName
                         fieldName = field.substring(field.lastIndexOf('.') + 1)
