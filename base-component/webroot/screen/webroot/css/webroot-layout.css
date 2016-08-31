@@ -129,7 +129,7 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 
 nav.form-list-nav .pagination { margin: 6px 6px 0 6px; }
 nav.form-list-nav>form.form-inline { display: inline-block; margin: 2px 6px 0 0; float: left; }
-nav.form-list-nav>button { display: inline-block; margin: 6px 6px 0 6px; float: left; }
+nav.form-list-nav>.btn { display: inline-block; margin: 6px 6px 0 6px; float: left; }
 nav.form-list-nav>span.select2-container { float: left; margin: 6px 0 6px 0; min-width: 100px; max-width: 160px; }
 
 /* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */
@@ -194,7 +194,20 @@ span.hover-image-container:hover img.hover-image { display: initial; margin : 10
 
 /* ======================= hide-nav (mainly for printing) ======================= */
 
-.hide-nav .glyphicon, .hide-nav .fa { display: none; }
 .hide-nav button, .hide-nav a.btn { display: none; }
 .hide-nav .form-list-nav { display: none; }
 .hide-nav .nav { display: none; }
+body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
+
+@media print {
+    /* use white background for all, bootstrap uses white background for tables but leaves all else transparent */
+    *, *:before, *:after { background: white none !important; }
+    /* don't show URL for links as bootstrap does by default, makes a mess */
+    a[href]:after { content: ""; }
+
+    button, a.btn { display: none !important; }
+    .form-order-by, .form-list-nav-row { display: none; }
+    .nav { display: none; }
+    #footer { display: none; }
+    body { padding-top: 0; } /* don't do body padding-top for nav bar */
+}
