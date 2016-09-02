@@ -1191,7 +1191,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </#if>
             </#if>
 
-            <#if formNode["@show-csv-button"]! != "false">
+            <#if formNode["@show-csv-button"]! == "true">
                 <#assign csvLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("renderMode", "csv")
                         .addParameter("pageNoLimit", "true").addParameter("lastStandalone", "true").addParameter("saveFilename", formNode["@name"] + ".csv")>
                 <a href="${csvLinkUrlInfo.getUrlWithParams()}" class="btn btn-default">CSV</a>

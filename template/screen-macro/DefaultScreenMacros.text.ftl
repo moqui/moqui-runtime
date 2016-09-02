@@ -28,7 +28,6 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#-- ================ Containers ================ -->
 <#macro container>
-
 <#recurse>
 </#macro>
 
@@ -41,6 +40,10 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 
 <#macro "container-dialog">${ec.resource.expand(.node["@button-text"], "")} </#macro>
+<#macro "container-box">
+    <#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
+    <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
+</#macro>
 
 <#-- ==================== Includes ==================== -->
 <#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}</#macro>
@@ -59,23 +62,23 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "render-mode">
 <#if .node["text"]?has_content>
     <#list .node["text"] as textNode>
-        <#if textNode["@type"]?has_content && textNode["@type"] == sri.getRenderMode()><#assign textToUse = textNode/></#if>
+        <#if textNode["@type"]?has_content && textNode["@type"] == sri.getRenderMode()><#assign textToUse = textNode></#if>
     </#list>
     <#if !textToUse?has_content>
-        <#list .node["text"] as textNode><#if !textNode["@type"]?has_content || textNode["@type"] == "any"><#assign textToUse = textNode/></#if></#list>
+        <#list .node["text"] as textNode><#if !textNode["@type"]?has_content || textNode["@type"] == "any"><#assign textToUse = textNode></#if></#list>
     </#if>
     <#if textToUse?exists>
         <#if textToUse["@location"]?has_content>
     <#-- NOTE: this still won't encode templates that are rendered to the writer -->
-    <#if .node["@encode"]!"false" == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)?html}<#else/>${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)}</#if>
+    <#if .node["@encode"]!"false" == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)?html}<#else>${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)}</#if>
         </#if>
-        <#assign inlineTemplateSource = textToUse?string/>
+        <#assign inlineTemplateSource = textToUse?string>
         <#if inlineTemplateSource?has_content>
           <#if !textToUse["@template"]?has_content || textToUse["@template"] == "true">
             <#assign inlineTemplate = [inlineTemplateSource, sri.getActiveScreenDef().location + ".render_mode.text"]?interpret>
             <@inlineTemplate/>
-          <#else/>
-            <#if .node["@encode"]!"false" == "true">${inlineTemplateSource?html}<#else/>${inlineTemplateSource}</#if>
+          <#else>
+            <#if .node["@encode"]!"false" == "true">${inlineTemplateSource?html}<#else>${inlineTemplateSource}</#if>
           </#if>
         </#if>
     </#if>
@@ -85,7 +88,24 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro text><#-- do nothing, is used only through "render-mode" --></#macro>
 
 <#-- ================== Standalone Fields ==================== -->
-<#macro link>${ec.resource.expand(.node["@text"], "")} </#macro>
+<#macro link><#if .node?parent?node_name?ends_with("-field") && (.node["@link-type"]! == "anchor" || .node["@link-type"]! == "hidden-form-link")>
+    <#assign linkNode = .node>
+    <#if linkNode["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(linkNode["@condition"], "")><#else><#assign conditionResult = true></#if>
+    <#if conditionResult>
+        <#if linkNode["@entity-name"]?has_content>
+            <#assign linkText = ""><#assign linkText = sri.getFieldEntityValue(linkNode)>
+        <#else>
+            <#assign textMap = "">
+            <#if linkNode["@text-map"]?has_content><#assign textMap = ec.getResource().expression(linkNode["@text-map"], "")!></#if>
+            <#if textMap?has_content>
+                <#assign linkText = ec.getResource().expand(linkNode["@text"], "", textMap)>
+            <#else>
+                <#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")>
+            </#if>
+        </#if>
+        <#t>${linkText}
+    </#if>
+</#if></#macro>
 
 <#macro image>${.node["@alt"]!""}</#macro>
 <#macro label><#assign labelValue = ec.resource.expand(.node["@text"], "")>${labelValue} </#macro>
@@ -135,7 +155,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </#list>
             </#if>
         </#list>
-    <#else/>
+    <#else>
         <#list formNode["field"] as fieldNode>
             <#lt><@formSingleSubField fieldNode/>
 
@@ -157,8 +177,9 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 <#macro formSingleWidget fieldSubNode>
     <#if fieldSubNode["ignored"]?has_content || fieldSubNode["hidden"]?has_content || fieldSubNode["submit"]?has_content ||
-            fieldSubNode?parent["@hide"]! == "true"><#return/></#if>
-<@fieldTitle fieldSubNode/>: <#recurse fieldSubNode/> </#macro>
+            fieldSubNode?parent["@hide"]! == "true"><#return></#if>
+    <#t><@fieldTitle fieldSubNode/>: <#recurse fieldSubNode/>
+</#macro>
 
 <#macro "form-list">
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
@@ -216,23 +237,23 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 <#macro formListWidget fieldSubNode>
     <#if fieldSubNode["ignored"]?has_content || fieldSubNode["hidden"]?has_content || fieldSubNode["submit"]?has_content ||
-            fieldSubNode?parent["@hide"]?if_exists == "true"><#return/></#if>
+            fieldSubNode?parent["@hide"]?if_exists == "true"><#return></#if>
     <#t><#recurse fieldSubNode>
 </#macro>
 <#macro "row-actions"><#-- do nothing, these are run by the SRI --></#macro>
 
-<#macro fieldTitle fieldSubNode><#assign titleValue><#if fieldSubNode["@title"]?has_content>${fieldSubNode["@title"]}<#else/><#list fieldSubNode?parent["@name"]?split("(?=[A-Z])", "r") as nameWord>${nameWord?cap_first?replace("Id", "ID")}<#if nameWord_has_next> </#if></#list></#if></#assign>${ec.l10n.localize(titleValue)}</#macro>
+<#macro fieldTitle fieldSubNode><#assign titleValue><#if fieldSubNode["@title"]?has_content>${fieldSubNode["@title"]}<#else><#list fieldSubNode?parent["@name"]?split("(?=[A-Z])", "r") as nameWord>${nameWord?cap_first?replace("Id", "ID")}<#if nameWord_has_next> </#if></#list></#if></#assign>${ec.l10n.localize(titleValue)}</#macro>
 
-<#macro "field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
-<#macro "conditional-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
-<#macro "default-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
+<#macro "field"><#-- shouldn't be called directly, but just in case --><#recurse></#macro>
+<#macro "conditional-field"><#-- shouldn't be called directly, but just in case --><#recurse></#macro>
+<#macro "default-field"><#-- shouldn't be called directly, but just in case --><#recurse></#macro>
 
 <#-- ================== Form Field Widgets ==================== -->
 
 <#macro "check">
-    <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
+    <#assign options = {"":""}><#assign options = sri.getFieldOptions(.node)>
     <#assign currentValue = sri.getFieldValue(.node?parent?parent, "")>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists></#if>
     <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
 </#macro>
 
@@ -249,28 +270,35 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 
 <#macro "display">
-    <#assign fieldValue = ""/>
+    <#assign fieldValue = "">
+    <#assign dispFieldNode = .node?parent?parent>
     <#if .node["@text"]?has_content>
-        <#assign fieldValue = ec.resource.expand(.node["@text"], "")>
+        <#assign textMap = "">
+        <#if .node["@text-map"]?has_content><#assign textMap = ec.getResource().expression(.node["@text-map"], "")!></#if>
+        <#if textMap?has_content>
+            <#assign fieldValue = ec.getResource().expand(.node["@text"], "", textMap)>
+        <#else>
+            <#assign fieldValue = ec.getResource().expand(.node["@text"], "")>
+        </#if>
         <#if .node["@currency-unit-field"]?has_content>
-            <#assign fieldValue = ec.l10n.formatCurrency(fieldValue, ec.resource.expression(.node["@currency-unit-field"], ""))>
+            <#assign fieldValue = ec.getL10n().formatCurrency(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))>
         </#if>
     <#elseif .node["@currency-unit-field"]?has_content>
-        <#assign fieldValue = ec.l10n.formatCurrency(sri.getFieldValue(.node?parent?parent, ""), ec.resource.expression(.node["@currency-unit-field"], ""))>
+        <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
     <#else>
-        <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, "", .node["@format"]?if_exists)>
+        <#assign fieldValue = sri.getFieldValueString(dispFieldNode, "", .node["@format"]!)>
     </#if>
     <#t>${fieldValue}
 </#macro>
 <#macro "display-entity">
-    <#assign fieldValue = ""/><#assign fieldValue = sri.getFieldEntityValue(.node)/>
+    <#assign fieldValue = ""><#assign fieldValue = sri.getFieldEntityValue(.node)>
     <#t>${fieldValue}
 </#macro>
 
 <#macro "drop-down">
-    <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)/>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
+    <#assign options = {"":""}><#assign options = sri.getFieldOptions(.node)>
+    <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists></#if>
     <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
 </#macro>
 
@@ -280,9 +308,9 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "password"></#macro>
 
 <#macro "radio">
-    <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)/>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
+    <#assign options = {"":""}><#assign options = sri.getFieldOptions(.node)>
+    <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists></#if>
     <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
 </#macro>
 

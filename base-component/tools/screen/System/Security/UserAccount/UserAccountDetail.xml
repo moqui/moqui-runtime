@@ -16,7 +16,7 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         default-menu-index="1">
 
-    <parameter name="userId" required="true"/>
+    <parameter name="userId" required="true" from="userId ?: userId_0"/>
 
     <transition name="updateUserAccount"><service-call name="update#moqui.security.UserAccount"/>
         <default-response url="."/></transition>
@@ -38,6 +38,8 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/></transition>
     <transition name="updateUserPreference"><service-call name="update#moqui.security.UserPreference"/>
         <default-response url="."/></transition>
+    <transition name="topicSubscriptions"><service-call name="store#moqui.security.user.NotificationTopicUser"/>
+        <default-response url="."/></transition>
 
     <transition name="releaseTarpitNow">
         <service-call name="update#moqui.security.ArtifactTarpitLock"
@@ -57,6 +59,9 @@ along with this software (see the LICENSE.md file). If not, see
 
         <entity-find entity-name="moqui.security.UserPreference" list="upList">
             <econdition field-name="userId"/><order-by field-name="preferenceKey"/></entity-find>
+        <entity-find entity-name="moqui.security.user.NotificationTopic" list="notificationTopicList">
+            <econdition field-name="isPrivate" value="N" or-null="true"/>
+            <order-by field-name="description"/></entity-find>
 
         <entity-find entity-name="moqui.security.UserLoginHistory" list="historyList">
             <search-form-inputs default-order-by="-fromDate"/>
@@ -82,6 +87,25 @@ along with this software (see the LICENSE.md file). If not, see
                 </container-dialog>
                 <link url="enableUserAccount" text="Enable Account" parameter-map="[userId:userId]"
                         condition="userAccount.disabled == 'Y'"/>
+                <container-dialog id="TopicUserDialog" button-text="Topic Subscriptions">
+                    <form-list name="NotificationTopicList" list="notificationTopicList" transition="topicSubscriptions" multi="true">
+                        <row-actions>
+                            <entity-find-one entity-name="moqui.security.user.NotificationTopicUser" value-field="notTopicUser">
+                                <field-map field-name="topic"/><field-map field-name="userId"/></entity-find-one>
+                        </row-actions>
+                        <field name="userId"><default-field><hidden/></default-field></field>
+                        <field name="topic"><default-field><hidden/></default-field></field>
+                        <field name="description"><default-field title="Topic"><display/></default-field></field>
+                        <field name="receiveNotifications" entry-name="notTopicUser?.receiveNotifications ?: receiveNotifications ?: 'Y'"><default-field title="Receive">
+                            <radio><option key="Y"/><option key="N"/></radio>
+                        </default-field></field>
+                        <field name="allNotifications" entry-name="notTopicUser?.allNotifications ?: allNotifications ?: 'N'"><default-field title="All">
+                            <radio><option key="Y"/><option key="N"/></radio>
+                        </default-field></field>
+                        <field name="submitButton"><default-field><submit text="Update"/></default-field></field>
+                    </form-list>
+                </container-dialog>
+
                 <form-single name="UserAccountForm" map="userAccount" transition="updateUserAccount">
                     <field name="userId"><default-field><display/></default-field></field>
                     <field name="username"><default-field><text-line size="20"/></default-field></field>
@@ -168,6 +192,7 @@ along with this software (see the LICENSE.md file). If not, see
                     </box-body>
                 </container-box>
 
+                <!-- TODO: consider moving this to another screen -->
                 <label text="Login History" type="h5"/>
                 <form-list name="HistoryList" list="historyList" skip-form="true">
                     <field name="fromDate">

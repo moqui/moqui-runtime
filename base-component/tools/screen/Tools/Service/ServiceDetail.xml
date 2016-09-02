@@ -28,17 +28,17 @@ along with this software (see the LICENSE.md file). If not, see
     </pre-actions>
     <actions>
         <set field="sd" from="ec.service.getServiceDefinition(serviceName)"/>
-        <set field="serviceNode" from="sd.getServiceNode()"/>
+        <set field="serviceNode" from="sd.serviceNode"/>
         <set field="inParameterNodes" from="serviceNode.first('in-parameters').children('parameter')"/>
         <set field="outParameterNodes" from="serviceNode.first('out-parameters').children('parameter')"/>
     </actions>
     <widgets>
-        <label type="h2" text="${serviceName}"/>
+        <label type="h2" text="${sd.serviceName}"/>
         <label type="strong" text="${serviceNode.first('description')?.text ?: ''}" display-if-empty="false"/>
         <!-- <label type="p" text="${serviceNode.attributes}"/> -->
-        <label type="p" text="Authenticate: ${sd.getAuthenticate()}"/>
-        <label type="p" text="Service Type: ${sd.getServiceType()}${sd.getLocation() ? ', Location: ' + sd.getLocation() : ''}${sd.getMethod() ? ', Method: ' + sd.getMethod() : ''}"/>
-        <label type="p" text="Tx Ignore: ${sd.getTxIgnore()}, Force New: ${sd.getTxForceNew()}, Use Tx Cache: ${sd.getTxUseCache()}, Timeout: ${sd.getTxTimeout()}"/>
+        <label type="p" text="Authenticate: ${sd.authenticate}"/>
+        <label type="p" text="Service Type: ${sd.serviceType}${sd.location ? ', Location: ' + sd.location : ''}${sd.method ? ', Method: ' + sd.method : ''}"/>
+        <label type="p" text="Tx Ignore: ${sd.txIgnore}, Force New: ${sd.txForceNew}, Use Tx Cache: ${sd.txUseCache}, Timeout: ${sd.txTimeout}"/>
 
         <label type="h3" text="In Parameters"/>
         <form-list name="InParameters" list="inParameterNodes" list-entry="parameterNode" skip-form="true">
