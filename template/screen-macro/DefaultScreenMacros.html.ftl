@@ -1534,10 +1534,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if (allowEmpty! != "false")>
             <option value="">&nbsp;</option>
             </#if>
-            <option<#if fvPeriod == "day"> selected="selected"</#if>>${ec.getL10n().localize("Day")}</option>
-            <option<#if fvPeriod == "week"> selected="selected"</#if>>${ec.getL10n().localize("Week")}</option>
-            <option<#if fvPeriod == "month"> selected="selected"</#if>>${ec.getL10n().localize("Month")}</option>
-            <option<#if fvPeriod == "year"> selected="selected"</#if>>${ec.getL10n().localize("Year")}</option>
+            <option value="day" <#if fvPeriod == "day"> selected="selected"</#if>>${ec.getL10n().localize("Day")}</option>
+            <option value="week" <#if fvPeriod == "week"> selected="selected"</#if>>${ec.getL10n().localize("Week")}</option>
+            <option value="month" <#if fvPeriod == "month"> selected="selected"</#if>>${ec.getL10n().localize("Month")}</option>
+            <option value="year" <#if fvPeriod == "year"> selected="selected"</#if>>${ec.getL10n().localize("Year")}</option>
         </select>
         <script>
             $("#${id}_poffset").select2({ minimumResultsForSearch:20, theme:'bootstrap' });
