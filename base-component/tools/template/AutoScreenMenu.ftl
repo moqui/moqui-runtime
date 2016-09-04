@@ -23,19 +23,22 @@ along with this software (see the LICENSE.md file). If not, see
                     <#assign urlInstance = urlInstance.addParameters(ec.web.requestParameters)>
                 </#if>
             </#if>
-            <li class="<#if urlInstance.inCurrentScreenPath>active</#if>"><a href="${urlInstance.minimalPathUrlWithParams}">${ec.entity.getEntityDefinition(aen).getPrettyName(null, null)}</a></li>
+            <li class="<#if urlInstance.inCurrentScreenPath>active</#if>">
+                <a href="${urlInstance.minimalPathUrlWithParams}">${ec.entity.getEntityDefinition(aen).getPrettyName(null, null)}</a></li>
         <#list relationshipInfoList as relationshipInfo>
             <#assign curKeyMap = relationshipInfo.getTargetParameterMap(context)>
             <#if curKeyMap?has_content>
-                <#assign urlInstance = baseUrlInfo.getInstance(sri, false).addParameters(masterPrimaryKeyMap).addParameter("den", relationshipInfo.relatedEntityName).addParameter("aen", aen).addParameters(curKeyMap)>
+                <#assign urlInstance = baseUrlInfo.getInstance(sri, false).addParameters(masterPrimaryKeyMap)
+                        .addParameter("den", relationshipInfo.riRelatedEntityName()).addParameter("aen", aen).addParameters(curKeyMap)>
                 <#if dynamic>
                     <#assign urlInstance = urlInstance.addParameter("lastStandalone", "true")>
-                    <#if urlInstance.inCurrentScreenPath && relationshipInfo.relatedEntityName == den!>
+                    <#if urlInstance.inCurrentScreenPath && relationshipInfo.riRelatedEntityName() == den!>
                         <#assign dynamicActive = relationshipInfo_index + 1>
                         <#assign urlInstance = urlInstance.addParameters(ec.web.requestParameters)>
                     </#if>
                 </#if>
-                <li class="<#if urlInstance.inCurrentScreenPath && relationshipInfo.relatedEntityName == den!>active</#if>"><a href="${urlInstance.minimalPathUrlWithParams}">${relationshipInfo.prettyName}</a></li>
+                <li class="<#if urlInstance.inCurrentScreenPath && relationshipInfo.riRelatedEntityName() == den!>active</#if>">
+                    <a href="${urlInstance.minimalPathUrlWithParams}">${relationshipInfo.riPrettyName()}</a></li>
             </#if>
         </#list>
         </ul>
