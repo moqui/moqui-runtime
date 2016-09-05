@@ -11,6 +11,18 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 
+<#-- truncate or pad the textValue plus one space at the end so it is exactly characters chars long -->
+<#macro paddedValue textValue characters leftPad>
+    <#assign textLength = textValue?length>
+    <#if (textLength >= characters)>
+        <#assign textValue = textValue?substring(0, characters - 1) + " ">
+    <#else>
+        <#if leftPad><#assign textValue = textValue?left_pad(characters - 1) + " ">
+            <#else><#assign textValue = textValue?right_pad(characters)></#if>
+    </#if>
+    <#t>${textValue}
+</#macro>
+
 <#macro @element></#macro>
 
 <#macro screen><#recurse></#macro>
