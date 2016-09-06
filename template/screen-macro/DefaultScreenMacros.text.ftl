@@ -204,31 +204,34 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign listName = formNode["@list"]>
     <#assign listObject = ec.resource.expression(listName, "")!>
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
-    <#assign columnCharWidths = formInstance.getFormListColumnCharWidths(formListColumnList, (lineCharacters!"132")?number)>
+    <#assign lineCharactersNum = (lineCharacters!"132")?number>
+    <#assign columnCharWidths = formInstance.getFormListColumnCharWidths(formListColumnList, lineCharactersNum)>
+    <#t><#list 1..lineCharactersNum as charNum><#assign charNumMod10 = charNum % 10><#if charNumMod10 == 0>*<#else>${charNumMod10}</#if></#list>
+
     <#list formListColumnList as columnFieldList>
+        <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
         <#list columnFieldList as fieldNode>
             <#if !(fieldNode["@hide"]! == "true" ||
                     ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
                     (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
-                <#assign cellCharWidth = columnCharWidths.get(fieldNode_index)>
                 <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
-                <#t><@formListHeaderField fieldNode/><#if fieldNode_has_next>${" "}</#if>
+                <#t><@formListHeaderField fieldNode/><#if columnFieldList_has_next> </#if>
             </#if>
         </#list>
     </#list>
-
+    <#t>${"\n"}
     <#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
         <#t>${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
         <#list formListColumnList as columnFieldList>
+            <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
             <#list columnFieldList as fieldNode>
-                <#assign cellCharWidth = columnCharWidths.get(fieldNode_index)>
                 <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
-                <#t><@formListSubField fieldNode/><#if fieldNode_has_next>${" "}</#if>
+                <#t><@formListSubField fieldNode/><#if columnFieldList_has_next> </#if>
             </#list>
         </#list>
-
+        <#t>${"\n"}
         <#t>${sri.endFormListRow()}
     </#list>
     <#t>${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
