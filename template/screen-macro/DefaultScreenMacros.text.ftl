@@ -210,36 +210,57 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign listObject = ec.resource.expression(listName, "")!>
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
     <#assign columnCharWidths = formInstance.getFormListColumnCharWidths(formListColumnList, lineCharactersNum)>
-    <#-- TODO: remove --><#t><#list 1..lineCharactersNum as charNum><#assign charNumMod10 = charNum % 10><#if charNumMod10 == 0>*<#else>${charNumMod10}</#if></#list>
-
-    <#list formListColumnList as columnFieldList>
-        <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
-        <#list columnFieldList as fieldNode>
-            <#if !(fieldNode["@hide"]! == "true" ||
-                    ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                    (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
-                <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
-                <#t><#if (columnFieldList_index > 0) && (cellCharWidth > 0)>|</#if><@formListHeaderField fieldNode/>
+    <#-- <#t><#list 1..lineCharactersNum as charNum><#assign charNumMod10 = charNum % 10><#if charNumMod10 == 0>*<#else>${charNumMod10}</#if></#list> -->
+    <#list 0..5 as fieldInColIndex>
+        <#assign hasMoreFields = false>
+        <#list formListColumnList as columnFieldList>
+            <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
+            <#if (cellCharWidth > 0)>
+                <#t><#if (columnFieldList_index > 0)>|</#if>
+                <#assign curColumnFieldSize = columnFieldList.size()>
+                <#if (fieldInColIndex >= curColumnFieldSize)>
+                    <#t>${" "?left_pad(cellCharWidth)}
+                <#else>
+                    <#assign fieldNode = columnFieldList.get(fieldInColIndex)!>
+                    <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
+                    <#t><@formListHeaderField fieldNode/>
+                </#if>
+                <#if (curColumnFieldSize > (fieldInColIndex + 1))><#assign hasMoreFields = true></#if>
             </#if>
         </#list>
+        <#t>${"\n"}
+        <#if !hasMoreFields><#break></#if>
     </#list>
+    <#t><#list 1..lineCharactersNum as charNum>-</#list>
     <#t>${"\n"}
     <#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
         <#t>${sri.startFormListRow(formInstance, listEntry, listEntryIndex, listEntry_has_next)}
-        <#list 0..10 as lineWrapCounter>
-            <#assign cellWrapOverflow = false>
-            <#assign cellWrapLine = lineWrapCounter>
-            <#list formListColumnList as columnFieldList>
-                <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
-                <#list columnFieldList as fieldNode>
-                    <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
-                    <#t><#if (columnFieldList_index > 0) && (cellCharWidth > 0)>|</#if><@formListSubField fieldNode/>
+        <#list 0..5 as fieldInColIndex>
+            <#assign hasMoreFields = false>
+            <#list 0..10 as lineWrapCounter>
+                <#assign cellWrapOverflow = false>
+                <#assign cellWrapLine = lineWrapCounter>
+                <#list formListColumnList as columnFieldList>
+                    <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
+                    <#if (cellCharWidth > 0)>
+                        <#t><#if (columnFieldList_index > 0)>|</#if>
+                        <#assign curColumnFieldSize = columnFieldList.size()>
+                        <#if (fieldInColIndex >= curColumnFieldSize)>
+                            <#t>${" "?left_pad(cellCharWidth)}
+                        <#else>
+                            <#assign fieldNode = columnFieldList.get(fieldInColIndex)!>
+                            <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
+                            <#t><@formListSubField fieldNode/>
+                        </#if>
+                        <#if (curColumnFieldSize > (fieldInColIndex + 1))><#assign hasMoreFields = true></#if>
+                    </#if>
                 </#list>
+                <#t>${"\n"}
+                <#if !cellWrapOverflow || !lineWrapBool><#break></#if>
             </#list>
-            <#t>${"\n"}
-            <#if !cellWrapOverflow || !lineWrapBool><#break></#if>
+            <#if !hasMoreFields><#break></#if>
         </#list>
         <#t>${sri.endFormListRow()}
     </#list>
