@@ -12,15 +12,16 @@ along with this software (see the LICENSE.md file). If not, see
 -->
 
 <#-- truncate or pad the textValue plus one space at the end so it is exactly characters chars long -->
-<#macro paddedValue textValue characters leftPad>
+<#macro paddedValue textValue characters=cellCharWidth!0 leftPad=cellLeftPad!false>
+    <#if cellCharWidth == 0><#return></#if>
     <#assign textLength = textValue?length>
     <#if (textLength >= characters)>
-        <#assign textValue = textValue?substring(0, characters - 1) + " ">
+        <#assign outValue = textValue?substring(0, characters)>
     <#else>
-        <#if leftPad><#assign textValue = textValue?left_pad(characters - 1) + " ">
-            <#else><#assign textValue = textValue?right_pad(characters)></#if>
+        <#if leftPad><#assign outValue = textValue?left_pad(characters)>
+            <#else><#assign outValue = textValue?right_pad(characters)></#if>
     </#if>
-    <#t>${textValue}
+    <#t>${outValue}
 </#macro>
 
 <#macro @element></#macro>
@@ -115,12 +116,12 @@ along with this software (see the LICENSE.md file). If not, see
                 <#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")>
             </#if>
         </#if>
-        <#t>${linkText}
+        <#t><@paddedValue linkText/>
     </#if>
 </#if></#macro>
 
-<#macro image>${.node["@alt"]!""}</#macro>
-<#macro label><#assign labelValue = ec.resource.expand(.node["@text"], "")>${labelValue} </#macro>
+<#macro image><@paddedValue .node["@alt"]!""/></#macro>
+<#macro label><#assign labelValue = ec.resource.expand(.node["@text"], "")><@paddedValue labelValue/> </#macro>
 <#macro parameter><#-- do nothing, used directly in other elements --></#macro>
 
 <#-- ====================================================== -->
@@ -129,6 +130,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formNode = sri.getFtlFormNode(.node["@name"])>
     <#t>${sri.pushSingleFormMapContext(formNode)}
+    <#assign formSingleFieldWidth = (lineCharacters!"132")?number>
     <#if formNode["field-layout"]?has_content>
         <#assign fieldLayout = formNode["field-layout"][0]>
         <#list formNode["field-layout"][0]?children as layoutNode>
@@ -190,7 +192,9 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro formSingleWidget fieldSubNode>
     <#if fieldSubNode["ignored"]?has_content || fieldSubNode["hidden"]?has_content || fieldSubNode["submit"]?has_content ||
             fieldSubNode?parent["@hide"]! == "true"><#return></#if>
-    <#t><@fieldTitle fieldSubNode/>: <#recurse fieldSubNode/>
+    <#assign curTitle><@fieldTitle fieldSubNode/></#assign>
+    <#assign cellCharWidth = formSingleFieldWidth*0.75>
+    <#t><@paddedValue textValue formSingleFieldWidth*0.25 true/>: <#recurse fieldSubNode/>
 </#macro>
 
 <#macro "form-list">
@@ -200,12 +204,15 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign listName = formNode["@list"]>
     <#assign listObject = ec.resource.expression(listName, "")!>
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
+    <#assign columnCharWidths = formInstance.getFormListColumnCharWidths(formListColumnList, (lineCharacters!"132")?number)>
     <#list formListColumnList as columnFieldList>
         <#list columnFieldList as fieldNode>
             <#if !(fieldNode["@hide"]! == "true" ||
                     ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
                     (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
-                <#t><@formListHeaderField fieldNode/>${"\t"}
+                <#assign cellCharWidth = columnCharWidths.get(fieldNode_index)>
+                <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
+                <#t><@formListHeaderField fieldNode/><#if fieldNode_has_next>${" "}</#if>
             </#if>
         </#list>
     </#list>
@@ -216,7 +223,9 @@ along with this software (see the LICENSE.md file). If not, see
         <#t>${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
         <#list formListColumnList as columnFieldList>
             <#list columnFieldList as fieldNode>
-                <#t><@formListSubField fieldNode/>${"\t"}
+                <#assign cellCharWidth = columnCharWidths.get(fieldNode_index)>
+                <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
+                <#t><@formListSubField fieldNode/><#if fieldNode_has_next>${" "}</#if>
             </#list>
         </#list>
 
@@ -233,7 +242,8 @@ along with this software (see the LICENSE.md file). If not, see
         <#-- this only makes sense for fields with a single conditional -->
         <#assign fieldSubNode = fieldNode["conditional-field"][0]>
     </#if>
-    <#t><@fieldTitle fieldSubNode/>
+    <#assign curTitle><@fieldTitle fieldSubNode/></#assign>
+    <#t><@paddedValue curTitle/>
 </#macro>
 <#macro formListSubField fieldNode>
     <#list fieldNode["conditional-field"] as fieldSubNode>
@@ -265,8 +275,8 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "check">
     <#assign options = {"":""}><#assign options = sri.getFieldOptions(.node)>
     <#assign currentValue = sri.getFieldValue(.node?parent?parent, "")>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!></#if>
+    <#t><@paddedValue options.get(currentValue)?default(currentValue)/>
 </#macro>
 
 <#macro "date-find"></#macro>
@@ -278,7 +288,7 @@ along with this software (see the LICENSE.md file). If not, see
         <#else><#assign javaFormat="yyyy-MM-dd HH:mm"></#if>
     </#if>
     <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, .node["@default-value"]!"", javaFormat)>
-    <#t>${fieldValue}
+    <#t><@paddedValue fieldValue/>
 </#macro>
 
 <#macro "display">
@@ -300,18 +310,18 @@ along with this software (see the LICENSE.md file). If not, see
     <#else>
         <#assign fieldValue = sri.getFieldValueString(dispFieldNode, "", .node["@format"]!)>
     </#if>
-    <#t>${fieldValue}
+    <#t><@paddedValue fieldValue/>
 </#macro>
 <#macro "display-entity">
     <#assign fieldValue = ""><#assign fieldValue = sri.getFieldEntityValue(.node)>
-    <#t>${fieldValue}
+    <#t><@paddedValue fieldValue/>
 </#macro>
 
 <#macro "drop-down">
     <#assign options = {"":""}><#assign options = sri.getFieldOptions(.node)>
     <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)>
     <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#t><@paddedValue options.get(currentValue)?default(currentValue)/>
 </#macro>
 
 <#macro "file"></#macro>
@@ -323,7 +333,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign options = {"":""}><#assign options = sri.getFieldOptions(.node)>
     <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)>
     <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#t><@paddedValue options.get(currentValue)?default(currentValue)/>
 </#macro>
 
 <#macro "range-find"></#macro>
@@ -331,20 +341,20 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro "submit">
     <#assign fieldValue><@fieldTitle .node?parent/></#assign>
-    <#t>${fieldValue}
+    <#t><@paddedValue fieldValue/>
 </#macro>
 
 <#macro "text-area">
     <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
-    <#t>${fieldValue}
+    <#t><@paddedValue fieldValue/>
 </#macro>
 
 <#macro "text-line">
     <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
-    <#t>${fieldValue}
+    <#t><@paddedValue fieldValue/>
 </#macro>
 
 <#macro "text-find">
     <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
-    <#t>${fieldValue}
+    <#t><@paddedValue fieldValue/>
 </#macro>
