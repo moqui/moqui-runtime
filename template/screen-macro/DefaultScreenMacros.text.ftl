@@ -12,14 +12,17 @@ along with this software (see the LICENSE.md file). If not, see
 -->
 
 <#-- truncate or pad the textValue plus one space at the end so it is exactly characters chars long -->
-<#macro paddedValue textValue characters=cellCharWidth!0 leftPad=cellLeftPad!false>
-    <#if cellCharWidth == 0><#return></#if>
+<#macro paddedValue textValue characters=cellCharWidth!0 leftPad=cellLeftPad!false wrapLine=cellWrapLine!0>
+    <#if characters == 0><#return></#if>
     <#assign textLength = textValue?length>
-    <#if (textLength >= characters)>
-        <#assign outValue = textValue?substring(0, characters)>
-    <#else>
-        <#if leftPad><#assign outValue = textValue?left_pad(characters)>
-            <#else><#assign outValue = textValue?right_pad(characters)></#if>
+    <#assign startChar = wrapLine * characters>
+    <#assign endChar = (wrapLine + 1) * characters>
+    <#if (textLength > endChar)><#assign cellWrapOverflow = true></#if>
+    <#if (endChar > textLength)><#assign endChar = textLength></#if>
+    <#if (startChar >= textLength)><#assign outValue = ""><#else><#assign outValue = textValue?substring(startChar, endChar)></#if>
+    <#if (outValue?length < characters)>
+        <#if leftPad><#assign outValue = outValue?left_pad(characters)>
+            <#else><#assign outValue = outValue?right_pad(characters)></#if>
     </#if>
     <#t>${outValue}
 </#macro>
@@ -199,14 +202,15 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro "form-list">
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
+    <#assign lineCharactersNum = (lineCharacters!"132")?number>
+    <#assign lineWrapBool = "true" == lineWrap!>
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFtlFormNode()>
     <#assign listName = formNode["@list"]>
     <#assign listObject = ec.resource.expression(listName, "")!>
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
-    <#assign lineCharactersNum = (lineCharacters!"132")?number>
     <#assign columnCharWidths = formInstance.getFormListColumnCharWidths(formListColumnList, lineCharactersNum)>
-    <#t><#list 1..lineCharactersNum as charNum><#assign charNumMod10 = charNum % 10><#if charNumMod10 == 0>*<#else>${charNumMod10}</#if></#list>
+    <#-- TODO: remove --><#t><#list 1..lineCharactersNum as charNum><#assign charNumMod10 = charNum % 10><#if charNumMod10 == 0>*<#else>${charNumMod10}</#if></#list>
 
     <#list formListColumnList as columnFieldList>
         <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
@@ -215,7 +219,7 @@ along with this software (see the LICENSE.md file). If not, see
                     ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
                     (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
                 <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
-                <#t><@formListHeaderField fieldNode/><#if columnFieldList_has_next> </#if>
+                <#t><#if (columnFieldList_index > 0) && (cellCharWidth > 0)>|</#if><@formListHeaderField fieldNode/>
             </#if>
         </#list>
     </#list>
@@ -223,15 +227,20 @@ along with this software (see the LICENSE.md file). If not, see
     <#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-        <#t>${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
-        <#list formListColumnList as columnFieldList>
-            <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
-            <#list columnFieldList as fieldNode>
-                <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
-                <#t><@formListSubField fieldNode/><#if columnFieldList_has_next> </#if>
+        <#t>${sri.startFormListRow(formInstance, listEntry, listEntryIndex, listEntry_has_next)}
+        <#list 0..10 as lineWrapCounter>
+            <#assign cellWrapOverflow = false>
+            <#assign cellWrapLine = lineWrapCounter>
+            <#list formListColumnList as columnFieldList>
+                <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
+                <#list columnFieldList as fieldNode>
+                    <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
+                    <#t><#if (columnFieldList_index > 0) && (cellCharWidth > 0)>|</#if><@formListSubField fieldNode/>
+                </#list>
             </#list>
+            <#t>${"\n"}
+            <#if !cellWrapOverflow || !lineWrapBool><#break></#if>
         </#list>
-        <#t>${"\n"}
         <#t>${sri.endFormListRow()}
     </#list>
     <#t>${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
