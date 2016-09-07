@@ -410,7 +410,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
     <#elseif .node["@currency-unit-field"]?has_content>
         <#assign fieldValue = ec.l10n.formatCurrency(sri.getFieldValue(.node?parent?parent, ""), ec.resource.expression(.node["@currency-unit-field"], ""))>
     <#else>
-        <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, "", .node["@format"]?if_exists)>
+        <#assign fieldValue = sri.getFieldValueString(.node)>
     </#if>
     <#t><@attributeValue fieldValue/>
 </#macro>
@@ -421,9 +421,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 
 <#macro "drop-down">
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)/>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#assign currentValue = sri.getFieldValueString(.node)/>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!/></#if>
+    <#t><#if currentValue?has_content>${options.get(currentValue)!(currentValue)}</#if>
 </#macro>
 
 <#macro file></#macro>
@@ -433,9 +433,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 
 <#macro radio>
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)/>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#assign currentValue = sri.getFieldValueString(.node)/>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!/></#if>
+    <#t><#if currentValue?has_content>${options.get(currentValue)!(currentValue)}</#if>
 </#macro>
 
 <#macro "range-find"></#macro>
@@ -447,16 +447,16 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 </#macro>
 
 <#macro "text-area">
-    <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, .node["@default-value"]!"", null)>
+    <#assign fieldValue = sri.getFieldValueString(.node)>
     <#t><@attributeValue fieldValue/>
 </#macro>
 
 <#macro "text-line">
-    <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, .node["@default-value"]!"", null)>
+    <#assign fieldValue = sri.getFieldValueString(.node)>
     <#t><@attributeValue fieldValue/>
 </#macro>
 
 <#macro "text-find">
-    <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, .node["@default-value"]!"", null)>
+    <#assign fieldValue = sri.getFieldValueString(.node)>
     <#t><@attributeValue fieldValue/>
 </#macro>

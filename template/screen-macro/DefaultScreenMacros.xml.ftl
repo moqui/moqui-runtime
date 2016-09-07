@@ -45,7 +45,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "container-dialog"><#recurse></#macro>
 
 <#-- ==================== Includes ==================== -->
-<#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}</#macro>
+<#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}</#macro>
 
 <#-- ============== Tree ============== -->
 <#-- TABLED, not to be part of 1.0:
@@ -69,14 +69,14 @@ along with this software (see the LICENSE.md file). If not, see
     <#if textToUse?exists>
         <#if textToUse["@location"]?has_content>
     <#-- NOTE: this still won't encode templates that are rendered to the writer -->
-    <#if .node["@encode"]!"false" == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)?html}<#else/>${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)}</#if>
+    <#if .node["@encode"]!"false" == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else>${sri.renderText(textToUse["@location"], textToUse["@template"]!)}</#if>
         </#if>
         <#assign inlineTemplateSource = textToUse?string/>
         <#if inlineTemplateSource?has_content>
           <#if !textToUse["@template"]?has_content || textToUse["@template"] == "true">
             <#assign inlineTemplate = [inlineTemplateSource, sri.getActiveScreenDef().location + ".render_mode.text"]?interpret>
             <@inlineTemplate/>
-          <#else/>
+          <#else>
             ${inlineTemplateSource}
           </#if>
         </#if>
@@ -138,12 +138,12 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 <#macro formListWidget fieldSubNode>
     <#if fieldSubNode["ignored"]?has_content || fieldSubNode["hidden"]?has_content || fieldSubNode["submit"]?has_content><#return/></#if>
-    <#if fieldSubNode?parent["@hide"]?if_exists == "true"><#return></#if>
+    <#if fieldSubNode?parent["@hide"]! == "true"><#return></#if>
  ${fieldSubNode?parent["@name"]}="<#recurse fieldSubNode>"<#rt>
 </#macro>
 <#macro "row-actions"><#-- do nothing, these are run by the SRI --></#macro>
 
-<#macro fieldTitle fieldSubNode><#assign titleValue><#if fieldSubNode["@title"]?has_content>${fieldSubNode["@title"]}<#else/><#list fieldSubNode?parent["@name"]?split("(?=[A-Z])", "r") as nameWord>${nameWord?cap_first?replace("Id", "ID")}<#if nameWord_has_next> </#if></#list></#if></#assign>${ec.l10n.localize(titleValue)}</#macro>
+<#macro fieldTitle fieldSubNode><#assign titleValue><#if fieldSubNode["@title"]?has_content>${fieldSubNode["@title"]}<#else><#list fieldSubNode?parent["@name"]?split("(?=[A-Z])", "r") as nameWord>${nameWord?cap_first?replace("Id", "ID")}<#if nameWord_has_next> </#if></#list></#if></#assign>${ec.l10n.localize(titleValue)}</#macro>
 
 <#macro "field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 <#macro "conditional-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
@@ -153,16 +153,16 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro "check">
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValue(.node?parent?parent, "")>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#assign currentValue = sri.getFieldValueString(.node)>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!/></#if>
+    <#t><#if currentValue?has_content>${options.get(currentValue)!(currentValue)}</#if>
 </#macro>
 
 <#macro "date-find"></#macro>
 <#macro "date-time">
     <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
     <#if .node["@format"]?has_content><#assign fieldValue = ec.l10n.format(fieldValue, .node["@format"])></#if>
-    <#if .node["@type"]?if_exists == "time"><#assign size=9/><#assign maxlength=12/><#elseif .node["@type"]?if_exists == "date"><#assign size=10/><#assign maxlength=10/><#else><#assign size=23/><#assign maxlength=23/></#if>
+    <#if .node["@type"]! == "time"><#assign size=9/><#assign maxlength=12/><#elseif .node["@type"]! == "date"><#assign size=10/><#assign maxlength=10/><#else><#assign size=23/><#assign maxlength=23/></#if>
     <#t><@attributeValue fieldValue/>
 </#macro>
 
@@ -176,7 +176,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#elseif .node["@currency-unit-field"]?has_content>
         <#assign fieldValue = ec.l10n.formatCurrency(sri.getFieldValue(.node?parent?parent, ""), ec.resource.expression(.node["@currency-unit-field"], ""), 2)>
     <#else>
-        <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, "", .node["@format"]?if_exists)>
+        <#assign fieldValue = sri.getFieldValueString(.node)>
     </#if>
     <#t><@attributeValue fieldValue/>
 </#macro>
@@ -187,8 +187,8 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro "drop-down">
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)/>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
+    <#assign currentValue = sri.getFieldValueString(.node)/>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!/></#if>
     <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
 </#macro>
 
@@ -199,8 +199,8 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro "radio">
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)/>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
+    <#assign currentValue = sri.getFieldValueString(.node)/>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!/></#if>
     <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
 </#macro>
 
@@ -213,16 +213,16 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 
 <#macro "text-area">
-    <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
+    <#assign fieldValue = sri.getFieldValueString(.node)>
     <#t><@attributeValue fieldValue/>
 </#macro>
 
 <#macro "text-line">
-    <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
+    <#assign fieldValue = sri.getFieldValueString(.node)>
     <#t><@attributeValue fieldValue/>
 </#macro>
 
 <#macro "text-find">
-    <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
+    <#assign fieldValue = sri.getFieldValueString(.node)>
     <#t><@attributeValue fieldValue/>
 </#macro>

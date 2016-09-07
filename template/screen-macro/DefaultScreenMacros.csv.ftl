@@ -197,10 +197,10 @@ on the same screen to increase reusability of those screens -->
 <#-- ================== Form Field Widgets ==================== -->
 
 <#macro "check">
-    <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValue(.node?parent?parent, "")>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#assign options = sri.getFieldOptions(.node)>
+    <#assign currentValue = sri.getFieldValueString(.node)>
+    <#if !currentValue?has_content><#assign currentValue = ec.getResource().expandNoL10n(.node["@no-current-selected-key"]!, "")/></#if>
+    <#t><#if currentValue?has_content>${options.get(currentValue)!(currentValue)}</#if>
 </#macro>
 
 <#macro "date-find"></#macro>
@@ -228,7 +228,7 @@ on the same screen to increase reusability of those screens -->
     <#elseif .node["@currency-unit-field"]?has_content>
         <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
     <#else>
-        <#assign fieldValue = sri.getFieldValueString(dispFieldNode, "", .node["@format"]!)>
+        <#assign fieldValue = sri.getFieldValueString(.node)>
     </#if>
     <#t><@csvValue fieldValue/>
 </#macro>
@@ -239,9 +239,9 @@ on the same screen to increase reusability of those screens -->
 
 <#macro "drop-down">
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)/>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#assign currentValue = sri.getFieldValueString(.node)/>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!/></#if>
+    <#t><#if currentValue?has_content>${options.get(currentValue)!(currentValue)}</#if>
 </#macro>
 
 <#macro "file"></#macro>
@@ -251,9 +251,9 @@ on the same screen to increase reusability of those screens -->
 
 <#macro "radio">
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)/>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#assign currentValue = sri.getFieldValueString(.node)/>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!/></#if>
+    <#t><#if currentValue?has_content>${options.get(currentValue)!(currentValue)}</#if>
 </#macro>
 
 <#macro "range-find"></#macro>
@@ -265,16 +265,16 @@ on the same screen to increase reusability of those screens -->
 </#macro>
 
 <#macro "text-area">
-    <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
+    <#assign fieldValue = sri.getFieldValueString(.node)>
     <#t><@csvValue fieldValue/>
 </#macro>
 
 <#macro "text-line">
-    <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
+    <#assign fieldValue = sri.getFieldValueString(.node)>
     <#t><@csvValue fieldValue/>
 </#macro>
 
 <#macro "text-find">
-    <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
+    <#assign fieldValue = sri.getFieldValueString(.node)>
     <#t><@csvValue fieldValue/>
 </#macro>
