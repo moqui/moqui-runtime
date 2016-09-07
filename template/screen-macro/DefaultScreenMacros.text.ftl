@@ -133,7 +133,8 @@ along with this software (see the LICENSE.md file). If not, see
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formNode = sri.getFtlFormNode(.node["@name"])>
     <#t>${sri.pushSingleFormMapContext(formNode)}
-    <#assign formSingleFieldWidth = (lineCharacters!"132")?number>
+    <#if !lineCharacters?has_content><#assign lineCharacters = "132"></#if>
+    <#assign formSingleFieldWidth = lineCharacters?number>
     <#if formNode["field-layout"]?has_content>
         <#assign fieldLayout = formNode["field-layout"][0]>
         <#list formNode["field-layout"][0]?children as layoutNode>
@@ -202,7 +203,8 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro "form-list">
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
-    <#assign lineCharactersNum = (lineCharacters!"132")?number>
+    <#if !lineCharacters?has_content><#assign lineCharacters = "132"></#if>
+    <#assign lineCharactersNum = lineCharacters?number>
     <#assign lineWrapBool = "true" == lineWrap!>
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFtlFormNode()>

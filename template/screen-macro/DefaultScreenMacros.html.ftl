@@ -875,7 +875,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
-    <#assign isShowTextButton = formNode["@show-text-button"]! == "true">
     <#assign currentFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("formListFindId")>
     <#assign currentFindUrlParms = currentFindUrl.getParameterMap()>
     <#if isSavedFinds || isHeaderDialog>
@@ -1084,7 +1083,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             $("#${formId}_SelColsForm_columnsTree").val(JSON.stringify($('#${selectColumnsSortableId}').sortableListsToHierarchy()));
         })</script>
     </#if>
-    <#if isShowTextButton>
+    <#if formNode["@show-text-button"]! == "true">
         <#assign showTextDialogId = formId + "_TextDialog">
         <#assign textLinkUrl = sri.getScreenUrlInstance()>
         <#assign textLinkUrlParms = textLinkUrl.getParameterMap()>
@@ -1099,20 +1098,25 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <input type="hidden" name="renderMode" value="text">
                         <input type="hidden" name="pageNoLimit" value="true">
                         <input type="hidden" name="lastStandalone" value="true">
-                        <input type="hidden" name="saveFilename" value="${formNode["@name"] + ".txt"}">
                         <#list textLinkUrlParms.keySet() as parmName>
                             <input type="hidden" name="${parmName}" value="${textLinkUrlParms.get(parmName)!?html}"></#list>
                         <fieldset class="form-horizontal">
                             <div class="form-group">
                                 <label class="control-label col-sm-3" for="${formId}_Text_lineCharacters">${ec.getL10n().localize("Line Characters")}</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" size="4" name="lineCharacters" id="${formId}_Text_lineCharacters">
+                                    <input type="text" class="form-control" size="4" name="lineCharacters" id="${formId}_Text_lineCharacters" value="132">
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label class="control-label col-sm-3" for="${formId}_Text_lineWrap">${ec.getL10n().localize("Line Wrap?")}</label>
                                 <div class="col-sm-9">
-                                    <input type="checkbox" class="form-control" size="4" name="lineWrap" id="${formId}_Text_lineWrap" value="true">
+                                    <input type="checkbox" class="form-control" name="lineWrap" id="${formId}_Text_lineWrap" value="true">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Text_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Text_saveFilename" value="${formNode["@name"] + ".txt"}">
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-default">${ec.getL10n().localize("Export Text")}</button>
