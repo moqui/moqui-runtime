@@ -875,6 +875,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
+    <#assign isShowTextButton = formNode["@show-text-button"]! == "true">
     <#assign currentFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("formListFindId")>
     <#assign currentFindUrlParms = currentFindUrl.getParameterMap()>
     <#if isSavedFinds || isHeaderDialog>
@@ -1060,25 +1061,66 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </div>
             </div></div>
         </div>
-        <script>$('#${selectColumnsDialogId}').on('shown.bs.modal', function() {$("#${selectColumnsSortableId}").sortableLists({
-            isAllowed: function(currEl, hint, target) {
-                <#-- don't allow hidden and column items to be moved; only allow others to be under hidden or column items -->
-                if (currEl.attr('id') === 'hidden' || currEl.attr('id').startsWith('column_')) {
-                    if (!target.attr('id') || (target.attr('id') != 'hidden' && !currEl.attr('id').startsWith('column_'))) { hint.css('background-color', '#99ff99'); return true; }
+        <script>$('#${selectColumnsDialogId}').on('shown.bs.modal', function() {
+            $("#${selectColumnsSortableId}").sortableLists({
+                isAllowed: function(currEl, hint, target) {
+                    <#-- don't allow hidden and column items to be moved; only allow others to be under hidden or column items -->
+                    if (currEl.attr('id') === 'hidden' || currEl.attr('id').startsWith('column_')) {
+                        if (!target.attr('id') || (target.attr('id') != 'hidden' && !currEl.attr('id').startsWith('column_'))) { hint.css('background-color', '#99ff99'); return true; }
+                        else { hint.css('background-color', '#ff9999'); return false; }
+                    }
+                    if (target.attr('id') && (target.attr('id') === 'hidden' || target.attr('id').startsWith('column_'))) { hint.css('background-color', '#99ff99'); return true; }
                     else { hint.css('background-color', '#ff9999'); return false; }
+                },
+                placeholderCss: {'background-color':'#999999'}, insertZone: 50,
+                <#-- jquery-sortable-lists currently logs an error if opener.as is not set to html or class -->
+                opener: { active:false, as:'html', close:'', open:'' },
+                onChange: function(cEl) {
+                    var sortableHierarchy = $('#${selectColumnsSortableId}').sortableListsToHierarchy();
+                    // console.log(sortableHierarchy); console.log(JSON.stringify(sortableHierarchy));
+                    $("#${formId}_SelColsForm_columnsTree").val(JSON.stringify(sortableHierarchy));
                 }
-                if (target.attr('id') && (target.attr('id') === 'hidden' || target.attr('id').startsWith('column_'))) { hint.css('background-color', '#99ff99'); return true; }
-                else { hint.css('background-color', '#ff9999'); return false; }
-            },
-            placeholderCss: {'background-color':'#999999'}, insertZone: 50,
-            <#-- jquery-sortable-lists currently logs an error if opener.as is not set to html or class -->
-            opener: { active:false, as:'html', close:'', open:'' },
-            onChange: function(cEl) {
-                var sortableHierarchy = $('#${selectColumnsSortableId}').sortableListsToHierarchy();
-                // console.log(sortableHierarchy); console.log(JSON.stringify(sortableHierarchy));
-                $("#${formId}_SelColsForm_columnsTree").val(JSON.stringify(sortableHierarchy));
-            }
-        });})</script>
+            });
+            $("#${formId}_SelColsForm_columnsTree").val(JSON.stringify($('#${selectColumnsSortableId}').sortableListsToHierarchy()));
+        })</script>
+    </#if>
+    <#if isShowTextButton>
+        <#assign showTextDialogId = formId + "_TextDialog">
+        <#assign textLinkUrl = sri.getScreenUrlInstance()>
+        <#assign textLinkUrlParms = textLinkUrl.getParameterMap()>
+        <div id="${showTextDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
+            <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">${ec.getL10n().localize("Export Fixed-Width Plain Text")}</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="${formId}_Text" method="post" action="${textLinkUrl.getUrl()}">
+                        <input type="hidden" name="renderMode" value="text">
+                        <input type="hidden" name="pageNoLimit" value="true">
+                        <input type="hidden" name="lastStandalone" value="true">
+                        <input type="hidden" name="saveFilename" value="${formNode["@name"] + ".txt"}">
+                        <#list textLinkUrlParms.keySet() as parmName>
+                            <input type="hidden" name="${parmName}" value="${textLinkUrlParms.get(parmName)!?html}"></#list>
+                        <fieldset class="form-horizontal">
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Text_lineCharacters">${ec.getL10n().localize("Line Characters")}</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" size="4" name="lineCharacters" id="${formId}_Text_lineCharacters">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Text_lineWrap">${ec.getL10n().localize("Line Wrap?")}</label>
+                                <div class="col-sm-9">
+                                    <input type="checkbox" class="form-control" size="4" name="lineWrap" id="${formId}_Text_lineWrap" value="true">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-default">${ec.getL10n().localize("Export Text")}</button>
+                        </fieldset>
+                    </form>
+                </div>
+            </div></div>
+        </div>
     </#if>
 </#macro>
 <#macro paginationHeader formInstance formId isHeaderDialog>
@@ -1116,8 +1158,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </script>
                 </#if>
             </#if>
-            <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}-button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
-            <#if isSelectColumns><button id="${selectColumnsDialogId}-button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.getL10n().localize("Columns")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("Columns")}</button></#if>
+            <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}_button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
+            <#if isSelectColumns><button id="${selectColumnsDialogId}_button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.getL10n().localize("Columns")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("Columns")}</button></#if>
 
             <#if isPaginated>
                 <#assign curPageIndex = context[listName + "PageIndex"]>
@@ -1165,8 +1207,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#list goPageUrlParms.keySet() as parmName>
                             <input type="hidden" name="${parmName}" value="${goPageUrlParms.get(parmName)!?html}"></#list>
                         <div class="form-group">
-                            <label class="sr-only" for="${formId}_GoPage_pageIndex">Page number</label>
-                            <input type="text" class="form-control" size="4" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="${ec.getL10n().localize("Page #")}">
+                            <label class="sr-only" for="${formId}_GoPage_pageIndex">Page Number</label>
+                            <input type="text" class="form-control" size="6" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="${ec.getL10n().localize("Page #")}">
                         </div>
                         <button type="submit" class="btn btn-default">${ec.getL10n().localize("Go##Page")}</button>
                     </form>
@@ -1182,19 +1224,23 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </#if>
                 <#if formNode["@show-all-button"]! == "true" && (context[listName + 'Count'] < 500)>
                     <#if context["pageNoLimit"]?has_content>
-                        <#assign csvLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageNoLimit")>
-                        <a href="${csvLinkUrlInfo.getUrlWithParams()}" class="btn btn-default">Paginate</a>
+                        <#assign allLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageNoLimit")>
+                        <a href="${allLinkUrl.getUrlWithParams()}" class="btn btn-default">Paginate</a>
                     <#else>
-                        <#assign csvLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageNoLimit", "true")>
-                        <a href="${csvLinkUrlInfo.getUrlWithParams()}" class="btn btn-default">Show All</a>
+                        <#assign allLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageNoLimit", "true")>
+                        <a href="${allLinkUrl.getUrlWithParams()}" class="btn btn-default">Show All</a>
                     </#if>
                 </#if>
             </#if>
 
             <#if formNode["@show-csv-button"]! == "true">
-                <#assign csvLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("renderMode", "csv")
+                <#assign csvLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("renderMode", "csv")
                         .addParameter("pageNoLimit", "true").addParameter("lastStandalone", "true").addParameter("saveFilename", formNode["@name"] + ".csv")>
-                <a href="${csvLinkUrlInfo.getUrlWithParams()}" class="btn btn-default">CSV</a>
+                <a href="${csvLinkUrl.getUrlWithParams()}" class="btn btn-default">${ec.getL10n().localize("CSV")}</a>
+            </#if>
+            <#if formNode["@show-text-button"]! == "true">
+                <#assign showTextDialogId = formId + "_TextDialog">
+                <button id="${showTextDialogId}_button" type="button" data-toggle="modal" data-target="#${showTextDialogId}" data-original-title="${ec.getL10n().localize("Text")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("Text")}</button>
             </#if>
         </nav>
         </th></tr>
