@@ -41,6 +41,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#-- ================ Section ================ -->
 <#macro section>${sri.renderSection(.node["@name"])}</#macro>
 <#macro "section-iterate">${sri.renderSection(.node["@name"])}</#macro>
+<#macro "section-include">${sri.renderSection(.node["@name"])}</#macro>
 
 <#-- ================ Containers ================ -->
 <#macro container><#recurse></#macro>
@@ -49,10 +50,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
     <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
 </#macro>
-<#macro "container-row">
-    <#list .node["row-col"] as rowColNode>
-        <#recurse rowColNode>
-    </#list>
+<#macro "container-row"><#list .node["row-col"] as rowColNode><#recurse rowColNode></#list>
 </#macro>
 <#macro "container-panel">
     <#if .node["panel-header"]?has_content><#recurse .node["panel-header"][0]></#if>
@@ -65,7 +63,7 @@ along with this software (see the LICENSE.md file). If not, see
 
 
 <#-- ==================== Includes ==================== -->
-<#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}</#macro>
+<#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}</#macro>
 
 
 <#-- ============== Render Mode Elements ============== -->
@@ -77,10 +75,10 @@ along with this software (see the LICENSE.md file). If not, see
     <#if !textToUse?has_content>
         <#list .node["text"] as textNode><#if !textNode["@type"]?has_content || textNode["@type"] == "any"><#assign textToUse = textNode></#if></#list>
     </#if>
-    <#if textToUse?exists>
+    <#if textToUse??>
         <#if textToUse["@location"]?has_content>
     <#-- NOTE: this still won't encode templates that are rendered to the writer -->
-    <#if .node["@encode"]!"false" == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)?html}<#else>${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)}</#if>
+    <#if .node["@encode"]! == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)?html}<#else>${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)}</#if>
         </#if>
         <#assign inlineTemplateSource = textToUse?string>
         <#if inlineTemplateSource?has_content>
@@ -88,7 +86,7 @@ along with this software (see the LICENSE.md file). If not, see
             <#assign inlineTemplate = [inlineTemplateSource, sri.getActiveScreenDef().location + ".render_mode.text"]?interpret>
             <@inlineTemplate/>
           <#else>
-            <#if .node["@encode"]!"false" == "true">${inlineTemplateSource?html}<#else>${inlineTemplateSource}</#if>
+            <#if .node["@encode"]! == "true">${inlineTemplateSource?html}<#else>${inlineTemplateSource}</#if>
           </#if>
         </#if>
     </#if>
@@ -134,6 +132,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     </#list>
     <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
+
 </#macro>
 <#macro formSingleSubField fieldNode>
     <#list fieldNode["conditional-field"] as fieldSubNode>
@@ -221,6 +220,7 @@ along with this software (see the LICENSE.md file). If not, see
         <#t>${sri.endFormListRow()}
     </#list>
     <#t>${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
+    <#t>${"\n"}
 </#macro>
 <#macro formListHeaderField fieldNode>
     <#if fieldNode["header-field"]?has_content>
