@@ -208,7 +208,6 @@ ${sri.renderSection(.node["@name"])}
     <div class="panel panel-default"<#if contBoxDivId??> id="${contBoxDivId}"</#if>>
         <div class="panel-heading">
             <#recurse .node["box-header"][0]>
-
             <#if .node["box-toolbar"]?has_content>
                 <div class="panel-toolbar">
                     <#recurse .node["box-toolbar"][0]>
@@ -522,7 +521,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro label>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
-        <#assign labelType = .node["@type"]?default("span")/>
+        <#assign labelType = .node["@type"]!"span">
         <#assign textMap = "">
         <#if .node["@text-map"]?has_content><#assign textMap = ec.getResource().expression(.node["@text-map"], "")!></#if>
         <#if textMap?has_content>
@@ -569,7 +568,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#-- ============================================================= -->
 
 <#macro "form-single">
-<#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
+    <#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFtlFormNode()>
@@ -584,167 +583,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
     </#if>
         <fieldset class="form-horizontal"><#-- was form-single-outer -->
-    <#if formNode["field-layout"]?has_content>
-        <#assign fieldLayout = formNode["field-layout"][0]>
-            <#assign accordionId = fieldLayout["@id"]?default(formId + "-accordion")>
-            <#assign collapsible = (fieldLayout["@collapsible"]! == "true")>
-            <#assign active = fieldLayout["@active"]!>
-            <#assign collapsibleOpened = false>
-            <#list formNode["field-layout"][0]?children as layoutNode>
-                <#if layoutNode?node_name == "field-ref">
-                  <#if collapsibleOpened>
-                    <#assign collapsibleOpened = false>
-                    </div><!-- /collapsible accordionId ${accordionId} -->
-                    <#assign afterFormScript>
-                        $("#${accordionId}").accordion({ collapsible: true,<#if active?has_content> active: ${active},</#if> heightStyle: "content" });
-                    </#assign>
-                    <#t>${sri.appendToScriptWriter(afterFormScript)}
-                    <#assign accordionId = accordionId + "_A"><#-- set this just in case another accordion is opened -->
-                  </#if>
-                    <#assign fieldRef = layoutNode["@name"]>
-                    <#assign fieldNode = "invalid">
-                    <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                    <#if fieldNode == "invalid">
-                        <div>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</div>
-                    <#else>
-                        <@formSingleSubField fieldNode formId false false/>
-                    </#if>
-                <#elseif layoutNode?node_name == "fields-not-referenced">
-                    <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
-                    <#list nonReferencedFieldList as nonReferencedField>
-                        <@formSingleSubField nonReferencedField formId false false/></#list>
-                <#elseif layoutNode?node_name == "field-row">
-                  <#if collapsibleOpened>
-                    <#assign collapsibleOpened = false>
-                    </div><!-- /collapsible accordionId ${accordionId} -->
-                    <#assign afterFormScript>
-                        $("#${accordionId}").accordion({ collapsible: true,<#if active?has_content> active: ${active},</#if> heightStyle: "content" });
-                    </#assign>
-                    <#t>${sri.appendToScriptWriter(afterFormScript)}
-                    <#assign accordionId = accordionId + "_A"><#-- set this just in case another accordion is opened -->
-                  </#if>
-                    <div class="row">
-                    <#list layoutNode?children as rowChildNode>
-                        <#if rowChildNode?node_name == "field-ref">
-                            <div class="col-sm-6">
-                                <#assign fieldRef = rowChildNode["@name"]>
-                                <#assign fieldNode = "invalid">
-                                <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                                <#if fieldNode == "invalid">
-                                    <div>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</div>
-                                <#else>
-                                    <@formSingleSubField fieldNode formId true false/>
-                                </#if>
-                            </div><!-- /col-sm-6 not bigRow -->
-                        <#elseif rowChildNode?node_name == "fields-not-referenced">
-                            <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
-                            <#list nonReferencedFieldList as nonReferencedField>
-                                <@formSingleSubField nonReferencedField formId true false/></#list>
-                        </#if>
-                    </#list>
-                    </div><#-- /row -->
-                <#elseif layoutNode?node_name == "field-row-big">
-                    <#if collapsibleOpened>
-                        <#assign collapsibleOpened = false>
-                    </div><!-- /collapsible accordionId ${accordionId} -->
-                        <#assign afterFormScript>
-                            $("#${accordionId}").accordion({ collapsible: true,<#if active?has_content> active: ${active},</#if> heightStyle: "content" });
-                        </#assign>
-                        <#t>${sri.appendToScriptWriter(afterFormScript)}
-                        <#assign accordionId = accordionId + "_A"><#-- set this just in case another accordion is opened -->
-                    </#if>
-                    <#-- funny assign here to not render row if there is no content -->
-                    <#assign rowContent>
-                        <#list layoutNode?children as rowChildNode>
-                            <#if rowChildNode?node_name == "field-ref">
-                                <#assign fieldRef = rowChildNode["@name"]>
-                                <#assign fieldNode = "invalid">
-                                <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                                <#if fieldNode == "invalid">
-                                    <div>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</div>
-                                <#else>
-                                    <@formSingleSubField fieldNode formId true true/>
-                                </#if>
-                            <#elseif rowChildNode?node_name == "fields-not-referenced">
-                                <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
-                                <#list nonReferencedFieldList as nonReferencedField>
-                                    <@formSingleSubField nonReferencedField formId true true/></#list>
-                            </#if>
-                        </#list>
-                    </#assign>
-                    <#assign rowContent = rowContent?trim>
-                    <#if rowContent?has_content>
-                    <div class="form-group">
-                        <#if layoutNode["@title"]?has_content>
-                        <label class="control-label col-sm-2">${ec.getResource().expand(layoutNode["@title"], "")}</label>
-                        <div class="col-sm-10">
-                        <#else>
-                        <div class="col-sm-12">
-                        </#if>
-                            ${rowContent}
-                        </div><#-- /col-sm-12 bigRow -->
-                    </div><#-- /row -->
-                    </#if>
-                <#elseif layoutNode?node_name == "field-group">
-                  <#if collapsible && !collapsibleOpened><#assign collapsibleOpened = true>
-                    <div id="${accordionId}">
-                  </#if>
-                    <h3><a href="#">${ec.getL10n().localize(layoutNode["@title"]?default("Section " + layoutNode_index))}</a></h3>
-                    <div<#if layoutNode["@style"]?has_content> class="${layoutNode["@style"]}"</#if>>
-                        <#list layoutNode?children as groupNode>
-                            <#if groupNode?node_name == "field-ref">
-                                <#assign fieldRef = groupNode["@name"]>
-                                <#assign fieldNode = "invalid">
-                                <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                                <#if fieldNode == "invalid">
-                                    <div>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</div>
-                                <#else>
-                                    <@formSingleSubField fieldNode formId false false/>
-                                </#if>
-                            <#elseif groupNode?node_name == "fields-not-referenced">
-                                <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
-                                <#list nonReferencedFieldList as nonReferencedField>
-                                    <@formSingleSubField nonReferencedField formId false false/></#list>
-                            <#elseif groupNode?node_name == "field-row">
-                                <div class="row">
-                                <#list groupNode?children as rowChildNode>
-                                    <#if rowChildNode?node_name == "field-ref">
-                                        <div class="col-sm-6">
-                                            <#assign fieldRef = rowChildNode["@name"]>
-                                            <#assign fieldNode = "invalid">
-                                            <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                                            <#if fieldNode == "invalid">
-                                                <div>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</div>
-                                            <#else>
-                                                <@formSingleSubField fieldNode formId true false/>
-                                            </#if>
-                                        </div><#-- /col-sm-6 not bigRow -->
-                                    <#elseif rowChildNode?node_name == "fields-not-referenced">
-                                        <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
-                                        <#list nonReferencedFieldList as nonReferencedField>
-                                            <@formSingleSubField nonReferencedField formId true false/></#list>
-                                    </#if>
-                                </#list>
-                                </div><#-- /row -->
-                            </#if>
-                        </#list>
-                    </div><#-- /layoutNode -->
-                </#if>
-            </#list>
-            <#if collapsibleOpened>
-                </div><!-- /accordion id ${accordionId} -->
-                <#assign afterFormScript>
-                    $("#${accordionId}").accordion({ collapsible: true,<#if active?has_content> active: ${active},</#if> heightStyle: "content" });
-                </#assign>
-                <#t>${sri.appendToScriptWriter(afterFormScript)}
-            </#if>
-    <#else>
-        <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode formId false false/></#list>
-    </#if>
+        <#if formNode["field-layout"]?has_content>
+            <#recurse formNode["field-layout"][0]/>
+        <#else>
+            <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode formId/></#list>
+        </#if>
         </fieldset>
     <#if !skipEnd></form></#if>
     <#if !skipStart>
-        <#assign afterFormScript>
+        <script>
             $("#${formId}").validate({ errorClass: 'help-block', errorElement: 'span',
                 highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
                 unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
@@ -758,7 +605,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     load${formNode["@background-reload-id"]}();
                 </#if>
                 <#if formNode["@background-message"]?has_content>
-                <#-- TODO: do something much fancier than a dumb alert box -->
                     alert("${formNode["@background-message"]}");
                 </#if>
                 <#if formNode["@background-hide-id"]?has_content>
@@ -767,27 +613,85 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             }
             $("#${formId}").ajaxForm({ success: backgroundSuccess${formId}, resetForm: false });
             </#if>
-        </#assign>
-        <#t>${sri.appendToScriptWriter(afterFormScript)}
+        </script>
     </#if>
     <#if formNode["@focus-field"]?has_content>
-        <#assign afterFormScript>
-            $("#${formId}_${formNode["@focus-field"]}").focus();
-        </#assign>
-        <#t>${sri.appendToScriptWriter(afterFormScript)}
+        <script>$("#${formId}_${formNode["@focus-field"]}").focus();</script>
     </#if>
     <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
     <#if sri.doBoundaryComments()><!-- END   form-single[@name=${.node["@name"]}] --></#if>
 </#macro>
-<#macro formSingleSubField fieldNode formId inFieldRow bigRow>
+<#macro "field-ref">
+    <#assign fieldRef = .node["@name"]>
+    <#assign fieldNode = formInstance.getFtlFieldNode(fieldRef)!>
+    <#if fieldNode??>
+        <@formSingleSubField fieldNode formId/>
+    <#else>
+        <div>Error: could not find field with name ${fieldRef} referred to in a field-ref.@name attribute.</div>
+    </#if>
+</#macro>
+<#macro "fields-not-referenced">
+    <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
+    <#list nonReferencedFieldList as nonReferencedField>
+        <@formSingleSubField nonReferencedField formId/></#list>
+</#macro>
+<#macro "field-row">
+    <#assign fsFieldRow = true>
+    <div class="row">
+        <#list .node?children as rowChildNode>
+            <div class="col-sm-6">
+                <#visit rowChildNode/>
+            </div><!-- /col-sm-6 not bigRow -->
+        </#list>
+    </div><#-- /row -->
+    <#assign fsFieldRow = false>
+</#macro>
+<#macro "field-row-big">
+    <#-- funny assign here to not render row if there is no content -->
+    <#assign fsFieldRow = true><#assign fsBigRow = true>
+    <#assign rowContent>
+        <#recurse .node/>
+    </#assign>
+    <#assign rowContent = rowContent?trim>
+    <#assign fsFieldRow = false><#assign fsBigRow = false>
+    <#if rowContent?has_content>
+    <div class="form-group">
+    <#if .node["@title"]?has_content>
+        <label class="control-label col-sm-2">${ec.getResource().expand(.node["@title"], "")}</label>
+        <div class="col-sm-10">
+    <#else>
+        <div class="col-sm-12">
+    </#if>
+            ${rowContent}
+        </div><#-- /col-sm-12 bigRow -->
+    </div><#-- /row -->
+    </#if>
+</#macro>
+<#macro "field-group">
+    <h3><a href="#">${ec.getL10n().localize(.node["@title"]!("Fields"))}</a></h3>
+    <div<#if .node["@style"]?has_content> class="${.node["@style"]}"</#if>>
+        <#recurse .node/>
+    </div>
+</#macro>
+<#macro "field-accordion">
+    <#assign accordionId = .node["@id"]!(formId + "_accordion")>
+    <#assign collapsible = .node["@collapsible"]! == "true">
+    <#assign active = .node["@active"]!>
+    <div id="${accordionId}">
+        <#recurse .node/>
+    </div><!-- /collapsible accordionId ${accordionId} -->
+    <script>$("#${accordionId}").accordion({ collapsible: <#if collapsible>true<#else>false</#if>,<#if active?has_content> active: ${active},</#if> heightStyle: "content" });</script>
+</#macro>
+
+<#macro formSingleSubField fieldNode formId>
     <#list fieldNode["conditional-field"] as fieldSubNode>
         <#if ec.getResource().condition(fieldSubNode["@condition"], "")>
-            <@formSingleWidget fieldSubNode formId "col-sm" inFieldRow bigRow/>
+            <@formSingleWidget fieldSubNode formId "col-sm" fsFieldRow!false fsBigRow!false/>
             <#return>
         </#if>
     </#list>
     <#if fieldNode["default-field"]?has_content>
-        <@formSingleWidget fieldNode["default-field"][0] formId "col-sm" inFieldRow bigRow/>
+        <@formSingleWidget fieldNode["default-field"][0] formId "col-sm" fsFieldRow!false fsBigRow!false/>
         <#return>
     </#if>
 </#macro>
@@ -1691,19 +1595,19 @@ a => A, d => D, y => Y
 
 <#macro "drop-down">
     <#assign id><@fieldId .node/></#assign>
-    <#assign allowMultiple = ec.getResource().expand(.node["@allow-multiple"]!, "") == "true"/>
+    <#assign allowMultiple = ec.getResource().expand(.node["@allow-multiple"]!, "") == "true">
     <#assign isDynamicOptions = .node["dynamic-options"]?has_content>
     <#assign name><@fieldName .node/></#assign>
-    <#assign options = sri.getFieldOptions(.node)/>
-    <#assign currentValue = sri.getFieldValueString(.node)/>
-    <#if !currentValue?has_content><#assign currentValue = ec.getResource().expand(.node["@no-current-selected-key"]!, "")/></#if>
+    <#assign options = sri.getFieldOptions(.node)>
+    <#assign currentValue = sri.getFieldValueString(.node)>
+    <#if !currentValue?has_content><#assign currentValue = ec.getResource().expand(.node["@no-current-selected-key"]!, "")></#if>
     <#if currentValue?starts_with("[")><#assign currentValue = currentValue?substring(1, currentValue?length - 1)?replace(" ", "")></#if>
     <#assign currentValueList = (currentValue?split(","))!>
     <#if (allowMultiple && currentValueList?exists && currentValueList?size > 1)><#assign currentValue=""></#if>
     <#assign currentDescription = (options.get(currentValue))!>
     <#assign optionsHasCurrent = currentDescription?has_content>
     <#if !optionsHasCurrent && .node["@current-description"]?has_content>
-        <#assign currentDescription = ec.getResource().expand(.node["@current-description"], "")/></#if>
+        <#assign currentDescription = ec.getResource().expand(.node["@current-description"], "")></#if>
     <select name="${name}" class="<#if isDynamicOptions>dynamic-options</#if><#if .node["@style"]?has_content> ${ec.getResource().expand(.node["@style"], "")}</#if>" id="${id}"<#if allowMultiple> multiple="multiple"</#if><#if .node["@size"]?has_content> size="${.node["@size"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>>
     <#if !allowMultiple>
         <#-- don't add first-in-list or empty option if allowMultiple (can deselect all to be empty, including empty option allows selection of empty which isn't the point) -->

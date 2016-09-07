@@ -43,10 +43,17 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "section-iterate">${sri.renderSection(.node["@name"])}</#macro>
 
 <#-- ================ Containers ================ -->
-<#macro container>
-<#recurse>
-</#macro>
+<#macro container><#recurse></#macro>
 
+<#macro "container-box">
+    <#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
+    <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
+</#macro>
+<#macro "container-row">
+    <#list .node["row-col"] as rowColNode>
+        <#recurse rowColNode>
+    </#list>
+</#macro>
 <#macro "container-panel">
     <#if .node["panel-header"]?has_content><#recurse .node["panel-header"][0]></#if>
     <#if .node["panel-left"]?has_content><#recurse .node["panel-left"][0]></#if>
@@ -54,25 +61,12 @@ along with this software (see the LICENSE.md file). If not, see
     <#if .node["panel-right"]?has_content><#recurse .node["panel-right"][0]></#if>
     <#if .node["panel-footer"]?has_content><#recurse .node["panel-footer"][0]></#if>
 </#macro>
-
 <#macro "container-dialog">${ec.resource.expand(.node["@button-text"], "")} </#macro>
-<#macro "container-box">
-    <#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
-    <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
-</#macro>
+
 
 <#-- ==================== Includes ==================== -->
 <#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}</#macro>
 
-<#-- ============== Tree ============== -->
-<#-- TABLED, not to be part of 1.0:
-<#macro tree>
-</#macro>
-<#macro "tree-node">
-</#macro>
-<#macro "tree-sub-node">
-</#macro>
--->
 
 <#-- ============== Render Mode Elements ============== -->
 <#macro "render-mode">
@@ -135,50 +129,10 @@ along with this software (see the LICENSE.md file). If not, see
     <#t>${sri.pushSingleFormMapContext(formNode)}
     <#if !lineCharacters?has_content><#assign lineCharacters = "132"></#if>
     <#assign formSingleFieldWidth = lineCharacters?number>
-    <#if formNode["field-layout"]?has_content>
-        <#assign fieldLayout = formNode["field-layout"][0]>
-        <#list formNode["field-layout"][0]?children as layoutNode>
-            <#if layoutNode?node_name == "field-ref">
-                <#assign fieldRef = layoutNode["@name"]>
-                <#assign fieldNode = "invalid">
-                <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                <#lt><@formSingleSubField fieldNode/>
+    <#list formNode["field"] as fieldNode>
+        <#lt><@formSingleSubField fieldNode/>
 
-            <#elseif layoutNode?node_name == "field-row">
-                <#list layoutNode["field-ref"] as rowFieldRefNode>
-                    <#assign fieldRef = rowFieldRefNode["@name"]>
-                    <#assign fieldNode = "invalid">
-                    <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                    <#t><@formSingleSubField fieldNode/>
-                </#list>
-
-            <#elseif layoutNode?node_name == "field-group">
-                <#lt>--${layoutNode["@title"]?default("Section " + layoutNode_index)}--
-                <#list layoutNode?children as groupNode>
-                    <#if groupNode?node_name == "field-ref">
-                        <#assign fieldRef = groupNode["@name"]>
-                        <#assign fieldNode = "invalid">
-                        <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                        <#lt><@formSingleSubField fieldNode/>
-
-                    <#elseif groupNode?node_name == "field-row">
-                        <#list groupNode["field-ref"] as rowFieldRefNode>
-                            <#assign fieldRef = rowFieldRefNode["@name"]>
-                            <#assign fieldNode = "invalid">
-                            <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                            <#t><@formSingleSubField fieldNode/>
-                        </#list>
-
-                    </#if>
-                </#list>
-            </#if>
-        </#list>
-    <#else>
-        <#list formNode["field"] as fieldNode>
-            <#lt><@formSingleSubField fieldNode/>
-
-        </#list>
-    </#if>
+    </#list>
     <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
 </#macro>
 <#macro formSingleSubField fieldNode>
@@ -198,7 +152,7 @@ along with this software (see the LICENSE.md file). If not, see
             fieldSubNode?parent["@hide"]! == "true"><#return></#if>
     <#assign curTitle><@fieldTitle fieldSubNode/></#assign>
     <#assign cellCharWidth = formSingleFieldWidth*0.75>
-    <#t><@paddedValue textValue formSingleFieldWidth*0.25 true/>: <#recurse fieldSubNode/>
+    <#t><@paddedValue curTitle formSingleFieldWidth*0.25 true/>: <#recurse fieldSubNode/>
 </#macro>
 
 <#macro "form-list">
@@ -308,10 +262,10 @@ along with this software (see the LICENSE.md file). If not, see
 <#-- ================== Form Field Widgets ==================== -->
 
 <#macro "check">
-    <#assign options = sri.getFieldOptions(.node)>
+    <#assign options = sri.getFieldOptions(.node)!>
     <#assign currentValue = sri.getFieldValueString(.node)>
     <#if !currentValue?has_content><#assign currentValue = ec.getResource().expandNoL10n(.node["@no-current-selected-key"]!, "")/></#if>
-    <#t><@paddedValue options.get(currentValue)!(currentValue)/>
+    <#t><@paddedValue (options.get(currentValue))!(currentValue)/>
 </#macro>
 
 <#macro "date-find"></#macro>
@@ -353,10 +307,10 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 
 <#macro "drop-down">
-    <#assign options = {"":""}><#assign options = sri.getFieldOptions(.node)>
+    <#assign options = sri.getFieldOptions(.node)>
     <#assign currentValue = sri.getFieldValueString(.node)>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists></#if>
-    <#t><@paddedValue options.get(currentValue)?default(currentValue)/>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!></#if>
+    <#t><@paddedValue (options.get(currentValue))!(currentValue)/>
 </#macro>
 
 <#macro "file"></#macro>
@@ -365,10 +319,10 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "password"></#macro>
 
 <#macro "radio">
-    <#assign options = {"":""}><#assign options = sri.getFieldOptions(.node)>
+    <#assign options = sri.getFieldOptions(.node)!>
     <#assign currentValue = sri.getFieldValueString(.node)>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists></#if>
-    <#t><@paddedValue options.get(currentValue)?default(currentValue)/>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!></#if>
+    <#t><@paddedValue (options.get(currentValue))!(currentValue)/>
 </#macro>
 
 <#macro "range-find"></#macro>

@@ -33,7 +33,10 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#-- ================ Containers ================ -->
 <#macro container><#recurse></#macro>
-
+<#macro "container-box">
+    <#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
+    <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
+</#macro>
 <#macro "container-panel">
     <#if .node["panel-header"]?has_content><#recurse .node["panel-header"][0]></#if>
     <#if .node["panel-left"]?has_content><#recurse .node["panel-left"][0]></#if>
@@ -41,21 +44,11 @@ along with this software (see the LICENSE.md file). If not, see
     <#if .node["panel-right"]?has_content><#recurse .node["panel-right"][0]></#if>
     <#if .node["panel-footer"]?has_content><#recurse .node["panel-footer"][0]></#if>
 </#macro>
-
 <#macro "container-dialog"><#recurse></#macro>
 
 <#-- ==================== Includes ==================== -->
 <#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}</#macro>
 
-<#-- ============== Tree ============== -->
-<#-- TABLED, not to be part of 1.0:
-<#macro tree>
-</#macro>
-<#macro "tree-node">
-</#macro>
-<#macro "tree-sub-node">
-</#macro>
--->
 
 <#-- ============== Render Mode Elements ============== -->
 <#macro "render-mode">
@@ -155,7 +148,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
     <#assign currentValue = sri.getFieldValueString(.node)>
     <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)!(currentValue)}</#if>
+    <#t><@attributeValue (options.get(currentValue))!(currentValue)/>
 </#macro>
 
 <#macro "date-find"></#macro>
@@ -189,7 +182,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
     <#assign currentValue = sri.getFieldValueString(.node)/>
     <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#t><@attributeValue (options.get(currentValue))!(currentValue)/>
 </#macro>
 
 <#macro "file"></#macro>
@@ -198,10 +191,10 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "password"></#macro>
 
 <#macro "radio">
-    <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
+    <#assign options = sri.getFieldOptions(.node)>
     <#assign currentValue = sri.getFieldValueString(.node)/>
     <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#t><@attributeValue (options.get(currentValue))!(currentValue)/>
 </#macro>
 
 <#macro "range-find"></#macro>
