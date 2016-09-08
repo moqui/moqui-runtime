@@ -78,7 +78,10 @@ along with this software (see the LICENSE.md file). If not, see
             <section name="TestLoginSection">
                 <condition><expression>ec.entity.find('moqui.security.UserAccount').condition('userId', 'EX_JOHN_DOE')
                     .condition('currentPassword', '16ac58bbfa332c1c55bd98b53e60720bfa90d394').disableAuthz().count()</expression></condition>
-                <widgets><link url="login" text="Test Login (John Doe)" parameter-map="[username:'john.doe', password:'moqui']"/></widgets>
+                <widgets>
+                    <link url="login" text="Test Login (John Doe)" parameter-map="[username:'john.doe', password:'moqui']" id="TestLoginLink"/>
+                    <render-mode><text type="html"><![CDATA[<script>$("#TestLoginLink_button").focus();</script>]]></text></render-mode>
+                </widgets>
             </section>
         </container></container></container>
         <container id="footer" style="bg-dark">
