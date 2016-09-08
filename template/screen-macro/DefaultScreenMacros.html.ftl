@@ -1240,7 +1240,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
         <#-- actual columns -->
         <#list formListColumnList as columnFieldList>
-            <#-- TODO: how to handle column style? <td<#if fieldListColumn["@style"]?has_content> class="${fieldListColumn["@style"]}"</#if>> -->
             <td>
             <#list columnFieldList as fieldNode>
                 <@formListSubField fieldNode true false isMulti false/>
@@ -1287,6 +1286,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#t>${sri.appendToScriptWriter(afterFormScript)}
     </#if>
     <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
+    <#assign skipForm = false>
 </#macro>
 <#macro formListHeaderField fieldNode isHeaderDialog>
     <#if fieldNode["header-field"]?has_content>
@@ -1354,8 +1354,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#t><#if !isHeaderField && isMulti && isMultiFinalRow && !fieldSubNode["submit"]?has_content><#return/></#if>
     <#if fieldSubNode["hidden"]?has_content><#recurse fieldSubNode/><#return/></#if>
     <#assign containerStyle = ec.getResource().expandNoL10n(fieldSubNode["@container-style"]!, "")>
+    <#if fieldSubParent["@align"]! == "right"><#assign containerStyle = containerStyle + " text-right"><#elseif fieldSubParent["@align"]! == "center"><#assign containerStyle = containerStyle + " text-center"></#if>
     <#if !isMultiFinalRow && !isHeaderField><#if skipCell><div<#if containerStyle?has_content> class="${containerStyle}"</#if>><#else><td<#if containerStyle?has_content> class="${containerStyle}"</#if>></#if></#if>
-        ${sri.pushContext()}
+        <#t>${sri.pushContext()}
         <#list fieldSubNode?children as widgetNode><#if widgetNode?node_name == "set">${sri.setInContext(widgetNode)}</#if></#list>
         <#list fieldSubNode?children as widgetNode>
             <#if widgetNode?node_name == "link">
@@ -1363,15 +1364,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if linkNode["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(linkNode["@condition"], "")><#else><#assign conditionResult = true></#if>
                 <#if conditionResult>
                     <#if linkNode["@entity-name"]?has_content>
-                        <#assign linkText = ""><#assign linkText = sri.getFieldEntityValue(linkNode)>
+                        <#assign linkText = sri.getFieldEntityValue(linkNode)>
                     <#else>
                         <#assign textMap = "">
                         <#if linkNode["@text-map"]?has_content><#assign textMap = ec.getResource().expression(linkNode["@text-map"], "")!></#if>
-                        <#if textMap?has_content>
-                            <#assign linkText = ec.getResource().expand(linkNode["@text"], "", textMap)>
-                        <#else>
-                            <#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")>
-                        </#if>
+                        <#if textMap?has_content><#assign linkText = ec.getResource().expand(linkNode["@text"], "", textMap)>
+                            <#else><#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")></#if>
                     </#if>
                     <#if !linkNode["@encode"]?has_content || linkNode["@encode"] == "true"><#assign linkText = linkText?html></#if>
                     <#assign linkUrlInfo = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
@@ -1383,7 +1381,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#elseif widgetNode?node_name == "set"><#-- do nothing, handled above -->
             <#else><#t><#visit widgetNode></#if>
         </#list>
-        ${sri.popContext()}
+        <#t>${sri.popContext()}
     <#if !isMultiFinalRow && !isHeaderField><#if skipCell></div><#else></td></#if></#if>
 </#macro>
 <#macro "row-actions"><#-- do nothing, these are run by the SRI --></#macro>
@@ -1578,9 +1576,9 @@ a => A, d => D, y => Y
         <#assign fieldValue = sri.getFieldValueString(.node)>
     </#if>
     <#t><span id="${dispFieldId}_display" class="${sri.getFieldValueClass(dispFieldNode)}<#if .node["@currency-unit-field"]?has_content> currency</#if><#if dispAlign == "center"> text-center<#elseif dispAlign == "right"> text-right</#if>">
-    <#t>    <#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if>
+    <#t><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if>
     <#t></span>
-    <#t><#if !.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true">
+    <#t><#if (!.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true") && !(skipForm!false)>
         <#-- use getFieldValuePlainString() and not getFieldValueString() so we don't do timezone conversions, etc -->
         <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
         <input type="hidden" id="${dispFieldId}" name="<@fieldName .node/>" value="${sri.getFieldValuePlainString(dispFieldNode, "")?html}">
