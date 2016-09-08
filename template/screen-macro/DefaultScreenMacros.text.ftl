@@ -30,7 +30,12 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro @element></#macro>
 
 <#macro screen><#recurse></#macro>
-<#macro widgets><#recurse></#macro>
+<#macro widgets>
+    <#if !lineCharacters?has_content><#assign lineCharacters = "132"></#if>
+    <#assign lineCharactersNum = lineCharacters?number>
+    <#assign lineWrapBool = "true" == lineWrap!>
+    <#recurse>
+</#macro>
 <#macro "fail-widgets"><#recurse></#macro>
 
 <#-- ================ Subscreens ================ -->
@@ -47,6 +52,10 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro container><#recurse></#macro>
 
 <#macro "container-box">
+    <#assign cellCharWidth = lineCharactersNum>
+    <#recurse .node["box-header"][0]>
+    <#assign cellCharWidth = 0>
+
     <#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
     <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
 </#macro>
@@ -116,7 +125,7 @@ along with this software (see the LICENSE.md file). If not, see
 </#if></#macro>
 
 <#macro image><@paddedValue .node["@alt"]!""/></#macro>
-<#macro label><#assign labelValue = ec.resource.expand(.node["@text"], "")><@paddedValue labelValue/> </#macro>
+<#macro label><#assign labelValue = ec.resource.expand(.node["@text"], "")><@paddedValue labelValue/></#macro>
 <#macro parameter><#-- do nothing, used directly in other elements --></#macro>
 
 <#-- ====================================================== -->
@@ -125,11 +134,8 @@ along with this software (see the LICENSE.md file). If not, see
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formNode = sri.getFtlFormNode(.node["@name"])>
     <#t>${sri.pushSingleFormMapContext(formNode)}
-    <#if !lineCharacters?has_content><#assign lineCharacters = "132"></#if>
-    <#assign formSingleFieldWidth = lineCharacters?number>
     <#list formNode["field"] as fieldNode>
-        <#lt><@formSingleSubField fieldNode/>
-
+        <#t><@formSingleSubField fieldNode/>${"\n"}
     </#list>
     <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
 
@@ -150,15 +156,12 @@ along with this software (see the LICENSE.md file). If not, see
     <#if fieldSubNode["ignored"]?has_content || fieldSubNode["hidden"]?has_content || fieldSubNode["submit"]?has_content ||
             fieldSubNode?parent["@hide"]! == "true"><#return></#if>
     <#assign curTitle><@fieldTitle fieldSubNode/></#assign>
-    <#assign cellCharWidth = formSingleFieldWidth*0.75>
-    <#t><@paddedValue curTitle formSingleFieldWidth*0.25 true/>: <#recurse fieldSubNode/>
+    <#assign cellCharWidth = lineCharactersNum*0.8>
+    <#t><@paddedValue curTitle lineCharactersNum*0.2 true/>: <#recurse fieldSubNode/>
 </#macro>
 
 <#macro "form-list">
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
-    <#if !lineCharacters?has_content><#assign lineCharacters = "132"></#if>
-    <#assign lineCharactersNum = lineCharacters?number>
-    <#assign lineWrapBool = "true" == lineWrap!>
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFtlFormNode()>
     <#assign listName = formNode["@list"]>
@@ -302,7 +305,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#t><@paddedValue fieldValue/>
 </#macro>
 <#macro "display-entity">
-    <#assign fieldValue = ""><#assign fieldValue = sri.getFieldEntityValue(.node)>
+    <#assign fieldValue = sri.getFieldEntityValue(.node)>
     <#t><@paddedValue fieldValue/>
 </#macro>
 
