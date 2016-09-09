@@ -103,15 +103,19 @@ along with this software (see the LICENSE.md file). If not, see
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="OS" type="strong"/></row-col>
                     <row-col xs="7"><label text="${osMXBean.getName()} ${osMXBean.getVersion()}"/></row-col></container-row>
 
-                <label text="JVM" type="strong"/>
+                <label text="Java Runtime" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Version" type="strong"/></row-col>
                     <row-col xs="7"><label text="${runtimeMXBean.getSpecVersion()} (${runtimeMXBean.getVmVendor()} ${runtimeMXBean.getVmVersion()})"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Start" type="strong"/></row-col>
                     <row-col xs="7"><label text="${new Timestamp(runtimeMXBean.getStartTime())}"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Uptime" type="strong"/></row-col>
                     <row-col xs="7"><label text="${ec.l10n.format(uptimeHours, '#,##0.00')} hours"/></row-col></container-row>
+
+                <label text="Moqui Framework" type="strong"/>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Version" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.factory.moquiVersion}"/></row-col></container-row>
             </row-col><row-col md="4">
-                <label text="Server" type="strong"/>
+                <label text="Web Server" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Local IP" type="strong"/></row-col>
                     <row-col xs="7"><label text="${ec.web.request.getLocalAddr()}:${ec.web.request.getLocalPort()}"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Local Name" type="strong"/></row-col>
@@ -119,7 +123,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Requested" type="strong"/></row-col>
                     <row-col xs="7"><label text="${ec.web.request.getServerName()}:${ec.web.request.getServerPort()}"/></row-col></container-row>
 
-                <label text="Java" type="strong"/>
+                <label text="Java Statistics" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="GC" type="strong"/></row-col>
                     <row-col xs="7"><label text="${gcCount}, ${ec.l10n.format(gcTime/1000, '#,##0.00')}s total"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="JIT" type="strong"/></row-col>

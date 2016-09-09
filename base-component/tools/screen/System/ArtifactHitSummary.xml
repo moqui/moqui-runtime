@@ -33,22 +33,22 @@ along with this software (see the LICENSE.md file). If not, see
 
     <actions>
         <entity-find entity-name="moqui.server.ArtifactHitReport" list="artifactHitReportList" limit="50">
-            <search-form-inputs default-order-by="artifactType,artifactName"/>
-        </entity-find>
+            <search-form-inputs default-order-by="artifactType,artifactName"/></entity-find>
     </actions>
     <widgets>
         <container>
-            <link url="ArtifactHitSummaryStats.csv" text="Get as CSV"/>
+            <!-- <link url="ArtifactHitSummaryStats.csv" text="Get as CSV"/> -->
             <link url="ArtifactHitSummaryStats.xml" text="Get as XML"/>
             <link url="ArtifactHitSummaryStats.pdf" text="Get as PDF"/>
         </container>
-        <form-list name="ArtifactHitSummaryList" list="artifactHitReportList" skip-form="true">
+        <form-list name="ArtifactHitSummaryList" list="artifactHitReportList" skip-form="true"
+                   show-csv-button="true" show-text-button="true">
             <row-actions>
                 <set field="averageTime" from="hitCount ? totalTimeMillis/hitCount : null"/>
                 <set field="stdDev" from="totalSquaredTime &amp;&amp; hitCount > 1 ? Math.sqrt((totalSquaredTime - ((totalTimeMillis*totalTimeMillis) / hitCount)).abs() / (hitCount - 1)) : null"/>
             </row-actions>
 
-            <field name="artifactType">
+            <field name="artifactType" print-width="20">
                 <header-field show-order-by="true">
                     <drop-down allow-empty="true">
                         <option key="AT_XML_SCREEN"/><option key="AT_XML_SCREEN_CONTENT"/><option key="AT_XML_SCREEN_TRANS"/>
@@ -57,7 +57,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </header-field>
                 <default-field><display/></default-field>
             </field>
-            <field name="artifactSubType">
+            <field name="artifactSubType" print-width="20">
                 <header-field show-order-by="true">
                     <drop-down allow-empty="true">
                         <option key="one"/><option key="list"/><option key="iterator"/><option key="count"/>
@@ -68,37 +68,39 @@ along with this software (see the LICENSE.md file). If not, see
                 </header-field>
                 <default-field><display/></default-field>
             </field>
-            <field name="artifactName">
+            <field name="artifactName" print-width="60">
                 <header-field show-order-by="true"><text-find hide-options="true" size="20"/></header-field>
                 <default-field><display/></default-field>
             </field>
-            <field name="lastHitDateTime">
+            <field name="lastHitDateTime" print-width="13" print-width-type="characters">
                 <header-field title="Last Hit" show-order-by="true"/>
-                <default-field><display/></default-field>
+                <default-field><display text-format="yyyyMMdd HHmm"/></default-field>
             </field>
-            <field name="hitCount">
+            <field name="hitCount" print-width="9" print-width-type="characters" align="right">
                 <header-field title="Hits" show-order-by="true"/>
-                <default-field><display/></default-field>
+                <default-field><display format="#,##0" text-format="0"/></default-field>
             </field>
-            <field name="totalTimeMillis">
+            <field name="totalTimeMillis" print-width="8" print-width-type="characters" align="right">
                 <header-field title="Total" show-order-by="true"/>
-                <default-field><display/></default-field>
+                <default-field><display format="#,##0.000" text-format="0"/></default-field>
             </field>
-            <field name="minTimeMillis">
+            <field name="minTimeMillis" print-width="8" print-width-type="characters" align="right">
                 <header-field title="Min" show-order-by="true"/>
-                <default-field><display/></default-field>
+                <default-field><display format="#,##0.000" text-format="0.00"/></default-field>
             </field>
-            <field name="maxTimeMillis">
+            <field name="maxTimeMillis" print-width="8" print-width-type="characters" align="right">
                 <header-field title="Max" show-order-by="true"/>
-                <default-field><display/></default-field>
+                <default-field><display format="#,##0.000" text-format="0.00"/></default-field>
             </field>
-            <field name="averageTime"><default-field title="Avg"><display/></default-field></field>
-            <field name="stdDev"><default-field title="Std Dev"><display/></default-field></field>
-            <field name="slowHitCount">
+            <field name="averageTime" print-width="8" print-width-type="characters" align="right">
+                <default-field title="Avg"><display format="#,##0.000" text-format="0.00"/></default-field></field>
+            <field name="stdDev" print-width="8" print-width-type="characters" align="right">
+                <default-field title="Std Dev"><display format="#,##0.000" text-format="0.00"/></default-field></field>
+            <field name="slowHitCount" print-width="5" print-width-type="characters" align="right">
                 <header-field title="Slow Hits" show-order-by="true"/>
-                <default-field><display/></default-field>
+                <default-field><display format="#,##0" text-format="0"/></default-field>
             </field>
-            <field name="find"><header-field title="Find"><submit/></header-field><default-field>
+            <field name="find" print-width="0"><header-field title="Find"><submit/></header-field><default-field>
                 <display text=" "/></default-field></field>
         </form-list>
     </widgets>

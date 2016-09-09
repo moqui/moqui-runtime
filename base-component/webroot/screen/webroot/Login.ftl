@@ -1,10 +1,10 @@
 
 <div class="tab-content">
     <div id="login" class="tab-pane active">
-        <form method="post" action="${sri.makeUrlByType("login", "transition", null, "false").getUrl()}" class="form-signin">
+        <form method="post" action="${sri.makeUrlByType("login", "transition", null, "false").getUrl()}" class="form-signin" id="login_form">
             <p class="text-muted text-center">Enter your username and password to sign in</p>
             <#-- not needed for this request: <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"> -->
-            <input type="text" name="username" value="${(ec.getWeb().getErrorParameters().get("username"))!""}" placeholder="Username" required="required" class="form-control top">
+            <input type="text" name="username" value="${(ec.getWeb().getErrorParameters().get("username"))!""}" placeholder="Username" required="required" class="form-control top" id="login_form_username">
             <#if !ec.getWeb()?? || ec.getWeb().getSession().getAttribute("moqui.tenantAllowOverride")! != "N">
                 <input type="password" name="password" placeholder="Password" required="required" class="form-control middle">
                 <input type="text" name="tenantId" placeholder="Tenant ID" class="form-control bottom">
@@ -13,9 +13,10 @@
             </#if>
             <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
         </form>
+        <script>$("#login_form_username").focus();</script>
     </div>
     <div id="reset" class="tab-pane">
-        <form method="post" action="${sri.makeUrlByType("resetPassword", "transition", null, "false").getUrl()}" class="form-signin">
+        <form method="post" action="${sri.makeUrlByType("resetPassword", "transition", null, "false").getUrl()}" class="form-signin" id="reset_form">
             <p class="text-muted text-center">Enter your username to reset and email your password</p>
             <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
             <#if !ec.getWeb()?? || ec.getWeb().getSession().getAttribute("moqui.tenantAllowOverride")! != "N">
@@ -28,7 +29,7 @@
         </form>
     </div>
     <div id="change" class="tab-pane">
-        <form method="post" action="${sri.makeUrlByType("changePassword", "transition", null, "false").getUrl()}" class="form-signin">
+        <form method="post" action="${sri.makeUrlByType("changePassword", "transition", null, "false").getUrl()}" class="form-signin" id="change_form">
             <p class="text-muted text-center">Enter details to change your password</p>
             <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
             <input type="text" name="username" value="${(ec.getWeb().getErrorParameters().get("username"))!""}" placeholder="Username" required="required" class="form-control top">

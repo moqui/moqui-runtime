@@ -35,7 +35,10 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#-- ================ Containers ================ -->
 <#macro container><#recurse></#macro>
-
+<#macro "container-box">
+    <#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
+    <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
+</#macro>
 <#macro "container-panel">
     <#if .node["panel-header"]?has_content><#recurse .node["panel-header"][0]></#if>
     <#if .node["panel-left"]?has_content><#recurse .node["panel-left"][0]></#if>
@@ -43,15 +46,10 @@ along with this software (see the LICENSE.md file). If not, see
     <#if .node["panel-right"]?has_content><#recurse .node["panel-right"][0]></#if>
     <#if .node["panel-footer"]?has_content><#recurse .node["panel-footer"][0]></#if>
 </#macro>
-
 <#macro "container-dialog"><#recurse></#macro>
-<#macro "container-box">
-    <#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
-    <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
-</#macro>
 
 <#-- ==================== Includes ==================== -->
-<#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}</#macro>
+<#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}</#macro>
 
 <#-- ============== Tree ============== -->
 <#-- TABLED, not to be part of 1.0:
@@ -75,14 +73,14 @@ along with this software (see the LICENSE.md file). If not, see
     <#if textToUse??>
         <#if textToUse["@location"]?has_content>
     <#-- NOTE: this still won't encode templates that are rendered to the writer -->
-    <#if .node["@encode"]!"false" == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else/>${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)}</#if>
+    <#if .node["@encode"] == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else/>${sri.renderText(textToUse["@location"], textToUse["@template"]!)}</#if>
         </#if>
         <#assign inlineTemplateSource = textToUse?string/>
         <#if inlineTemplateSource?has_content>
           <#if !textToUse["@template"]?has_content || textToUse["@template"] == "true">
             <#assign inlineTemplate = [inlineTemplateSource, sri.getActiveScreenDef().location + ".render_mode.text"]?interpret>
             <@inlineTemplate/>
-          <#else/>
+          <#else>
             ${inlineTemplateSource}
           </#if>
         </#if>
@@ -134,7 +132,7 @@ on the same screen to increase reusability of those screens -->
     <#assign hasPrevColumn = false>
     <#list formListColumnList as columnFieldList>
         <#list columnFieldList as fieldNode>
-            <#if !(fieldNode["@hide"]?if_exists == "true" ||
+            <#if !(fieldNode["@hide"]! == "true" ||
                     ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
                     (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
                 <#t><@formListHeaderField fieldNode/>
@@ -183,7 +181,7 @@ on the same screen to increase reusability of those screens -->
 </#macro>
 <#macro formListWidget fieldSubNode>
     <#if fieldSubNode["ignored"]?has_content || fieldSubNode["hidden"]?has_content || fieldSubNode["submit"]?has_content><#return/></#if>
-    <#if fieldSubNode?parent["@hide"]?if_exists == "true"><#return></#if>
+    <#if fieldSubNode?parent["@hide"]! == "true"><#return></#if>
     <#t><#if hasPrevColumn>,<#else><#assign hasPrevColumn = true></#if><#recurse fieldSubNode>
 </#macro>
 <#macro "row-actions"><#-- do nothing, these are run by the SRI --></#macro>
@@ -197,17 +195,17 @@ on the same screen to increase reusability of those screens -->
 <#-- ================== Form Field Widgets ==================== -->
 
 <#macro "check">
-    <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValue(.node?parent?parent, "")>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#assign options = sri.getFieldOptions(.node)>
+    <#assign currentValue = sri.getFieldValueString(.node)>
+    <#if !currentValue?has_content><#assign currentValue = ec.getResource().expandNoL10n(.node["@no-current-selected-key"]!, "")/></#if>
+    <#t><@csvValue (options.get(currentValue))!(currentValue)/>
 </#macro>
 
 <#macro "date-find"></#macro>
 <#macro "date-time">
     <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
     <#if .node["@format"]?has_content><#assign fieldValue = ec.l10n.format(fieldValue, .node["@format"])></#if>
-    <#if .node["@type"]?if_exists == "time"><#assign size=9/><#assign maxlength=12/><#elseif .node["@type"]?if_exists == "date"><#assign size=10/><#assign maxlength=10/><#else><#assign size=23/><#assign maxlength=23/></#if>
+    <#if .node["@type"]! == "time"><#assign size=9/><#assign maxlength=12/><#elseif .node["@type"]! == "date"><#assign size=10/><#assign maxlength=10/><#else><#assign size=23/><#assign maxlength=23/></#if>
     <#t><@csvValue fieldValue/>
 </#macro>
 
@@ -228,7 +226,7 @@ on the same screen to increase reusability of those screens -->
     <#elseif .node["@currency-unit-field"]?has_content>
         <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
     <#else>
-        <#assign fieldValue = sri.getFieldValueString(dispFieldNode, "", .node["@format"]!)>
+        <#assign fieldValue = sri.getFieldValueString(.node)>
     </#if>
     <#t><@csvValue fieldValue/>
 </#macro>
@@ -238,10 +236,10 @@ on the same screen to increase reusability of those screens -->
 </#macro>
 
 <#macro "drop-down">
-    <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)/>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#assign options = sri.getFieldOptions(.node)>
+    <#assign currentValue = sri.getFieldValueString(.node)/>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!""/></#if>
+    <#t><@csvValue (options.get(currentValue))!(currentValue)/>
 </#macro>
 
 <#macro "file"></#macro>
@@ -251,9 +249,9 @@ on the same screen to increase reusability of those screens -->
 
 <#macro "radio">
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValueString(.node?parent?parent, "", null)/>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
+    <#assign currentValue = sri.getFieldValueString(.node)/>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!""/></#if>
+    <#t><@csvValue (options.get(currentValue))!(currentValue)/>
 </#macro>
 
 <#macro "range-find"></#macro>
@@ -265,16 +263,16 @@ on the same screen to increase reusability of those screens -->
 </#macro>
 
 <#macro "text-area">
-    <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
+    <#assign fieldValue = sri.getFieldValueString(.node)>
     <#t><@csvValue fieldValue/>
 </#macro>
 
 <#macro "text-line">
-    <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
+    <#assign fieldValue = sri.getFieldValueString(.node)>
     <#t><@csvValue fieldValue/>
 </#macro>
 
 <#macro "text-find">
-    <#assign fieldValue = sri.getFieldValue(.node?parent?parent, .node["@default-value"]!"")>
+    <#assign fieldValue = sri.getFieldValueString(.node)>
     <#t><@csvValue fieldValue/>
 </#macro>
