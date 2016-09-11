@@ -12,6 +12,8 @@
     <default-property name="ds_transactional_user" value="moqui"/>
     <default-property name="ds_transactional_password" value="moqui"/>
 
+    <tools empty-db-load="all"/>
+
     <server-stats stats-skip-condition="pathInfo?.startsWith('/rpc') || pathInfo?.startsWith('/rest') || pathInfo?.startsWith('/status')"/>
 
     <webapp-list>
