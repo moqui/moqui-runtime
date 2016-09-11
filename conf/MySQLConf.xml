@@ -16,11 +16,6 @@
 
     <server-stats stats-skip-condition="pathInfo?.startsWith('/rpc') || pathInfo?.startsWith('/rest') || pathInfo?.startsWith('/status')"/>
 
-    <webapp-list>
-        <!-- NOTE: when you set https-enabled="true" make sure to set the http-port and https-port attributes -->
-        <webapp name="webroot" http-port="" http-host="" https-port="" https-host="" https-enabled="false"/>
-    </webapp-list>
-
     <entity-facade crypt-pass="MoquiDefaultPassword:CHANGEME">
         <datasource group-name="transactional" database-conf-name="mysql" schema-name="">
             <inline-jdbc><xa-properties user="${ds_transactional_user}" password="${ds_transactional_password}" pinGlobalTxToPhysicalConnection="true"

@@ -48,7 +48,7 @@
     </server-stats>
 
     <webapp-list>
-        <webapp name="webroot" https-enabled="false">
+        <webapp name="webroot">
             <servlet name="H2Console" class="org.h2.server.web.WebServlet" load-on-startup="1">
                 <!-- <init-param name="webAllowOthers" value=""/><init-param name="trace" value=""/> -->
                 <url-pattern>/h2/*</url-pattern>

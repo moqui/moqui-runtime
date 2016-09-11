@@ -18,7 +18,6 @@
         <artifact-stats type="AT_ENTITY" persist-bin="true"/>
     </server-stats>
 
-    <webapp-list><webapp name="webroot" https-enabled="false"/></webapp-list>
     <artifact-execution-facade>
         <!-- turn off tarpit in dev mode -->
         <artifact-execution type="AT_XML_SCREEN" tarpit-enabled="false"/>
