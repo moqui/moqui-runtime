@@ -33,7 +33,6 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="sendServiceName"><default-field><text-line size="80"/></default-field></field>
                 <field name="username"><default-field><text-line size="30"/></default-field></field>
                 <field name="password"><default-field><text-line size="30"/></default-field></field>
-                <field name="tenantId"><default-field><text-line size="30"/></default-field></field>
                 <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
             </form-single>
         </container-dialog>
@@ -50,10 +49,6 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><display/></default-field>
             </field>
             <field name="username">
-                <header-field show-order-by="true"><text-find hide-options="true"/></header-field>
-                <default-field><display/></default-field>
-            </field>
-            <field name="tenantId">
                 <header-field show-order-by="true"><text-find hide-options="true"/></header-field>
                 <default-field><display/></default-field>
             </field>

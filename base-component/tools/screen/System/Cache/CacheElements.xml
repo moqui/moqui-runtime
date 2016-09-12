@@ -38,7 +38,7 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
-        <if condition="!ec.cache.cacheExists(cacheName) || (ec.tenantId != 'DEFAULT' &amp;&amp; !cacheName.startsWith(ec.tenantId + '__'))">
+        <if condition="!ec.cache.cacheExists(cacheName)">
             <return error="true" message="Cache with name ${cacheName} not found"/></if>
 
         <set field="pageSize" from="pageSize ?: 40"/>
