@@ -15,7 +15,24 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro @element><fo:block>=== Doing nothing for element ${.node?node_name}, not yet implemented. ===</fo:block></#macro>
 
-<#macro screen><#recurse></#macro>
+<#macro screen>
+    <#if !layoutMaster?has_content><#assign layoutMaster = "letter-portrait"></#if>
+    <#-- calculate width in pixels for layout masters defined in Header.xsl-fo.ftl, based on 72dpi -->
+    <#switch layoutMaster>
+        <#case "letter-landscape"><#case "tabloid-portrait"><#assign layoutWidthPx = 10.5 * 72><#break>
+        <#case "legal-landscape"><#assign layoutWidthPx = 13.5 * 72><#break>
+        <#case "tabloid-landscape"><#assign layoutWidthPx = 16.5 * 72><#break>
+        <#case "a4-portrait"><#assign layoutWidthPx = 7.8 * 72><#break>
+        <#case "a4-landscape"><#case "a3-portrait"><#assign layoutWidthPx = 11.2 * 72><#break>
+        <#case "a3-landscape"><#assign layoutWidthPx = 16 * 72><#break>
+        <#-- default applies to letter-portrait, legal-portrait -->
+        <#default><#assign layoutWidthPx = 8 * 72>
+    </#switch>
+    <#-- using a 9pt font 6px per character should be plenty (12cpi) - fits for Courier, Helvetica could be less on average (like 4.5) but make sure enough space -->
+    <#assign pixelsPerChar = 6>
+    <#assign lineCharactersNum = layoutWidthPx / pixelsPerChar>
+    <#recurse>
+</#macro>
 <#macro widgets>
 <#if sri.doBoundaryComments()><!-- BEGIN screen[@location=${sri.getActiveScreenDef().location}].widgets --></#if>
 <#recurse>
@@ -45,15 +62,22 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 
 <#-- ================ Containers ================ -->
-<#macro container>
-    <fo:block><#recurse></fo:block>
+<#macro container><#recurse></#macro>
+<#macro "container-box">
+    <#recurse .node["box-header"][0]>
+    <#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
+    <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
+</#macro>
+<#macro "container-row">
+    <#list .node["row-col"] as rowColNode><#recurse rowColNode></#list>
 </#macro>
 
 <#macro "container-panel">
     <#-- NOTE: consider putting header and footer in table spanning 3 columns -->
     <#if .node["panel-header"]?has_content>
     <fo:block><#recurse .node["panel-header"][0]>
-    </fo:block></#if>
+    </fo:block>
+    </#if>
     <fo:table border="solid black">
         <fo:table-body><fo:table-row>
             <#if .node["panel-left"]?has_content>
@@ -68,9 +92,9 @@ along with this software (see the LICENSE.md file). If not, see
     </fo:table>
     <#if .node["panel-footer"]?has_content>
     <fo:block><#recurse .node["panel-footer"][0]>
-    </fo:block></#if>
+    </fo:block>
+    </#if>
 </#macro>
-
 <#macro "container-dialog">
     <fo:block>
     <#recurse>
@@ -79,9 +103,9 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#-- ==================== Includes ==================== -->
 <#macro "include-screen">
-<#if sri.doBoundaryComments()><!-- BEGIN include-screen[@location=${.node["@location"]}][@share-scope=${.node["@share-scope"]?if_exists}] --></#if>
-${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
-<#if sri.doBoundaryComments()><!-- END   include-screen[@location=${.node["@location"]}][@share-scope=${.node["@share-scope"]?if_exists}] --></#if>
+<#if sri.doBoundaryComments()><!-- BEGIN include-screen[@location=${.node["@location"]}][@share-scope=${.node["@share-scope"]!}] --></#if>
+${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
+<#if sri.doBoundaryComments()><!-- END   include-screen[@location=${.node["@location"]}][@share-scope=${.node["@share-scope"]!}] --></#if>
 </#macro>
 
 <#-- ============== Tree ============== -->
@@ -103,23 +127,23 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
     <#if !textToUse?has_content>
         <#list .node["text"] as textNode><#if !textNode["@type"]?has_content || textNode["@type"] == "any"><#assign textToUse = textNode/></#if></#list>
     </#if>
-    <#if textToUse?exists>
+    <#if textToUse??>
         <#if textToUse["@location"]?has_content>
-<#if sri.doBoundaryComments() && !(textToUse["@no-boundary-comment"]?if_exists=="true")><!-- BEGIN render-mode.text[@location=${textToUse["@location"]}][@template=${textToUse["@template"]?default("true")}] --></#if>
+<#if sri.doBoundaryComments() && !(textToUse["@no-boundary-comment"]! == "true")><!-- BEGIN render-mode.text[@location=${textToUse["@location"]}][@template=${textToUse["@template"]!"true"}] --></#if>
     <#-- NOTE: this still won't encode templates that are rendered to the writer -->
-    <#lt><#if .node["@encode"]!"false" == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)?html}<#else/>${sri.renderText(textToUse["@location"], textToUse["@template"]?if_exists)}</#if>
-<#if sri.doBoundaryComments()><!-- END   render-mode.text[@location=${textToUse["@location"]}][@template=${textToUse["@template"]?default("true")}] --></#if>
+    <#lt><#if .node["@encode"]! == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else>${sri.renderText(textToUse["@location"], textToUse["@template"]!)}</#if>
+<#if sri.doBoundaryComments()><!-- END   render-mode.text[@location=${textToUse["@location"]}][@template=${textToUse["@template"]!"true"}] --></#if>
         </#if>
         <#assign inlineTemplateSource = textToUse?string/>
         <#if inlineTemplateSource?has_content>
-<#if sri.doBoundaryComments() && !(textToUse["@no-boundary-comment"]?if_exists=="true")><!-- BEGIN render-mode.text[inline][@template=${textToUse["@template"]?default("true")}] --></#if>
+<#if sri.doBoundaryComments() && !(textToUse["@no-boundary-comment"]! == "true")><!-- BEGIN render-mode.text[inline][@template=${textToUse["@template"]!"true"}] --></#if>
           <#if !textToUse["@template"]?has_content || textToUse["@template"] == "true">
             <#assign inlineTemplate = [inlineTemplateSource, sri.getActiveScreenDef().location + ".render_mode.text"]?interpret>
             <#lt><@inlineTemplate/>
-          <#else/>
-            <#lt><#if .node["@encode"]!"false" == "true">${inlineTemplateSource?html}<#else/>${inlineTemplateSource}</#if>
+          <#else>
+            <#lt><#if .node["@encode"]! == "true">${inlineTemplateSource?html}<#else>${inlineTemplateSource}</#if>
           </#if>
-<#if sri.doBoundaryComments()><!-- END   render-mode.text[inline][@template=${textToUse["@template"]?default("true")}] --></#if>
+          <#if sri.doBoundaryComments()><!-- END   render-mode.text[inline][@template=${textToUse["@template"]!"true"}] --></#if>
         </#if>
     </#if>
 </#if>
@@ -131,9 +155,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 <#macro link>
     <#assign urlInfo = sri.makeUrlByType(.node["@url"], .node["@url-type"]!"transition", .node, .node["@expand-transition-url"]!"true")>
     <#assign linkNode = .node>
-    <@linkFormLink linkNode linkNode["@id"]?if_exists urlInfo/>
+    <@linkFormLink linkNode urlInfo/>
 </#macro>
-<#macro linkFormLink linkNode linkFormId urlInfo><fo:block>${ec.resource.expand(linkNode["@text"], "")}</fo:block></#macro>
+<#-- TODO: make link an actual PDF link -->
+<#macro linkFormLink linkNode urlInfo><fo:block>${ec.resource.expand(linkNode["@text"], "")}</fo:block></#macro>
 
 <#macro image>
     <#-- TODO: make real xsl-fo image -->
@@ -141,10 +166,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 </#macro>
 <#macro label>
     <#-- TODO: handle label type somehow -->
-    <#assign labelType = .node["@type"]?default("span")/>
     <#assign labelValue = ec.resource.expand(.node["@text"], "")/>
     <#if (labelValue?length < 255)><#assign labelValue = ec.l10n.localize(labelValue)/></#if>
-    <fo:block><#if !.node["@encode"]?has_content || .node["@encode"] == "true">${labelValue?html?replace("\n", "<br>")}<#else/>${labelValue}</#if></fo:block>
+    <fo:block><#if !.node["@encode"]?has_content || .node["@encode"] == "true">${labelValue?html?replace("\n", "<br>")}<#else>${labelValue}</#if></fo:block>
 </#macro>
 <#macro parameter><#-- do nothing, used directly in other elements --></#macro>
 
@@ -153,95 +177,55 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 <#macro "form-single">
     <#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
-    <#assign formNode = sri.getFtlFormNode(.node["@name"])>
+    <#assign formInstance = sri.getFormInstance(.node["@name"])>
+    <#assign formNode = formInstance.getFtlFormNode()>
     <#t>${sri.pushSingleFormMapContext(formNode)}
     <#if formNode["field-layout"]?has_content>
-        <#assign fieldLayout = formNode["field-layout"][0]>
-        <fo:block>
-            <#assign accordionId = fieldLayout["@id"]?default(formNode["@name"] + "-accordion")>
-            <#assign collapsible = (fieldLayout["@collapsible"]! == "true")>
-            <#assign collapsibleOpened = false>
-            <#list formNode["field-layout"][0]?children as layoutNode>
-                <#if layoutNode?node_name == "field-ref">
-                  <#if collapsibleOpened>
-                    <#assign collapsibleOpened = false>
-                    </fo:block>
-                    <script>$("#${accordionId}").accordion({ collapsible: true });</script>
-                    <#assign accordionId = accordionId + "_A"><#-- set this just in case another accordion is opened -->
-                  </#if>
-                    <#assign fieldRef = layoutNode["@name"]>
-                    <#assign fieldNode = "invalid">
-                    <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                    <#if fieldNode == "invalid">
-                        <fo:block>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</fo:block>
-                    <#else>
-                        <@formSingleSubField fieldNode/>
-                    </#if>
-                <#elseif layoutNode?node_name == "field-row">
-                  <#if collapsibleOpened>
-                    <#assign collapsibleOpened = false>
-                    </fo:block>
-                    <script>$("#${accordionId}").accordion({ collapsible: true });</script>
-                    <#assign accordionId = accordionId + "_A"><#-- set this just in case another accordion is opened -->
-                  </#if>
-                    <fo:block>
-                    <#list layoutNode["field-ref"] as rowFieldRefNode>
-                        <fo:block>
-                            <#assign fieldRef = rowFieldRefNode["@name"]>
-                            <#assign fieldNode = "invalid">
-                            <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                            <#if fieldNode == "invalid">
-                                <fo:block>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</fo:block>
-                            <#else>
-                                <@formSingleSubField fieldNode/>
-                            </#if>
-                        </fo:block>
-                    </#list>
-                    </fo:block>
-                <#elseif layoutNode?node_name == "field-group">
-                  <#if collapsible && !collapsibleOpened><#assign collapsibleOpened = true>
-                    <fo:block>
-                  </#if>
-                    <fo:block>${layoutNode["@title"]?default("Section " + layoutNode_index)}</fo:block>
-                    <fo:block>
-                        <#list layoutNode?children as groupNode>
-                            <#if groupNode?node_name == "field-ref">
-                                <#assign fieldRef = groupNode["@name"]>
-                                <#assign fieldNode = "invalid">
-                                <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                                <@formSingleSubField fieldNode/>
-                            <#elseif groupNode?node_name == "field-row">
-                                <fo:block>
-                                <#list groupNode["field-ref"] as rowFieldRefNode>
-                                    <fo:block>
-                                        <#assign fieldRef = rowFieldRefNode["@name"]>
-                                        <#assign fieldNode = "invalid">
-                                        <#list formNode["field"] as fn><#if fn["@name"] == fieldRef><#assign fieldNode = fn><#break></#if></#list>
-                                        <#if fieldNode == "invalid">
-                                            <fo:block>Error: could not find field with name [${fieldRef}] referred to in a field-ref.@name attribute.</fo:block>
-                                        <#else>
-                                            <@formSingleSubField fieldNode/>
-                                        </#if>
-                                    </fo:block>
-                                </#list>
-                                </fo:block>
-                            </#if>
-                        </#list>
-                    </fo:block>
-                </#if>
-            </#list>
-            <#if collapsibleOpened>
-                </fo:block>
-            </#if>
-        </fo:block>
-    <#else/>
-        <fo:block>
-            <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode/></#list>
-        </fo:block>
+        <#recurse formNode["field-layout"][0]/>
+    <#else>
+        <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode/></#list>
     </#if>
     <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
     <#if sri.doBoundaryComments()><!-- END   form-single[@name=${.node["@name"]}] --></#if>
 </#macro>
+<#macro "field-ref">
+    <#assign fieldRef = .node["@name"]>
+    <#assign fieldNode = formInstance.getFtlFieldNode(fieldRef)!>
+    <#if fieldNode??>
+        <@formSingleSubField fieldNode/>
+    <#else>
+    <fo:block>Error: could not find field with name ${fieldRef} referred to in a field-ref.@name attribute.</fo:block>
+    </#if>
+</#macro>
+<#macro "fields-not-referenced">
+    <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
+    <#list nonReferencedFieldList as nonReferencedField>
+        <@formSingleSubField nonReferencedField/></#list>
+</#macro>
+<#macro "field-row">
+<fo:table><fo:table-body><fo:table-row>
+    <#list .node?children as rowChildNode>
+        <fo:table-cell wrap-option="wrap" padding="2pt" width="50%">
+            <#visit rowChildNode/>
+        </fo:table-cell>
+    </#list>
+</fo:table-row></fo:table-body></fo:table>
+</#macro>
+<#macro "field-row-big">
+<fo:table><fo:table-body><fo:table-row>
+    <#list .node?children as rowChildNode>
+        <fo:table-cell wrap-option="wrap" padding="2pt">
+            <#visit rowChildNode/>
+        </fo:table-cell>
+    </#list>
+</fo:table-row></fo:table-body></fo:table>
+</#macro>
+<#macro "field-group">
+    <fo:block font-size="10pt">${ec.getL10n().localize(.node["@title"]!("Fields"))}</fo:block>
+    <#recurse .node/>
+</#macro>
+<#macro "field-accordion"><#recurse .node/></#macro>
+
 <#macro formSingleSubField fieldNode>
     <#list fieldNode["conditional-field"] as fieldSubNode>
         <#if ec.resource.condition(fieldSubNode["@condition"], "")>
@@ -255,9 +239,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
     </#if>
 </#macro>
 <#macro formSingleWidget fieldSubNode>
-    <#if fieldSubNode["ignored"]?has_content && (fieldSubNode?parent["@hide"]?if_exists != "false")><#return></#if>
-    <#if fieldSubNode["hidden"]?has_content && (fieldSubNode?parent["@hide"]?if_exists != "false")><#recurse fieldSubNode/><#return></#if>
-    <#if fieldSubNode?parent["@hide"]?if_exists == "true"><#return></#if>
+    <#if fieldSubNode["ignored"]?has_content && (fieldSubNode?parent["@hide"]! != "false")><#return></#if>
+    <#if fieldSubNode["hidden"]?has_content && (fieldSubNode?parent["@hide"]! != "false")><#recurse fieldSubNode/><#return></#if>
+    <#if fieldSubNode?parent["@hide"]! == "true"><#return></#if>
     <fo:block>
         <#if !fieldSubNode["submit"]?has_content><label class="form-title" for="${formNode["@name"]}_${fieldSubNode?parent["@name"]}"><@fieldTitle fieldSubNode/></label></#if>
         <#recurse fieldSubNode/>
@@ -276,23 +260,24 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
     <#assign listName = formNode["@list"]>
     <#assign listObject = ec.resource.expression(listName, "")!>
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
+    <#assign columnCharWidths = formInstance.getFormListColumnCharWidths(formListColumnList, lineCharactersNum)>
 
-    <#if !(formNode["@paginate"]?if_exists == "false") && context[listName + "Count"]?exists && (context[listName + "Count"]?if_exists > 0)>
+    <#if !(formNode["@paginate"]! == "false") && context[listName + "Count"]?? && (context[listName + "Count"]! > 0)>
         <fo:block>${context[listName + "PageRangeLow"]} - ${context[listName + "PageRangeHigh"]} / ${context[listName + "Count"]}</fo:block>
     </#if>
     <fo:table>
-        <fo:table-header>
-            <fo:table-row class="form-header">
+        <fo:table-header border-bottom="thin solid black">
+            <fo:table-row>
                 <#list formListColumnList as columnFieldList>
-                    <fo:table-cell wrap-option="wrap" padding="2pt">
-                    <#list columnFieldList as fieldNode>
-                        <#if !(fieldNode["@hide"]?if_exists == "true" ||
-                                ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
-                            <fo:block><@formListHeaderField fieldNode/></fo:block>
-                        </#if>
-                    </#list>
-                    </fo:table-cell>
+                    <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
+                    <#if (cellCharWidth > 0)>
+                        <#assign cellPixelWidth = cellCharWidth * pixelsPerChar>
+                        <fo:table-cell wrap-option="wrap" padding="2pt" width="${cellPixelWidth}px">
+                        <#list columnFieldList as fieldNode>
+                            <fo:block text-align="${fieldNode["@align"]!"left"}" font-weight="bold"><@formListHeaderField fieldNode/></fo:block>
+                        </#list>
+                        </fo:table-cell>
+                    </#if>
                 </#list>
             </fo:table-row>
         </fo:table-header>
@@ -303,11 +288,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
                 ${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
                 <fo:table-row>
                     <#list formListColumnList as columnFieldList>
-                        <fo:table-cell wrap-option="wrap" padding="2pt">
-                        <#list columnFieldList as fieldNode>
-                            <@formListSubField fieldNode/>
-                        </#list>
-                        </fo:table-cell>
+                        <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
+                        <#if (cellCharWidth > 0)>
+                            <fo:table-cell wrap-option="wrap" padding="2pt">
+                            <#list columnFieldList as fieldNode>
+                                <@formListSubField fieldNode/>
+                            </#list>
+                            </fo:table-cell>
+                        </#if>
                     </#list>
                 </fo:table-row>
                 ${sri.endFormListRow()}
@@ -326,13 +314,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
         <#-- this only makes sense for fields with a single conditional -->
         <#assign fieldSubNode = fieldNode["conditional-field"][0]>
     </#if>
-    <fo:block><#-- TODO: make bold/etc -->
-        <#if fieldSubNode["submit"]?has_content><#else/><@fieldTitle fieldSubNode/></#if>
-    </fo:block>
+    <#if !fieldSubNode["submit"]?has_content><@fieldTitle fieldSubNode/></#if>
     <#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
-    <fo:block><#-- TODO: make bold/etc -->
         <#recurse fieldNode["header-field"][0]/>
-    </fo:block>
     </#if>
 </#macro>
 <#macro formListSubField fieldNode>
@@ -348,10 +332,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
     </#if>
 </#macro>
 <#macro formListWidget fieldSubNode>
+    <#local fieldNode = fieldSubNode?parent>
     <#if fieldSubNode["ignored"]?has_content><#return/></#if>
     <#if fieldSubNode["hidden"]?has_content><#recurse fieldSubNode/><#return/></#if>
-    <#if fieldSubNode?parent["@hide"]?if_exists == "true"><#return></#if>
-    <fo:block>
+    <#if fieldNode["@hide"]! == "true"><#return></#if>
+    <fo:block text-align="${fieldNode["@align"]!"left"}">
         <#t><#if isMulti && !isMultiFinalRow && fieldSubNode["submit"]?has_content><#return/></#if>
         <#t><#if isMulti && isMultiFinalRow && !fieldSubNode["submit"]?has_content><#return/></#if>
         <#list fieldSubNode?children as widgetNode>
@@ -361,7 +346,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
                 <#assign linkFormId><@fieldId linkNode/></#assign>
                 <#assign afterFormText><@linkFormForm linkNode linkFormId urlInfo/></#assign>
                 <#t>${sri.appendToAfterScreenWriter(afterFormText)}
-                <#t><@linkFormLink linkNode linkFormId urlInfo/>
+                <#t><@linkFormLink linkNode urlInfo/>
             <#else>
                 <#t><#visit widgetNode>
             </#if>
@@ -370,9 +355,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 </#macro>
 <#macro "row-actions"><#-- do nothing, these are run by the SRI --></#macro>
 
-<#macro fieldName widgetNode><#assign fieldNode=widgetNode?parent?parent/>${fieldNode["@name"]?html}<#if isMulti?exists && isMulti && listEntryIndex?exists>_${listEntryIndex}</#if></#macro>
-<#macro fieldId widgetNode><#assign fieldNode=widgetNode?parent?parent/>${fieldNode?parent["@name"]}_${fieldNode["@name"]}<#if listEntryIndex?exists>_${listEntryIndex}</#if></#macro>
-<#macro fieldTitle fieldSubNode><#assign titleValue><#if fieldSubNode["@title"]?has_content>${fieldSubNode["@title"]}<#else/><#list fieldSubNode?parent["@name"]?split("(?=[A-Z])", "r") as nameWord>${nameWord?cap_first?replace("Id", "ID")}<#if nameWord_has_next> </#if></#list></#if></#assign>${ec.l10n.localize(titleValue)}</#macro>
+<#macro fieldName widgetNode><#assign fieldNode=widgetNode?parent?parent/>${fieldNode["@name"]?html}<#if isMulti?? && isMulti && listEntryIndex??>_${listEntryIndex}</#if></#macro>
+<#macro fieldId widgetNode><#assign fieldNode=widgetNode?parent?parent/>${fieldNode?parent["@name"]}_${fieldNode["@name"]}<#if listEntryIndex??>_${listEntryIndex}</#if></#macro>
+<#macro fieldTitle fieldSubNode><#assign titleValue><#if fieldSubNode["@title"]?has_content>${fieldSubNode["@title"]}<#else><#list fieldSubNode?parent["@name"]?split("(?=[A-Z])", "r") as nameWord>${nameWord?cap_first?replace("Id", "ID")}<#if nameWord_has_next> </#if></#list></#if></#assign>${ec.l10n.localize(titleValue)}</#macro>
 
 <#macro field><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 <#macro "conditional-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
@@ -383,7 +368,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]?if_exists)}
 <#macro check>
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
     <#assign currentValue = sri.getFieldValue(.node?parent?parent, "")>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]?if_exists/></#if>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!/></#if>
     <#t><#if currentValue?has_content>${options.get(currentValue)?default(currentValue)}</#if>
 </#macro>
 

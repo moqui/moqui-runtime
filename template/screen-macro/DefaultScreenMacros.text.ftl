@@ -29,13 +29,13 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro @element></#macro>
 
-<#macro screen><#recurse></#macro>
-<#macro widgets>
+<#macro screen>
     <#if !lineCharacters?has_content><#assign lineCharacters = "132"></#if>
     <#assign lineCharactersNum = lineCharacters?number>
     <#assign lineWrapBool = "true" == lineWrap!>
     <#recurse>
 </#macro>
+<#macro widgets><#recurse></#macro>
 <#macro "fail-widgets"><#recurse></#macro>
 
 <#-- ================ Subscreens ================ -->
