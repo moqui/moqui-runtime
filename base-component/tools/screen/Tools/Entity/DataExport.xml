@@ -76,7 +76,7 @@ along with this software (see the LICENSE.md file). If not, see
         <form-single name="ExportData" transition="EntityExport">
             <field name="entityNames">
                 <default-field><drop-down allow-multiple="true" size="80">
-                    <list-options list="ec.entity.getAllEntitiesInfo('fullEntityName', null, false, true, true)" key="${fullEntityName}"/>
+                    <list-options list="ec.entity.getAllEntitiesInfo('fullEntityName', null, false, true)" key="${fullEntityName}"/>
                 </drop-down></default-field>
             </field>
             <field name="dependentLevels"><default-field><text-line size="2" default-value="0"/></default-field></field>
