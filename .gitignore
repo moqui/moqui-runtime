@@ -20,7 +20,7 @@
 # common runtime added files
 /lib/*.jar
 /component/
-/component-lib/
+/ecomponent/
 /mantle/
 
 # jackrabbit standalone jar file
