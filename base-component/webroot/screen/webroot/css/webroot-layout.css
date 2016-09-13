@@ -201,7 +201,8 @@ body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
 
 @media print {
     /* use white background for all, bootstrap uses white background for tables but leaves all else transparent */
-    *, *:before, *:after { background: white none !important; }
+    *, *:before, *:after { background: transparent none !important; }
+    body, .inner, .container-fluid { background: white none !important; }
     /* don't show URL for links as bootstrap does by default, makes a mess */
     a[href]:after { content: ""; }
 
@@ -210,4 +211,6 @@ body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
     .nav { display: none; }
     #footer { display: none; }
     body { padding-top: 0; } /* don't do body padding-top for nav bar */
+
+    .table-striped>tbody>tr:nth-child(even)>td { background-color: #EEEEEE !important; }
 }
