@@ -78,7 +78,7 @@ along with this software (see the LICENSE.md file). If not, see
     <fo:block><#recurse .node["panel-header"][0]>
     </fo:block>
     </#if>
-    <fo:table border="solid black">
+    <fo:table border="solid black" table-layout="fixed" width="100%">
         <fo:table-body><fo:table-row>
             <#if .node["panel-left"]?has_content>
             <fo:table-cell padding="3pt"><fo:block><#recurse .node["panel-left"][0]>
@@ -170,12 +170,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")>
             </#if>
         </#if>
-        <#-- TODO: get external link working, always gets prefixed in a weird way, must be some FOP setting or something
         <#assign urlInstance = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
         <#if linkNode["@url-noparam"]! == "true"><#assign urlText = urlInstance.url/><#else><#assign urlText = urlInstance.urlWithParams/></#if>
-        <fo:basic-link external-destination="url('${urlText?url("ISO-8859-1")}')" color="blue"><@attributeValue linkText/></fo:basic-link>
-        -->
-        <@attributeValue linkText/>
+        <fo:basic-link external-destination="${urlText?xml}" color="blue"><@attributeValue linkText/></fo:basic-link>
     </#if>
 </#macro>
 
@@ -222,7 +219,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <@formSingleSubField nonReferencedField/></#list>
 </#macro>
 <#macro "field-row">
-<fo:table><fo:table-body><fo:table-row>
+<fo:table table-layout="fixed" width="100%"><fo:table-body><fo:table-row>
     <#list .node?children as rowChildNode>
         <fo:table-cell wrap-option="wrap" padding="2pt" width="50%">
             <#visit rowChildNode/>
@@ -231,7 +228,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </fo:table-row></fo:table-body></fo:table>
 </#macro>
 <#macro "field-row-big">
-<fo:table><fo:table-body><fo:table-row>
+<fo:table table-layout="fixed" width="100%"><fo:table-body><fo:table-row>
     <#list .node?children as rowChildNode>
         <fo:table-cell wrap-option="wrap" padding="2pt">
             <#visit rowChildNode/>
@@ -284,7 +281,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if !(formNode["@paginate"]! == "false") && context[listName + "Count"]?? && (context[listName + "Count"]! > 0)>
         <fo:block>${context[listName + "PageRangeLow"]} - ${context[listName + "PageRangeHigh"]} / ${context[listName + "Count"]}</fo:block>
     </#if>
-    <fo:table>
+    <fo:table table-layout="fixed" width="100%">
         <fo:table-header border-bottom="thin solid black">
             <fo:table-row>
                 <#list formListColumnList as columnFieldList>
@@ -304,8 +301,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#list listObject as listEntry>
                 <#assign listEntryIndex = listEntry_index>
                 <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-                ${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
-                <fo:table-row>
+                ${sri.startFormListRow(formInstance, listEntry, listEntryIndex, listEntry_has_next)}
+                <fo:table-row<#if listEntryIndex % 2 == 0> background-color="#EEEEEE"</#if>>
                     <#list formListColumnList as columnFieldList>
                         <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
                         <#if (cellCharWidth > 0)>
