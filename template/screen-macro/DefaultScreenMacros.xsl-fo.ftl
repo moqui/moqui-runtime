@@ -153,12 +153,31 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
 <#-- ================== Standalone Fields ==================== -->
 <#macro link>
-    <#assign urlInfo = sri.makeUrlByType(.node["@url"], .node["@url-type"]!"transition", .node, .node["@expand-transition-url"]!"true")>
-    <#assign linkNode = .node>
-    <@linkFormLink linkNode urlInfo/>
+    <fo:block><@linkFormLink .node/></fo:block>
 </#macro>
-<#-- TODO: make link an actual PDF link -->
-<#macro linkFormLink linkNode urlInfo><fo:block>${ec.resource.expand(linkNode["@text"], "")}</fo:block></#macro>
+<#macro linkFormLink linkNode>
+    <#assign linkNode = .node>
+    <#if linkNode["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(linkNode["@condition"], "")><#else><#assign conditionResult = true></#if>
+    <#if conditionResult>
+        <#if linkNode["@entity-name"]?has_content>
+            <#assign linkText = ""><#assign linkText = sri.getFieldEntityValue(linkNode)>
+        <#else>
+            <#assign textMap = "">
+            <#if linkNode["@text-map"]?has_content><#assign textMap = ec.getResource().expression(linkNode["@text-map"], "")!></#if>
+            <#if textMap?has_content>
+                <#assign linkText = ec.getResource().expand(linkNode["@text"], "", textMap)>
+            <#else>
+                <#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")>
+            </#if>
+        </#if>
+        <#-- TODO: get external link working, always gets prefixed in a weird way, must be some FOP setting or something
+        <#assign urlInstance = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
+        <#if linkNode["@url-noparam"]! == "true"><#assign urlText = urlInstance.url/><#else><#assign urlText = urlInstance.urlWithParams/></#if>
+        <fo:basic-link external-destination="url('${urlText?url("ISO-8859-1")}')" color="blue"><@attributeValue linkText/></fo:basic-link>
+        -->
+        <@attributeValue linkText/>
+    </#if>
+</#macro>
 
 <#macro image>
     <#-- TODO: make real xsl-fo image -->
@@ -314,10 +333,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#-- this only makes sense for fields with a single conditional -->
         <#assign fieldSubNode = fieldNode["conditional-field"][0]>
     </#if>
-    <#if !fieldSubNode["submit"]?has_content><@fieldTitle fieldSubNode/></#if>
-    <#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
-        <#recurse fieldNode["header-field"][0]/>
-    </#if>
+    <@fieldTitle fieldSubNode/>
 </#macro>
 <#macro formListSubField fieldNode>
     <#list fieldNode["conditional-field"] as fieldSubNode>
@@ -332,21 +348,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
 </#macro>
 <#macro formListWidget fieldSubNode>
+    <#if fieldSubNode["ignored"]?has_content || fieldSubNode["hidden"]?has_content || fieldSubNode["submit"]?has_content ||
+            fieldSubNode?parent["@hide"]! == "true"><#return></#if>
+
     <#local fieldNode = fieldSubNode?parent>
-    <#if fieldSubNode["ignored"]?has_content><#return/></#if>
-    <#if fieldSubNode["hidden"]?has_content><#recurse fieldSubNode/><#return/></#if>
-    <#if fieldNode["@hide"]! == "true"><#return></#if>
     <fo:block text-align="${fieldNode["@align"]!"left"}">
-        <#t><#if isMulti && !isMultiFinalRow && fieldSubNode["submit"]?has_content><#return/></#if>
-        <#t><#if isMulti && isMultiFinalRow && !fieldSubNode["submit"]?has_content><#return/></#if>
         <#list fieldSubNode?children as widgetNode>
             <#if widgetNode?node_name == "link">
-                <#assign linkNode = widgetNode>
-                <#assign urlInfo = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
-                <#assign linkFormId><@fieldId linkNode/></#assign>
-                <#assign afterFormText><@linkFormForm linkNode linkFormId urlInfo/></#assign>
-                <#t>${sri.appendToAfterScreenWriter(afterFormText)}
-                <#t><@linkFormLink linkNode urlInfo/>
+                <#t><@linkFormLink widgetNode/>
             <#else>
                 <#t><#visit widgetNode>
             </#if>
@@ -405,10 +414,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 
 <#macro "drop-down">
-    <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValueString(.node)/>
-    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!/></#if>
-    <#t><#if currentValue?has_content>${options.get(currentValue)!(currentValue)}</#if>
+    <#assign options = sri.getFieldOptions(.node)>
+    <#assign currentValue = sri.getFieldValueString(.node)>
+    <#if !currentValue?has_content><#assign currentValue = .node["@no-current-selected-key"]!></#if>
+    <#t><@attributeValue (options.get(currentValue))!(currentValue)/>
 </#macro>
 
 <#macro file></#macro>

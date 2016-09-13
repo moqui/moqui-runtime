@@ -456,11 +456,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#-- NOTE: the void(0) is needed for Firefox and other browsers that render the result of the JS expression -->
                 <#assign urlText>javascript:{$('#${linkNode["@dynamic-load-id"]}').load('${urlInstance.urlWithParams}'); void(0);}</#assign>
             <#else>
-                <#if linkNode["@url-noparam"]! == "true">
-                    <#assign urlText = urlInstance.url/>
-                <#else>
-                    <#assign urlText = urlInstance.urlWithParams/>
-                </#if>
+                <#if linkNode["@url-noparam"]! == "true"><#assign urlText = urlInstance.url/>
+                    <#else><#assign urlText = urlInstance.urlWithParams/></#if>
             </#if>
             <a href="${urlText}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if> class="<#if linkNode["@link-type"]! != "anchor">btn btn-primary btn-sm</#if><#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"<#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>><#if iconClass?has_content><i class="${iconClass}"></i></#if>
             <#t><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if>
@@ -1035,6 +1032,53 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </div></div>
         </div>
     </#if>
+    <#if formNode["@show-pdf-button"]! == "true">
+        <#assign showPdfDialogId = formId + "_PdfDialog">
+        <#assign pdfLinkUrl = sri.getScreenUrlInstance()>
+        <#assign pdfLinkUrlParms = pdfLinkUrl.getParameterMap()>
+        <div id="${showPdfDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
+            <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">${ec.getL10n().localize("Generate PDF")}</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="${formId}_Pdf" method="post" action="${ec.web.getWebappRootUrl(false, null)}/fop${pdfLinkUrl.getScreenPath()}">
+                        <input type="hidden" name="pageNoLimit" value="true">
+                        <#list pdfLinkUrlParms.keySet() as parmName>
+                            <input type="hidden" name="${parmName}" value="${pdfLinkUrlParms.get(parmName)!?html}"></#list>
+                        <fieldset class="form-horizontal">
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Pdf_layoutMaster">${ec.getL10n().localize("Page Layout")}</label>
+                                <div class="col-sm-9">
+                                    <select name="layoutMaster"  id="${formId}_Pdf_layoutMaster" class="form-control">
+                                        <option value="letter-landscape">US Letter - Landscape (11x8.5)</option>
+                                        <option value="letter-portrait">US Letter - Portrait (8.5x11)</option>
+                                        <option value="legal-landscape">US Legal - Landscape (14x8.5)</option>
+                                        <option value="legal-portrait">US Legal - Portrait (8.5x14)</option>
+                                        <option value="tabloid-landscape">US Tabloid - Landscape (17x11)</option>
+                                        <option value="tabloid-portrait">US Tabloid - Portrait (11x17)</option>
+                                        <option value="a4-landscape">A4 - Landscape (297x210)</option>
+                                        <option value="a4-portrait">A4 - Portrait (210x297)</option>
+                                        <option value="a3-landscape">A3 - Landscape (420x297)</option>
+                                        <option value="a3-portrait">A3 - Portrait (297x420)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Pdf_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Pdf_saveFilename" value="${formNode["@name"] + ".pdf"}">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-default">${ec.getL10n().localize("Generate PDF")}</button>
+                        </fieldset>
+                    </form>
+                    <script>$("#${formId}_Pdf_layoutMaster").select2({ minimumResultsForSearch:20, theme:'bootstrap' });</script>
+                </div>
+            </div></div>
+        </div>
+    </#if>
 </#macro>
 <#macro paginationHeader formInstance formId isHeaderDialog>
     <#assign formNode = formInstance.getFtlFormNode()>
@@ -1154,6 +1198,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if formNode["@show-text-button"]! == "true">
                 <#assign showTextDialogId = formId + "_TextDialog">
                 <button id="${showTextDialogId}_button" type="button" data-toggle="modal" data-target="#${showTextDialogId}" data-original-title="${ec.getL10n().localize("Text")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("Text")}</button>
+            </#if>
+            <#if formNode["@show-pdf-button"]! == "true">
+                <#assign showPdfDialogId = formId + "_PdfDialog">
+                <button id="${showPdfDialogId}_button" type="button" data-toggle="modal" data-target="#${showPdfDialogId}" data-original-title="${ec.getL10n().localize("PDF")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("PDF")}</button>
             </#if>
         </nav>
         </th></tr>
