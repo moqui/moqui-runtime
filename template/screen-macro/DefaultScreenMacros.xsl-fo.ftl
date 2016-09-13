@@ -15,33 +15,32 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#macro @element><fo:block>=== Doing nothing for element ${.node?node_name}, not yet implemented. ===</fo:block></#macro>
 
-<#macro screen>
+<#macro screen><#recurse></#macro>
+<#macro widgets>
     <#if !layoutMaster?has_content><#assign layoutMaster = "letter-portrait"></#if>
     <#-- calculate width in pixels for layout masters defined in Header.xsl-fo.ftl, based on 72dpi -->
     <#switch layoutMaster>
-        <#case "letter-landscape"><#case "tabloid-portrait"><#assign layoutWidthPx = 10.5 * 72><#break>
-        <#case "legal-landscape"><#assign layoutWidthPx = 13.5 * 72><#break>
-        <#case "tabloid-landscape"><#assign layoutWidthPx = 16.5 * 72><#break>
-        <#case "a4-portrait"><#assign layoutWidthPx = 7.8 * 72><#break>
-        <#case "a4-landscape"><#case "a3-portrait"><#assign layoutWidthPx = 11.2 * 72><#break>
-        <#case "a3-landscape"><#assign layoutWidthPx = 16 * 72><#break>
+        <#case "letter-landscape"><#case "tabloid-portrait"><#assign layoutWidthIn = 10.5><#break>
+        <#case "legal-landscape"><#assign layoutWidthIn = 13.5><#break>
+        <#case "tabloid-landscape"><#assign layoutWidthIn = 16.5><#break>
+        <#case "a4-portrait"><#assign layoutWidthIn = 7.8><#break>
+        <#case "a4-landscape"><#case "a3-portrait"><#assign layoutWidthIn = 11.2><#break>
+        <#case "a3-landscape"><#assign layoutWidthIn = 16><#break>
         <#-- default applies to letter-portrait, legal-portrait -->
-        <#default><#assign layoutWidthPx = 8 * 72>
+        <#default><#assign layoutWidthIn = 8>
     </#switch>
+    <#assign layoutWidthPx = layoutWidthIn * 72>
     <#-- using a 9pt font 6px per character should be plenty (12cpi) - fits for Courier, Helvetica could be less on average (like 4.5) but make sure enough space -->
     <#assign pixelsPerChar = 6>
     <#assign lineCharactersNum = layoutWidthPx / pixelsPerChar>
+    <#if sri.doBoundaryComments()><!-- BEGIN screen[@location=${sri.getActiveScreenDef().location}].widgets --></#if>
     <#recurse>
-</#macro>
-<#macro widgets>
-<#if sri.doBoundaryComments()><!-- BEGIN screen[@location=${sri.getActiveScreenDef().location}].widgets --></#if>
-<#recurse>
-<#if sri.doBoundaryComments()><!-- END   screen[@location=${sri.getActiveScreenDef().location}].widgets --></#if>
+    <#if sri.doBoundaryComments()><!-- END   screen[@location=${sri.getActiveScreenDef().location}].widgets --></#if>
 </#macro>
 <#macro "fail-widgets">
-<#if sri.doBoundaryComments()><!-- BEGIN screen[@location=${sri.getActiveScreenDef().location}].fail-widgets --></#if>
-<#recurse>
-<#if sri.doBoundaryComments()><!-- END   screen[@location=${sri.getActiveScreenDef().location}].fail-widgets --></#if>
+    <#if sri.doBoundaryComments()><!-- BEGIN screen[@location=${sri.getActiveScreenDef().location}].fail-widgets --></#if>
+    <#recurse>
+    <#if sri.doBoundaryComments()><!-- END   screen[@location=${sri.getActiveScreenDef().location}].fail-widgets --></#if>
 </#macro>
 
 <#-- ================ Subscreens ================ -->
@@ -60,15 +59,21 @@ along with this software (see the LICENSE.md file). If not, see
     ${sri.renderSection(.node["@name"])}
     <#if sri.doBoundaryComments()><!-- END   section-iterate[@name=${.node["@name"]}] --></#if>
 </#macro>
+<#macro "section-include">
+    <#if sri.doBoundaryComments()><!-- BEGIN section-include[@name=${.node["@name"]}] --></#if>
+    ${sri.renderSection(.node["@name"])}
+    <#if sri.doBoundaryComments()><!-- END   section-include[@name=${.node["@name"]}] --></#if>
+</#macro>
 
 <#-- ================ Containers ================ -->
 <#macro container><#recurse></#macro>
 <#macro "container-box">
-    <#recurse .node["box-header"][0]>
+    <fo:block font-size="12pt" font-weight="bold"><#recurse .node["box-header"][0]></fo:block>
     <#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
     <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
 </#macro>
 <#macro "container-row">
+    <#-- TODO: get fancier with xs, sm, md, ld attributes and make actual table columns -->
     <#list .node["row-col"] as rowColNode><#recurse rowColNode></#list>
 </#macro>
 
@@ -95,28 +100,14 @@ along with this software (see the LICENSE.md file). If not, see
     </fo:block>
     </#if>
 </#macro>
-<#macro "container-dialog">
-    <fo:block>
-    <#recurse>
-    </fo:block>
-</#macro>
+<#macro "container-dialog"><#-- maybe better to do nothing: <#recurse> --></#macro>
 
 <#-- ==================== Includes ==================== -->
 <#macro "include-screen">
-<#if sri.doBoundaryComments()><!-- BEGIN include-screen[@location=${.node["@location"]}][@share-scope=${.node["@share-scope"]!}] --></#if>
-${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
-<#if sri.doBoundaryComments()><!-- END   include-screen[@location=${.node["@location"]}][@share-scope=${.node["@share-scope"]!}] --></#if>
+    <#if sri.doBoundaryComments()><!-- BEGIN include-screen[@location=${.node["@location"]}][@share-scope=${.node["@share-scope"]!}] --></#if>
+    ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
+    <#if sri.doBoundaryComments()><!-- END   include-screen[@location=${.node["@location"]}][@share-scope=${.node["@share-scope"]!}] --></#if>
 </#macro>
-
-<#-- ============== Tree ============== -->
-<#-- TABLED, not to be part of 1.0:
-<#macro tree>
-</#macro>
-<#macro "tree-node">
-</#macro>
-<#macro "tree-sub-node">
-</#macro>
--->
 
 <#-- ============== Render Mode Elements ============== -->
 <#macro "render-mode">
@@ -129,14 +120,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
     <#if textToUse??>
         <#if textToUse["@location"]?has_content>
-<#if sri.doBoundaryComments() && !(textToUse["@no-boundary-comment"]! == "true")><!-- BEGIN render-mode.text[@location=${textToUse["@location"]}][@template=${textToUse["@template"]!"true"}] --></#if>
+    <#if sri.doBoundaryComments() && !(textToUse["@no-boundary-comment"]! == "true")><!-- BEGIN render-mode.text[@location=${textToUse["@location"]}][@template=${textToUse["@template"]!"true"}] --></#if>
     <#-- NOTE: this still won't encode templates that are rendered to the writer -->
     <#lt><#if .node["@encode"]! == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else>${sri.renderText(textToUse["@location"], textToUse["@template"]!)}</#if>
-<#if sri.doBoundaryComments()><!-- END   render-mode.text[@location=${textToUse["@location"]}][@template=${textToUse["@template"]!"true"}] --></#if>
+    <#if sri.doBoundaryComments()><!-- END   render-mode.text[@location=${textToUse["@location"]}][@template=${textToUse["@template"]!"true"}] --></#if>
         </#if>
         <#assign inlineTemplateSource = textToUse?string/>
         <#if inlineTemplateSource?has_content>
-<#if sri.doBoundaryComments() && !(textToUse["@no-boundary-comment"]! == "true")><!-- BEGIN render-mode.text[inline][@template=${textToUse["@template"]!"true"}] --></#if>
+    <#if sri.doBoundaryComments() && !(textToUse["@no-boundary-comment"]! == "true")><!-- BEGIN render-mode.text[inline][@template=${textToUse["@template"]!"true"}] --></#if>
           <#if !textToUse["@template"]?has_content || textToUse["@template"] == "true">
             <#assign inlineTemplate = [inlineTemplateSource, sri.getActiveScreenDef().location + ".render_mode.text"]?interpret>
             <#lt><@inlineTemplate/>
@@ -181,21 +172,30 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <img src="${sri.makeUrlByType(.node["@url"],.node["@url-type"]!"content",null,"true")}" alt="${.node["@alt"]!"image"}"<#if .node["@id"]?has_content> id="${.node["@id"]}"</#if><#if .node["@width"]?has_content> width="${.node["@width"]}"</#if><#if .node["@height"]?has_content> height="${.node["@height"]}"</#if>/>
 </#macro>
 <#macro label>
-    <#-- TODO: handle label type somehow -->
-    <#assign labelValue = ec.resource.expand(.node["@text"], "")/>
-    <#if (labelValue?length < 255)><#assign labelValue = ec.l10n.localize(labelValue)/></#if>
-    <fo:block><#if !.node["@encode"]?has_content || .node["@encode"] == "true">${labelValue?html?replace("\n", "<br>")}<#else>${labelValue}</#if></fo:block>
+    <#-- TODO: handle label type somehow, ie bigger font, bold, etc for h?, strong -->
+    <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
+    <#if conditionResult>
+        <#assign textMap = "">
+        <#if .node["@text-map"]?has_content><#assign textMap = ec.getResource().expression(.node["@text-map"], "")!></#if>
+        <#if textMap?has_content><#assign labelValue = ec.getResource().expand(.node["@text"], "", textMap)>
+            <#else><#assign labelValue = ec.getResource().expand(.node["@text"], "")/></#if>
+        <#if labelValue?trim?has_content><fo:block>${labelValue?xml}</fo:block></#if>
+    </#if>
 </#macro>
 <#macro parameter><#-- do nothing, used directly in other elements --></#macro>
 
 <#-- ====================================================== -->
 <#-- ======================= Form ========================= -->
+<#-- ====================================================== -->
+
 <#macro "form-single">
     <#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFtlFormNode()>
     <#t>${sri.pushSingleFormMapContext(formNode)}
+    <#assign curFieldWidthIn = layoutWidthIn>
+    <#assign inFieldRowBig = false>
     <#if formNode["field-layout"]?has_content>
         <#recurse formNode["field-layout"][0]/>
     <#else>
@@ -219,25 +219,39 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <@formSingleSubField nonReferencedField/></#list>
 </#macro>
 <#macro "field-row">
-<fo:table table-layout="fixed" width="100%"><fo:table-body><fo:table-row>
+    <#assign frbChildren = .node?children>
+    <#assign curFieldWidthIn = layoutWidthIn/frbChildren?size>
+    <fo:table table-layout="fixed" width="${layoutWidthIn}in"><fo:table-body><fo:table-row>
     <#list .node?children as rowChildNode>
-        <fo:table-cell wrap-option="wrap" padding="2pt" width="50%">
+        <fo:table-cell wrap-option="wrap" padding="2pt" width="${curFieldWidthIn}in">
             <#visit rowChildNode/>
         </fo:table-cell>
     </#list>
-</fo:table-row></fo:table-body></fo:table>
+    </fo:table-row></fo:table-body></fo:table>
+    <#assign curFieldWidthIn = layoutWidthIn>
 </#macro>
 <#macro "field-row-big">
-<fo:table table-layout="fixed" width="100%"><fo:table-body><fo:table-row>
-    <#list .node?children as rowChildNode>
-        <fo:table-cell wrap-option="wrap" padding="2pt">
-            <#visit rowChildNode/>
-        </fo:table-cell>
-    </#list>
-</fo:table-row></fo:table-body></fo:table>
+    <#assign frbChildren = .node?children>
+    <#assign inFieldRowBig = true>
+    <#if .node["@title"]?has_content><#assign curFieldWidthIn = (layoutWidthIn*0.8)/frbChildren?size>
+        <#else><#assign curFieldWidthIn = layoutWidthIn/frbChildren?size></#if>
+    <fo:table table-layout="fixed" width="${layoutWidthIn}in"><fo:table-body><fo:table-row>
+        <#if .node["@title"]?has_content>
+            <fo:table-cell wrap-option="wrap" padding="2pt" width="${layoutWidthIn*0.2}in">
+                <fo:block text-align="right" font-weight="bold">${ec.getResource().expand(.node["@title"], "")}</fo:block>
+            </fo:table-cell>
+        </#if>
+        <#list frbChildren as rowChildNode>
+            <fo:table-cell wrap-option="wrap" padding="2pt" width="${curFieldWidthIn}in">
+                <#visit rowChildNode/>
+            </fo:table-cell>
+        </#list>
+    </fo:table-row></fo:table-body></fo:table>
+    <#assign curFieldWidthIn = layoutWidthIn>
+    <#assign inFieldRowBig = false>
 </#macro>
 <#macro "field-group">
-    <fo:block font-size="10pt">${ec.getL10n().localize(.node["@title"]!("Fields"))}</fo:block>
+    <fo:block font-weight="bold">${ec.getL10n().localize(.node["@title"]!("Fields"))}</fo:block>
     <#recurse .node/>
 </#macro>
 <#macro "field-accordion"><#recurse .node/></#macro>
@@ -258,10 +272,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if fieldSubNode["ignored"]?has_content && (fieldSubNode?parent["@hide"]! != "false")><#return></#if>
     <#if fieldSubNode["hidden"]?has_content && (fieldSubNode?parent["@hide"]! != "false")><#recurse fieldSubNode/><#return></#if>
     <#if fieldSubNode?parent["@hide"]! == "true"><#return></#if>
-    <fo:block>
-        <#if !fieldSubNode["submit"]?has_content><label class="form-title" for="${formNode["@name"]}_${fieldSubNode?parent["@name"]}"><@fieldTitle fieldSubNode/></label></#if>
-        <#recurse fieldSubNode/>
-    </fo:block>
+    <#if fieldSubNode["submit"]?has_content><#return></#if>
+    <#assign curFieldTitle><@fieldTitle fieldSubNode/></#assign>
+    <#assign skipFieldTitle = inFieldRowBig && !curFieldTitle?has_content>
+    <fo:table table-layout="fixed" width="${curFieldWidthIn}in"><fo:table-body><fo:table-row>
+        <#if !skipFieldTitle><fo:table-cell width="${curFieldWidthIn*0.2}in" padding="2pt"><fo:block text-align="right" font-weight="bold">${curFieldTitle}</fo:block></fo:table-cell></#if>
+        <fo:table-cell width="<#if skipFieldTitle>${curFieldWidthIn}<#else>${curFieldWidthIn*0.8}</#if>in" padding="2pt"><fo:block><#recurse fieldSubNode/></fo:block></fo:table-cell>
+    </fo:table-row></fo:table-body></fo:table>
 </#macro>
 <#macro set><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 
@@ -275,6 +292,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign urlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
     <#assign listName = formNode["@list"]>
     <#assign listObject = ec.resource.expression(listName, "")!>
+    <#if !listObject?has_content><#return></#if>
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
     <#assign columnCharWidths = formInstance.getFormListColumnCharWidths(formListColumnList, lineCharactersNum)>
 
@@ -317,7 +335,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 ${sri.endFormListRow()}
             </#list>
         </fo:table-body>
-        ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
+        <#t>${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
     </fo:table>
 <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
 </#macro>
@@ -369,7 +387,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro "conditional-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 <#macro "default-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 
+<#-- ========================================================== -->
 <#-- ================== Form Field Widgets ==================== -->
+<#-- ========================================================== -->
 
 <#macro check>
     <#assign options = {"":""}/><#assign options = sri.getFieldOptions(.node)>
