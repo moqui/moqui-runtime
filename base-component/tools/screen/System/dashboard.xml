@@ -58,8 +58,6 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="../Cache" text="Cache Stats and Mgmt"/>
                 <link url="../ServiceJob" text="Service Jobs"/>
                 <link url="../Print" text="Print Servers and Jobs"/>
-                <!-- Tenant link is conditional, and Tenant screen locked to DEFAULT tenant -->
-                <link url="../Tenant" text="Tenant Admin" condition="ec.tenantId == 'DEFAULT'"/>
             </box-body></container-box>
             <container-box><box-header><label text="Data Admin" type="h5"/></box-header><box-body>
                 <link url="../Localization" text="Localization"/>

@@ -36,10 +36,6 @@ along with this software (see the LICENSE.md file). If not, see
     Put the value from that request in the "api_key" header for authc on other requests.
 
     curl -X GET -H "api_key: {apiKey}" http://localhost:8080/rest/s1/example/examples/TEST2
-
-    Along with this a tenant_id header is also supported:
-
-    curl -X GET -H "api_key: {apiKey}" -H "tenant_id: {tenantId}" http://localhost:8080/rest/s1/example/examples/TEST2
     -->
     <transition name="api_key"><actions><script>ec.web.sendTextResponse(ec.user.getLoginKey())</script></actions>
         <default-response type="none"/></transition>
@@ -152,16 +148,6 @@ along with this software (see the LICENSE.md file). If not, see
              }' \
             http://localhost:8080/rest/e1/examples
     curl -X GET -u john.doe:moqui -i http://localhost:8080/rest/e1/examples/TEST2?dependentLevels=1
-
-    To authenticate in and access a specific tenant just pass in the tenantId, like (before running these make sure
-    Example data is loaded in the EXAMPLE1 tenant database using something like "gradle load -PtenantId=EXAMPLE1"):
-
-    curl -X GET -u john.doe:moqui http://localhost:8080/rest/e1/examples/TEST2?authTenantId=EXAMPLE1
-
-    curl -X POST -H "Content-Type: application/json" \
-         -d '{ "exampleName":"REST Test 1", "exampleTypeEnumId":"EXT_MADE_UP", "statusId":"EXST_IN_DESIGN", \
-             "authUsername":"john.doe", "authPassword":"moqui", "authTenantId":"EXAMPLE1" }' http://localhost:8080/rest/e1/examples
-
     -->
     <!-- NOTE: read-only=true to disable check for URL parameters for transitions with actions -->
     <transition name="e1" read-only="true">

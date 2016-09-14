@@ -1,7 +1,6 @@
 
 # runtime generated files
 /db/derby/MoquiDEFAULT/
-/db/derby/MoquiTenant/
 /db/derby/MoquiTransactional/
 /db/derby/MoquiAnalytical/
 /db/derby/EXAMPLE1/

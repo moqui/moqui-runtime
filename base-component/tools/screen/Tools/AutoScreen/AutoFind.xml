@@ -48,8 +48,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <actions>
         <set field="aenDef" from="ec.entity.getEntityDefinition(aen)"/>
-        <if condition="aenDef == null || (aenDef.getEntityGroupName() == 'tenantcommon' &amp;&amp; ec.tenantId != 'DEFAULT')">
-            <message error="true">Could not find entity with name: ${aen}</message><return/></if>
+        <if condition="aenDef == null"><message error="true">Could not find entity with name: ${aen}</message><return/></if>
 
         <entity-find entity-name="${aen}" list="entityValueList" offset="0" limit="50" cache="false">
             <search-form-inputs/></entity-find>

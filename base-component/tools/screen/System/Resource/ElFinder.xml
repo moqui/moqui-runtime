@@ -42,12 +42,7 @@ along with this software (see the LICENSE.md file). If not, see
         <script>html_stylesheets.add("/toolstatic/lib/elfinder/css/theme.css")</script>
     </pre-actions>
     <actions>
-        <set field="rootOptions" from="[mantleContentRoot, 'dbresource://', 'component://webroot']"/>
-        <script><![CDATA[
-            if (ec.tenantId == 'DEFAULT') rootOptions.add('file:runtime')
-            if (ec.tenantId != 'DEFAULT' && (!resourceRoot.contains(':') || resourceRoot.startsWith('file') || resourceRoot.startsWith('classpath')))
-                ec.message.addError(ec.resource.expand('File and classpath resources not allowed in tenant ${ec.tenantId}',''))
-        ]]></script>
+        <set field="rootOptions" from="[mantleContentRoot, 'dbresource://', 'component://webroot', 'file:runtime']"/>
     </actions>
     <widgets>
         <form-single name="SelectRoot" transition=".">
