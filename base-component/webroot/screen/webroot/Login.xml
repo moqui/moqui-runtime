@@ -40,7 +40,8 @@ along with this software (see the LICENSE.md file). If not, see
         <container id="content"><container style="inner"><container style="container-fluid">
             <section-include name="MessagesSection" location="component://webroot/screen/webroot/apps.xml"/>
 
-            <section name="NeedsSetupSection" condition="ec.entity.find('moqui.security.UserAccount').disableAuthz().count() != 1"><widgets>
+            <!-- if there are no user accounts, other than the _NA_ UserAccount which is in seed data, show form to create admin account -->
+            <section name="NeedsSetupSection" condition="ec.entity.find('moqui.security.UserAccount').disableAuthz().count() > 1"><widgets>
                 <render-mode><text type="html" template="true" location="component://webroot/screen/webroot/Login.ftl"/></render-mode>
             </widgets><fail-widgets>
                 <label text="Welcome to your new system" type="h3"/>
