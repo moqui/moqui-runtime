@@ -1,10 +1,6 @@
 
 # runtime generated files
-/db/derby/MoquiDEFAULT/
-/db/derby/MoquiTransactional/
-/db/derby/MoquiAnalytical/
-/db/derby/EXAMPLE1/
-/db/derby/CustJqp/
+/db/derby/moqui/
 /db/derby/derby.log
 /db/h2/
 /db/orientdb/databases/

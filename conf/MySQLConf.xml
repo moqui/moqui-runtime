@@ -6,11 +6,11 @@
 <moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-2.0.xsd">
 
     <!-- these can be java properties or system environment variables -->
-    <default-property name="ds_transactional_host" value="127.0.0.1"/>
-    <default-property name="ds_transactional_port" value="3306"/>
-    <default-property name="ds_transactional_database" value="MoquiDEFAULT"/>
-    <default-property name="ds_transactional_user" value="moqui"/>
-    <default-property name="ds_transactional_password" value="moqui"/>
+    <default-property name="entity_ds_host" value="127.0.0.1"/>
+    <default-property name="entity_ds_port" value="3306"/>
+    <default-property name="entity_ds_database" value="moqui"/>
+    <default-property name="entity_ds_user" value="moqui"/>
+    <default-property name="entity_ds_password" value="moqui"/>
 
     <tools empty-db-load="all"/>
 
@@ -18,9 +18,9 @@
 
     <entity-facade crypt-pass="MoquiDefaultPassword:CHANGEME">
         <datasource group-name="transactional" database-conf-name="mysql" schema-name="">
-            <inline-jdbc><xa-properties user="${ds_transactional_user}" password="${ds_transactional_password}" pinGlobalTxToPhysicalConnection="true"
-                    serverName="${ds_transactional_host}" port="${ds_transactional_port}" databaseName="${ds_transactional_database}" autoReconnectForPools="true"
-                    useUnicode="true" encoding="UTF-8"/></inline-jdbc>
+            <inline-jdbc><xa-properties pinGlobalTxToPhysicalConnection="true" autoReconnectForPools="true" useUnicode="true" encoding="UTF-8"
+                    serverName="${entity_ds_host}" port="${entity_ds_port}" databaseName="${entity_ds_database}"
+                    user="${entity_ds_user}" password="${entity_ds_password}"/></inline-jdbc>
         </datasource>
     </entity-facade>
 </moqui-conf>
