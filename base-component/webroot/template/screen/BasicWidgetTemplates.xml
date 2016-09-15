@@ -21,7 +21,7 @@ along with this software (see the LICENSE.md file). If not, see
             <entity-options key="${enumId}" text="${description}">
                 <entity-find entity-name="moqui.basic.Enumeration">
                     <econdition field-name="enumTypeId"/>
-                    <order-by field-name="description"/>
+                    <order-by field-name="sequenceNum,description"/>
                 </entity-find>
             </entity-options>
         </drop-down>
@@ -33,7 +33,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <entity-find entity-name="moqui.basic.Enumeration">
                     <econdition field-name="enumTypeId"/>
                     <econdition field-name="parentEnumId"/>
-                    <order-by field-name="description"/>
+                    <order-by field-name="sequenceNum,description"/>
                 </entity-find>
             </entity-options>
         </drop-down>

@@ -1657,10 +1657,11 @@ a => A, d => D, y => Y
     <#assign currentValueList = (currentValue?split(","))!>
     <#if (allowMultiple && currentValueList?exists && currentValueList?size > 1)><#assign currentValue=""></#if>
     <#assign currentDescription = (options.get(currentValue))!>
+    <#assign validationClasses = formInstance.getFieldValidationClasses(.node?parent?parent["@name"])>
     <#assign optionsHasCurrent = currentDescription?has_content>
     <#if !optionsHasCurrent && .node["@current-description"]?has_content>
         <#assign currentDescription = ec.getResource().expand(.node["@current-description"], "")></#if>
-    <select name="${name}" class="<#if isDynamicOptions>dynamic-options</#if><#if .node["@style"]?has_content> ${ec.getResource().expand(.node["@style"], "")}</#if>" id="${id}"<#if allowMultiple> multiple="multiple"</#if><#if .node["@size"]?has_content> size="${.node["@size"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>>
+    <select name="${name}" class="<#if isDynamicOptions> dynamic-options</#if><#if .node["@style"]?has_content> ${ec.getResource().expand(.node["@style"], "")}</#if><#if validationClasses?has_content> ${validationClasses}</#if>" id="${id}"<#if allowMultiple> multiple="multiple"</#if><#if .node["@size"]?has_content> size="${.node["@size"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>>
     <#if !allowMultiple>
         <#-- don't add first-in-list or empty option if allowMultiple (can deselect all to be empty, including empty option allows selection of empty which isn't the point) -->
         <#if currentValue?has_content>
