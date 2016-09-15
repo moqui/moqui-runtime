@@ -1655,7 +1655,7 @@ a => A, d => D, y => Y
     <#if !currentValue?has_content><#assign currentValue = ec.getResource().expand(.node["@no-current-selected-key"]!, "")></#if>
     <#if currentValue?starts_with("[")><#assign currentValue = currentValue?substring(1, currentValue?length - 1)?replace(" ", "")></#if>
     <#assign currentValueList = (currentValue?split(","))!>
-    <#if (allowMultiple && currentValueList?exists && currentValueList?size > 1)><#assign currentValue=""></#if>
+    <#if allowMultiple && currentValueList?has_content><#assign currentValue=""></#if>
     <#assign currentDescription = (options.get(currentValue))!>
     <#assign validationClasses = formInstance.getFieldValidationClasses(.node?parent?parent["@name"])>
     <#assign optionsHasCurrent = currentDescription?has_content>
@@ -1679,8 +1679,8 @@ a => A, d => D, y => Y
     </#if>
     <#if !isDynamicOptions>
         <#list (options.keySet())! as key>
-            <#assign isSelected = currentValue?has_content && currentValue == key>
-            <#if allowMultiple && currentValueList?has_content><#assign isSelected = currentValueList?seq_contains(key)></#if>
+            <#if allowMultiple && currentValueList?has_content><#assign isSelected = currentValueList?seq_contains(key)>
+                <#else><#assign isSelected = currentValue?has_content && currentValue == key></#if>
             <option<#if isSelected> selected="selected"</#if> value="${key}">${options.get(key)}</option>
         </#list>
     </#if>
@@ -1709,13 +1709,18 @@ a => A, d => D, y => Y
                     function(list) {
                         if (list) {
                             $("#${id}").select2("destroy");
-                            $('#${id}').html(""); /* clear out the drop-down */
+                            $('#${id}').html("");<#-- clear out the drop-down -->
                             <#if allowEmpty! == "true">
                             $('#${id}').append('<option value="">&nbsp;</option>');
                             </#if>
+                            <#if allowMultiple && currentValueList?has_content>var currentValues = [<#list currentValueList as curVal>"${curVal}"<#sep>, </#list>];</#if>
                             $.each(list, function(key, value) {
                                 var optionValue = value["${doNode["@value-field"]!"value"}"];
+                                <#if allowMultiple && currentValueList?has_content>
+                                if (currentValues.indexOf(optionValue) >= 0) {
+                                <#else>
                                 if (optionValue == "${currentValue}") {
+                                </#if>
                                     $('#${id}').append("<option selected='selected' value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");
                                 } else {
                                     $('#${id}').append("<option value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");
