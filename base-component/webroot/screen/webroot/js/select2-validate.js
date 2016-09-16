@@ -21,9 +21,23 @@ $.validator.setDefaults({
         } else {
             error.insertAfter(element);               // default
         }
+    },
+});
+
+// JQuery validation not work well with bootstrap popover http://stackoverflow.com/a/30539639/244431
+// This patch it.
+$.validator.prototype.errorsFor = function( element ) {
+    var name = this.escapeCssMeta( this.idOrName( element ) ),
+        selector = "label[for='" + name + "'], label[for='" + name + "'] *";
+
+    // 'aria-describedby' should directly reference the error element
+    if ( this.settings.errorElement != 'label' ) {
+      selector = selector + ", #" + name + '-error';
     }
-    }
-);
+    return this
+        .errors()
+        .filter( selector );
+ };
 
 //custom event handler. programmatically trigger validation.
 $(function(){
