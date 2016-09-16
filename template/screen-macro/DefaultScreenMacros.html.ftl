@@ -316,7 +316,10 @@ ${sri.renderSection(.node["@name"])}
             </div>
         </div>
     </div>
-    <script>$('#${cdDivId}').on('shown.bs.modal', function() {$("#${cdDivId} select").select2({ ${select2DefaultOptions} });});</script>
+    <script>$('#${cdDivId}').on('shown.bs.modal', function() {
+        $("#${cdDivId} select").select2({ ${select2DefaultOptions} });
+        $("#${cdDivId} .default-focus").focus();
+    });</script>
 </#macro>
 
 <#macro "dynamic-container">
@@ -622,7 +625,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </script>
     </#if>
     <#if formNode["@focus-field"]?has_content>
-        <script>$("#${formId}_${formNode["@focus-field"]}").focus();</script>
+        <script>$("#${formId}_${formNode["@focus-field"]}").addClass('default-focus').focus();</script>
     </#if>
     <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
     <#if sri.doBoundaryComments()><!-- END   form-single[@name=${.node["@name"]}] --></#if>
