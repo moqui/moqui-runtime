@@ -459,11 +459,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#-- NOTE: the void(0) is needed for Firefox and other browsers that render the result of the JS expression -->
                 <#assign urlText>javascript:{$('#${linkNode["@dynamic-load-id"]}').load('${urlInstance.urlWithParams}'); void(0);}</#assign>
             <#else>
-                <#if linkNode["@url-noparam"]! == "true">
-                    <#assign urlText = urlInstance.url/>
-                <#else>
-                    <#assign urlText = urlInstance.urlWithParams/>
-                </#if>
+                <#if linkNode["@url-noparam"]! == "true"><#assign urlText = urlInstance.url/>
+                    <#else><#assign urlText = urlInstance.urlWithParams/></#if>
             </#if>
             <a href="${urlText}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if> class="<#if linkNode["@link-type"]! != "anchor">btn btn-primary btn-sm</#if><#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"<#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>><#if iconClass?has_content><i class="${iconClass}"></i></#if>
             <#t><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if>
@@ -1038,6 +1035,53 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </div></div>
         </div>
     </#if>
+    <#if formNode["@show-pdf-button"]! == "true">
+        <#assign showPdfDialogId = formId + "_PdfDialog">
+        <#assign pdfLinkUrl = sri.getScreenUrlInstance()>
+        <#assign pdfLinkUrlParms = pdfLinkUrl.getParameterMap()>
+        <div id="${showPdfDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
+            <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">${ec.getL10n().localize("Generate PDF")}</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="${formId}_Pdf" method="post" action="${ec.web.getWebappRootUrl(false, null)}/fop${pdfLinkUrl.getScreenPath()}">
+                        <input type="hidden" name="pageNoLimit" value="true">
+                        <#list pdfLinkUrlParms.keySet() as parmName>
+                            <input type="hidden" name="${parmName}" value="${pdfLinkUrlParms.get(parmName)!?html}"></#list>
+                        <fieldset class="form-horizontal">
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Pdf_layoutMaster">${ec.getL10n().localize("Page Layout")}</label>
+                                <div class="col-sm-9">
+                                    <select name="layoutMaster"  id="${formId}_Pdf_layoutMaster" class="form-control">
+                                        <option value="letter-landscape">US Letter - Landscape (11x8.5)</option>
+                                        <option value="letter-portrait">US Letter - Portrait (8.5x11)</option>
+                                        <option value="legal-landscape">US Legal - Landscape (14x8.5)</option>
+                                        <option value="legal-portrait">US Legal - Portrait (8.5x14)</option>
+                                        <option value="tabloid-landscape">US Tabloid - Landscape (17x11)</option>
+                                        <option value="tabloid-portrait">US Tabloid - Portrait (11x17)</option>
+                                        <option value="a4-landscape">A4 - Landscape (297x210)</option>
+                                        <option value="a4-portrait">A4 - Portrait (210x297)</option>
+                                        <option value="a3-landscape">A3 - Landscape (420x297)</option>
+                                        <option value="a3-portrait">A3 - Portrait (297x420)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Pdf_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Pdf_saveFilename" value="${formNode["@name"] + ".pdf"}">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-default">${ec.getL10n().localize("Generate PDF")}</button>
+                        </fieldset>
+                    </form>
+                    <script>$("#${formId}_Pdf_layoutMaster").select2({ minimumResultsForSearch:20, theme:'bootstrap' });</script>
+                </div>
+            </div></div>
+        </div>
+    </#if>
 </#macro>
 <#macro paginationHeader formInstance formId isHeaderDialog>
     <#assign formNode = formInstance.getFtlFormNode()>
@@ -1157,6 +1201,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if formNode["@show-text-button"]! == "true">
                 <#assign showTextDialogId = formId + "_TextDialog">
                 <button id="${showTextDialogId}_button" type="button" data-toggle="modal" data-target="#${showTextDialogId}" data-original-title="${ec.getL10n().localize("Text")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("Text")}</button>
+            </#if>
+            <#if formNode["@show-pdf-button"]! == "true">
+                <#assign showPdfDialogId = formId + "_PdfDialog">
+                <button id="${showPdfDialogId}_button" type="button" data-toggle="modal" data-target="#${showPdfDialogId}" data-original-title="${ec.getL10n().localize("PDF")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("PDF")}</button>
             </#if>
         </nav>
         </th></tr>
@@ -1610,7 +1658,7 @@ a => A, d => D, y => Y
     <#if !currentValue?has_content><#assign currentValue = ec.getResource().expand(.node["@no-current-selected-key"]!, "")></#if>
     <#if currentValue?starts_with("[")><#assign currentValue = currentValue?substring(1, currentValue?length - 1)?replace(" ", "")></#if>
     <#assign currentValueList = (currentValue?split(","))!>
-    <#if (allowMultiple && currentValueList?exists && currentValueList?size > 1)><#assign currentValue=""></#if>
+    <#if allowMultiple && currentValueList?has_content><#assign currentValue=""></#if>
     <#assign currentDescription = (options.get(currentValue))!>
     <#assign validationClasses = formInstance.getFieldValidationClasses(.node?parent?parent["@name"])>
     <#assign optionsHasCurrent = currentDescription?has_content>
@@ -1634,8 +1682,8 @@ a => A, d => D, y => Y
     </#if>
     <#if !isDynamicOptions>
         <#list (options.keySet())! as key>
-            <#assign isSelected = currentValue?has_content && currentValue == key>
-            <#if allowMultiple && currentValueList?has_content><#assign isSelected = currentValueList?seq_contains(key)></#if>
+            <#if allowMultiple && currentValueList?has_content><#assign isSelected = currentValueList?seq_contains(key)>
+                <#else><#assign isSelected = currentValue?has_content && currentValue == key></#if>
             <option<#if isSelected> selected="selected"</#if> value="${key}">${options.get(key)}</option>
         </#list>
     </#if>
@@ -1657,17 +1705,25 @@ a => A, d => D, y => Y
                 var hasAllParms = true;
                 <#list depNodeList as depNode>if (!$('#<@fieldIdByName depNode["@field"]/>').val()) { hasAllParms = false; } </#list>
                 if (!hasAllParms) { $("#${id}").select2("destroy"); $('#${id}').html(""); $("#${id}").select2({ ${select2DefaultOptions} }); <#-- alert("not has all parms"); --> return; }
-                $.ajax({ type:'POST', url:'${doUrlInfo.url}', data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#list depNodeList as depNode>, '${depNode["@field"]}': $('#<@fieldIdByName depNode["@field"]/>').val()</#list><#list doUrlParameterMap?keys as parameterKey><#if doUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${doUrlParameterMap.get(parameterKey)}"</#if></#list> }, dataType:'json' }).done(
+                $.ajax({ type:"POST", url:"${doUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
+                        <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = doUrlParameterMap.remove(depNodeField)!>, "${depNodeField}": $("#<@fieldIdByName depNodeField/>").val()</#list>
+                        <#t><#list doUrlParameterMap?keys as parameterKey><#if doUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${doUrlParameterMap.get(parameterKey)}"</#if></#list>
+                        <#t>}, dataType:"json" }).done(
                     function(list) {
                         if (list) {
                             $("#${id}").select2("destroy");
-                            $('#${id}').html(""); /* clear out the drop-down */
+                            $('#${id}').html("");<#-- clear out the drop-down -->
                             <#if allowEmpty! == "true">
                             $('#${id}').append('<option value="">&nbsp;</option>');
                             </#if>
+                            <#if allowMultiple && currentValueList?has_content>var currentValues = [<#list currentValueList as curVal>"${curVal}"<#sep>, </#list>];</#if>
                             $.each(list, function(key, value) {
                                 var optionValue = value["${doNode["@value-field"]!"value"}"];
+                                <#if allowMultiple && currentValueList?has_content>
+                                if (currentValues.indexOf(optionValue) >= 0) {
+                                <#else>
                                 if (optionValue == "${currentValue}") {
+                                </#if>
                                     $('#${id}').append("<option selected='selected' value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");
                                 } else {
                                     $('#${id}').append("<option value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");

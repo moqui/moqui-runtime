@@ -24,6 +24,8 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/></transition>
     <transition name="changePassword"><service-call name="org.moqui.impl.UserServices.update#Password"/>
         <default-response url="../Login"/><error-response url="."/></transition>
+    <transition name="createInitialAdminAccount"><service-call name="org.moqui.impl.UserServices.create#InitialAdminAccount"/>
+        <default-response url="../Login"/><error-response url="."/></transition>
 
     <pre-actions><script>
         // jQuery/UI
@@ -38,9 +40,21 @@ along with this software (see the LICENSE.md file). If not, see
         <container id="content"><container style="inner"><container style="container-fluid">
             <section-include name="MessagesSection" location="component://webroot/screen/webroot/apps.xml"/>
 
-            <render-mode>
-                <text type="html" template="true" location="component://webroot/screen/webroot/Login.ftl"/>
-            </render-mode>
+            <!-- if there are no user accounts, other than the _NA_ UserAccount which is in seed data, show form to create admin account -->
+            <section name="NeedsSetupSection" condition="ec.entity.find('moqui.security.UserAccount').disableAuthz().count() > 1"><widgets>
+                <render-mode><text type="html" template="true" location="component://webroot/screen/webroot/Login.ftl"/></render-mode>
+            </widgets><fail-widgets>
+                <label text="Welcome to your new system" type="h3"/>
+                <label text="There are no user accounts, get started by creating an initial administrator account" type="h5"/>
+                <form-single name="CreateInitialAdminAccount" transition="createInitialAdminAccount" focus-field="username">
+                    <field name="username"><default-field><text-line size="20"/></default-field></field>
+                    <field name="newPassword"><default-field><password size="20"/></default-field></field>
+                    <field name="newPasswordVerify"><default-field><password size="20"/></default-field></field>
+                    <field name="userFullName"><default-field><text-line size="60"/></default-field></field>
+                    <field name="emailAddress"><default-field><text-line size="60"/></default-field></field>
+                    <field name="submitButton"><default-field title="Create Initial Admin Account"><submit/></default-field></field>
+                </form-single>
+            </fail-widgets></section>
 
             <!-- old XML widgets stuff:
             <container id="login-box">

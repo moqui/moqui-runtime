@@ -25,7 +25,7 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
     <transition name="ArtifactHitSummaryStats.pdf">
         <default-response url="${ec.web.getWebappRootUrl(false, null)}/fop/apps/system/ArtifactHitSummary" url-type="plain">
-            <parameter name="renderMode" value="xsl-fo"/><parameter name="pageNoLimit" value="true"/>
+            <parameter name="pageNoLimit" value="true"/><parameter name="layoutMaster" value="tabloid-landscape"/>
             <parameter name="filename" value="ArtifactHitSummaryStats.pdf"/>
             <!-- <parameter name="lastStandalone" value="true"/> -->
         </default-response>
@@ -38,11 +38,11 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <container>
             <!-- <link url="ArtifactHitSummaryStats.csv" text="Get as CSV"/> -->
+            <!-- <link url="ArtifactHitSummaryStats.pdf" text="Get as PDF"/> -->
             <link url="ArtifactHitSummaryStats.xml" text="Get as XML"/>
-            <link url="ArtifactHitSummaryStats.pdf" text="Get as PDF"/>
         </container>
         <form-list name="ArtifactHitSummaryList" list="artifactHitReportList" skip-form="true"
-                   show-csv-button="true" show-text-button="true">
+                   show-csv-button="true" show-text-button="true" show-pdf-button="true">
             <row-actions>
                 <set field="averageTime" from="hitCount ? totalTimeMillis/hitCount : null"/>
                 <set field="stdDev" from="totalSquaredTime &amp;&amp; hitCount > 1 ? Math.sqrt((totalSquaredTime - ((totalTimeMillis*totalTimeMillis) / hitCount)).abs() / (hitCount - 1)) : null"/>

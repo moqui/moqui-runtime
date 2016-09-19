@@ -251,7 +251,7 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 <#macro formListWidget fieldSubNode>
     <#if fieldSubNode["ignored"]?has_content || fieldSubNode["hidden"]?has_content || fieldSubNode["submit"]?has_content ||
-            fieldSubNode?parent["@hide"]?if_exists == "true"><#return></#if>
+            fieldSubNode?parent["@hide"]! == "true"><#return></#if>
     <#t><#recurse fieldSubNode>
 </#macro>
 <#macro "row-actions"><#-- do nothing, these are run by the SRI --></#macro>

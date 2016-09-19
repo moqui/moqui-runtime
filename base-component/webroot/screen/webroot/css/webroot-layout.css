@@ -113,7 +113,7 @@ input[type="text"].ui-autocomplete-input { width: auto; }
 .input-group .input-group-addon, .input-group .input-group-btn { display: inline; line-height: 34px; padding: 8px 12px; }
 
 /* Similar styles to Bootstrap .form-control-static, applied more specifically and without explicit class */
-.form-group > div > p, .form-group > div > span:not(.select2-container,.form-text-find,.input-group-addon), .form-group > div > a:not(.btn) {
+.form-group > div > p, .form-group > div > span:not(.select2-container):not(.form-text-find):not(.input-group-addon), .form-group > div > a:not(.btn) {
     display: inline-block; min-height: 34px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 0; }
 .form-header-field > button.btn, .form-group > div > a.btn { margin-top: 2px !important; }
 
@@ -201,7 +201,8 @@ body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
 
 @media print {
     /* use white background for all, bootstrap uses white background for tables but leaves all else transparent */
-    *, *:before, *:after { background: white none !important; }
+    *, *:before, *:after { background: transparent none !important; }
+    body, .inner, .container-fluid { background: white none !important; }
     /* don't show URL for links as bootstrap does by default, makes a mess */
     a[href]:after { content: ""; }
 
@@ -210,4 +211,6 @@ body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
     .nav { display: none; }
     #footer { display: none; }
     body { padding-top: 0; } /* don't do body padding-top for nav bar */
+
+    .table-striped>tbody>tr:nth-child(even)>td { background-color: #EEEEEE !important; }
 }
