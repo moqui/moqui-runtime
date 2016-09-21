@@ -551,7 +551,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign parameterName = .node["@parameter-name"]!"value">
     <#if labelValue?trim?has_content>
         <${labelType} id="${editableDivId}" class="editable-label"><#if .node["@encode"]! == "true">${labelValue?html?replace("\n", "<br>")}<#else>${labelValue}</#if></${labelType}>
-        <#assign afterScreenScript>
+        <script>
         $("#${editableDivId}").editable("${urlInstance.url}", { indicator:"${ec.getL10n().localize("Saving")}",
             tooltip:"${ec.getL10n().localize("Click to edit")}", cancel:"${ec.getL10n().localize("Cancel")}",
             submit:"${ec.getL10n().localize("Save")}", name:"${parameterName}",
@@ -563,8 +563,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign loadUrlParms = loadUrlInfo.getParameterMap()>
             , loadurl:"${loadUrlInfo.url}", loadtype:"POST", loaddata:function(value, settings) { return {<#list loadUrlParms.keySet() as parameterKey>${parameterKey}:"${loadUrlParms[parameterKey]}", </#list>currentValue:value, moquiSessionToken:"${(ec.getWeb().sessionToken)!}"}; }
             </#if>});
-        </#assign>
-        <#t>${sri.appendToScriptWriter(afterScreenScript)}
+        </script>
     </#if>
 </#macro>
 <#macro parameter><#-- do nothing, used directly in other elements --></#macro>
@@ -1225,6 +1224,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign formListUrlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
     <#assign listName = formNode["@list"]>
     <#assign listObject = ec.getResource().expression(listName, "")!>
+    <#assign listHasContent = listObject?has_content>
 
     <#if !skipStart>
         <#assign needHeaderForm = formInstance.isHeaderForm()>
@@ -1281,7 +1281,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <tbody>
         </#if>
     </#if>
-    <#list listObject! as listEntry>
+    <#if listHasContent><#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
         ${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
@@ -1306,22 +1306,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if isMulti || skipForm>
             </tr>
         <#else>
-            <#assign afterFormScript>
+            </form>
+            <script>
                 $("#${formId}_${listEntryIndex}").validate({ errorClass: 'help-block', errorElement: 'span',
                     highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
                     unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
                 });
-            </#assign>
-            <#t>${sri.appendToScriptWriter(afterFormScript)}
-            </form>
+            </script>
             </tr>
         </#if>
         ${sri.endFormListRow()}
-    </#list>
+    </#list></#if>
     <#assign listEntryIndex = "">
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
     <#if !skipEnd>
-        <#if isMulti && !skipForm>
+        <#if isMulti && !skipForm && listHasContent>
             <tr><td colspan="${formListColumnList?size}">
                 <#list formNode["field"] as fieldNode><@formListSubField fieldNode false false true true/></#list>
             </td></tr>
@@ -1333,14 +1332,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </table>
     </#if>
     <#if isMulti && !skipStart && !skipForm>
-        <#assign afterFormScript>
+        <script>
             $("#${formId}").validate({ errorClass: 'help-block', errorElement: 'span',
                 highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
                 unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
             });
             $('#${formId} [data-toggle="tooltip"]').tooltip();
-        </#assign>
-        <#t>${sri.appendToScriptWriter(afterFormScript)}
+        </script>
     </#if>
     <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
     <#assign skipForm = false>
