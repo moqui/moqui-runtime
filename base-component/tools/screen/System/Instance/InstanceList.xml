@@ -12,11 +12,14 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
-<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd">
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
+        default-menu-title="Application Instances">
 
     <transition name="instanceDetail"><default-response url="../InstanceDetail"/></transition>
-    
+
+    <transition name="createAppInstance"><service-call name="org.moqui.impl.InstanceServices.create#AppInstance"/>
+        <default-response url="."/></transition>
+
     <transition name="checkAppDatabase"><service-call name="org.moqui.impl.InstanceServices.check#AppDatabase"/>
         <default-response url="."/></transition>
     <transition name="createAppDatabase"><service-call name="org.moqui.impl.InstanceServices.create#AppDatabase"/>
@@ -28,6 +31,39 @@ along with this software (see the LICENSE.md file). If not, see
         </entity-find>
     </actions>
     <widgets>
+        <container-dialog id="CreateInstanceDialog" button-text="Create App Instance">
+            <form-single name="CreateInstance" transition="createAppInstance">
+                <field name="instanceName"><default-field tooltip="Defaults to Host Name with dots (.) replaced by underscore (_)">
+                    <text-line size="50"/></default-field></field>
+                <field name="hostName"><default-field tooltip="Hostname for access to the instance, generally a virtual host name">
+                    <text-line size="50"/></default-field></field>
+                <field name="instanceImageId"><default-field title="Image">
+                    <drop-down allow-empty="true">
+                        <entity-options key="${instanceImageId}" text="${imageName} - ${hostTypeDescription} - ${imageTypeDescription}">
+                            <entity-find entity-name="moqui.server.instance.InstanceImageDetail">
+                                <order-by field-name="imageName"/></entity-find>
+                        </entity-options>
+                    </drop-down>
+                </default-field></field>
+                <field name="instanceHostId"><default-field title="Instance Host">
+                    <drop-down allow-empty="true">
+                        <entity-options key="${instanceHostId}" text="${typeDescription} ${hostAddress}">
+                            <entity-find entity-name="moqui.server.instance.InstanceHostDetail">
+                                <order-by field-name="typeDescription"/></entity-find>
+                        </entity-options>
+                    </drop-down>
+                </default-field></field>
+                <field name="databaseHostId"><default-field title="Database Host">
+                    <drop-down allow-empty="true">
+                        <entity-options key="${databaseHostId}" text="${typeDescription} ${hostAddress}">
+                            <entity-find entity-name="moqui.server.instance.DatabaseHostDetail">
+                                <order-by field-name="typeDescription"/></entity-find>
+                        </entity-options>
+                    </drop-down>
+                </default-field></field>
+                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+            </form-single>
+        </container-dialog>
         <form-list name="InstanceList" list="instanceList" skip-form="true">
             <field name="appInstanceId"><default-field title="Instance ID"><display/></default-field></field>
             <field name="instanceName"><default-field><display/></default-field></field>
