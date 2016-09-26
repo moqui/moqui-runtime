@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd">
+
+    <transition name="instanceDetail"><default-response url="../InstanceDetail"/></transition>
+    
+    <transition name="checkAppDatabase"><service-call name="org.moqui.impl.InstanceServices.check#AppDatabase"/>
+        <default-response url="."/></transition>
+    <transition name="createAppDatabase"><service-call name="org.moqui.impl.InstanceServices.create#AppDatabase"/>
+        <default-response url="."/></transition>
+
+    <actions>
+        <entity-find entity-name="moqui.server.instance.AppInstance" list="instanceList">
+            <search-form-inputs default-order-by="instanceName"/>
+        </entity-find>
+    </actions>
+    <widgets>
+        <form-list name="InstanceList" list="instanceList" skip-form="true">
+            <field name="appInstanceId"><default-field title="Instance ID"><display/></default-field></field>
+            <field name="instanceName"><default-field><display/></default-field></field>
+            <field name="hostName"><default-field><display/></default-field></field>
+            <field name="instanceImageId"><default-field title="Image">
+                <display-entity entity-name="moqui.server.instance.InstanceImageDetail"
+                                text="${imageName} - ${hostTypeDescription} - ${imageTypeDescription}"/>
+            </default-field></field>
+            <field name="instanceHostId"><default-field title="Instance Host">
+                <display-entity entity-name="moqui.server.instance.InstanceHostDetail" text="${typeDescription} ${hostAddress}"/>
+            </default-field></field>
+            <field name="databaseHostId"><default-field title="Database Host">
+                <display-entity entity-name="moqui.server.instance.DatabaseHostDetail" text="${typeDescription} ${hostAddress}"/>
+            </default-field></field>
+            <field name="adminLinks"><default-field title="">
+                <link url="checkAppDatabase" text="Check DB" parameter-map="[appInstanceId:appInstanceId]"/>
+                <link url="createAppDatabase" text="Create DB" parameter-map="[appInstanceId:appInstanceId]"/>
+            </default-field></field>
+        </form-list>
+    </widgets>
+</screen>
