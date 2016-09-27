@@ -25,6 +25,17 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="createAppDatabase"><service-call name="org.moqui.impl.InstanceServices.create#AppDatabase"/>
         <default-response url="."/></transition>
 
+    <transition name="initAppInstance"><service-call name="org.moqui.impl.InstanceServices.init#AppInstance"/>
+        <default-response url="."/></transition>
+    <transition name="startAppInstance"><service-call name="org.moqui.impl.InstanceServices.start#AppInstance"/>
+        <default-response url="."/></transition>
+    <transition name="stopAppInstance"><service-call name="org.moqui.impl.InstanceServices.stop#AppInstance"/>
+        <default-response url="."/></transition>
+    <transition name="removeAppInstance"><service-call name="org.moqui.impl.InstanceServices.remove#AppInstance"/>
+        <default-response url="."/></transition>
+    <transition name="checkAppInstance"><service-call name="org.moqui.impl.InstanceServices.check#AppInstance"/>
+        <default-response url="."/></transition>
+
     <actions>
         <entity-find entity-name="moqui.server.instance.AppInstance" list="instanceList">
             <search-form-inputs default-order-by="instanceName"/>
@@ -78,9 +89,16 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="databaseHostId"><default-field title="Database Host">
                 <display-entity entity-name="moqui.server.instance.DatabaseHostDetail" text="${typeDescription} ${hostAddress}"/>
             </default-field></field>
-            <field name="adminLinks"><default-field title="">
+            <field name="databaseLinks"><default-field title="Database">
                 <link url="checkAppDatabase" text="Check DB" parameter-map="[appInstanceId:appInstanceId]"/>
                 <link url="createAppDatabase" text="Create DB" parameter-map="[appInstanceId:appInstanceId]"/>
+            </default-field></field>
+            <field name="instanceLinks"><default-field title="Instance">
+                <link url="checkAppInstance" text="Check" parameter-map="[appInstanceId:appInstanceId]"/>
+                <link url="initAppInstance" text="Init" parameter-map="[appInstanceId:appInstanceId]"/>
+                <link url="startAppInstance" text="Start" parameter-map="[appInstanceId:appInstanceId]"/>
+                <link url="stopAppInstance" text="Stop" parameter-map="[appInstanceId:appInstanceId]"/>
+                <link url="removeAppInstance" text="Remove" parameter-map="[appInstanceId:appInstanceId]" confirmation="Remove instance for ${appInstanceId}?"/>
             </default-field></field>
         </form-list>
     </widgets>
