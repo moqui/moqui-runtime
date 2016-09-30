@@ -17,6 +17,6 @@ along with this software (see the LICENSE.md file). If not, see
     <subscreens default-item="InstanceList"/>
     <widgets>
         <!-- no menu needed for these, so just show the active screen -->
-        <subscreens-active/>
+        <subscreens-panel id="InstancePanel" type="tab"/>
     </widgets>
 </screen>
