@@ -25,8 +25,8 @@ along with this software (see the LICENSE.md file). If not, see
             ExecutionContext ec = context.ec
 
             rs = null
-            columns = []
-            records = []
+            columns = new ArrayList<String>()
+            records = new ArrayList<ArrayList>()
 
             int limitInt = (limit?:"500") as int
 
@@ -34,8 +34,8 @@ along with this software (see the LICENSE.md file). If not, see
                 Connection con = ec.entity.getConnection(groupName)
                 try {
                     if (sql.toUpperCase().startsWith("SELECT")) {
-                        ps = con.prepareStatement(sql)
-                        rs = ps.executeQuery()
+                        stmt = con.createStatement()
+                        rs = stmt.executeQuery(sql as String)
                         if (rs != null) {
                             rsmd = rs.getMetaData()
                             columnCount = rsmd.getColumnCount()
@@ -47,7 +47,7 @@ along with this software (see the LICENSE.md file). If not, see
                                     limitReached = true
                                     break
                                 }
-                                record = []
+                                record = new ArrayList<Object>(columnCount)
                                 for (i = 1; i <= columnCount; i++) record.add(rs.getObject(i))
                                 records.add(record)
                             }
@@ -60,20 +60,15 @@ along with this software (see the LICENSE.md file). If not, see
                             }
                         }
                     } else {
-                        ps = con.prepareStatement(sql)
-                        int rowsAffected = ps.executeUpdate()
+                        stmt = con.createStatement()
+                        rowsAffected = stmt.executeUpdate(sql as String)
                         ec.message.addMessage(ec.resource.expand('Query altered ${rowsAffected} rows.',''))
                     }
                 } catch (Exception e) {
                     ec.message.addError(e.toString())
                 } finally {
-                    if (con != null) {
-                        try {
-                            con.close()
-                        } catch (java.sql.SQLException e) {
-                            // Ignore
-                        }
-                    }
+                    if (stmt != null) { try { stmt.close() } catch (Exception e) { /* Ignore */ } }
+                    if (con != null) { try { con.close() } catch (Exception e) { /* Ignore */ } }
                 }
             }
         ]]></script>
