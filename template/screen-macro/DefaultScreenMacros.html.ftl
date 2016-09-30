@@ -536,7 +536,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign labelValue = ec.getResource().expand(.node["@text"], "")/>
         </#if>
         <#assign labelDivId><@nodeId .node/></#assign>
-        <#if labelValue?trim?has_content>
+        <#if labelValue?trim?has_content || .node["@condition"]?has_content>
         <${labelType}<#if labelDivId?has_content> id="${labelDivId}"</#if><#if .node["@style"]?has_content> class="${ec.getResource().expandNoL10n(.node["@style"], "")}"</#if>><#if !.node["@encode"]?has_content || .node["@encode"] == "true">${labelValue?html?replace("\n", "<br>")}<#else>${labelValue}</#if></${labelType}>
         </#if>
     </#if>
