@@ -17,22 +17,11 @@ along with this software (see the LICENSE.md file). If not, see
 
     <!-- NOTE: this blows up in various ways, more work needed to reload ECFI on the fly -->
     <transition name="reloadEcfi" begin-transaction="false">
-        <actions><script>
-            import org.moqui.impl.context.ExecutionContextFactoryImpl
-            import org.moqui.impl.context.ExecutionContextImpl
-            import javax.servlet.ServletContext
-
-            ExecutionContextImpl eci = context.ec
-            ServletContext sc = eci.webImpl.getServletContext()
-            ExecutionContextFactoryImpl ecfi = eci.ecfi
-            ecfi.destroy()
-            ecfi = new ExecutionContextFactoryImpl()
-
-            ecfi.initServletContext(sc)
-            sc.setAttribute("executionContextFactory", ecfi)
-            org.moqui.Moqui.dynamicInit(ecfi)
-        </script></actions>
-        <default-response type="none"/>
+        <actions>
+            <script>ec.factory.triggerDynamicReInit()</script>
+            <message>ExecutionContextFactory dynamic re-initialize triggered</message>
+        </actions>
+        <default-response url="."/>
     </transition>
 
     <widgets>
@@ -105,6 +94,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </container-box>
             </row-col>
         </container-row>
-        <!-- <link url="reloadEcfi" text="Reload ECFI" link-type="anchor" confirmation="Are you sure? This is for development and emergency use only."/> -->
+
+        <link url="reloadEcfi" text="Reload Framework" link-type="anchor" confirmation="Are you sure? This is for development and emergency use only."/>
     </widgets>
 </screen>
