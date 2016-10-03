@@ -18,26 +18,10 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="threadList"><default-response url="../ThreadList"/></transition>
 
     <actions>
-        <set field="memoryMXBean" from="java.lang.management.ManagementFactory.getMemoryMXBean()"/>
-        <set field="heapMemoryUsage" from="memoryMXBean.getHeapMemoryUsage()"/>
-        <set field="nonHeapMemoryUsage" from="memoryMXBean.getNonHeapMemoryUsage()"/>
-
-        <set field="runtimeFile" from="new File(ec.factory.runtimePath)"/>
-
-        <set field="osMXBean" from="java.lang.management.ManagementFactory.getOperatingSystemMXBean()"/>
-        <set field="runtimeMXBean" from="java.lang.management.ManagementFactory.getRuntimeMXBean()"/>
-        <set field="uptimeHours" from="runtimeMXBean.getUptime() / (1000*60*60)"/>
-
-        <set field="gcMXBeans" from="java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()"/>
-        <set field="gcCount" from="0"/><set field="gcTime" from="0"/>
-        <iterate list="gcMXBeans" entry="gcMXBean">
-            <set field="gcCount" from="gcCount + gcMXBean.getCollectionCount()"/>
-            <set field="gcTime" from="gcTime + gcMXBean.getCollectionTime()"/>
-        </iterate>
-        <set field="jitMXBean" from="java.lang.management.ManagementFactory.getCompilationMXBean()"/>
-        <set field="classMXBean" from="java.lang.management.ManagementFactory.getClassLoadingMXBean()"/>
-
-        <set field="threadMXBean" from="java.lang.management.ManagementFactory.getThreadMXBean()"/>
+        <set field="smap" from="StupidUtilities.getStatusMap(ec)"/>
+        <set field="loadPercent" from="(smap.Utilization.LoadPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
+        <set field="heapPercent" from="(smap.Utilization.HeapPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
+        <set field="diskPercent" from="(smap.Utilization.DiskPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
     </actions>
     <widgets>
         <container-row><row-col md="6">
@@ -73,41 +57,44 @@ along with this software (see the LICENSE.md file). If not, see
             <link url="threadList" text="Thread List"/>
         </box-toolbar><box-body>
             <container-row><row-col md="4">
-                <label text="Heap Memory" type="strong"/>
+                <container-row><row-col xs="5"><label text="Heap Memory" type="strong"/></row-col>
+                    <row-col xs="7"><label text="Heap: ${ec.l10n.format(heapPercent, '00.0')}%" style="${heapPercent &lt; 70 ? 'text-success' : (heapPercent &lt; 90 ? 'text-warn' : 'text-danger' )}"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Used" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.l10n.format(heapMemoryUsage.getUsed()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+                    <row-col xs="7"><label text="${ec.l10n.format(smap.Heap.Used, '#,##0.00')} MiB"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Committed" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.l10n.format(heapMemoryUsage.getCommitted()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+                    <row-col xs="7"><label text="${ec.l10n.format(smap.Heap.Committed, '#,##0.00')} MiB"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Max" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.l10n.format(heapMemoryUsage.getMax()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+                    <row-col xs="7"><label text="${ec.l10n.format(smap.Heap.Max, '#,##0.00')} MiB"/></row-col></container-row>
 
                 <label text="Non-Heap Memory" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Used" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.l10n.format(nonHeapMemoryUsage.getUsed()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+                    <row-col xs="7"><label text="${ec.l10n.format(smap.NonHeap.Used, '#,##0.00')} MiB"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Committed" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.l10n.format(nonHeapMemoryUsage.getCommitted()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+                    <row-col xs="7"><label text="${ec.l10n.format(smap.NonHeap.Committed, '#,##0.00')} MiB"/></row-col></container-row>
 
-                <label text="Disk (runtime)" type="strong"/>
+                <container-row><row-col xs="5"><label text="Disk (runtime)" type="strong"/></row-col>
+                    <row-col xs="7"><label text="Disk: ${ec.l10n.format(diskPercent, '00.0')}%" style="${diskPercent &lt; 70 ? 'text-success' : (diskPercent &lt; 90 ? 'text-warn' : 'text-danger' )}"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Usable" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.l10n.format(runtimeFile.getUsableSpace()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+                    <row-col xs="7"><label text="${ec.l10n.format(smap.Disk.Usable, '#,##0.00')} MiB"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Total" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.l10n.format(runtimeFile.getTotalSpace()/(1024*1024), '#,##0.00')} MiB"/></row-col></container-row>
+                    <row-col xs="7"><label text="${ec.l10n.format(smap.Disk.Total, '#,##0.00')} MiB"/></row-col></container-row>
             </row-col><row-col md="4">
-                <label text="System" type="strong"/>
+                <container-row><row-col xs="5"><label text="System" type="strong"/></row-col>
+                    <row-col xs="7"><label text="Load: ${ec.l10n.format(loadPercent, '00.0')}%" style="${loadPercent &lt; 70 ? 'text-success' : (loadPercent &lt; 90 ? 'text-warn' : 'text-danger' )}"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Load" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.l10n.format(osMXBean.getSystemLoadAverage(), '#,##0.00')} (avg last minute)"/></row-col></container-row>
+                    <row-col xs="7"><label text="${ec.l10n.format(smap.System.Load, '#,##0.00')} (avg last minute)"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="CPU" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${osMXBean.getArch()} (${osMXBean.getAvailableProcessors()} threads)"/></row-col></container-row>
+                    <row-col xs="7"><label text="${smap.System.CPU} (${smap.System.Processors} threads)"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="OS" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${osMXBean.getName()} ${osMXBean.getVersion()}"/></row-col></container-row>
+                    <row-col xs="7"><label text="${smap.System.OsName} ${smap.System.OsVersion}"/></row-col></container-row>
 
                 <label text="Java Runtime" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Version" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${runtimeMXBean.getSpecVersion()} (${runtimeMXBean.getVmVendor()} ${runtimeMXBean.getVmVersion()})"/></row-col></container-row>
+                    <row-col xs="7"><label text="${smap.JavaRuntime.SpecVersion} (${smap.JavaRuntime.VmVendor} ${smap.JavaRuntime.VmVersion})"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Start" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${new Timestamp(runtimeMXBean.getStartTime())}"/></row-col></container-row>
+                    <row-col xs="7"><label text="${smap.JavaRuntime.Start}"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Uptime" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.l10n.format(uptimeHours, '#,##0.00')} hours"/></row-col></container-row>
+                    <row-col xs="7"><label text="${ec.l10n.format(smap.JavaRuntime.UptimeHours, '#,##0.00')} hours"/></row-col></container-row>
 
                 <label text="Moqui Framework" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Version" type="strong"/></row-col>
@@ -115,24 +102,31 @@ along with this software (see the LICENSE.md file). If not, see
             </row-col><row-col md="4">
                 <label text="Web Server" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Local IP" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.web.request.getLocalAddr()}:${ec.web.request.getLocalPort()}"/></row-col></container-row>
+                    <row-col xs="7"><label text="${smap.Web.LocalAddr}:${smap.Web.LocalPort}"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Local Name" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.web.request.getLocalName()}"/></row-col></container-row>
+                    <row-col xs="7"><label text="${smap.Web.LocalName}"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Requested" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.web.request.getServerName()}:${ec.web.request.getServerPort()}"/></row-col></container-row>
+                    <row-col xs="7"><label text="${smap.Web.ServerName}:${smap.Web.ServerPort}"/></row-col></container-row>
 
                 <label text="Java Statistics" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="GC" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${gcCount}, ${ec.l10n.format(gcTime/1000, '#,##0.00')}s total"/></row-col></container-row>
+                    <row-col xs="7"><label text="${smap.JavaStats.GcCount}, ${ec.l10n.format(smap.JavaStats.GcTimeSeconds, '#,##0.00')}s total"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="JIT" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${jitMXBean.getName()}"/></row-col></container-row>
+                    <row-col xs="7"><label text="${smap.JavaStats.JIT}"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Compile Time" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${ec.l10n.format(jitMXBean.getTotalCompilationTime()/1000, '#,##0.00')}s total"/></row-col></container-row>
+                    <row-col xs="7"><label text="${ec.l10n.format(smap.JavaStats.CompileTimeSeconds, '#,##0.00')}s total"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Loaded Classes" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${classMXBean.getLoadedClassCount()} (${classMXBean.getTotalLoadedClassCount()} tot, ${classMXBean.getUnloadedClassCount()} unl)"/></row-col></container-row>
+                    <row-col xs="7"><label text="${smap.JavaStats.ClassesLoaded} (${smap.JavaStats.ClassesTotalLoaded} tot, ${smap.JavaStats.ClassesUnloaded} unl)"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Threads" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${threadMXBean.getThreadCount()} (${threadMXBean.getPeakThreadCount()} peak)"/></row-col></container-row>
+                    <row-col xs="7"><label text="${smap.JavaStats.ThreadCount} (${smap.JavaStats.PeakThreadCount} peak)"/></row-col></container-row>
             </row-col></container-row>
-        </box-body></container-box>
+        </box-body><box-body-nopad>
+            <form-list name="DatasourceList" list="smap.DataSources">
+                <field name="group"><default-field><display/></default-field></field>
+                <field name="uniqueName"><default-field><display/></default-field></field>
+                <field name="database"><default-field><display/></default-field></field>
+                <field name="detail"><default-field><display/></default-field></field>
+            </form-list>
+        </box-body-nopad></container-box>
     </widgets>
 </screen>
