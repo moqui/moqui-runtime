@@ -95,10 +95,10 @@ along with this software (see the LICENSE.md file). If not, see
                         <field name="userId"><default-field><hidden/></default-field></field>
                         <field name="topic"><default-field><hidden/></default-field></field>
                         <field name="description"><default-field title="Topic"><display/></default-field></field>
-                        <field name="receiveNotifications" entry-name="notTopicUser?.receiveNotifications ?: receiveNotifications ?: 'Y'"><default-field title="Receive">
+                        <field name="receiveNotifications" from="notTopicUser?.receiveNotifications ?: receiveNotifications ?: 'Y'"><default-field title="Receive">
                             <radio><option key="Y"/><option key="N"/></radio>
                         </default-field></field>
-                        <field name="allNotifications" entry-name="notTopicUser?.allNotifications ?: allNotifications ?: 'N'"><default-field title="All">
+                        <field name="allNotifications" from="notTopicUser?.allNotifications ?: allNotifications ?: 'N'"><default-field title="All">
                             <radio><option key="Y"/><option key="N"/></radio>
                         </default-field></field>
                         <field name="submitButton"><default-field><submit text="Update"/></default-field></field>
@@ -143,7 +143,7 @@ along with this software (see the LICENSE.md file). If not, see
                                         </entity-options>
                                     </drop-down>
                                 </default-field></field>
-                                <field name="fromDate" entry-name="ec.user.nowTimestamp"><default-field><date-time/></default-field></field>
+                                <field name="fromDate" from="ec.user.nowTimestamp"><default-field><date-time/></default-field></field>
                                 <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                             </form-single>
                         </container-dialog>
