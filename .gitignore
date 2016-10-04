@@ -4,6 +4,7 @@
 /db/derby/derby.log
 /db/h2/
 /db/orientdb/databases/
+/db/snapshot/
 /elasticsearch/data/
 /elasticsearch/log/
 /elasticsearch/work/
