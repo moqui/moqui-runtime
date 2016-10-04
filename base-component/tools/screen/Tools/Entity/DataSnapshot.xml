@@ -41,7 +41,7 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <form-single name="ExportData" transition="createSnapshot">
-            <!-- TODO: add entities to exclude?, maybe ArtifactHit by default? -->
+            <!-- NOTE: add entities to exclude?, maybe ArtifactHit by default? -->
             <field name="fromDate"><default-field><date-time/></default-field></field>
             <field name="thruDate"><default-field><date-time/></default-field></field>
             <field name="baseFilename"><default-field><text-line size="40" default-value="MoquiSnapshot${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMddHHmm')}"/></default-field></field>
