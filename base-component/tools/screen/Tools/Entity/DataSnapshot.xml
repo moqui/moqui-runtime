@@ -18,8 +18,14 @@ along with this software (see the LICENSE.md file). If not, see
 
     <transition name="createSnapshot" begin-transaction="false">
         <actions>
-            <script>jobRunId = ec.service.job("ExportEntityDataSnapshot")
-                    .parameters([fromDate:fromDate, thruDate:thruDate, baseFilename:baseFilename]).run()</script>
+            <script><![CDATA[
+                if (!entitiesToSkip) entitiesToSkip = null
+                if (entitiesToSkip != null && !(entitiesToSkip instanceof List)) entitiesToSkip = [entitiesToSkip]
+
+                jobRunId = ec.service.job("ExportEntityDataSnapshot")
+                    .parameters([fromDate:fromDate, thruDate:thruDate, baseFilename:baseFilename, filePerEntity:filePerEntity,
+                                 entitiesToSkip:entitiesToSkip]).run()
+            ]]></script>
             <message>Started Export Entity Data Snapshot ${baseFilename} (Job ID ${jobRunId})</message>
         </actions>
         <default-response url="."/>
@@ -36,15 +42,26 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <script><![CDATA[
             File snapshotDir = new File((String) ec.factory.getRuntimePath() + '/db/snapshot')
-            snapshotList = snapshotDir.exists() ? snapshotDir.listFiles() as List<File> : []
+            snapshotFiles = snapshotDir.exists() ? snapshotDir.listFiles() : null
+            snapshotList = []
+            if (snapshotFiles) for (File sfile in snapshotFiles)
+                if (!sfile.isDirectory() && sfile.getName().endsWith(".zip")) snapshotList.add(sfile)
         ]]></script>
     </actions>
     <widgets>
         <form-single name="ExportData" transition="createSnapshot">
             <!-- NOTE: add entities to exclude?, maybe ArtifactHit by default? -->
+            <field name="entitiesToSkip">
+                <default-field><drop-down allow-multiple="true" size="80">
+                    <list-options list="ec.entity.getAllEntitiesInfo('fullEntityName', null, false, true)" key="${fullEntityName}"/>
+                </drop-down></default-field>
+            </field>
             <field name="fromDate"><default-field><date-time/></default-field></field>
             <field name="thruDate"><default-field><date-time/></default-field></field>
             <field name="baseFilename"><default-field><text-line size="40" default-value="MoquiSnapshot${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMddHHmm')}"/></default-field></field>
+            <field name="filePerEntity"><default-field>
+                <radio no-current-selected-key="false"><option key="true"/><option key="false"/></radio>
+            </default-field></field>
 
             <field name="submitButton"><default-field title="Export Snapshot"><submit/></default-field></field>
         </form-single>
@@ -53,7 +70,7 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="filename" from="sfile.name"><default-field><display/></default-field></field>
             <field name="date" from="new java.sql.Timestamp(sfile.lastModified())"><default-field><display/></default-field></field>
             <field name="size" from="(sfile.length())/(1024*1024)"><default-field title="Size (MiB)">
-                <display format="#,##0.00"/></default-field></field>
+                <display format="#,##0.000"/></default-field></field>
             <field name="download"><default-field title="">
                 <link url="downloadSnapshot" text="Download" parameter-map="[filename:sfile.name]"/></default-field></field>
             <field name="delete"><default-field title="">
