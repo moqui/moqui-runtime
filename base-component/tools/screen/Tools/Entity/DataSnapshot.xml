@@ -16,7 +16,7 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         default-menu-title="Snapshots">
 
-    <transition name="createSnapshot" begin-transaction="false">
+    <transition name="exportSnapshot" begin-transaction="false">
         <actions>
             <script><![CDATA[
                 if (!entitiesToSkip) entitiesToSkip = null
@@ -38,6 +38,13 @@ along with this software (see the LICENSE.md file). If not, see
         <actions><script>ec.resource.getLocationReference("db/snapshot/" + filename).delete()</script></actions>
         <default-response url="."/>
     </transition>
+    <transition name="importSnapshot" begin-transaction="false">
+        <actions>
+            <script>jobRunId = ec.service.job("ImportEntityDataSnapshot").parameter("zipFilename", filename).run()</script>
+            <message>Started Import Entity Data Snapshot ${filename} (Job ID ${jobRunId})</message>
+        </actions>
+        <default-response url="."/>
+    </transition>
 
     <actions>
         <script><![CDATA[
@@ -45,11 +52,11 @@ along with this software (see the LICENSE.md file). If not, see
             snapshotFiles = snapshotDir.exists() ? snapshotDir.listFiles() : null
             snapshotList = []
             if (snapshotFiles) for (File sfile in snapshotFiles)
-                if (!sfile.isDirectory() && sfile.getName().endsWith(".zip")) snapshotList.add(sfile)
+                if (!sfile.isDirectory() && sfile.getName().endsWith(".zip") && sfile.length() > 0) snapshotList.add(sfile)
         ]]></script>
     </actions>
     <widgets>
-        <form-single name="ExportData" transition="createSnapshot">
+        <form-single name="ExportData" transition="exportSnapshot">
             <!-- NOTE: add entities to exclude?, maybe ArtifactHit by default? -->
             <field name="entitiesToSkip">
                 <default-field><drop-down allow-multiple="true" size="80">
@@ -69,12 +76,14 @@ along with this software (see the LICENSE.md file). If not, see
         <form-list name="SnapshotList" list="snapshotList" list-entry="sfile">
             <field name="filename" from="sfile.name"><default-field><display/></default-field></field>
             <field name="date" from="new java.sql.Timestamp(sfile.lastModified())"><default-field><display/></default-field></field>
-            <field name="size" from="(sfile.length())/(1024*1024)"><default-field title="Size (MiB)">
+            <field name="size" from="(sfile.length())/(1024*1024)" align="right"><default-field title="Size (MiB)">
                 <display format="#,##0.000"/></default-field></field>
             <field name="download"><default-field title="">
                 <link url="downloadSnapshot" text="Download" parameter-map="[filename:sfile.name]"/></default-field></field>
             <field name="delete"><default-field title="">
                 <link url="deleteSnapshot" text="Delete" parameter-map="[filename:sfile.name]"/></default-field></field>
+            <field name="import"><default-field title="">
+                <link url="importSnapshot" text="Import" parameter-map="[filename:sfile.name]"/></default-field></field>
         </form-list>
     </widgets>
 </screen>
