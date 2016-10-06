@@ -45,6 +45,17 @@ along with this software (see the LICENSE.md file). If not, see
         </actions>
         <default-response url="."/>
     </transition>
+    <transition name="uploadSnapshot" begin-transaction="false">
+        <actions><script><![CDATA[
+            String filename = snapshotFile.getName()
+            if (!filename.endsWith(".zip")) { ec.message.addError("File ${filename} is not a zip file, should be a zip containing one or more xml data files"); return; }
+            File targetFile = new File((String) ec.factory.getRuntimePath() + '/db/snapshot/' + filename)
+            if (targetFile.exists()) { ec.message.addError("File ${filename} already exists"); return; }
+            InputStream fileStream = snapshotFile.getInputStream()
+            try { targetFile.append(fileStream) } finally { fileStream.close() }
+        ]]></script></actions>
+        <default-response url="."/>
+    </transition>
 
     <actions>
         <script><![CDATA[
@@ -56,22 +67,29 @@ along with this software (see the LICENSE.md file). If not, see
         ]]></script>
     </actions>
     <widgets>
-        <form-single name="ExportData" transition="exportSnapshot">
-            <!-- NOTE: add entities to exclude?, maybe ArtifactHit by default? -->
-            <field name="entitiesToSkip">
-                <default-field><drop-down allow-multiple="true" size="80">
-                    <list-options list="ec.entity.getAllEntitiesInfo('fullEntityName', null, false, true)" key="${fullEntityName}"/>
-                </drop-down></default-field>
-            </field>
-            <field name="fromDate"><default-field><date-time/></default-field></field>
-            <field name="thruDate"><default-field><date-time/></default-field></field>
-            <field name="baseFilename"><default-field><text-line size="40" default-value="MoquiSnapshot${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMddHHmm')}"/></default-field></field>
-            <field name="filePerEntity"><default-field>
-                <radio no-current-selected-key="false"><option key="true"/><option key="false"/></radio>
-            </default-field></field>
-
-            <field name="submitButton"><default-field title="Export Snapshot"><submit/></default-field></field>
-        </form-single>
+        <container-dialog id="ExportDialog" button-text="Export Snapshot">
+            <form-single name="ExportData" transition="exportSnapshot">
+                <!-- NOTE: add entities to exclude?, maybe ArtifactHit by default? -->
+                <field name="entitiesToSkip">
+                    <default-field><drop-down allow-multiple="true" size="80">
+                        <list-options list="ec.entity.getAllEntitiesInfo('fullEntityName', null, false, true)" key="${fullEntityName}"/>
+                    </drop-down></default-field>
+                </field>
+                <field name="fromDate"><default-field><date-time/></default-field></field>
+                <field name="thruDate"><default-field><date-time/></default-field></field>
+                <field name="baseFilename"><default-field><text-line size="40" default-value="MoquiSnapshot${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMddHHmm')}"/></default-field></field>
+                <field name="filePerEntity"><default-field>
+                    <radio no-current-selected-key="false"><option key="true"/><option key="false"/></radio>
+                </default-field></field>
+                <field name="submitButton"><default-field title="Export Snapshot"><submit/></default-field></field>
+            </form-single>
+        </container-dialog>
+        <container-dialog id="UploadDialog" button-text="Upload Snapshot">
+            <form-single name="UploadSnapshot" transition="uploadSnapshot">
+                <field name="snapshotFile"><default-field><file size="50"/></default-field></field>
+                <field name="submitButton"><default-field title="Upload Snapshot"><submit/></default-field></field>
+            </form-single>
+        </container-dialog>
 
         <form-list name="SnapshotList" list="snapshotList" list-entry="sfile">
             <field name="filename" from="sfile.name"><default-field><display/></default-field></field>
