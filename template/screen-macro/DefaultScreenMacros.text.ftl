@@ -12,7 +12,7 @@ along with this software (see the LICENSE.md file). If not, see
 -->
 
 <#-- truncate or pad the textValue plus one space at the end so it is exactly characters chars long -->
-<#macro paddedValue textValue characters=cellCharWidth!0 leftPad=cellLeftPad!false wrapLine=cellWrapLine!0>
+<#macro paddedValue textValue characters=cellCharWidth!lineCharactersNum!0 leftPad=cellLeftPad!false wrapLine=cellWrapLine!0>
     <#if characters == 0><#return></#if>
     <#assign textLength = textValue?length>
     <#assign startChar = wrapLine * characters>
@@ -33,7 +33,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro widgets>
     <#if !lineCharacters?has_content><#assign lineCharacters = "132"></#if>
     <#assign lineCharactersNum = lineCharacters?number>
-    <#assign lineWrapBool = "true" == lineWrap!>
+    <#assign lineWrapBool = ("true" == lineWrap!)>
     <#recurse>
 </#macro>
 <#macro "fail-widgets"><#recurse></#macro>
@@ -49,7 +49,9 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "section-include">${sri.renderSection(.node["@name"])}</#macro>
 
 <#-- ================ Containers ================ -->
-<#macro container><#recurse></#macro>
+<#macro container><#recurse><#-- new line after container -->
+
+</#macro>
 
 <#macro "container-box">
     <#assign cellCharWidth = lineCharactersNum>
