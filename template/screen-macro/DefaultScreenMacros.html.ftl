@@ -1821,9 +1821,8 @@ a => A, d => D, y => Y
     <#assign formInstance = sri.getFormInstance(tlFieldNode?parent["@name"])>
     <#assign validationClasses = formInstance.getFieldValidationClasses(tlFieldNode["@name"])>
     <#assign regexpInfo = formInstance.getFieldValidationRegexpInfo(tlFieldNode["@name"])!>
-    <#assign isAutoComplete = .node["@ac-transition"]?has_content>
     <#-- NOTE: removed number type (<#elseif validationClasses?contains("number")>number) because on Safari, maybe others, ignores size and behaves funny for decimal values -->
-    <#if isAutoComplete>
+    <#if .node["@ac-transition"]?has_content>
         <#assign acUrlInfo = sri.makeUrlByType(.node["@ac-transition"], "transition", .node, "false")>
         <#assign acUrlParameterMap = acUrlInfo.getParameterMap()>
         <#assign acShowValue = .node["@ac-show-value"]! == "true">
@@ -1868,6 +1867,33 @@ a => A, d => D, y => Y
         <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
         <#t><#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if>
         <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>>
+        <#if .node["@default-transition"]?has_content>
+            <#assign defUrlInfo = sri.makeUrlByType(.node["@default-transition"], "transition", .node, "false")>
+            <#assign defUrlParameterMap = defUrlInfo.getParameterMap()>
+            <#assign depNodeList = .node["depends-on"]>
+            <script>
+                function populate_${id}() {
+                    if ($('#${id}').val()) return;
+                    var hasAllParms = true;
+                    <#list depNodeList as depNode>if (!$('#<@fieldIdByName depNode["@field"]/>').val()) { hasAllParms = false; } </#list>
+                    if (!hasAllParms) { <#-- alert("not has all parms"); --> return; }
+                    $.ajax({ type:"POST", url:"${defUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
+                            <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = defUrlParameterMap.remove(depNodeField)!>, "${depNodeField}": $("#<@fieldIdByName depNodeField/>").val()</#list>
+                            <#t><#list defUrlParameterMap?keys as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
+                            <#t>}, dataType:"text" }).done(
+                        function(defaultText) {
+                            if (defaultText) {
+                                $('#${id}').val(defaultText);<#-- clear out the input -->
+                            }
+                        }
+                    );
+                }
+                <#list depNodeList as depNode>
+                $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${id}(); });
+                </#list>
+                populate_${id}();
+            </script>
+        </#if>
     </#if>
 </#macro>
 
