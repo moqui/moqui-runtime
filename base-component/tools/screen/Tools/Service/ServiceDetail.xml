@@ -43,7 +43,7 @@ along with this software (see the LICENSE.md file). If not, see
         <label type="h3" text="In Parameters"/>
         <form-list name="InParameters" list="inParameterNodes" list-entry="parameterNode" skip-form="true">
             <row-actions><script>ec.context.putAll(parameterNode.attributes)</script></row-actions>
-            <field name="name" entry-name="context.name"><default-field><display/></default-field></field>
+            <field name="name" from="context.name"><default-field><display/></default-field></field>
             <field name="type"><default-field><display text="${type?:'String'}"/></default-field></field>
             <field name="required"><default-field><display text="${required?:'false'}"/></default-field></field>
             <field name="default"><default-field><display text="${parameterNode.attribute('default') ?: ''} - ${parameterNode.attribute('default-value') ?: ''}"/></default-field></field>
@@ -55,7 +55,7 @@ along with this software (see the LICENSE.md file). If not, see
         <label type="h3" text="Out Parameters"/>
         <form-list name="OutParameters" list="outParameterNodes" list-entry="parameterNode" skip-form="true">
             <row-actions><script>ec.context.putAll(parameterNode.attributes)</script></row-actions>
-            <field name="name" entry-name="context.name"><default-field><display/></default-field></field>
+            <field name="name" from="context.name"><default-field><display/></default-field></field>
             <field name="type"><default-field><display text="${type?:'String'}"/></default-field></field>
             <field name="required"><default-field><display/></default-field></field>
             <field name="default"><default-field><display text="${parameterNode.attribute('default') ?: ''} - ${parameterNode.attribute('default-value') ?: ''}"/></default-field></field>

@@ -1613,6 +1613,7 @@ a => A, d => D, y => Y
     <#assign dispFieldId><@fieldId .node/></#assign>
     <#assign dispFieldNode = .node?parent?parent>
     <#assign dispAlign = dispFieldNode["@align"]!"left">
+    <#assign dispHidden = (!.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true") && !(skipForm!false)>
     <#assign fieldValue = "">
     <#if .node["@text"]?has_content>
         <#assign textMap = "">
@@ -1633,10 +1634,30 @@ a => A, d => D, y => Y
     <#t><span id="${dispFieldId}_display" class="${sri.getFieldValueClass(dispFieldNode)}<#if .node["@currency-unit-field"]?has_content> currency</#if><#if dispAlign == "center"> text-center<#elseif dispAlign == "right"> text-right</#if>">
     <#t><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if>
     <#t></span>
-    <#t><#if (!.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true") && !(skipForm!false)>
+    <#t><#if dispHidden>
         <#-- use getFieldValuePlainString() and not getFieldValueString() so we don't do timezone conversions, etc -->
         <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
         <input type="hidden" id="${dispFieldId}" name="<@fieldName .node/>" value="${sri.getFieldValuePlainString(dispFieldNode, "")?html}">
+    </#if>
+    <#if .node["@dynamic-transition"]?has_content>
+        <#assign defUrlInfo = sri.makeUrlByType(.node["@dynamic-transition"], "transition", .node, "false")>
+        <#assign defUrlParameterMap = defUrlInfo.getParameterMap()>
+        <#assign depNodeList = .node["depends-on"]>
+        <script>
+            function populate_${dispFieldId}() {
+                var hasAllParms = true;
+                <#list depNodeList as depNode>if (!$('#<@fieldIdByName depNode["@field"]/>').val()) { hasAllParms = false; } </#list>
+                if (!hasAllParms) { <#-- alert("not has all parms"); --> return; }
+                $.ajax({ type:"POST", url:"${defUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
+                    <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = defUrlParameterMap.remove(depNodeField)!>, "${depNodeField}": $("#<@fieldIdByName depNodeField/>").val()</#list>
+                    <#t><#list defUrlParameterMap?keys as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
+                    <#t>}, dataType:"text" }).done( function(defaultText) { if (defaultText) { $('#${dispFieldId}_display').html(defaultText); <#if dispHidden>$('#${dispFieldId}').val(defaultText);</#if> } } );
+            }
+            <#list depNodeList as depNode>
+            $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${dispFieldId}(); });
+            </#list>
+            populate_${dispFieldId}();
+        </script>
     </#if>
 </#macro>
 <#macro "display-entity">
@@ -1656,7 +1677,7 @@ a => A, d => D, y => Y
     <#if !currentValue?has_content><#assign currentValue = ec.getResource().expand(.node["@no-current-selected-key"]!, "")></#if>
     <#if currentValue?starts_with("[")><#assign currentValue = currentValue?substring(1, currentValue?length - 1)?replace(" ", "")></#if>
     <#assign currentValueList = (currentValue?split(","))!>
-    <#if allowMultiple && currentValueList?has_content><#assign currentValue=""></#if>
+    <#if currentValueList?has_content><#if allowMultiple><#assign currentValue=""><#else><#assign currentValue = currentValueList[0]></#if></#if>
     <#assign currentDescription = (options.get(currentValue))!>
     <#assign validationClasses = formInstance.getFieldValidationClasses(.node?parent?parent["@name"])>
     <#assign optionsHasCurrent = currentDescription?has_content>
@@ -1821,9 +1842,8 @@ a => A, d => D, y => Y
     <#assign formInstance = sri.getFormInstance(tlFieldNode?parent["@name"])>
     <#assign validationClasses = formInstance.getFieldValidationClasses(tlFieldNode["@name"])>
     <#assign regexpInfo = formInstance.getFieldValidationRegexpInfo(tlFieldNode["@name"])!>
-    <#assign isAutoComplete = .node["@ac-transition"]?has_content>
     <#-- NOTE: removed number type (<#elseif validationClasses?contains("number")>number) because on Safari, maybe others, ignores size and behaves funny for decimal values -->
-    <#if isAutoComplete>
+    <#if .node["@ac-transition"]?has_content>
         <#assign acUrlInfo = sri.makeUrlByType(.node["@ac-transition"], "transition", .node, "false")>
         <#assign acUrlParameterMap = acUrlInfo.getParameterMap()>
         <#assign acShowValue = .node["@ac-show-value"]! == "true">
@@ -1868,6 +1888,27 @@ a => A, d => D, y => Y
         <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
         <#t><#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if>
         <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>>
+        <#if .node["@default-transition"]?has_content>
+            <#assign defUrlInfo = sri.makeUrlByType(.node["@default-transition"], "transition", .node, "false")>
+            <#assign defUrlParameterMap = defUrlInfo.getParameterMap()>
+            <#assign depNodeList = .node["depends-on"]>
+            <script>
+                function populate_${id}() {
+                    if ($('#${id}').val()) return;
+                    var hasAllParms = true;
+                    <#list depNodeList as depNode>if (!$('#<@fieldIdByName depNode["@field"]/>').val()) { hasAllParms = false; } </#list>
+                    if (!hasAllParms) { <#-- alert("not has all parms"); --> return; }
+                    $.ajax({ type:"POST", url:"${defUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
+                            <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = defUrlParameterMap.remove(depNodeField)!>, "${depNodeField}": $("#<@fieldIdByName depNodeField/>").val()</#list>
+                            <#t><#list defUrlParameterMap?keys as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
+                            <#t>}, dataType:"text" }).done( function(defaultText) { if (defaultText) { $('#${id}').val(defaultText); } } );
+                }
+                <#list depNodeList as depNode>
+                $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${id}(); });
+                </#list>
+                populate_${id}();
+            </script>
+        </#if>
     </#if>
 </#macro>
 

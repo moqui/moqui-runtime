@@ -92,9 +92,9 @@ along with this software (see the LICENSE.md file). If not, see
             <container>
                 <label text="" style="fa fa-heartbeat ${gotMoquiStatus ? 'text-success' : 'text-danger'}" type="i" condition="true" tooltip="Moqui Server Running"/>
                 <label text="Moqui Server ${gotMoquiStatus ? '' : 'Not'} Running" style="${gotMoquiStatus ? 'text-success' : 'text-danger'}" type="strong"/>
-                <label text="Load: ${ec.l10n.format(loadPercent, '00')}%" style="${loadPercent &lt; 70 ? 'text-success' : (loadPercent &gt; 90 ? 'text-warn' : 'text-danger' )}" type="strong" condition="loadPercent"/>
-                <label text="Heap: ${ec.l10n.format(heapPercent, '00')}%" style="${heapPercent &lt; 70 ? 'text-success' : (heapPercent &gt; 90 ? 'text-warn' : 'text-danger' )}" type="strong" condition="heapPercent"/>
-                <label text="Disk: ${ec.l10n.format(diskPercent, '00')}%" style="${diskPercent &lt; 70 ? 'text-success' : (diskPercent &gt; 90 ? 'text-warn' : 'text-danger' )}" type="strong" condition="diskPercent"/>
+                <label text="Load: ${ec.l10n.format(loadPercent, '00')}%" style="${loadPercent &lt; 70 ? 'text-success' : (loadPercent &lt; 90 ? 'text-warn' : 'text-danger' )}" type="strong" condition="loadPercent"/>
+                <label text="Heap: ${ec.l10n.format(heapPercent, '00')}%" style="${heapPercent &lt; 70 ? 'text-success' : (heapPercent &lt; 90 ? 'text-warn' : 'text-danger' )}" type="strong" condition="heapPercent"/>
+                <label text="Disk: ${ec.l10n.format(diskPercent, '00')}%" style="${diskPercent &lt; 70 ? 'text-success' : (diskPercent &lt; 90 ? 'text-warn' : 'text-danger' )}" type="strong" condition="diskPercent"/>
             </container>
 
             <container-dialog id="InstanceDetail" button-text="Instance Detail" width="900">

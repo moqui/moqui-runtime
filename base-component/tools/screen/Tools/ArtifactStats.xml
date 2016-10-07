@@ -57,21 +57,21 @@ along with this software (see the LICENSE.md file). If not, see
             <widgets>
                 <label text="Root Screen: ${rootLocation}" type="h4"/>
                 <form-list name="ScreenInfoList" list="screenInfoList" list-entry="screenInfo" skip-form="true">
-                    <field name="name" entry-name="screenInfo.getIndentedName()">
+                    <field name="name" from="screenInfo.getIndentedName()">
                         <default-field><display/></default-field></field>
-                    <field name="subscreens" entry-name="screenInfo.allSubscreens">
+                    <field name="subscreens" from="screenInfo.allSubscreens">
                         <default-field><display/></default-field></field>
-                    <field name="subscreensNonPlaceholder" entry-name="screenInfo.allSubscreensNonPlaceholder">
+                    <field name="subscreensNonPlaceholder" from="screenInfo.allSubscreensNonPlaceholder">
                         <default-field><display/></default-field></field>
-                    <field name="transitions" entry-name="screenInfo.transitions + screenInfo.allSubscreensTransitions">
+                    <field name="transitions" from="screenInfo.transitions + screenInfo.allSubscreensTransitions">
                         <default-field><display/></default-field></field>
-                    <field name="transitionsWithActions" entry-name="screenInfo.transitionsWithActions + screenInfo.allSubscreensTransitionsWithActions">
+                    <field name="transitionsWithActions" from="screenInfo.transitionsWithActions + screenInfo.allSubscreensTransitionsWithActions">
                         <default-field><display/></default-field></field>
-                    <field name="sections" entry-name="screenInfo.sections + screenInfo.allSubscreensSections">
+                    <field name="sections" from="screenInfo.sections + screenInfo.allSubscreensSections">
                         <default-field><display/></default-field></field>
-                    <field name="forms" entry-name="screenInfo.forms + screenInfo.allSubscreensForms">
+                    <field name="forms" from="screenInfo.forms + screenInfo.allSubscreensForms">
                         <default-field><display/></default-field></field>
-                    <field name="trees" entry-name="screenInfo.trees + screenInfo.allSubscreensTrees">
+                    <field name="trees" from="screenInfo.trees + screenInfo.allSubscreensTrees">
                         <default-field><display/></default-field></field>
                 </form-list>
             </widgets>
