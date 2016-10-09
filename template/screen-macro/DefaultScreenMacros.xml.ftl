@@ -98,7 +98,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFtlFormNode()>
     <#assign listName = formNode["@list"]>
-    <#assign listObject = ec.resource.expression(listName, "")!>
+    <#assign listObject = formInstance.getListObject()!>
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
     <${formNode["@name"]}>
     <#list listObject as listEntry>

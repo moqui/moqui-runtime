@@ -1223,7 +1223,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign skipHeader = (formNode["@skip-header"]! == "true")>
     <#assign formListUrlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
     <#assign listName = formNode["@list"]>
-    <#assign listObject = ec.getResource().expression(listName, "")!>
+    <#assign listObject = formInstance.getListObject()!>
     <#assign listHasContent = listObject?has_content>
 
     <#if !skipStart>

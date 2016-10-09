@@ -291,7 +291,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign isMultiFinalRow = false>
     <#assign urlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
     <#assign listName = formNode["@list"]>
-    <#assign listObject = ec.resource.expression(listName, "")!>
+    <#assign listObject = formInstance.getListObject()!>
     <#if !listObject?has_content><#return></#if>
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
     <#assign columnCharWidths = formInstance.getFormListColumnCharWidths(formListColumnList, lineCharactersNum)>
