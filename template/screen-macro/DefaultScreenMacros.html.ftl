@@ -776,9 +776,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#-- ======================= Form List ========================= -->
 <#-- =========================================================== -->
 
-<#macro paginationHeaderModals formInstance formId isHeaderDialog>
+<#macro paginationHeaderModals formInstance formId isHeaderDialog formListColumnList>
     <#assign formNode = formInstance.getFtlFormNode()>
-    <#assign formListColumnList = formInstance.getFormListColumnInfo()>
     <#assign numColumns = (formListColumnList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
@@ -923,7 +922,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if isSelectColumns>
         <#assign selectColumnsDialogId = formId + "_SelColsDialog">
         <#assign selectColumnsSortableId = formId + "_SelColsSortable">
-        <#assign fieldsNotInColumns = formInstance.getFieldsNotReferencedInFormListColumn()>
+        <#assign fieldsNotInColumns = formInstance.getFieldsNotReferencedInFormListColumn(formListColumnList)>
         <div id="${selectColumnsDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
             <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
                 <div class="modal-header">
@@ -1082,9 +1081,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </div>
     </#if>
 </#macro>
-<#macro paginationHeader formInstance formId isHeaderDialog>
+<#macro paginationHeader formInstance formId isHeaderDialog formListColumnList>
     <#assign formNode = formInstance.getFtlFormNode()>
-    <#assign formListColumnList = formInstance.getFormListColumnInfo()>
     <#assign numColumns = (formListColumnList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
@@ -1223,17 +1221,17 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign skipHeader = (formNode["@skip-header"]! == "true")>
     <#assign formListUrlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
     <#assign listName = formNode["@list"]>
-    <#assign listObject = formInstance.getListObject()!>
+    <#assign listObject = formInstance.getListObject(formListColumnList)!>
     <#assign listHasContent = listObject?has_content>
 
     <#if !skipStart>
         <#assign needHeaderForm = formInstance.isHeaderForm()>
         <#assign isHeaderDialog = needHeaderForm && formNode["@header-dialog"]! == "true">
-        <#if !skipHeader><@paginationHeaderModals formInstance formId isHeaderDialog/></#if>
+        <#if !skipHeader><@paginationHeaderModals formInstance formId isHeaderDialog formListColumnList/></#if>
         <table class="table table-striped table-hover table-condensed" id="${formId}_table">
         <#if !skipHeader>
             <thead>
-                <@paginationHeader formInstance formId isHeaderDialog/>
+                <@paginationHeader formInstance formId isHeaderDialog formListColumnList/>
 
                 <#if needHeaderForm>
                     <#assign curUrlInstance = sri.getCurrentScreenUrl()>
