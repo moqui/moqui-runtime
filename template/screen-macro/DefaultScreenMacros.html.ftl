@@ -629,7 +629,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro "field-ref">
     <#assign fieldRef = .node["@name"]>
     <#assign fieldNode = formInstance.getFtlFieldNode(fieldRef)!>
-    <#if fieldNode??>
+    <#if fieldNode?has_content>
         <@formSingleSubField fieldNode formId/>
     <#else>
         <div>Error: could not find field with name ${fieldRef} referred to in a field-ref.@name attribute.</div>
