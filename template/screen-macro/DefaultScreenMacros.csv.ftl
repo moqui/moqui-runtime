@@ -127,8 +127,8 @@ on the same screen to increase reusability of those screens -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFtlFormNode()>
     <#assign listName = formNode["@list"]>
-    <#assign listObject = ec.resource.expression(listName, "")!>
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
+    <#assign listObject = formInstance.getListObject(formListColumnList)!>
     <#assign hasPrevColumn = false>
     <#list formListColumnList as columnFieldList>
         <#list columnFieldList as fieldNode>

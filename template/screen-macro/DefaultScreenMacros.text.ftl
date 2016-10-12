@@ -167,8 +167,8 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFtlFormNode()>
     <#assign listName = formNode["@list"]>
-    <#assign listObject = ec.resource.expression(listName, "")!>
     <#assign formListColumnList = formInstance.getFormListColumnInfo()>
+    <#assign listObject = formInstance.getListObject(formListColumnList)!>
     <#assign columnCharWidths = formInstance.getFormListColumnCharWidths(formListColumnList, lineCharactersNum)>
     <#-- <#t><#list 1..lineCharactersNum as charNum><#assign charNumMod10 = charNum % 10><#if charNumMod10 == 0>*<#else>${charNumMod10}</#if></#list> -->
     <#list 0..5 as fieldInColIndex>
