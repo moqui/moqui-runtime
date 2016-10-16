@@ -165,11 +165,12 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "form-list">
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
-    <#assign formNode = formInstance.getFtlFormNode()>
+    <#assign formListInfo = formInstance.makeFormListRenderInfo()>
+    <#assign formNode = formListInfo.getFtlFormNode()>
+    <#assign formListColumnList = formListInfo.getAllColInfo()>
+    <#assign listObject = formListInfo.getListObject()!>
     <#assign listName = formNode["@list"]>
-    <#assign formListColumnList = formInstance.getFormListColumnInfo()>
-    <#assign listObject = formInstance.getListObject(formListColumnList)!>
-    <#assign columnCharWidths = formInstance.getFormListColumnCharWidths(formListColumnList, lineCharactersNum)>
+    <#assign columnCharWidths = formListInfo.getFormListColumnCharWidths(lineCharactersNum)>
     <#-- <#t><#list 1..lineCharactersNum as charNum><#assign charNumMod10 = charNum % 10><#if charNumMod10 == 0>*<#else>${charNumMod10}</#if></#list> -->
     <#list 0..5 as fieldInColIndex>
         <#assign hasMoreFields = false>
@@ -196,7 +197,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-        <#t>${sri.startFormListRow(formInstance, listEntry, listEntryIndex, listEntry_has_next)}
+        <#t>${sri.startFormListRow(formListInfo, listEntry, listEntryIndex, listEntry_has_next)}
         <#list 0..5 as fieldInColIndex>
             <#assign hasMoreFields = false>
             <#list 0..10 as lineWrapCounter>

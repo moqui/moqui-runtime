@@ -776,10 +776,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#-- ======================= Form List ========================= -->
 <#-- =========================================================== -->
 
-<#macro paginationHeaderModals formInstance formId isHeaderDialog formListColumnList>
-    <#assign formNode = formInstance.getFtlFormNode()>
-    <#assign numColumns = (formListColumnList?size)!100>
-    <#if numColumns == 0><#assign numColumns = 100></#if>
+<#macro paginationHeaderModals formListInfo formId isHeaderDialog>
+    <#assign formNode = formListInfo.getFtlFormNode()>
+    <#assign allColInfoList = formListInfo.getAllColInfo()>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
     <#assign currentFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("formListFindId")>
@@ -798,7 +797,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#-- Saved Finds -->
                 <#if isSavedFinds && isHeaderDialog><h4 style="margin-top: 0;">${ec.getL10n().localize("Saved Finds")}</h4></#if>
                 <#if isSavedFinds>
-                    <#assign activeFormListFind = formInstance.getActiveFormListFind(ec)!>
+                    <#assign activeFormListFind = formListInfo.getActiveFormListFind(ec)!>
                     <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").url>
                     <#assign descLabel = ec.getL10n().localize("Description")>
                     <#if activeFormListFind?has_content>
@@ -820,7 +819,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#else>
                         <p>${ec.getL10n().localize("No find parameters, choose some to save a new find or update existing")}</p>
                     </#if>
-                    <#assign userFindInfoList = formInstance.getUserFormListFinds(ec)>
+                    <#assign userFindInfoList = formListInfo.getUserFormListFinds(ec)>
                     <#list userFindInfoList as userFindInfo>
                         <#assign formListFind = userFindInfo.formListFind>
                         <#assign findParameters = userFindInfo.findParameters>
@@ -830,7 +829,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#if currentFindUrlParms?has_content>
                             <form class="form-inline" id="${saveFindFormId}" method="post" action="${formSaveFindUrl}">
                                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
-                                <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
+                                <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
                                 <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
                                 <#list currentFindUrlParms.keySet() as parmName>
                                     <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
@@ -887,7 +886,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                             // Filter out asc and desc options if anyone selected.
                                             return results.filter(function(item){return !this._data.some(function(data_item) {return data_item.id.substring(1) === item.id.substring(1);});}, this);
                                         };
-                                        <#assign orderByJsValue = formInstance.getOrderByActualJsString(ec.getContext().orderByField)>
+                                        <#assign orderByJsValue = formListInfo.getOrderByActualJsString(ec.getContext().orderByField)>
                                         <#if orderByJsValue?has_content>$("#${headerFormId}_orderBySelect").selectivity("value", ${orderByJsValue});</#if>
                                         $("div#${headerFormId}_orderBySelect").on("change", function(evt) {
                                             if (evt.value) $("#${headerFormId}_orderByField").val(evt.value.join(","));
@@ -922,7 +921,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if isSelectColumns>
         <#assign selectColumnsDialogId = formId + "_SelColsDialog">
         <#assign selectColumnsSortableId = formId + "_SelColsSortable">
-        <#assign fieldsNotInColumns = formInstance.getFieldsNotReferencedInFormListColumn(formListColumnList)>
+        <#assign fieldsNotInColumns = formListInfo.getFieldsNotReferencedInFormListColumn()>
         <div id="${selectColumnsDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
             <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
                 <div class="modal-header">
@@ -942,7 +941,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             </ul>
                             </#if>
                         </li>
-                        <#list formListColumnList as columnFieldList>
+                        <#list allColInfoList as columnFieldList>
                             <li id="column_${columnFieldList_index}"><div>Column ${columnFieldList_index + 1}</div><ul>
                             <#list columnFieldList as fieldNode>
                                 <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
@@ -950,13 +949,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             </#list>
                             </ul></li>
                         </#list>
-                        <#if formListColumnList?size < 10><#list formListColumnList?size..9 as ind>
+                        <#if allColInfoList?size < 10><#list allColInfoList?size..9 as ind>
                             <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
                         </#list></#if>
                     </ul>
                     <form class="form-inline" id="${formId}_SelColsForm" method="post" action="${sri.buildUrl("formSelectColumns").url}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
-                        <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
+                        <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
                         <input type="hidden" id="${formId}_SelColsForm_columnsTree" name="columnsTree" value="">
                         <#if currentFindUrlParms?has_content><#list currentFindUrlParms.keySet() as parmName>
                             <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
@@ -1081,9 +1080,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </div>
     </#if>
 </#macro>
-<#macro paginationHeader formInstance formId isHeaderDialog formListColumnList>
-    <#assign formNode = formInstance.getFtlFormNode()>
-    <#assign numColumns = (formListColumnList?size)!100>
+<#macro paginationHeader formListInfo formId isHeaderDialog>
+    <#assign formNode = formListInfo.getFtlFormNode()>
+    <#assign mainColInfoList = formListInfo.getMainColInfo()>
+    <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
@@ -1093,7 +1093,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <tr class="form-list-nav-row"><th colspan="${numColumns}">
         <nav class="form-list-nav">
             <#if isSavedFinds>
-                <#assign userFindInfoList = formInstance.getUserFormListFinds(ec)>
+                <#assign userFindInfoList = formListInfo.getUserFormListFinds(ec)>
                 <#if userFindInfoList?has_content>
                     <#assign quickSavedFindId = formId + "_QuickSavedFind">
                     <select id="${quickSavedFindId}">
@@ -1211,8 +1211,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if sri.doBoundaryComments()><!-- BEGIN form-list[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
-    <#assign formNode = formInstance.getFtlFormNode()>
-    <#assign formListColumnList = formInstance.getFormListColumnInfo()>
+    <#assign formListInfo = formInstance.makeFormListRenderInfo()>
+    <#assign formNode = formListInfo.getFtlFormNode()>
+    <#assign mainColInfoList = formListInfo.getMainColInfo()>
     <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#assign isMulti = formNode["@multi"]! == "true">
     <#assign skipStart = (formNode["@skip-start"]! == "true")>
@@ -1221,17 +1222,17 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign skipHeader = (formNode["@skip-header"]! == "true")>
     <#assign formListUrlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
     <#assign listName = formNode["@list"]>
-    <#assign listObject = formInstance.getListObject(formListColumnList)!>
+    <#assign listObject = formListInfo.getListObject()!>
     <#assign listHasContent = listObject?has_content>
 
     <#if !skipStart>
-        <#assign needHeaderForm = formInstance.isHeaderForm()>
+        <#assign needHeaderForm = formListInfo.isHeaderForm()>
         <#assign isHeaderDialog = needHeaderForm && formNode["@header-dialog"]! == "true">
-        <#if !skipHeader><@paginationHeaderModals formInstance formId isHeaderDialog formListColumnList/></#if>
+        <#if !skipHeader><@paginationHeaderModals formListInfo formId isHeaderDialog/></#if>
         <table class="table table-striped table-hover table-condensed" id="${formId}_table">
         <#if !skipHeader>
             <thead>
-                <@paginationHeader formInstance formId isHeaderDialog formListColumnList/>
+                <@paginationHeader formListInfo formId isHeaderDialog/>
 
                 <#if needHeaderForm>
                     <#assign curUrlInstance = sri.getCurrentScreenUrl()>
@@ -1240,12 +1241,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                         <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-                        <#assign hiddenFieldList = formInstance.getListHiddenFieldList()>
+                        <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
                         <#list hiddenFieldList as hiddenField><#if hiddenField["header-field"]?has_content><#recurse hiddenField["header-field"][0]/></#if></#list>
                 <#else>
                     <tr>
                 </#if>
-                <#list formListColumnList as columnFieldList>
+                <#list mainColInfoList as columnFieldList>
                     <#-- TODO: how to handle column style? <th<#if fieldListColumn["@style"]?has_content> class="${fieldListColumn["@style"]}"</#if>> -->
                     <th>
                     <#list columnFieldList as fieldNode>
@@ -1282,7 +1283,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if listHasContent><#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-        ${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}
+        ${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
         <#if isMulti || skipForm>
             <tr>
         <#else>
@@ -1291,10 +1292,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
         </#if>
         <#-- hidden fields -->
-        <#assign hiddenFieldList = formInstance.getListHiddenFieldList()>
+        <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
         <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
         <#-- actual columns -->
-        <#list formListColumnList as columnFieldList>
+        <#list mainColInfoList as columnFieldList>
             <td>
             <#list columnFieldList as fieldNode>
                 <@formListSubField fieldNode true false isMulti false/>
@@ -1319,7 +1320,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
     <#if !skipEnd>
         <#if isMulti && !skipForm && listHasContent>
-            <tr><td colspan="${formListColumnList?size}">
+            <tr><td colspan="${mainColInfoList?size}">
                 <#list formNode["field"] as fieldNode><@formListSubField fieldNode false false true true/></#list>
             </td></tr>
             </form>
@@ -1787,7 +1788,6 @@ a => A, d => D, y => Y
 -->
 
 <#macro password>
-    <#assign formInstance = sri.getFormInstance(.node?parent?parent?parent["@name"])>
     <#assign validationClasses = formInstance.getFieldValidationClasses(.node?parent?parent["@name"])>
     <input type="password" name="<@fieldName .node/>" id="<@fieldId .node/>" class="form-control<#if validationClasses?has_content> ${validationClasses}</#if>" size="${.node.@size!"25"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if validationClasses?contains("required")> required</#if>>
 </#macro>
@@ -1837,7 +1837,6 @@ a => A, d => D, y => Y
     <#assign id><@fieldId .node/></#assign>
     <#assign name><@fieldName .node/></#assign>
     <#assign fieldValue = sri.getFieldValueString(.node)>
-    <#assign formInstance = sri.getFormInstance(tlFieldNode?parent["@name"])>
     <#assign validationClasses = formInstance.getFieldValidationClasses(tlFieldNode["@name"])>
     <#assign regexpInfo = formInstance.getFieldValidationRegexpInfo(tlFieldNode["@name"])!>
     <#-- NOTE: removed number type (<#elseif validationClasses?contains("number")>number) because on Safari, maybe others, ignores size and behaves funny for decimal values -->
