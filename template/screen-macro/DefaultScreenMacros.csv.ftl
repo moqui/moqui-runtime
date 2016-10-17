@@ -128,7 +128,7 @@ on the same screen to increase reusability of those screens -->
     <#assign formListInfo = formInstance.makeFormListRenderInfo()>
     <#assign formNode = formListInfo.getFtlFormNode()>
     <#assign formListColumnList = formListInfo.getAllColInfo()>
-    <#assign listObject = formListInfo.getListObject()!>
+    <#assign listObject = formListInfo.getListObject(false)!>
     <#assign listName = formNode["@list"]>
     <#assign hasPrevColumn = false>
     <#list formListColumnList as columnFieldList>

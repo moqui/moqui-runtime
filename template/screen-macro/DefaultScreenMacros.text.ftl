@@ -168,7 +168,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign formListInfo = formInstance.makeFormListRenderInfo()>
     <#assign formNode = formListInfo.getFtlFormNode()>
     <#assign formListColumnList = formListInfo.getAllColInfo()>
-    <#assign listObject = formListInfo.getListObject()!>
+    <#assign listObject = formListInfo.getListObject(false)!>
     <#assign listName = formNode["@list"]>
     <#assign columnCharWidths = formListInfo.getFormListColumnCharWidths(lineCharactersNum)>
     <#-- <#t><#list 1..lineCharactersNum as charNum><#assign charNumMod10 = charNum % 10><#if charNumMod10 == 0>*<#else>${charNumMod10}</#if></#list> -->
