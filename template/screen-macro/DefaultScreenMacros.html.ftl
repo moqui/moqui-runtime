@@ -1262,7 +1262,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </#list>
                 </tr>
                 <#if hasSubColumns>
-                    <tr><td colspan="${numColumns}"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed"><thead>
+                    <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed"><thead>
                         <#list subColInfoList as subColFieldList><th>
                             <#list subColFieldList as fieldNode>
                                 <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") ||
@@ -1317,7 +1317,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#list>
         <#if hasSubColumns><#assign aggregateSubList = listEntry["aggregateSubList"]!><#if aggregateSubList?has_content>
             </tr>
-            <tr><td colspan="${numColumns}"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed">
+            <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed">
                 <#list aggregateSubList as subListEntry><tr>
                     ${sri.startFormListSubRow(formListInfo, subListEntry, subListEntry_index, subListEntry_has_next)}
                     <#list subColInfoList as subColFieldList><td>

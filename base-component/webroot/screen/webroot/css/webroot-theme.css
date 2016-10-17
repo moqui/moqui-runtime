@@ -44,7 +44,11 @@ input:focus:valid, textarea:focus:valid { background-color: #EEE; }
 .form-order-by a.active:hover { color: darkred; }
 
 nav.form-list-nav, table.table>thead>tr>th { background: #EEE; }
+.form-list-sub-rows table.table>thead>tr>th { background: #D8D8D8; }
 .bg-dark nav.form-list-nav, .bg-dark table.table>thead>tr>th { background: #333; }
+.bg-dark .form-list-sub-rows table.table>thead>tr>th { background: #383838; }
+.form-list-sub-rows td { background: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.1)); }
+.bg-dark .form-list-sub-rows td { background: linear-gradient(rgba(192,192,192,0.1),rgba(192,192,192,0.1)); }
 
 /* ======================= Handy Styles ======================= */
 
@@ -81,7 +85,8 @@ ul.float-box li { background: #EEEEEE; box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 
 .bg-dark .panel, .bg-dark .panel-heading { border-color: #222; }
 
 /* Variations on Bootstrap default table styles */
-.bg-dark .table-striped th, .bg-dark .table-striped td { border-color: #222; }
+.table .table { background-color: transparent; }
+.bg-dark .table-striped th, .bg-dark .table-striped td { border-color: transparent; }
 .bg-dark .table-striped > tbody > tr:nth-child(odd) > td { background-color: #303030; }
 .bg-dark .table-hover > tbody > tr:hover > td { background-color: #444444; }
 
