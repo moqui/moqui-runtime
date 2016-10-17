@@ -28,6 +28,9 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="../Login"/><error-response url="."/></transition>
 
     <pre-actions><script>
+        // if user already logged in redirect to root
+        if (ec.user.username) sri.sendRedirectAndStopRender('/')
+
         // jQuery/UI
         html_scripts.add('/lib/jquery/jquery.min.js')
         // Bootstrap
