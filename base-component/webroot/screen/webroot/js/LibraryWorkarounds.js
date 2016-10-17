@@ -12,6 +12,10 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
+// this is a fix for Select2 search input within Bootstrap Modal
+$.fn.modal.Constructor.prototype.enforceFocus = function() {};
+
+// set validator defaults that work with select2
 $.validator.setDefaults({
     errorPlacement: function (error, element) {
         if (element.parent('.input-group').length) {
@@ -39,7 +43,7 @@ $.validator.prototype.errorsFor = function( element ) {
         .filter( selector );
  };
 
-//custom event handler. programmatically trigger validation.
+// custom event handler: programmatically trigger validation
 $(function(){
     $('.select2-hidden-accessible').on('change', function() {
         $(this).valid();

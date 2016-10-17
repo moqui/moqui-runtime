@@ -64,8 +64,8 @@ along with this software (see the LICENSE.md file). If not, see
         // Sortable Hierarchical List
         html_scripts.add('/lib/jquery-sortable-lists/jquery-sortable-lists.min.js')
 
-        // select2 jquery validator integration
-        html_scripts.add('/js/select2-validate.js')
+        // Workarounds for library issues (select2 jquery validator integration, select2 Bootstrap Modal fix, extensions, etc)
+        html_scripts.add('/js/LibraryWorkarounds.js')
 
         // Moqui Notification Client
         html_scripts.add('/js/NotificationClient.js')
