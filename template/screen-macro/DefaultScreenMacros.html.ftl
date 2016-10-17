@@ -1214,6 +1214,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign formListInfo = formInstance.makeFormListRenderInfo()>
     <#assign formNode = formListInfo.getFtlFormNode()>
     <#assign mainColInfoList = formListInfo.getMainColInfo()>
+    <#assign subColInfoList = formListInfo.getSubColInfo()!>
+    <#assign hasSubColumns = subColInfoList?has_content>
+    <#assign numColumns = (mainColInfoList?size)!100>
+    <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#assign isMulti = formNode["@multi"]! == "true">
     <#assign skipStart = (formNode["@skip-start"]! == "true")>
@@ -1237,15 +1241,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if needHeaderForm>
                     <#assign curUrlInstance = sri.getCurrentScreenUrl()>
                     <#assign headerFormId = formId + "_header">
-                    <tr>
                     <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                         <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
                         <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
                         <#list hiddenFieldList as hiddenField><#if hiddenField["header-field"]?has_content><#recurse hiddenField["header-field"][0]/></#if></#list>
-                <#else>
-                    <tr>
                 </#if>
+                <tr>
                 <#list mainColInfoList as columnFieldList>
                     <#-- TODO: how to handle column style? <th<#if fieldListColumn["@style"]?has_content> class="${fieldListColumn["@style"]}"</#if>> -->
                     <th>
@@ -1258,15 +1260,26 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </#list>
                     </th>
                 </#list>
+                </tr>
+                <#if hasSubColumns>
+                    <tr><td colspan="${numColumns}"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed"><thead>
+                        <#list subColInfoList as subColFieldList><th>
+                            <#list subColFieldList as fieldNode>
+                                <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") ||
+                                ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
+                                (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
+                                    <div><@formListHeaderField fieldNode isHeaderDialog/></div>
+                                </#if>
+                            </#list>
+                        </th></#list>
+                    </thead></table></div></td></tr>
+                </#if>
                 <#if needHeaderForm>
                     </form>
-                    </tr>
                     <#if _dynamic_container_id?has_content>
                         <#-- if we have an _dynamic_container_id this was loaded in a dynamic-container so init ajaxForm; for examples see http://www.malsup.com/jquery/form/#ajaxForm -->
                         <script>$("#${headerFormId}").ajaxForm({ target: '#${_dynamic_container_id}', <#-- success: activateAllButtons, --> resetForm: false });</script>
                     </#if>
-                <#else>
-                    </tr>
                 </#if>
             </thead>
         </#if>
@@ -1302,6 +1315,20 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#list>
             </td>
         </#list>
+        <#if hasSubColumns><#assign aggregateSubList = listEntry["aggregateSubList"]!><#if aggregateSubList?has_content>
+            </tr>
+            <tr><td colspan="${numColumns}"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed">
+                <#list aggregateSubList as subListEntry><tr>
+                    ${sri.startFormListSubRow(formListInfo, subListEntry, subListEntry_index, subListEntry_has_next)}
+                    <#list subColInfoList as subColFieldList><td>
+                        <#list subColFieldList as fieldNode>
+                            <@formListSubField fieldNode true false isMulti false/>
+                        </#list>
+                    </td></#list>
+                    ${sri.endFormListSubRow()}
+                </tr></#list>
+            </table></div></td><#-- note no /tr, let following blocks handle it -->
+        </#if></#if>
         <#if isMulti || skipForm>
             </tr>
         <#else>
@@ -1320,7 +1347,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
     <#if !skipEnd>
         <#if isMulti && !skipForm && listHasContent>
-            <tr><td colspan="${mainColInfoList?size}">
+            <tr><td colspan="${numColumns}">
                 <#list formNode["field"] as fieldNode><@formListSubField fieldNode false false true true/></#list>
             </td></tr>
             </form>
