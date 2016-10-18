@@ -49,3 +49,32 @@ $(function(){
         $(this).valid();
     });
 });
+
+// function to set columns across multiple tables to the same width
+function makeColumnsConsistent(outerId) {
+    var tableArr = $('#' + outerId + ' table');
+
+    var widthMaxArr = [];
+    for(var i = 0; i < tableArr.length; i++) {
+        var row = tableArr[i].rows[0];
+        for(var j = 0; j < row.cells.length; j++) {
+            var curWidth = $(row.cells[j]).width();
+            if (!widthMaxArr[j] || widthMaxArr[j] < curWidth) widthMaxArr[j] = curWidth;
+        }
+    }
+
+    var numCols = widthMaxArr.length;
+    var totalWidth = 0;
+    for (i = 0; i < numCols; i++) totalWidth += widthMaxArr[i];
+    var widthPercents = [];
+    for (i = 0; i < numCols; i++) widthPercents[i] = (widthMaxArr[i] * 100) / totalWidth;
+
+    console.log("Columns " + numCols + ", percents: " + widthPercents);
+
+    for(i = 0; i < tableArr.length; i++) {
+        row = tableArr[i].rows[0];
+        for(j = 0; j < row.cells.length; j++) {
+            row.cells[j].style.width = widthPercents[j]+'%';
+        }
+    }
+}
