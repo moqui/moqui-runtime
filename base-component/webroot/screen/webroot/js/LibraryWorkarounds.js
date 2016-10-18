@@ -69,7 +69,7 @@ function makeColumnsConsistent(outerId) {
     var widthPercents = [];
     for (i = 0; i < numCols; i++) widthPercents[i] = (widthMaxArr[i] * 100) / totalWidth;
 
-    console.log("Columns " + numCols + ", percents: " + widthPercents);
+    // console.log("Columns " + numCols + ", percents: " + widthPercents);
 
     for(i = 0; i < tableArr.length; i++) {
         row = tableArr[i].rows[0];
