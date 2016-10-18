@@ -50,6 +50,8 @@ nav.form-list-nav, table.table>thead>tr>th { background: #EEE; }
 .form-list-sub-rows td { background: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.1)); }
 .bg-dark .form-list-sub-rows td { background: linear-gradient(rgba(192,192,192,0.1),rgba(192,192,192,0.1)); }
 
+.form-single-field-group { border-top: #888 solid thin; }
+
 /* ======================= Handy Styles ======================= */
 
 ul.float-box li { background: #EEEEEE; box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 0 1px #CCCCCC;

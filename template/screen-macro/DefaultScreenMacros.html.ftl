@@ -673,12 +673,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
 </#macro>
 <#macro "field-group">
-    <h3><a href="#">${ec.getL10n().localize(.node["@title"]!("Fields"))}</a></h3>
-    <div<#if .node["@style"]?has_content> class="${.node["@style"]}"</#if>>
-        <#recurse .node/>
-    </div>
+    <#assign fgTitle = ec.getL10n().localize(.node["@title"]!)!>
+    <#if isAccordion!false>
+        <h3><a href="#">${fgTitle!"Fields"}</a></h3>
+        <div<#if .node["@style"]?has_content> class="${.node["@style"]}"</#if>>
+            <#recurse .node/>
+        </div>
+    <#else>
+        <div<#if .node["@style"]?has_content> class="${.node["@style"]}"</#if> class="form-single-field-group">
+            <#if fgTitle?has_content><h5>${fgTitle}</h5></#if>
+            <#recurse .node/>
+        </div>
+    </#if>
 </#macro>
 <#macro "field-accordion">
+    <#assign isAccordion = true>
     <#assign accordionId = .node["@id"]!(formId + "_accordion")>
     <#assign collapsible = .node["@collapsible"]! == "true">
     <#assign active = .node["@active"]!>
@@ -686,6 +695,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#recurse .node/>
     </div><!-- /collapsible accordionId ${accordionId} -->
     <script>$("#${accordionId}").accordion({ collapsible: <#if collapsible>true<#else>false</#if>,<#if active?has_content> active: ${active},</#if> heightStyle: "content" });</script>
+    <#assign isAccordion = false>
 </#macro>
 
 <#macro formSingleSubField fieldNode formId>
