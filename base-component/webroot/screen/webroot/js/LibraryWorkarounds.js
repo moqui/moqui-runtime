@@ -12,6 +12,10 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
+// this is a fix for Select2 search input within Bootstrap Modal
+$.fn.modal.Constructor.prototype.enforceFocus = function() {};
+
+// set validator defaults that work with select2
 $.validator.setDefaults({
     errorPlacement: function (error, element) {
         if (element.parent('.input-group').length) {
@@ -39,9 +43,38 @@ $.validator.prototype.errorsFor = function( element ) {
         .filter( selector );
  };
 
-//custom event handler. programmatically trigger validation.
+// custom event handler: programmatically trigger validation
 $(function(){
     $('.select2-hidden-accessible').on('change', function() {
         $(this).valid();
     });
 });
+
+// function to set columns across multiple tables to the same width
+function makeColumnsConsistent(outerId) {
+    var tableArr = $('#' + outerId + ' table');
+
+    var widthMaxArr = [];
+    for(var i = 0; i < tableArr.length; i++) {
+        var row = tableArr[i].rows[0];
+        for(var j = 0; j < row.cells.length; j++) {
+            var curWidth = $(row.cells[j]).width();
+            if (!widthMaxArr[j] || widthMaxArr[j] < curWidth) widthMaxArr[j] = curWidth;
+        }
+    }
+
+    var numCols = widthMaxArr.length;
+    var totalWidth = 0;
+    for (i = 0; i < numCols; i++) totalWidth += widthMaxArr[i];
+    var widthPercents = [];
+    for (i = 0; i < numCols; i++) widthPercents[i] = (widthMaxArr[i] * 100) / totalWidth;
+
+    // console.log("Columns " + numCols + ", percents: " + widthPercents);
+
+    for(i = 0; i < tableArr.length; i++) {
+        row = tableArr[i].rows[0];
+        for(j = 0; j < row.cells.length; j++) {
+            row.cells[j].style.width = widthPercents[j]+'%';
+        }
+    }
+}

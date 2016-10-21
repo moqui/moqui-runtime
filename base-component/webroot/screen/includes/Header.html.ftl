@@ -28,9 +28,6 @@
 <#list sri.getThemeValues("STRT_SHORTCUT_ICON") as iconLocation>
     <link rel="shortcut icon" href="${sri.buildUrl(iconLocation).url}">
 </#list>
-
-    <#-- this is a fix for Select2 search input within Bootstrap Modal -->
-    <script>$.fn.modal.Constructor.prototype.enforceFocus = function() {};</script>
 </head>
 
 <#assign bodyClassList = sri.getThemeValues("STRT_BODY_CLASS")>

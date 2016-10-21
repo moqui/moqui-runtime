@@ -125,10 +125,11 @@ on the same screen to increase reusability of those screens -->
 <#macro "form-list">
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
-    <#assign formNode = formInstance.getFtlFormNode()>
+    <#assign formListInfo = formInstance.makeFormListRenderInfo()>
+    <#assign formNode = formListInfo.getFtlFormNode()>
+    <#assign formListColumnList = formListInfo.getAllColInfo()>
+    <#assign listObject = formListInfo.getListObject(false)!>
     <#assign listName = formNode["@list"]>
-    <#assign formListColumnList = formInstance.getFormListColumnInfo()>
-    <#assign listObject = formInstance.getListObject(formListColumnList)!>
     <#assign hasPrevColumn = false>
     <#list formListColumnList as columnFieldList>
         <#list columnFieldList as fieldNode>
@@ -143,7 +144,7 @@ on the same screen to increase reusability of those screens -->
     <#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-        ${sri.startFormListRow(formInstance, listEntry, listEntry_index, listEntry_has_next)}<#t>
+        ${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}<#t>
         <#assign hasPrevColumn = false>
         <#list formListColumnList as columnFieldList>
             <#list columnFieldList as fieldNode>

@@ -286,15 +286,17 @@ along with this software (see the LICENSE.md file). If not, see
 <#if sri.doBoundaryComments()><!-- BEGIN form-list[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
-    <#assign formNode = formInstance.getFtlFormNode()>
+    <#assign formListInfo = formInstance.makeFormListRenderInfo()>
+    <#assign formNode = formListInfo.getFtlFormNode()>
+    <#assign formListColumnList = formListInfo.getAllColInfo()>
+    <#assign listObject = formListInfo.getListObject(false)!>
+    <#assign listName = formNode["@list"]>
+
     <#assign isMulti = formNode["@multi"]! == "true">
     <#assign isMultiFinalRow = false>
     <#assign urlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
-    <#assign listName = formNode["@list"]>
-    <#assign formListColumnList = formInstance.getFormListColumnInfo()>
-    <#assign listObject = formInstance.getListObject(formListColumnList)!>
     <#if !listObject?has_content><#return></#if>
-    <#assign columnCharWidths = formInstance.getFormListColumnCharWidths(formListColumnList, lineCharactersNum)>
+    <#assign columnCharWidths = formListInfo.getFormListColumnCharWidths(lineCharactersNum)>
 
     <#if !(formNode["@paginate"]! == "false") && context[listName + "Count"]?? && (context[listName + "Count"]! > 0)>
         <fo:block>${context[listName + "PageRangeLow"]} - ${context[listName + "PageRangeHigh"]} / ${context[listName + "Count"]}</fo:block>
@@ -319,7 +321,7 @@ along with this software (see the LICENSE.md file). If not, see
             <#list listObject as listEntry>
                 <#assign listEntryIndex = listEntry_index>
                 <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-                ${sri.startFormListRow(formInstance, listEntry, listEntryIndex, listEntry_has_next)}
+                ${sri.startFormListRow(formListInfo, listEntry, listEntryIndex, listEntry_has_next)}
                 <fo:table-row<#if listEntryIndex % 2 == 0> background-color="#EEEEEE"</#if>>
                     <#list formListColumnList as columnFieldList>
                         <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
