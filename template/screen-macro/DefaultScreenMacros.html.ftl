@@ -576,7 +576,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
-    <#assign formNode = formInstance.getFtlFormNode()>
+    <#assign formNode = formInstance.getFormNode()>
     <#t>${sri.pushSingleFormMapContext(formNode)}
     <#assign skipStart = formNode["@skip-start"]! == "true">
     <#assign skipEnd = formNode["@skip-end"]! == "true">
@@ -631,7 +631,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 <#macro "field-ref">
     <#assign fieldRef = .node["@name"]>
-    <#assign fieldNode = formInstance.getFtlFieldNode(fieldRef)!>
+    <#assign fieldNode = formInstance.getFieldNode(fieldRef)!>
     <#if fieldNode?has_content>
         <@formSingleSubField fieldNode formId/>
     <#else>
@@ -790,7 +790,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#-- =========================================================== -->
 
 <#macro paginationHeaderModals formListInfo formId isHeaderDialog>
-    <#assign formNode = formListInfo.getFtlFormNode()>
+    <#assign formNode = formListInfo.getFormNode()>
     <#assign allColInfoList = formListInfo.getAllColInfo()>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
@@ -1094,7 +1094,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
 </#macro>
 <#macro paginationHeader formListInfo formId isHeaderDialog>
-    <#assign formNode = formListInfo.getFtlFormNode()>
+    <#assign formNode = formListInfo.getFormNode()>
     <#assign mainColInfoList = formListInfo.getMainColInfo()>
     <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
@@ -1225,7 +1225,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formListInfo = formInstance.makeFormListRenderInfo()>
-    <#assign formNode = formListInfo.getFtlFormNode()>
+    <#assign formNode = formListInfo.getFormNode()>
     <#assign mainColInfoList = formListInfo.getMainColInfo()>
     <#assign subColInfoList = formListInfo.getSubColInfo()!>
     <#assign hasSubColumns = subColInfoList?has_content>

@@ -134,7 +134,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#-- ======================= Form ========================= -->
 <#macro "form-single">
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
-    <#assign formNode = sri.getFtlFormNode(.node["@name"])>
+    <#assign formNode = sri.getFormNode(.node["@name"])>
     <#t>${sri.pushSingleFormMapContext(formNode)}
     <#list formNode["field"] as fieldNode>
         <#t><@formSingleSubField fieldNode/>${"\n"}
@@ -166,7 +166,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formListInfo = formInstance.makeFormListRenderInfo()>
-    <#assign formNode = formListInfo.getFtlFormNode()>
+    <#assign formNode = formListInfo.getFormNode()>
     <#assign formListColumnList = formListInfo.getAllColInfo()>
     <#assign listObject = formListInfo.getListObject(false)!>
     <#assign listName = formNode["@list"]>

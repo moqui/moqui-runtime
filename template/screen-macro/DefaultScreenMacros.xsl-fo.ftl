@@ -192,7 +192,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
-    <#assign formNode = formInstance.getFtlFormNode()>
+    <#assign formNode = formInstance.getFormNode()>
     <#t>${sri.pushSingleFormMapContext(formNode)}
     <#assign curFieldWidthIn = layoutWidthIn>
     <#assign inFieldRowBig = false>
@@ -206,7 +206,7 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 <#macro "field-ref">
     <#assign fieldRef = .node["@name"]>
-    <#assign fieldNode = formInstance.getFtlFieldNode(fieldRef)!>
+    <#assign fieldNode = formInstance.getFieldNode(fieldRef)!>
     <#if fieldNode??>
         <@formSingleSubField fieldNode/>
     <#else>
@@ -287,7 +287,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formListInfo = formInstance.makeFormListRenderInfo()>
-    <#assign formNode = formListInfo.getFtlFormNode()>
+    <#assign formNode = formListInfo.getFormNode()>
     <#assign formListColumnList = formListInfo.getAllColInfo()>
     <#assign listObject = formListInfo.getListObject(false)!>
     <#assign listName = formNode["@list"]>

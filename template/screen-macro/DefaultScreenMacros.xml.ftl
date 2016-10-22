@@ -97,7 +97,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formListInfo = formInstance.makeFormListRenderInfo()>
-    <#assign formNode = formListInfo.getFtlFormNode()>
+    <#assign formNode = formListInfo.getFormNode()>
     <#assign formListColumnList = formListInfo.getAllColInfo()>
     <#assign listObject = formListInfo.getListObject(false)!>
     <#assign listName = formNode["@list"]>
