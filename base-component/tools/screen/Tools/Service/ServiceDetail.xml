@@ -29,8 +29,8 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <set field="sd" from="ec.service.getServiceDefinition(serviceName)"/>
         <set field="serviceNode" from="sd.serviceNode"/>
-        <set field="inParameterNodes" from="serviceNode.first('in-parameters').children('parameter')"/>
-        <set field="outParameterNodes" from="serviceNode.first('out-parameters').children('parameter')"/>
+        <set field="inParameterNodes" from="serviceNode.first('in-parameters')?.children('parameter')"/>
+        <set field="outParameterNodes" from="serviceNode.first('out-parameters')?.children('parameter')"/>
     </actions>
     <widgets>
         <label type="h2" text="${sd.serviceName}"/>

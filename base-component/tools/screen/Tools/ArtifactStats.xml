@@ -33,7 +33,7 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <label text="Entity Stats" type="h3"/>
-        <label text="Entities: ${entityCount}, View Entities: ${viewEntityCount}, EECA rules: ${ec.entity.getEecaRuleCount()}" type="p"/>
+        <label text="Entities: ${entityCount as int}, View Entities: ${viewEntityCount as int}, EECA rules: ${ec.entity.getEecaRuleCount()}" type="p"/>
         <form-list name="EntityInfoList" list="entityInfoList" skip-form="true">
             <field name="name"><default-field><display/></default-field></field>
             <field name="entities"><default-field><display/></default-field></field>
