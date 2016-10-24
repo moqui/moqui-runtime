@@ -22,6 +22,7 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="loadPercent" from="(smap.Utilization.LoadPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
         <set field="heapPercent" from="(smap.Utilization.HeapPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
         <set field="diskPercent" from="(smap.Utilization.DiskPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
+        <set field="componentInfoList" from="StupidUtilities.orderMapList(ec.factory.getComponentInfoList(), ['^name'])"/>
     </actions>
     <widgets>
         <container-row><row-col md="6">
@@ -122,11 +123,17 @@ along with this software (see the LICENSE.md file). If not, see
                     <row-col xs="7"><label text="${smap.JavaStats.ThreadCount} (${smap.JavaStats.PeakThreadCount} peak)"/></row-col></container-row>
             </row-col></container-row>
         </box-body><box-body-nopad>
-            <form-list name="DatasourceList" list="smap.DataSources">
-                <field name="group"><default-field><display/></default-field></field>
+            <form-list name="DatasourceList" list="smap.DataSources" skip-form="true">
+                <field name="group"><default-field title="Entity Group"><display/></default-field></field>
                 <field name="uniqueName"><default-field><display/></default-field></field>
                 <field name="database"><default-field><display/></default-field></field>
                 <field name="detail"><default-field><display/></default-field></field>
+            </form-list>
+            <form-list name="ComponentInfoList" list="componentInfoList" skip-form="true">
+                <field name="name"><default-field title="Component Name"><display/></default-field></field>
+                <field name="version"><default-field><display/></default-field></field>
+                <field name="location"><default-field><display/></default-field></field>
+                <field name="dependsOnNames"><default-field><display/></default-field></field>
             </form-list>
         </box-body-nopad></container-box>
     </widgets>
