@@ -810,7 +810,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#-- Saved Finds -->
                 <#if isSavedFinds && isHeaderDialog><h4 style="margin-top: 0;">${ec.getL10n().localize("Saved Finds")}</h4></#if>
                 <#if isSavedFinds>
-                    <#assign activeFormListFind = formListInfo.getActiveFormListFind(ec)!>
+                    <#assign activeFormListFind = formListInfo.getFormInstance().getActiveFormListFind(ec)!>
                     <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").url>
                     <#assign descLabel = ec.getL10n().localize("Description")>
                     <#if activeFormListFind?has_content>
@@ -1087,7 +1087,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <button type="submit" class="btn btn-default">${ec.getL10n().localize("Generate PDF")}</button>
                         </fieldset>
                     </form>
-                    <script>$("#${formId}_Pdf_layoutMaster").select2({ minimumResultsForSearch:20, theme:'bootstrap' });</script>
+                    <script>$("#${formId}_Pdf_layoutMaster").select2({ ${select2DefaultOptions} });</script>
                 </div>
             </div></div>
         </div>
@@ -1116,11 +1116,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <#assign formListFind = userFindInfo.formListFind>
                             <#assign findParameters = userFindInfo.findParameters>
                             <#assign doFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameters(findParameters).removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
-                            <option value="${formListFind.formListFindId}" <#if formListFind.formListFindId == ec.getContext().formListFindId!>selected="selected"</#if>data-action="${doFindUrl.urlWithParams}">${userFindInfo.description?html}</option>
+                            <option value="${formListFind.formListFindId}"<#if formListFind.formListFindId == ec.getContext().formListFindId!> selected="selected"</#if> data-action="${doFindUrl.urlWithParams}">${userFindInfo.description?html}</option>
                         </#list>
                     </select>
                     <script>
-                        $("#${quickSavedFindId}").select2({ minimumResultsForSearch:10, theme:'bootstrap', placeholder:'${ec.getL10n().localize("Saved Finds")}' });
+                        $("#${quickSavedFindId}").select2({ ${select2DefaultOptions}, placeholder:'${ec.getL10n().localize("Saved Finds")}' });
                         $("#${quickSavedFindId}").on('select2:select', function(evt) {
                             var dataAction = $(evt.params.data.element).attr("data-action");
                             if (dataAction) window.open(dataAction, "_self");
@@ -1587,8 +1587,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <option value="year" <#if fvPeriod == "year"> selected="selected"</#if>>${ec.getL10n().localize("Year")}</option>
         </select>
         <script>
-            $("#${id}_poffset").select2({ minimumResultsForSearch:20, theme:'bootstrap' });
-            $("#${id}_period").select2({ minimumResultsForSearch:20, theme:'bootstrap' });
+            $("#${id}_poffset").select2({ ${select2DefaultOptions} });
+            $("#${id}_period").select2({ ${select2DefaultOptions} });
         </script>
     </div>
 </#macro>
