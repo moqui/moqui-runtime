@@ -45,8 +45,8 @@ $.validator.prototype.errorsFor = function( element ) {
 
 // custom event handler: programmatically trigger validation
 $(function(){
-    $('.select2-hidden-accessible').on('change', function() {
-        $(this).valid();
+    $('.select2-hidden-accessible').on('select2:select', function(evt) {
+        $(evt.params.data.element).valid();
     });
 });
 
