@@ -13,7 +13,7 @@ along with this software (see the LICENSE.md file). If not, see
 -->
 
 <#-- set here because used in drop-down, container-dialog and dynamic-dialog -->
-<#assign select2DefaultOptions = "minimumResultsForSearch:10, theme:'bootstrap'">
+<#assign select2DefaultOptions = "minimumResultsForSearch:15, theme:'bootstrap'">
 
 <#macro @element><p>=== Doing nothing for element ${.node?node_name}, not yet implemented. ===</p></#macro>
 
@@ -1572,10 +1572,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <option value="-2"<#if fvOffset == "-2"> selected="selected"</#if>>-2</option>
             <option value="-3"<#if fvOffset == "-3"> selected="selected"</#if>>-3</option>
             <option value="-4"<#if fvOffset == "-4"> selected="selected"</#if>>-4</option>
+            <option value="-5"<#if fvOffset == "-5"> selected="selected"</#if>>-5</option>
             <option value="1"<#if fvOffset == "1"> selected="selected"</#if>>${ec.getL10n().localize("Next")}</option>
             <option value="2"<#if fvOffset == "2"> selected="selected"</#if>>+2</option>
             <option value="3"<#if fvOffset == "3"> selected="selected"</#if>>+3</option>
             <option value="4"<#if fvOffset == "4"> selected="selected"</#if>>+4</option>
+            <option value="5"<#if fvOffset == "5"> selected="selected"</#if>>+5</option>
         </select>
         <select name="${curFieldName}_period" id="${id}_period"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <#if (allowEmpty! != "false")>
