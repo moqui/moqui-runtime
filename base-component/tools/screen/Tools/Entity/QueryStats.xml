@@ -22,7 +22,7 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <set field="queryStatsList" from="ec.entity.getQueryStatsList(orderByField?:'-totalTime', entityFilter, sqlFilter)"/>
         <set field="pageSize" from="pageSize ?: '40'"/>
-        <script>StupidUtilities.paginateList("queryStatsList", null, context)</script>
+        <script>paginateList("queryStatsList", null, context)</script>
     </actions>
     <widgets>
         <link url="clearQueryStats" text="Clear Stats"/>

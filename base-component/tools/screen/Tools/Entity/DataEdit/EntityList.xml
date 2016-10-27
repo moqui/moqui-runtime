@@ -26,7 +26,7 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <set field="pageSize" from="pageSize ?: 60"/>
         <set field="entityList" from="ec.entity.getAllEntitiesInfo(orderByField?:'fullEntityName', filterRegexp, false, false)"/>
-        <script>StupidUtilities.paginateList("entityList", null, context)</script>
+        <script>paginateList("entityList", null, context)</script>
     </actions>
     <widgets>
         <link url="checkTables" text="Check/Update All Tables"/>

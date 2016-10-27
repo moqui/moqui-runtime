@@ -29,7 +29,7 @@ along with this software (see the LICENSE.md file). If not, see
                     lockName:thread.lockName, lockOwnerName:thread.lockOwnerName, lockOwnerId:thread.lockOwnerId,
                     blockedTime:thread.blockedTime, waitedTime:thread.waitedTime])
         }
-        StupidUtilities.orderMapList(threadMapList, [orderByField])
+        orderMapList(threadMapList, [orderByField])
         </script>
     </actions>
     <widgets>

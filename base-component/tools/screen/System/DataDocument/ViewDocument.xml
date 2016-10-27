@@ -24,12 +24,13 @@ along with this software (see the LICENSE.md file). If not, see
         import groovy.json.JsonOutput
         import org.elasticsearch.client.Client
         import org.elasticsearch.action.get.GetResponse
+        import org.moqui.context.ExecutionContext
 
-        org.moqui.context.ExecutionContext ec = context.ec
+        ExecutionContext ec = context.ec
         Client elasticSearchClient = ec.getTool("ElasticSearch", Client.class)
         GetResponse docGr = elasticSearchClient.prepareGet(_index, _type, _id).execute().actionGet()
         documentString = JsonOutput.prettyPrint(docGr.getSourceAsString())
-        flattenedDocumentMap = StupidUtilities.flattenNestedMap(docGr.getSourceAsMap())
+        flattenedDocumentMap = flattenNestedMap(docGr.getSourceAsMap())
     </script></actions>
     <widgets>
         <label text="Flattened Map" type="h4"/>
