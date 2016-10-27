@@ -23,16 +23,15 @@ along with this software (see the LICENSE.md file). If not, see
         <!-- See WebrootThemeData.xml for CSS references -->
         <set field="html_stylesheets" from="new LinkedHashSet()"/>
     </always-actions>
+    <transition name="status">
+        <actions><script>ec.web.sendJsonResponse(ec.factory.getStatusMap())</script></actions>
+        <default-response type="none"/>
+    </transition>
+
     <subscreens default-item="apps">
         <subscreens-item name="toolstatic" location="component://tools/screen/toolstatic.xml" menu-include="false"/>
         <!-- add UNDECORATED (or self-decorating) app roots here -->
     </subscreens>
-    
-    <transition name="status">
-        <actions><script>ec.web.sendJsonResponse(StupidUtilities.getStatusMap(ec))</script></actions>
-        <default-response type="none"/>
-    </transition>
-    
     <widgets>
         <render-mode>
             <text type="html" location="component://webroot/screen/includes/Header.html.ftl" no-boundary-comment="true"/>

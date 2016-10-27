@@ -43,7 +43,7 @@ along with this software (see the LICENSE.md file). If not, see
 
         <set field="pageSize" from="pageSize ?: 40"/>
         <set field="cacheElementList" from="ec.cache.makeElementInfoList(cacheName, orderByField?:'+key')"/>
-        <script>StupidUtilities.paginateList("cacheElementList", null, context)</script>
+        <script>paginateList("cacheElementList", null, context)</script>
     </actions>
     <widgets>
         <label text="Elements for Cache [${cacheName}]" type="h3"/>

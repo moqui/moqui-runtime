@@ -13,7 +13,7 @@ along with this software (see the LICENSE.md file). If not, see
 -->
 
 <#-- set here because used in drop-down, container-dialog and dynamic-dialog -->
-<#assign select2DefaultOptions = "minimumResultsForSearch:10, theme:'bootstrap'">
+<#assign select2DefaultOptions = "minimumResultsForSearch:15, theme:'bootstrap'">
 
 <#macro @element><p>=== Doing nothing for element ${.node?node_name}, not yet implemented. ===</p></#macro>
 
@@ -432,17 +432,17 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#else>
             <#assign textMap = "">
             <#if linkNode["@text-map"]?has_content><#assign textMap = ec.getResource().expression(linkNode["@text-map"], "")!></#if>
-            <#if textMap?has_content>
-                <#assign linkText = ec.getResource().expand(linkNode["@text"], "", textMap)>
-            <#else>
-                <#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")>
-            </#if>
+            <#if textMap?has_content><#assign linkText = ec.getResource().expand(linkNode["@text"], "", textMap)>
+                <#else><#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")></#if>
         </#if>
-        <#if !linkNode["@encode"]?has_content || linkNode["@encode"] == "true"><#assign linkText = linkText?html></#if>
-        <#assign urlInstance = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
-        <#assign linkDivId><@nodeId .node/></#assign>
-        <@linkFormForm linkNode linkDivId linkText urlInstance/>
-        <@linkFormLink linkNode linkDivId linkText urlInstance/>
+        <#if linkText == "null"><#assign linkText = ""></#if>
+        <#if linkText?has_content || linkNode["image"]?has_content>
+            <#if linkNode["@encode"]! != "false"><#assign linkText = linkText?html></#if>
+            <#assign urlInstance = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
+            <#assign linkDivId><@nodeId .node/></#assign>
+            <@linkFormForm linkNode linkDivId linkText urlInstance/>
+            <@linkFormLink linkNode linkDivId linkText urlInstance/>
+        </#if>
     </#if>
 </#macro>
 <#macro linkFormLink linkNode linkFormId linkText urlInstance>
@@ -462,7 +462,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if linkNode["@url-noparam"]! == "true"><#assign urlText = urlInstance.url/>
                     <#else><#assign urlText = urlInstance.urlWithParams/></#if>
             </#if>
-            <a href="${urlText}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if> class="<#if linkNode["@link-type"]! != "anchor">btn btn-primary btn-sm</#if><#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"<#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>><#if iconClass?has_content><i class="${iconClass}"></i></#if>
+            <#rt><a href="${urlText}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if> class="<#if linkNode["@link-type"]! != "anchor">btn btn-primary btn-sm</#if><#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"<#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>><#if iconClass?has_content><i class="${iconClass}"></i></#if>
             <#t><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if>
             <#t></a>
         <#else>
@@ -751,18 +751,18 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#else>
                     <#assign textMap = "">
                     <#if linkNode["@text-map"]?has_content><#assign textMap = ec.getResource().expression(linkNode["@text-map"], "")!></#if>
-                    <#if textMap?has_content>
-                        <#assign linkText = ec.getResource().expand(linkNode["@text"], "", textMap)>
-                    <#else>
-                        <#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")>
-                    </#if>
+                    <#if textMap?has_content><#assign linkText = ec.getResource().expand(linkNode["@text"], "", textMap)>
+                        <#else><#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")></#if>
                 </#if>
-                <#if !linkNode["@encode"]?has_content || linkNode["@encode"] == "true"><#assign linkText = linkText?html></#if>
-                <#assign linkUrlInfo = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
-                <#assign linkFormId><@fieldId linkNode/></#assign>
-                <#assign afterFormText><@linkFormForm linkNode linkFormId linkText linkUrlInfo/></#assign>
-                <#t>${sri.appendToAfterScreenWriter(afterFormText)}
-                <#t><@linkFormLink linkNode linkFormId linkText linkUrlInfo/>
+                <#if linkText == "null"><#assign linkText = ""></#if>
+                <#if linkText?has_content || linkNode["image"]?has_content>
+                    <#if linkNode["@encode"]! != "false"><#assign linkText = linkText?html></#if>
+                    <#assign linkUrlInfo = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
+                    <#assign linkFormId><@fieldId linkNode/></#assign>
+                    <#assign afterFormText><@linkFormForm linkNode linkFormId linkText linkUrlInfo/></#assign>
+                    <#t>${sri.appendToAfterScreenWriter(afterFormText)}
+                    <#t><@linkFormLink linkNode linkFormId linkText linkUrlInfo/>
+                </#if>
             </#if>
         <#elseif widgetNode?node_name == "set"><#-- do nothing, handled above -->
         <#else><#t><#visit widgetNode>
@@ -810,7 +810,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#-- Saved Finds -->
                 <#if isSavedFinds && isHeaderDialog><h4 style="margin-top: 0;">${ec.getL10n().localize("Saved Finds")}</h4></#if>
                 <#if isSavedFinds>
-                    <#assign activeFormListFind = formListInfo.getActiveFormListFind(ec)!>
+                    <#assign activeFormListFind = formListInfo.getFormInstance().getActiveFormListFind(ec)!>
                     <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").url>
                     <#assign descLabel = ec.getL10n().localize("Description")>
                     <#if activeFormListFind?has_content>
@@ -1087,7 +1087,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <button type="submit" class="btn btn-default">${ec.getL10n().localize("Generate PDF")}</button>
                         </fieldset>
                     </form>
-                    <script>$("#${formId}_Pdf_layoutMaster").select2({ minimumResultsForSearch:20, theme:'bootstrap' });</script>
+                    <script>$("#${formId}_Pdf_layoutMaster").select2({ ${select2DefaultOptions} });</script>
                 </div>
             </div></div>
         </div>
@@ -1116,11 +1116,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <#assign formListFind = userFindInfo.formListFind>
                             <#assign findParameters = userFindInfo.findParameters>
                             <#assign doFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameters(findParameters).removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
-                            <option value="${formListFind.formListFindId}" <#if formListFind.formListFindId == ec.getContext().formListFindId!>selected="selected"</#if>data-action="${doFindUrl.urlWithParams}">${userFindInfo.description?html}</option>
+                            <option value="${formListFind.formListFindId}"<#if formListFind.formListFindId == ec.getContext().formListFindId!> selected="selected"</#if> data-action="${doFindUrl.urlWithParams}">${userFindInfo.description?html}</option>
                         </#list>
                     </select>
                     <script>
-                        $("#${quickSavedFindId}").select2({ minimumResultsForSearch:10, theme:'bootstrap', placeholder:'${ec.getL10n().localize("Saved Finds")}' });
+                        $("#${quickSavedFindId}").select2({ ${select2DefaultOptions}, placeholder:'${ec.getL10n().localize("Saved Finds")}' });
                         $("#${quickSavedFindId}").on('select2:select', function(evt) {
                             var dataAction = $(evt.params.data.element).attr("data-action");
                             if (dataAction) window.open(dataAction, "_self");
@@ -1466,12 +1466,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#if textMap?has_content><#assign linkText = ec.getResource().expand(linkNode["@text"], "", textMap)>
                             <#else><#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")></#if>
                     </#if>
-                    <#if !linkNode["@encode"]?has_content || linkNode["@encode"] == "true"><#assign linkText = linkText?html></#if>
-                    <#assign linkUrlInfo = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
-                    <#assign linkFormId><@fieldId linkNode/>_${linkNode["@url"]?replace(".", "_")}</#assign>
-                    <#assign afterFormText><@linkFormForm linkNode linkFormId linkText linkUrlInfo/></#assign>
-                    <#t>${sri.appendToAfterScreenWriter(afterFormText)}
-                    <#t><@linkFormLink linkNode linkFormId linkText linkUrlInfo/>
+                    <#if linkText == "null"><#assign linkText = ""></#if>
+                    <#if linkText?has_content || linkNode["image"]?has_content>
+                        <#if linkNode["@encode"]! != "false"><#assign linkText = linkText?html></#if>
+                        <#assign linkUrlInfo = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
+                        <#assign linkFormId><@fieldId linkNode/>_${linkNode["@url"]?replace(".", "_")}</#assign>
+                        <#assign afterFormText><@linkFormForm linkNode linkFormId linkText linkUrlInfo/></#assign>
+                        <#t>${sri.appendToAfterScreenWriter(afterFormText)}
+                        <#t><@linkFormLink linkNode linkFormId linkText linkUrlInfo/>
+                    </#if>
                 </#if>
             <#elseif widgetNode?node_name == "set"><#-- do nothing, handled above -->
             <#else><#t><#visit widgetNode></#if>
@@ -1569,10 +1572,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <option value="-2"<#if fvOffset == "-2"> selected="selected"</#if>>-2</option>
             <option value="-3"<#if fvOffset == "-3"> selected="selected"</#if>>-3</option>
             <option value="-4"<#if fvOffset == "-4"> selected="selected"</#if>>-4</option>
+            <option value="-5"<#if fvOffset == "-5"> selected="selected"</#if>>-5</option>
             <option value="1"<#if fvOffset == "1"> selected="selected"</#if>>${ec.getL10n().localize("Next")}</option>
             <option value="2"<#if fvOffset == "2"> selected="selected"</#if>>+2</option>
             <option value="3"<#if fvOffset == "3"> selected="selected"</#if>>+3</option>
             <option value="4"<#if fvOffset == "4"> selected="selected"</#if>>+4</option>
+            <option value="5"<#if fvOffset == "5"> selected="selected"</#if>>+5</option>
         </select>
         <select name="${curFieldName}_period" id="${id}_period"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <#if (allowEmpty! != "false")>
@@ -1584,8 +1589,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <option value="year" <#if fvPeriod == "year"> selected="selected"</#if>>${ec.getL10n().localize("Year")}</option>
         </select>
         <script>
-            $("#${id}_poffset").select2({ minimumResultsForSearch:20, theme:'bootstrap' });
-            $("#${id}_period").select2({ minimumResultsForSearch:20, theme:'bootstrap' });
+            $("#${id}_poffset").select2({ ${select2DefaultOptions} });
+            $("#${id}_period").select2({ ${select2DefaultOptions} });
         </script>
     </div>
 </#macro>

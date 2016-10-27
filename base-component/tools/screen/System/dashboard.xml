@@ -18,11 +18,11 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="threadList"><default-response url="../ThreadList"/></transition>
 
     <actions>
-        <set field="smap" from="StupidUtilities.getStatusMap(ec)"/>
+        <set field="smap" from="ec.factory.getStatusMap()"/>
         <set field="loadPercent" from="(smap.Utilization.LoadPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
         <set field="heapPercent" from="(smap.Utilization.HeapPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
         <set field="diskPercent" from="(smap.Utilization.DiskPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
-        <set field="componentInfoList" from="StupidUtilities.orderMapList(ec.factory.getComponentInfoList(), ['^name'])"/>
+        <set field="componentInfoList" from="orderMapList(ec.factory.getComponentInfoList(), ['^name'])"/>
     </actions>
     <widgets>
         <container-row><row-col md="6">

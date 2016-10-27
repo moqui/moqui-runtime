@@ -46,7 +46,7 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <set field="cacheList" from="ec.cache.getAllCachesInfo(orderByField?:'+name', filterRegexp)"/>
         <set field="pageSize" from="pageSize ?: '40'"/>
-        <script>StupidUtilities.paginateList("cacheList", null, context)</script>
+        <script>paginateList("cacheList", null, context)</script>
 
         <set field="memoryMXBean" from="java.lang.management.ManagementFactory.getMemoryMXBean()"/>
         <set field="heapMemoryUsage" from="memoryMXBean.getHeapMemoryUsage()"/>
