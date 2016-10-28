@@ -11,7 +11,7 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 
-<#macro attributeValue textValue>${Static["org.moqui.impl.StupidUtilities"].encodeForXmlAttribute(textValue)}</#macro>
+<#macro attributeValue textValue>${Static["org.moqui.util.StringUtilities"].encodeForXmlAttribute(textValue)}</#macro>
 
 <#macro @element><#-- Doing nothing for element ${.node?node_name}, not yet implemented. --></#macro>
 <#macro screen><#recurse></#macro>
