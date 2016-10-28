@@ -28,7 +28,7 @@ along with this software (see the LICENSE.md file). If not, see
             import org.moqui.entity.EntityCondition
             import org.moqui.entity.EntityConditionFactory
             import org.moqui.screen.ScreenTest
-            import org.moqui.service.RestClient
+            import org.moqui.util.RestClient
 
             import java.text.DecimalFormat
             import java.sql.Timestamp
