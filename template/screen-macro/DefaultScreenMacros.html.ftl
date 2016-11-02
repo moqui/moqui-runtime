@@ -1584,6 +1584,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <option value="">&nbsp;</option>
             </#if>
             <option value="day" <#if fvPeriod == "day"> selected="selected"</#if>>${ec.getL10n().localize("Day")}</option>
+            <option value="7d" <#if fvPeriod == "7d"> selected="selected"</#if>>7 ${ec.getL10n().localize("Days")}</option>
+            <option value="30d" <#if fvPeriod == "30d"> selected="selected"</#if>>30 ${ec.getL10n().localize("Days")}</option>
             <option value="week" <#if fvPeriod == "week"> selected="selected"</#if>>${ec.getL10n().localize("Week")}</option>
             <option value="month" <#if fvPeriod == "month"> selected="selected"</#if>>${ec.getL10n().localize("Month")}</option>
             <option value="year" <#if fvPeriod == "year"> selected="selected"</#if>>${ec.getL10n().localize("Year")}</option>
