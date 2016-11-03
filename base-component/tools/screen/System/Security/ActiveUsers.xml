@@ -20,7 +20,7 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <entity-find entity-name="moqui.server.VisitUserSummary" list="visitUserList">
             <search-form-inputs default-order-by="-visitCount"><default-parameters
-                    fromDate_poffset="0" fromDate_period="Month"/></search-form-inputs>
+                    fromDate_poffset="-1" fromDate_period="30d"/></search-form-inputs>
             <select-field field-name="userId,visitCount,fromDateMin,fromDateMax"/>
         </entity-find>
     </actions>
