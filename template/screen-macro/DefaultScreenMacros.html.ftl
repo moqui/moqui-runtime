@@ -338,6 +338,7 @@ ${sri.renderSection(.node["@name"])}
     <#assign ddDivId><@nodeId .node/></#assign>
 
     <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+    <#assign afterFormText>
     <div id="${ddDivId}" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
         <div class="modal-dialog" style="width: ${.node["@width"]!"760"}px;">
             <div class="modal-content">
@@ -358,6 +359,8 @@ ${sri.renderSection(.node["@name"])}
         $('#${ddDivId}').on('shown.bs.modal', function() {$("#${ddDivId} select").select2({ ${select2DefaultOptions} });});
         <#if _openDialog! == ddDivId>$('#${ddDivId}').modal('show');</#if>
     </script>
+    </#assign>
+    <#t>${sri.appendToAfterScreenWriter(afterFormText)}
 </#macro>
 
 <#-- ==================== Includes ==================== -->
