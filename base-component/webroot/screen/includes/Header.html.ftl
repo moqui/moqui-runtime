@@ -2,7 +2,6 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <#if html_keywords?has_content><meta name="keywords" content="${html_keywords}"></#if>
     <#if html_description?has_content><meta name="description" content="${html_description}"></#if>
@@ -19,16 +18,15 @@
 </#list>
 <#-- JavaScript -->
 <#list html_scripts?if_exists as scriptLocation>
-    <script language="javascript" src="${sri.buildUrl(scriptLocation).url}" type="text/javascript"></script>
+    <script src="${sri.buildUrl(scriptLocation).url}" type="text/javascript"></script>
 </#list>
 <#list sri.getThemeValues("STRT_SCRIPT") as scriptLocation>
-    <script language="javascript" src="${sri.buildUrl(scriptLocation).url}" type="text/javascript"></script>
+    <script src="${sri.buildUrl(scriptLocation).url}" type="text/javascript"></script>
 </#list>
 <#-- Icon -->
 <#list sri.getThemeValues("STRT_SHORTCUT_ICON") as iconLocation>
     <link rel="shortcut icon" href="${sri.buildUrl(iconLocation).url}">
 </#list>
 </head>
-
 <#assign bodyClassList = sri.getThemeValues("STRT_BODY_CLASS")>
 <body class="${(ec.user.getPreference("OUTER_STYLE")!(bodyClassList?first))!"bg-light"} ${(sri.screenUrlInfo.targetScreen.screenName)!""}<#if hideNav! == "true"> hide-nav</#if>"><!-- try "bg-dark" or "bg-light" -->

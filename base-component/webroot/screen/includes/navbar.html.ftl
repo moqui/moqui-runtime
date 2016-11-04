@@ -1,4 +1,3 @@
-
 <nav class="navbar navbar-inverse navbar-fixed-top"><#-- navbar-static-top -->
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
@@ -47,9 +46,9 @@
                         <#if screenHistory.imageType == "icon">
                             <i class="${screenHistory.image}" style="padding-right: 8px;"></i>
                         <#elseif screenHistory.imageType == "url-plain">
-                            <img src="${screenHistory.image}" width="18" style="padding-right: 4px;"/>
+                            <img src="${screenHistory.image}" alt="${screenHistory.name}" width="18" style="padding-right: 4px;"/>
                         <#else>
-                            <img src="${sri.buildUrl(screenHistory.image).url}" height="18" style="padding-right: 4px;"/>
+                            <img src="${sri.buildUrl(screenHistory.image).url}" alt="${screenHistory.name}" height="18" style="padding-right: 4px;"/>
                         </#if>
                     <#else>
                         <i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
