@@ -1730,18 +1730,19 @@ a => A, d => D, y => Y
 </#macro>
 
 <#macro "drop-down">
+    <#assign ddFieldNode = .node?parent?parent>
     <#assign id><@fieldId .node/></#assign>
     <#assign allowMultiple = ec.getResource().expand(.node["@allow-multiple"]!, "") == "true">
     <#assign isDynamicOptions = .node["dynamic-options"]?has_content>
     <#assign name><@fieldName .node/></#assign>
     <#assign options = sri.getFieldOptions(.node)>
-    <#assign currentValue = sri.getFieldValueString(.node)>
-    <#if !currentValue?has_content><#assign currentValue = ec.getResource().expand(.node["@no-current-selected-key"]!, "")></#if>
+    <#assign currentValue = sri.getFieldValuePlainString(ddFieldNode, "")>
+    <#if !currentValue?has_content><#assign currentValue = ec.getResource().expandNoL10n(.node["@no-current-selected-key"]!, "")></#if>
     <#if currentValue?starts_with("[")><#assign currentValue = currentValue?substring(1, currentValue?length - 1)?replace(" ", "")></#if>
     <#assign currentValueList = (currentValue?split(","))!>
     <#if currentValueList?has_content><#if allowMultiple><#assign currentValue=""><#else><#assign currentValue = currentValueList[0]></#if></#if>
     <#assign currentDescription = (options.get(currentValue))!>
-    <#assign validationClasses = formInstance.getFieldValidationClasses(.node?parent?parent["@name"])>
+    <#assign validationClasses = formInstance.getFieldValidationClasses(ddFieldNode["@name"])>
     <#assign optionsHasCurrent = currentDescription?has_content>
     <#if !optionsHasCurrent && .node["@current-description"]?has_content>
         <#assign currentDescription = ec.getResource().expand(.node["@current-description"], "")></#if>
