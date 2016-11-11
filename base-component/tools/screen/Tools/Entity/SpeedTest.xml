@@ -23,7 +23,7 @@ along with this software (see the LICENSE.md file). If not, see
             import groovy.transform.CompileStatic
             import javax.cache.Cache
             import org.moqui.context.ExecutionContext
-            import org.moqui.entity.EntityFacade
+            import org.moqui.impl.entity.EntityFacadeImpl
             import org.moqui.entity.EntityValue
             import org.moqui.entity.EntityCondition
             import org.moqui.entity.EntityConditionFactory
@@ -56,7 +56,7 @@ along with this software (see the LICENSE.md file). If not, see
                 boolean screenRenderTests = true
                 boolean restApiTests = true
 
-                EntityFacade ef = ec.entity
+                EntityFacadeImpl ef = (EntityFacadeImpl) ec.entity
                 Timestamp nowTs = new Timestamp(System.currentTimeMillis())
 
                 // NOTE: long sleep times (like 1000ms) do help the numbers, but still somewhat inconsistent
@@ -134,10 +134,17 @@ along with this software (see the LICENSE.md file). If not, see
                     ef.find("moqui.basic.Enumeration").condition("enumId", "_NA_").useCache(true).one()
                     calls = baseCallsNum
                     startTime = System.nanoTime()
-                    for (int i = 0; i < calls; i++)
-                        ef.find("moqui.basic.Enumeration").condition("enumId", "_NA_").useCache(true).one()
+                    for (int i = 0; i < calls; i++) ef.find("moqui.basic.Enumeration").condition("enumId", "_NA_").useCache(true).one()
                     milliseconds = ((System.nanoTime() - startTime) / 1E6)
                     performanceList.add([operation     : "one PK cache", entity: "moqui.basic.Enumeration",
+                                         calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
+                                         callsPerSecond: ((calls / milliseconds) * 1000)])
+
+                    // one PK cache fast find
+                    startTime = System.nanoTime()
+                    for (int i = 0; i < calls; i++) ef.fastFindOne("moqui.basic.Enumeration", true, false, "_NA_")
+                    milliseconds = ((System.nanoTime() - startTime) / 1E6)
+                    performanceList.add([operation     : "one PK cache fast", entity: "moqui.basic.Enumeration",
                                          calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
                                          callsPerSecond: ((calls / milliseconds) * 1000)])
 
@@ -158,10 +165,17 @@ along with this software (see the LICENSE.md file). If not, see
                     // one PK
                     calls = baseCallsNum
                     startTime = System.nanoTime()
-                    for (int i = 0; i < calls; i++)
-                        ef.find("moqui.basic.Enumeration").condition("enumId", "_NA_").useCache(false).one()
+                    for (int i = 0; i < calls; i++) ef.find("moqui.basic.Enumeration").condition("enumId", "_NA_").useCache(false).one()
                     milliseconds = ((System.nanoTime() - startTime) / 1E6)
                     performanceList.add([operation     : "one PK", entity: "moqui.basic.Enumeration",
+                                         calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
+                                         callsPerSecond: ((calls / milliseconds) * 1000)])
+
+                    // one PK fast find
+                    startTime = System.nanoTime()
+                    for (int i = 0; i < calls; i++) ef.fastFindOne("moqui.basic.Enumeration", false, false, "_NA_")
+                    milliseconds = ((System.nanoTime() - startTime) / 1E6)
+                    performanceList.add([operation     : "one PK fast", entity: "moqui.basic.Enumeration",
                                          calls         : calls, milliseconds: milliseconds, msPerCall: (milliseconds / calls),
                                          callsPerSecond: ((calls / milliseconds) * 1000)])
 
