@@ -438,7 +438,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#else><#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")></#if>
         </#if>
         <#if linkText == "null"><#assign linkText = ""></#if>
-        <#if linkText?has_content || linkNode["image"]?has_content>
+        <#if linkText?has_content || linkNode["image"]?has_content || linkNode["@icon"]?has_content>
             <#if linkNode["@encode"]! != "false"><#assign linkText = linkText?html></#if>
             <#assign urlInstance = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
             <#assign linkDivId><@nodeId .node/></#assign>
@@ -757,7 +757,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#else><#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")></#if>
                 </#if>
                 <#if linkText == "null"><#assign linkText = ""></#if>
-                <#if linkText?has_content || linkNode["image"]?has_content>
+                <#if linkText?has_content || linkNode["image"]?has_content || linkNode["@icon"]?has_content>
                     <#if linkNode["@encode"]! != "false"><#assign linkText = linkText?html></#if>
                     <#assign linkUrlInfo = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
                     <#assign linkFormId><@fieldId linkNode/></#assign>
@@ -1482,7 +1482,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#else><#assign linkText = ec.getResource().expand(linkNode["@text"]!"", "")></#if>
                 </#if>
                 <#if linkText == "null"><#assign linkText = ""></#if>
-                <#if linkText?has_content || linkNode["image"]?has_content>
+                <#if linkText?has_content || linkNode["image"]?has_content || linkNode["@icon"]?has_content>
                     <#if linkNode["@encode"]! != "false"><#assign linkText = linkText?html></#if>
                     <#assign linkUrlInfo = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
                     <#assign linkFormId><@fieldId linkNode/>_${linkNode["@url"]?replace(".", "_")}</#assign>
