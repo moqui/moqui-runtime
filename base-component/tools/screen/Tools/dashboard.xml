@@ -15,7 +15,6 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         default-menu-index="1" menu-image="glyphicon glyphicon-dashboard" menu-image-type="icon">
 
-    <!-- NOTE: this blows up in various ways, more work needed to reload ECFI on the fly -->
     <transition name="reloadEcfi" begin-transaction="false">
         <actions>
             <script>ec.factory.triggerDynamicReInit()</script>
@@ -96,6 +95,6 @@ along with this software (see the LICENSE.md file). If not, see
             </row-col>
         </container-row>
 
-        <link url="reloadEcfi" text="Reload Framework" link-type="anchor" confirmation="Are you sure? This is for development and emergency use only."/>
+        <!-- <link url="reloadEcfi" text="Reload Framework" link-type="anchor" confirmation="Are you sure? This is for development and emergency use only."/> -->
     </widgets>
 </screen>
