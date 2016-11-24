@@ -1,7 +1,7 @@
 
 # Moqui Runtime Release Notes
 
-## Release 2.0.0 - Not Yet Released
+## Release 2.0.0 - 24 Nov 2016
 
 Moqui Runtime 2.0.0 is a major new feature and bug fix release, in parallel with the release of Moqui Framework.
 
