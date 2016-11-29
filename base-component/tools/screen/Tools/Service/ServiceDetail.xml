@@ -18,6 +18,9 @@ along with this software (see the LICENSE.md file). If not, see
 
     <parameter name="serviceName" required="true"/>
 
+    <transition name="serviceReference">
+        <default-response url="../ServiceReference"/>
+    </transition>
     <transition name="serviceRun">
         <default-response url="../ServiceRun"/>
     </transition>
@@ -33,6 +36,11 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="outParameterNodes" from="serviceNode.first('out-parameters')?.children('parameter')"/>
     </actions>
     <widgets>
+        <container>
+            <link url="serviceReference" text="Service List"/>
+            <link url="serviceRun" text="Run Service"/>
+        </container>
+
         <label type="h2" text="${sd.serviceName}"/>
         <label type="strong" text="${serviceNode.first('description')?.text ?: ''}" display-if-empty="false"/>
         <!-- <label type="p" text="${serviceNode.attributes}"/> -->
@@ -75,7 +83,7 @@ along with this software (see the LICENSE.md file). If not, see
                         style="language-groovy" encode="false"/></container>
             </widgets>
         </section>
-        <section name="LocationDisplaySection" condition="sd.serviceNode.attribute('location')">
+        <section name="LocationDisplaySection" condition="sd.serviceNode.attribute('location') &amp;&amp; sd.serviceNode.attribute('type')!='java'">
             <widgets>
                 <label text="Script" type="h3"/>
                 <container type="pre" style="line-numbers"><label text="${ec.resource.getLocationText(sd.serviceNode.attribute('location'), false)}"
