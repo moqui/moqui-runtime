@@ -131,11 +131,7 @@ on the same screen to increase reusability of those screens -->
     <#assign hasPrevColumn = false>
     <#list formListColumnList as columnFieldList>
         <#list columnFieldList as fieldNode>
-            <#if !(fieldNode["@hide"]! == "true" ||
-                    ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                    (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
-                <#t><@formListHeaderField fieldNode/>
-            </#if>
+            <#t><@formListHeaderField fieldNode/>
         </#list>
     </#list>
 
@@ -163,7 +159,6 @@ on the same screen to increase reusability of those screens -->
         <#-- this only makes sense for fields with a single conditional -->
         <#assign fieldSubNode = fieldNode["conditional-field"][0]>
     </#if>
-    <#if fieldSubNode["ignored"]?has_content || fieldSubNode["hidden"]?has_content || fieldSubNode["submit"]?has_content><#return/></#if>
     <#t><#if hasPrevColumn>,<#else><#assign hasPrevColumn = true></#if><@fieldTitle fieldSubNode/>
 </#macro>
 <#macro formListSubField fieldNode>
