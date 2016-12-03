@@ -54,7 +54,7 @@ along with this software (see the LICENSE.md file). If not, see
         html_scripts.add('/lib/moment/moment-with-locales.min.js')
         html_scripts.add('/lib/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js')
         // Drop-down (Select2, Selectivity)
-        html_scripts.add('/lib/select2/select2.min.js')
+        html_scripts.add('/js/select2/select2.min.js')
         html_scripts.add('/lib/selectivity/selectivity-full.min.js')
         // Notify/Growl (Bootstrap Notify)
         html_scripts.add('/lib/bootstrap-notify/bootstrap-notify.min.js')
@@ -63,7 +63,7 @@ along with this software (see the LICENSE.md file). If not, see
         // Inline Editable
         html_scripts.add('/lib/jeditable/jquery.jeditable.min.js')
         // Sortable Hierarchical List
-        html_scripts.add('/lib/jquery-sortable-lists/jquery-sortable-lists.min.js')
+        html_scripts.add('/js/jquery-sortable-lists/jquery-sortable-lists.min.js')
 
         // Workarounds for library issues (select2 jquery validator integration, select2 Bootstrap Modal fix, extensions, etc)
         html_scripts.add('/js/LibraryWorkarounds.js')
