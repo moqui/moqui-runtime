@@ -1,6 +1,16 @@
 
 # Moqui Runtime Release Notes
 
+## Release 2.0.1 - Not Yet Released
+
+Moqui Runtime 2.0.1 is a patch level new feature and bug fix release, in parallel with the release of Moqui Framework.
+
+### New Features
+
+- Changed accordion in form-single to use Bootstrap instead of jQuery UI
+- Changed text-line autocomplete to use Twitter Typeahead instead of jQuery UI
+- Removed jQuery UI and theme, saves nearly 300KB in JS/CSS/etc files
+
 ## Release 2.0.0 - 24 Nov 2016
 
 Moqui Runtime 2.0.0 is a major new feature and bug fix release, in parallel with the release of Moqui Framework.
