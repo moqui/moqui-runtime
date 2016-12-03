@@ -12,7 +12,7 @@
  * <http://creativecommons.org/publicdomain/zero/1.0/>.
  */
 
-def libPath = "screen/webroot/lib"
+def libPath = "screen/webroot/libs"
 def downloadBase = "http://cdnjs.cloudflare.com/ajax/libs/"
 
 def fileMap = [

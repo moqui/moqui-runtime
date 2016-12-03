@@ -1,4 +1,7 @@
 
+# downloaded lib files
+/base-component/webroot/screen/webroot/libs
+
 # runtime generated files
 /db/derby/moqui/
 /db/derby/derby.log
