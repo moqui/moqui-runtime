@@ -7,9 +7,11 @@ Moqui Runtime 2.0.1 is a patch level new feature and bug fix release, in paralle
 
 ### New Features
 
+- Updated various JS libraries
 - Changed accordion in form-single to use Bootstrap instead of jQuery UI
 - Changed text-line autocomplete to use Twitter Typeahead instead of jQuery UI
 - Removed jQuery UI and theme, saves nearly 300KB in JS/CSS/etc files
+- JS/CSS/etc libraries in webroot/lib have been removed and are now downloaded on build into webroot/libs 
 
 ## Release 2.0.0 - 24 Nov 2016
 

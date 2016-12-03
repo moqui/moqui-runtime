@@ -20,15 +20,15 @@ along with this software (see the LICENSE.md file). If not, see
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="2" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="/libs/font-awesome/css/font-awesome.min.css"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="3" resourceTypeEnumId="STRT_STYLESHEET"
-            resourceValue="/libs/bootstrap/css/bootstrap.min.css"/>
+            resourceValue="/libs/twitter-bootstrap/css/bootstrap.min.css"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="4" resourceTypeEnumId="STRT_STYLESHEET"
-            resourceValue="/libs/bootstrap-datetimepicker/bootstrap-datetimepicker.min.css"/>
+            resourceValue="/libs/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="5" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="/libs/select2/select2.min.css"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="6" resourceTypeEnumId="STRT_STYLESHEET"
-            resourceValue="/libs/select2/select2-bootstrap.min.css"/>
+            resourceValue="/libs/select2-bootstrap-theme/select2-bootstrap.min.css"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="7" resourceTypeEnumId="STRT_STYLESHEET"
-            resourceValue="/libs/selectivity/selectivity-full.min.css"/>
+            resourceValue="/libs/Selectivity.js/selectivity-full.min.css"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="8" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="/libs/jstree/themes/default/style.min.css"/>
 
