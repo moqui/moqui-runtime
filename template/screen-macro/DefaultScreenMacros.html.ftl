@@ -1299,11 +1299,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#-- TODO: how to handle column style? <th<#if fieldListColumn["@style"]?has_content> class="${fieldListColumn["@style"]}"</#if>> -->
                     <th>
                     <#list columnFieldList as fieldNode>
-                        <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") ||
+                        <#-- <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") ||
                                 ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
-                            <div><@formListHeaderField fieldNode isHeaderDialog/></div>
-                        </#if>
+                                (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))> -->
+                        <div><@formListHeaderField fieldNode isHeaderDialog/></div>
                     </#list>
                     </th>
                 </#list>
@@ -1312,11 +1311,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed"><thead>
                         <#list subColInfoList as subColFieldList><th>
                             <#list subColFieldList as fieldNode>
-                                <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") ||
-                                ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))>
-                                    <div><@formListHeaderField fieldNode isHeaderDialog/></div>
-                                </#if>
+                                <div><@formListHeaderField fieldNode isHeaderDialog/></div>
                             </#list>
                         </th></#list>
                     </thead></table></div></td></tr>
