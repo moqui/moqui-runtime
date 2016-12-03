@@ -64,13 +64,6 @@ ul.float-box li { background: #EEEEEE; box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 
 .bg-dark .shaded-area { background: #333; box-shadow: 0 0 0 1px #080808 inset, 0 0 0 1px #333;
     -webkit-box-shadow: 0 0 0 1px #080808 inset, 0 0 0 1px #333;}
 
-/* ================ Overrides for jquery-ui theme ================ */
-
-.ui-accordion-header { line-height: 0.7; background: #EEE; }
-.ui-accordion-header:focus { outline: none; }
-.ui-accordion .ui-accordion-content { padding: 15px 15px 0 15px; margin-right: auto; margin-left: auto; background: transparent; color: inherit; }
-.bg-dark .ui-accordion-header, .bg-dark .ui-accordion-content { border-color: black; }
-
 /* ================ Extensions for bootstrap.min.css =============== */
 
 .bg-dark .nav.nav-tabs a:hover { background-color: #888; border-color: black; }
@@ -115,6 +108,11 @@ form.editable-form button { background: white; color: #333; border: 1px solid; b
 
 /* invert images in dark theme, good for black and white, may not be good otherwise so use img.invertible class */
 .bg-dark img.invertible { -webkit-filter: invert(90%); filter: invert(90%); }
+
+.tt-menu { background-color: #fff; }
+.bg-dark .tt-menu { background-color: #3a3a3a; }
+.tt-suggestion:hover { cursor: pointer; color: #fff; background-color: #0097cf; }
+.tt-suggestion.tt-cursor { color: #fff; background-color: #0097cf; }
 
 /* ======================= Screen-specific ======================= */
 

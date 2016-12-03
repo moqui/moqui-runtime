@@ -16,8 +16,7 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- Default Theme (note that DEFAULT ScreenTheme record defined in ScreenEntities.xml) -->
 
     <!-- Required CSS files for layout/widgets/etc used in XML Screen/Form template macros -->
-    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="1" resourceTypeEnumId="STRT_STYLESHEET"
-            resourceValue="/lib/jquery/jquery-ui.min.css"/>
+    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="1" resourceTypeEnumId="STRT_STYLESHEET" resourceValue=""/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="2" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="/lib/font-awesome/css/font-awesome.min.css"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="3" resourceTypeEnumId="STRT_STYLESHEET"
@@ -33,9 +32,8 @@ along with this software (see the LICENSE.md file). If not, see
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="8" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="/lib/jstree/themes/default/style.min.css"/>
 
-    <!-- jQuery UI Theme -->
-    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="10" resourceTypeEnumId="STRT_STYLESHEET"
-            resourceValue="/lib/jquery/themes/smoothness/theme.css"/>
+    <!-- Add external theme(s) here  -->
+    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="10" resourceTypeEnumId="STRT_STYLESHEET" resourceValue=""/>
 
     <!-- Webroot layout and theme -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="20" resourceTypeEnumId="STRT_STYLESHEET"

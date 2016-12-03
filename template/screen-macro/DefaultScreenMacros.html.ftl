@@ -680,10 +680,18 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro "field-group">
     <#assign fgTitle = ec.getL10n().localize(.node["@title"]!)!>
     <#if isAccordion!false>
-        <h3><a href="#">${fgTitle!"Fields"}</a></h3>
-        <div<#if .node["@style"]?has_content> class="${.node["@style"]}"</#if>>
-            <#recurse .node/>
+        <#assign accIsActive = accordionIndex?string == accordionActive>
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="${accordionId}_heading${accordionIndex}"><h4 class="panel-title">
+                <a <#if !accIsActive>class="collapsed" </#if>role="button" data-toggle="collapse" data-parent="#${accordionId}" href="#${accordionId}_collapse${accordionIndex}" aria-expanded="true" aria-controls="${accordionId}_collapse${accordionIndex}">${fgTitle!"Fields"}</a>
+            </h4></div>
+            <div id="${accordionId}_collapse${accordionIndex}" class="panel-collapse collapse<#if accIsActive> in</#if>" role="tabpanel" aria-labelledby="${accordionId}_heading${accordionIndex}">
+                <div class="panel-body<#if .node["@style"]?has_content> ${.node["@style"]}</#if>">
+                    <#recurse .node/>
+                </div>
+            </div>
         </div>
+        <#assign accordionIndex = accordionIndex + 1>
     <#else>
         <div class="form-single-field-group<#if .node["@style"]?has_content> ${.node["@style"]}</#if>">
             <#if fgTitle?has_content><h5>${fgTitle}</h5></#if>
@@ -693,13 +701,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 <#macro "field-accordion">
     <#assign isAccordion = true>
+    <#assign accordionIndex = 1>
     <#assign accordionId = .node["@id"]!(formId + "_accordion")>
-    <#assign collapsible = .node["@collapsible"]! == "true">
-    <#assign active = .node["@active"]!>
-    <div id="${accordionId}">
+    <#assign accordionActive = .node["@active"]!"1">
+    <div class="panel-group" id="${accordionId}" role="tablist" aria-multiselectable="true">
         <#recurse .node/>
-    </div><!-- /collapsible accordionId ${accordionId} -->
-    <script>$("#${accordionId}").accordion({ collapsible: <#if collapsible>true<#else>false</#if>,<#if active?has_content> active: ${active},</#if> heightStyle: "content" });</script>
+    </div><!-- accordionId ${accordionId} -->
     <#assign isAccordion = false>
 </#macro>
 
@@ -1906,21 +1913,25 @@ a => A, d => D, y => Y
         <#assign acUseActual = .node["@ac-use-actual"]! == "true">
         <#if .node["@ac-initial-text"]?has_content><#assign valueText = ec.getResource().expand(.node["@ac-initial-text"]!, "")>
             <#else><#assign valueText = fieldValue></#if>
-        <input id="${id}_ac" type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>" name="${name}_ac" value="${valueText?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if>"<#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if> autocomplete="off"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
+        <input id="${id}_ac" type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>" name="${name}_ac" value="${valueText?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if> class="form-control typeahead<#if validationClasses?has_content> ${validationClasses}</#if>"<#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if> autocomplete="off"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
         <input id="${id}" type="hidden" name="${name}" value="${fieldValue?html}"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
         <#if acShowValue><span id="${id}_value" class="form-autocomplete-value"><#if valueText?has_content>${valueText?html}<#else>&nbsp;</#if></span></#if>
         <#assign depNodeList = .node["depends-on"]>
+        <#-- TODO delay? <#if .node["@ac-delay"]?has_content>delay: ${.node["@ac-delay"]},</#if> -->
         <script>
-            $("#${id}_ac").autocomplete({
-                source: function(request, response) { $.ajax({
-                    url: "${acUrlInfo.url}", type: "POST", dataType: "json", data: { term: request.term, moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
+            $("#${id}_ac").typeahead({ <#if .node["@ac-min-length"]?has_content>minLength: ${.node["@ac-min-length"]},</#if> highlight: true, hint: false }, { limit: 20,
+                source: function(query, syncResults, asyncResults) { $.ajax({
+                    url: "${acUrlInfo.url}", type: "POST", dataType: "json", data: { term: query, moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
                         <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = acUrlParameterMap.remove(depNodeField)!>, '${depNode["@parameter"]!depNodeField}': $('#<@fieldIdByName depNodeField/>').val()</#list>
                         <#t><#list acUrlParameterMap?keys as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${acUrlParameterMap.get(parameterKey)}"</#if></#list> },
-                    success: function(data) { response($.map(data, function(item) { return { label: item.label, value: item.value } })); }
-                }); }, <#if .node["@ac-delay"]?has_content>delay: ${.node["@ac-delay"]},</#if><#if .node["@ac-min-length"]?has_content>minLength: ${.node["@ac-min-length"]},</#if>
-                focus: function(event, ui) { $("#${id}").val(ui.item.value); $("#${id}").trigger("change"); $("#${id}_ac").val(ui.item.label); return false; },
-                select: function(event, ui) { if (ui.item) { this.value = ui.item.value; $("#${id}").val(ui.item.value); $("#${id}").trigger("change"); $("#${id}_ac").val(ui.item.label);<#if acShowValue> if (ui.item.label) { $("#${id}_value").html(ui.item.label); }</#if> return false; } }
+                    success: function(data) { asyncResults($.map(data, function(item) { return { label: item.label, value: item.value } })); }
+                }); },
+                display: function(item) { return item.label; }
             });
+            $("#${id}_ac").bind('typeahead:select', function(event, item) {
+                if (item) { this.value = item.value; $("#${id}").val(item.value); $("#${id}").trigger("change"); $("#${id}_ac").val(item.label);<#if acShowValue> if (item.label) { $("#${id}_value").html(item.label); }</#if> return false; }
+            });
+
             $("#${id}_ac").change(function() { if (!$("#${id}_ac").val()) { $("#${id}").val(""); $("#${id}").trigger("change"); }<#if acUseActual> else { $("#${id}").val($("#${id}_ac").val()); $("#${id}").trigger("change"); }</#if> });
             <#list depNodeList as depNode>
                 $("#<@fieldIdByName depNode["@field"]/>").change(function() { $("#${id}").val(""); $("#${id}_ac").val(""); });
