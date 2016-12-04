@@ -64,7 +64,9 @@ def fileMap = [
         "Selectivity.js/2.1.0/selectivity-full.min.js":"",
         "Selectivity.js/2.1.0/selectivity-full.min.css":"",
 
-        "typeahead.js/0.11.1/typeahead.jquery.min.js":""
+        "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
+        
+        "vue/2.1.4/vue.min.js":""
 ]
 
 String getTargetPath(String sourcePath, String targetPath) {
