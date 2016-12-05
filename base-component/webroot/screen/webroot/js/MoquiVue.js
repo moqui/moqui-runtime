@@ -24,6 +24,21 @@ var NotFound = Vue.extend({
     // TODO
 });
 
+Vue.component('m-link', {
+    template: '<a v-bind:href="href" v-on:click="go"><slot></slot></a>',
+    props: { href: String, required: true },
+    methods: {
+        go: function(event) {
+            event.preventDefault();
+            this.$root.currentPath = this.href;
+            window.history.pushState(null, this.$root.getScreenTitle, this.href);
+            this.$root.updateMenu();
+
+            // TODO update menu as well as current view; maybe have menu based on this.$root.currentPath (${vueInstance}.currentPath)?
+        }
+    }
+});
+
 var rootVue = new Vue({
     el: '#apps-root',
     data: {
@@ -57,23 +72,4 @@ var rootVue = new Vue({
     mounted: function() { this.updateMenu(); }
 });
 
-Vue.component('m-link', {
-    template: '<a v-bind:href="href" v-bind:class="{ active: isActive }" v-on:click="go"><slot></slot></a>',
-    props: { href: String, required: true },
-    computed: {
-        isActive: function() {
-            return this.href === this.$root.currentPath;
-        }
-    },
-    methods: {
-        go: function(event) {
-            event.preventDefault();
-            this.$root.currentPath = this.href;
-            window.history.pushState(null, this.$root.getScreenTitle, this.href);
-            this.$root.updateMenu();
-
-            // TODO update menu as well as current view; maybe have menu based on this.$root.currentPath (${vueInstance}.currentPath)?
-        }
-    }
-});
 window.addEventListener('popstate', function() { rootVue.currentPath = window.location.pathname; });
