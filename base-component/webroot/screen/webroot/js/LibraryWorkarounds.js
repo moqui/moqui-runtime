@@ -25,7 +25,7 @@ $.validator.setDefaults({
         } else {
             error.insertAfter(element);               // default
         }
-    },
+    }
 });
 
 // JQuery validation not work well with bootstrap popover http://stackoverflow.com/a/30539639/244431

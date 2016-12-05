@@ -16,6 +16,7 @@
     <div id="navbar-buttons" class="collapse navbar-collapse navbar-ex1-collapse">
         <ul id="header-menus" class="nav navbar-nav">
             <#-- NOTE: menu drop-downs are appended here using JS as subscreens render so this is empty -->
+            <#-- TODO add vue template here to iterate over menu, etc -->
         </ul>
         <div id="navbar-menu-crumbs">
             <#-- NOTE: non-menu bread crumbs are appended here using JS as subscreens render so this is empty -->
