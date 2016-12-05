@@ -18,6 +18,35 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- NOTE: require-authentication=false is required to allow sub-screens to decide. -->
 
     <transition name="ScreenTree"><default-response url="../ScreenTree"/></transition>
+    <transition name="subscreens" read-only="true" begin-transaction="false">
+        <actions><script><![CDATA[
+            import org.moqui.impl.screen.ScreenDefinition
+
+            List<String> extraPath = sri.screenUrlInfo.extraPathNameList
+            String fromPath = extraPath.join('/')
+
+            ScreenDefinition fromScreen = sri.rootScreenDef
+            for (String pathItem in extraPath) {
+                def nextSsi = fromScreen.getSubscreensItem(pathItem)
+                if (nextSsi == null) { ec.web.request.sendError(404, "Item ${pathItem} invalid in path ${pathInfo}"); return }
+                fromScreen = ec.screen.getScreenDefinition(nextSsi.location)
+                if (fromScreen == null) { ec.web.request.sendError(404, "No screen found at ${pathInfo}"); return }
+            }
+
+            List subscreensInfoList = []
+            for (subscreensItem in fromScreen.getMenuSubscreensItems()) {
+                String screenPath = '/' + fromPath + '/' + subscreensItem.name
+                def screenUrlInstance = sri.buildUrl(screenPath)
+                String menuImage = screenUrlInstance.sui.menuImage
+                String menuImageType = screenUrlInstance.sui.menuImageType
+                if (menuImage && (!menuImageType || menuImageType == "url-screen")) menuImage = sri.buildUrl(menuImage).url
+                subscreensInfoList.add([name:subscreensItem.name, title: ec.resource.expand(subscreensItem.menuTitle, ""),
+                                        path: screenPath, image: menuImage, imageType: menuImageType])
+            }
+            ec.web.sendJsonResponse(subscreensInfoList)
+            ]]></script></actions>
+        <default-response type="none"/>
+    </transition>
     <transition name="setPreference">
         <parameter name="preferenceKey"/><parameter name="preferenceValue"/>
         <actions><script>ec.user.setPreference(preferenceKey, preferenceValue)</script></actions>
