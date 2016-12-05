@@ -18,35 +18,6 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- NOTE: require-authentication=false is required to allow sub-screens to decide. -->
 
     <transition name="ScreenTree"><default-response url="../ScreenTree"/></transition>
-    <transition name="subscreens" read-only="true" begin-transaction="false">
-        <actions><script><![CDATA[
-            import org.moqui.impl.screen.ScreenDefinition
-
-            List<String> extraPath = sri.screenUrlInfo.extraPathNameList
-            String fromPath = extraPath.join('/')
-
-            ScreenDefinition fromScreen = sri.rootScreenDef
-            for (String pathItem in extraPath) {
-                def nextSsi = fromScreen.getSubscreensItem(pathItem)
-                if (nextSsi == null) { ec.web.request.sendError(404, "Item ${pathItem} invalid in path ${pathInfo}"); return }
-                fromScreen = ec.screen.getScreenDefinition(nextSsi.location)
-                if (fromScreen == null) { ec.web.request.sendError(404, "No screen found at ${pathInfo}"); return }
-            }
-
-            List subscreensInfoList = []
-            for (subscreensItem in fromScreen.getMenuSubscreensItems()) {
-                String screenPath = '/' + fromPath + '/' + subscreensItem.name
-                def screenUrlInstance = sri.buildUrl(screenPath)
-                String menuImage = screenUrlInstance.sui.menuImage
-                String menuImageType = screenUrlInstance.sui.menuImageType
-                if (menuImage && (!menuImageType || menuImageType == "url-screen")) menuImage = sri.buildUrl(menuImage).url
-                subscreensInfoList.add([name:subscreensItem.name, title: ec.resource.expand(subscreensItem.menuTitle, ""),
-                                        path: screenPath, image: menuImage, imageType: menuImageType])
-            }
-            ec.web.sendJsonResponse(subscreensInfoList)
-            ]]></script></actions>
-        <default-response type="none"/>
-    </transition>
     <transition name="setPreference">
         <parameter name="preferenceKey"/><parameter name="preferenceValue"/>
         <actions><script>ec.user.setPreference(preferenceKey, preferenceValue)</script></actions>
@@ -75,7 +46,7 @@ along with this software (see the LICENSE.md file). If not, see
         html_scripts.add('/libs/typeahead.js/typeahead.jquery.min.js')
 
         // Vue JS
-        html_scripts.add('/libs/vue/vue.min.js')
+        html_scripts.add('/libs/vue/vue.js')
 
         // Form Validation and AJAX (jquery-validation, jquery-form)
         html_scripts.add('/libs/jquery-validate/jquery.validate.min.js')
@@ -102,13 +73,16 @@ along with this software (see the LICENSE.md file). If not, see
 
         // Moqui Notification Client
         html_scripts.add('/js/NotificationClient.js')
+
+        // Vue instance, in footer
+        footer_scripts.add('/js/MoquiVue.js')
     ]]></script></pre-actions>
 
-    <widgets>
+    <widgets><container id="apps-root">
         <section name="TopNavSection" condition="hideNav != 'true'"><widgets>
             <container id="top">
                 <render-mode><text type="html" location="component://webroot/screen/includes/navbar.html.ftl"/></render-mode>
-                <subscreens-menu type="popup" id="header-menu" title="Application"/>
+                <subscreens-menu type="popup" id="header-menu"/>
             </container>
         </widgets></section>
 
@@ -149,7 +123,9 @@ along with this software (see the LICENSE.md file). If not, see
                 </widgets></section-iterate>
             </widgets></section>
 
+            <render-mode><text type="html"><![CDATA[<current-page inline-template><div>]]></text></render-mode>
             <subscreens-active/>
+            <render-mode><text type="html"><![CDATA[</div></current-page>]]></text></render-mode>
         </container></container></container>
 
         <section name="BottomNavSection" condition="hideNav != 'true'"><widgets>
@@ -162,8 +138,8 @@ along with this software (see the LICENSE.md file). If not, see
                         <@footerItemTemplate/>
                     </#list>
                 </div>
-            ]]></text></render-mode>
+                ]]></text></render-mode>
             </container>
         </widgets></section>
-    </widgets>
+    </container></widgets>
 </screen>

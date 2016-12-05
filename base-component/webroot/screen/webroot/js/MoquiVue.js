@@ -19,49 +19,61 @@ function getScreenComponent(path) {
         // extension options from JSON
     })
 }
-function ensureMenuList(path) {
-    //
-}
 
-var contentVue = new Vue({
-    el: '#content',
-    data: {
-        currentPath: window.location.pathname
-    },
-    // TODO: maybe move ViewComponent to methods instead of computed to it's not cached?
-    computed: {
-        ViewComponent: function () { return getScreenComponent(this.currentPath) || NotFound }
-    },
-    render: function (h) { return h(this.ViewComponent) }
+var NotFound = Vue.extend({
+    // TODO
 });
 
-var navBarVue = new Vue({
-    el: '#header-menus',
+var rootVue = new Vue({
+    el: '#apps-root',
     data: {
-        menuList: []
-    }
+        currentPath: window.location.pathname,
+        navMenuList: [{ title:"Foo" }, {title:"bar"}]
+    },
+    methods: {
+        updateMenu: function() {
+            $.ajax({ type:"GET", url:"/menuData" + this.currentPath, dataType:"json" }).done(this.asyncSetMenu);
+        },
+        asyncSetMenu: function (outerList) {
+            if (outerList) { console.log(outerList); this.navMenuList = outerList; }
+        }
+    },
+    computed: {
+        getScreenTitle: function() {
+            // TODO: get title from nav menu data
+            return ""
+        }
+    },
+    components: {
+        /* 'header-navbar': { props: ['navMenuList'] }, */
+        'current-page': {
+            computed: {
+                // TODO: maybe move ViewComponent to methods instead of computed to it's not cached? or is the cache intelligent enough to limit size?
+                ViewComponent: function () { return getScreenComponent(this.$root.currentPath) || NotFound }
+            },
+            render: function (h) { return h(this.ViewComponent) }
+        }
+    },
+    mounted: function() { this.updateMenu(); }
 });
 
 Vue.component('m-link', {
-    // TOOD: replace 'active' with
     template: '<a v-bind:href="href" v-bind:class="{ active: isActive }" v-on:click="go"><slot></slot></a>',
     props: { href: String, required: true },
     computed: {
         isActive: function() {
-            return this.href === contentVue.currentPath;
-            // return this.href === this.$root.currentPath;
+            return this.href === this.$root.currentPath;
         }
     },
     methods: {
         go: function(event) {
             event.preventDefault();
-            contentVue.currentPath = this.href;
-            // this.$root.currentPath = this.href;
-            window.history.pushState(null, getScreenComponent(this.href), this.href);
+            this.$root.currentPath = this.href;
+            window.history.pushState(null, this.$root.getScreenTitle, this.href);
+            this.$root.updateMenu();
 
             // TODO update menu as well as current view; maybe have menu based on this.$root.currentPath (${vueInstance}.currentPath)?
         }
     }
 });
-
-window.addEventListener('popstate', function() { contentVue.currentPath = window.location.pathname; });
+window.addEventListener('popstate', function() { rootVue.currentPath = window.location.pathname; });

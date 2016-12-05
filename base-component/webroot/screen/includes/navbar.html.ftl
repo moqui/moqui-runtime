@@ -1,6 +1,5 @@
-<nav class="navbar navbar-inverse navbar-fixed-top"><#-- navbar-static-top -->
-  <div class="container-fluid">
-    <!-- Brand and toggle get grouped for better mobile display -->
+<nav class="navbar navbar-inverse navbar-fixed-top"><#-- navbar-static-top --><div class="container-fluid">
+    <#-- Brand and toggle get grouped for better mobile display -->
     <header class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
             <span class="sr-only">Toggle navigation</span>
@@ -14,9 +13,28 @@
         <#if headerTitleList?has_content><div class="navbar-brand">${ec.resource.expand(headerTitleList?first, "")}</div></#if>
     </header>
     <div id="navbar-buttons" class="collapse navbar-collapse navbar-ex1-collapse">
+        <ul id="dynamic-menus" class="nav navbar-nav">
+            <li v-for="(navMenuItem, menuIndex) in navMenuList" class="dropdown">
+                <template v-if="menuIndex < (navMenuList.length - 1)">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></a>
+                    <ul v-if="navMenuItem.subscreens && navMenuItem.subscreens.length > 0" class="dropdown-menu">
+                        <li v-for="subscreen in navMenuItem.subscreens" v-bind:class="{ active: subscreen.active }">
+                            <m-link v-bind:href="subscreen.path">
+                                <template v-if="subscreen.image">
+                                    <i v-if="subscreen.imageType === 'icon'" v-bind:class="subscreen.image" style="padding-right: 8px;"></i>
+                                    <img v-else v-bind:src="subscreen.image" v-bind:alt="subscreen.title" width="18" style="padding-right: 4px;"/>
+                                </template>
+                                <i v-else class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                                {{subscreen.title}}</m-link></li>
+                    </ul>
+                </template>
+            </li>
+        </ul>
+        <m-link v-if="navMenuList.length > 0" class="navbar-text" v-bind:href="navMenuList[navMenuList.length - 1].path">{{navMenuList[navMenuList.length - 1].title}}</m-link>
+
+
         <ul id="header-menus" class="nav navbar-nav">
             <#-- NOTE: menu drop-downs are appended here using JS as subscreens render so this is empty -->
-            <#-- TODO add vue template here to iterate over menu, etc -->
         </ul>
         <div id="navbar-menu-crumbs">
             <#-- NOTE: non-menu bread crumbs are appended here using JS as subscreens render so this is empty -->
@@ -58,17 +76,16 @@
                 </a></li>
             </#list></ul>
         </div>
-        <#-- dark/light switch JS method -->
-        <script>
-            $('.navbar [data-toggle="tooltip"]').tooltip();
-            $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
-            function switchDarkLight() {
-                $("body").toggleClass("bg-dark");
-                $("body").toggleClass("bg-light");
-                var currentStyle = $("body").hasClass("bg-dark") ? "bg-dark" : "bg-light";
-                $.ajax({ type:'POST', url:'${sri.buildUrl("/apps/setPreference").url}', data:{ 'moquiSessionToken': '${ec.web.sessionToken}','preferenceKey': 'OUTER_STYLE', 'preferenceValue': currentStyle }, dataType:'json' });
-            }
-        </script>
     </div>
-  </div>
-</nav>
+    <#-- dark/light switch JS method; TODO: switch this to Vue method? -->
+    <script>
+        $('.navbar [data-toggle="tooltip"]').tooltip();
+        $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        function switchDarkLight() {
+            $("body").toggleClass("bg-dark");
+            $("body").toggleClass("bg-light");
+            var currentStyle = $("body").hasClass("bg-dark") ? "bg-dark" : "bg-light";
+            $.ajax({ type:'POST', url:'${sri.buildUrl("/apps/setPreference").url}', data:{ 'moquiSessionToken': '${ec.web.sessionToken}','preferenceKey': 'OUTER_STYLE', 'preferenceValue': currentStyle }, dataType:'json' });
+        }
+    </script>
+</div></nav>
