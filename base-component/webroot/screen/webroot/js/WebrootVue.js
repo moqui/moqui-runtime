@@ -1,9 +1,29 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
+/* TODO:
+ - fix parameter passing window.location.target instead of pathname?
+ - grey screen and/or add spinner overly when loading currentComponent (element always there with a bound class to show/hide)
+
+ - use m-link for other links instead of a (or somehow intercept?)
+ - do something with form submits to submit in background and refresh current html based component (new client rendered screens won't need this)
+ - use vue-aware widgets or add vue component wrappers for them (like the select2 example on vuejs.org)
+ - remove all html script elements...
+
+ - change other header widgets to be dynamic
+   - history
+     - change to vue template based on vue component data
+     - update along with currentPath change watch
+   - notifications/messages/etc - update in background using function that runs on a timer?
+
+ - big new feature for client rendered screens
+   - on the server render to a Vue component object (as JSON)
+   - make these completely static, not dependent on any inline data, so they can be cached
+   - separate request to get data to populate
+
+ */
+
 var NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
 var EmptyComponent = Vue.extend({ template: '<div id="current-page-root"></div>' });
-// TODO: make this much more fancy... add a spinner and all
-// var LoadingComponent = Vue.extend({ template: '<div id="current-page-root"><h4>Page loading</h4></div>' });
 
 Vue.component('m-link', {
     template: '<a v-bind:href="href" v-on:click="go"><slot></slot></a>',
@@ -32,9 +52,7 @@ var webrootVue = new Vue({
             if (!path || path.length === 0) return;
             jQuery.ajax({ type:"GET", url:"/menuData" + path, dataType:"json", success:this.asyncSetMenu });
 
-            // TODO: supporting fetching JSON to create component independent of data; with that maybe add some local caching?
             var url = path + (path.includes('?') ? '&' : '?') + "lastStandalone=-2";
-            // webrootVue.currentComponent = LoadingComponent;
             jQuery.ajax({ type:"GET", url:url, success: function (screenText) {
                 console.log("getScreenComponent " + path);
                 // console.log(screenText);
