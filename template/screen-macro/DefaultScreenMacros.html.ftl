@@ -1717,10 +1717,12 @@ a => A, d => D, y => Y
                     <#t><#list defUrlParameterMap?keys as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
                     <#t>}, dataType:"text" }).done( function(defaultText) { if (defaultText) { $('#${dispFieldId}_display').html(defaultText); <#if dispHidden>$('#${dispFieldId}').val(defaultText);</#if> } } );
             }
-            <#list depNodeList as depNode>
-            $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${dispFieldId}(); });
-            </#list>
-            populate_${dispFieldId}();
+            $(function() {
+                <#list depNodeList as depNode>
+                $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${dispFieldId}(); });
+                </#list>
+                populate_${dispFieldId}();
+            });
         </script>
     </#if>
 </#macro>
@@ -1818,10 +1820,12 @@ a => A, d => D, y => Y
                     }
                 );
             }
-            <#list depNodeList as depNode>
-            $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${id}(); });
-            </#list>
-            populate_${id}();
+            $(function() {
+                <#list depNodeList as depNode>
+                $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${id}(); });
+                </#list>
+                populate_${id}();
+            });
         </script>
     </#if>
 </#macro>
@@ -1972,10 +1976,12 @@ a => A, d => D, y => Y
                             <#t><#list defUrlParameterMap?keys as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
                             <#t>}, dataType:"text" }).done( function(defaultText) { if (defaultText) { $('#${id}').val(defaultText); } } );
                 }
-                <#list depNodeList as depNode>
-                $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${id}(); });
-                </#list>
-                populate_${id}();
+                $(function() {
+                    <#list depNodeList as depNode>
+                    $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${id}(); });
+                    </#list>
+                    populate_${id}();
+                });
             </script>
         </#if>
     </#if>
