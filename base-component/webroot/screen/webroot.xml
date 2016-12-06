@@ -29,46 +29,9 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
     <transition name="menuData" read-only="true" begin-transaction="false">
         <actions><script><![CDATA[
-            import org.moqui.impl.screen.ScreenDefinition
-            import org.moqui.impl.screen.ScreenUrlInfo
-
-            def fullUrlInfo = ScreenUrlInfo.getScreenUrlInfo(sri, sri.rootScreenDef, sri.screenUrlInfo.extraPathNameList, null, false)
-            ArrayList<String> extraPath = fullUrlInfo.fullPathNameList
-            int extraPathSize = extraPath.size()
-
-            StringBuilder currentPath = new StringBuilder()
-            List menuDataList = []
-            ScreenDefinition curScreen = sri.rootScreenDef
-
-            for (int i = 0; i < extraPathSize; i++) {
-                String pathItem = extraPath.get(i)
-                String nextItem = extraPathSize > i+1 ? extraPath.get(i+1) : null
-                def nextSsi = curScreen.getSubscreensItem(pathItem)
-                if (nextSsi == null) { ec.web.request.sendError(404, "Item ${pathItem} invalid in path ${pathInfo}"); return }
-                curScreen = ec.screen.getScreenDefinition(nextSsi.location)
-                if (curScreen == null) { ec.web.request.sendError(404, "No screen found at ${pathInfo}"); return }
-
-                currentPath.append('/').append(pathItem)
-                List subscreensList = []
-                for (subscreensItem in curScreen.getMenuSubscreensItems()) {
-                    String screenPath = new StringBuilder(currentPath).append('/').append(subscreensItem.name).toString()
-                    def screenUrlInstance = sri.buildUrl(screenPath)
-                    if (!screenUrlInstance.isPermitted()) continue
-
-                    String menuImage = screenUrlInstance.sui.menuImage
-                    String menuImageType = screenUrlInstance.sui.menuImageType
-                    if (menuImage && (!menuImageType || menuImageType == "url-screen")) menuImage = sri.buildUrl(menuImage).url
-
-                    subscreensList.add([name:subscreensItem.name, title:ec.resource.expand(subscreensItem.menuTitle, ""),
-                                        path:screenPath, image:menuImage, imageType:menuImageType,
-                                        active:(nextItem == subscreensItem.name), disableLink:screenUrlInstance.disableLink])
-                }
-
-                menuDataList.add([name:pathItem, title:curScreen.getDefaultMenuName(), subscreens:subscreensList, path:currentPath.toString()])
-            }
-
-            ec.web.sendJsonResponse(menuDataList)
-            ]]></script></actions>
+            List menuDataList = sri.getMenuData(sri.screenUrlInfo.extraPathNameList)
+            if (menuDataList != null) ec.web.sendJsonResponse(menuDataList)
+        ]]></script></actions>
         <default-response type="none"/>
     </transition>
 

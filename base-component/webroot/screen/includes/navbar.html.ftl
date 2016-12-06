@@ -30,7 +30,7 @@
                 </template>
             </li>
         </ul>
-        <m-link v-if="navMenuList.length > 0" class="navbar-text" v-bind:href="navMenuList[navMenuList.length - 1].path">{{navMenuList[navMenuList.length - 1].title}}</m-link>
+        <m-link v-if="navMenuList.length > 0" class="navbar-text" v-bind:href="navMenuList[navMenuList.length - 1].urlWithParams">{{navMenuList[navMenuList.length - 1].title}}</m-link>
 
 
         <ul id="header-menus" class="nav navbar-nav">

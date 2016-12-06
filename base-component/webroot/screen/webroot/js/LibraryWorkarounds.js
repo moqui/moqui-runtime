@@ -1,16 +1,4 @@
-/*
-This software is in the public domain under CC0 1.0 Universal plus a
-Grant of Patent License.
-
-To the extent possible under law, the author(s) have dedicated all
-copyright and related and neighboring rights to this software to the
-public domain worldwide. This software is distributed without any
-warranty.
-
-You should have received a copy of the CC0 Public Domain Dedication
-along with this software (see the LICENSE.md file). If not, see
-<http://creativecommons.org/publicdomain/zero/1.0/>.
-*/
+/* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 // this is a fix for Select2 search input within Bootstrap Modal
 $.fn.modal.Constructor.prototype.enforceFocus = function() {};
@@ -68,7 +56,6 @@ function makeColumnsConsistent(outerId) {
     for (i = 0; i < numCols; i++) totalWidth += widthMaxArr[i];
     var widthPercents = [];
     for (i = 0; i < numCols; i++) widthPercents[i] = (widthMaxArr[i] * 100) / totalWidth;
-
     // console.log("Columns " + numCols + ", percents: " + widthPercents);
 
     for(i = 0; i < tableArr.length; i++) {

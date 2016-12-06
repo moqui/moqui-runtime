@@ -123,7 +123,8 @@ along with this software (see the LICENSE.md file). If not, see
                 </widgets></section-iterate>
             </widgets></section>
 
-            <render-mode><text type="html"><![CDATA[<current-page inline-template><div>]]></text></render-mode>
+            <!-- NOTE: inline-template blocks router rendering, but without ignores content for initial render... -->
+            <render-mode><text type="html"><![CDATA[<current-page><div id="current-page-root">]]></text></render-mode>
             <subscreens-active/>
             <render-mode><text type="html"><![CDATA[</div></current-page>]]></text></render-mode>
         </container></container></container>

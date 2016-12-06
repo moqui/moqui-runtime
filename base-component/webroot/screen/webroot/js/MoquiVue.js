@@ -1,27 +1,23 @@
-/*
-This software is in the public domain under CC0 1.0 Universal plus a
-Grant of Patent License.
-
-To the extent possible under law, the author(s) have dedicated all
-copyright and related and neighboring rights to this software to the
-public domain worldwide. This software is distributed without any
-warranty.
-
-You should have received a copy of the CC0 Public Domain Dedication
-along with this software (see the LICENSE.md file). If not, see
-<http://creativecommons.org/publicdomain/zero/1.0/>.
-*/
+/* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 function getScreenComponent(path) {
-    // TODO: add some local caching?
-    // TODO: fetch JSON and create component
-    return Vue.extend({
-        // extension options from JSON
+    // TODO: supporting fetching JSON to create component independent of data; with that maybe add some local caching?
+    var url = path + (path.includes('?') ? '&' : '?') + "lastStandalone=-2";
+    var screenText = undefined;
+    var request = new XMLHttpRequest();
+    request.open('GET', url, false);
+    request.send(null);
+    if (request.status === 200) { screenText = request.responseText; }
+    // jQuery.ajax({ type:"GET", url:url, async:false, success: function (text) { screenText = text; } });
+    console.log("getScreenComponent " + path);
+    // console.log(screenText);
+    if (screenText) return Vue.extend({
+        template: '<div id="current-page-root">' + screenText + '</div>'
     })
 }
 
 var NotFound = Vue.extend({
-    // TODO
+    template: '<h4>Screen not found at {{this.$root.currentPath}}</h4>'
 });
 
 Vue.component('m-link', {
@@ -31,10 +27,8 @@ Vue.component('m-link', {
         go: function(event) {
             event.preventDefault();
             this.$root.currentPath = this.href;
-            window.history.pushState(null, this.$root.getScreenTitle, this.href);
             this.$root.updateMenu();
-
-            // TODO update menu as well as current view; maybe have menu based on this.$root.currentPath (${vueInstance}.currentPath)?
+            window.history.pushState(null, this.$root.ScreenTitle, this.href);
         }
     }
 });
@@ -43,21 +37,14 @@ var rootVue = new Vue({
     el: '#apps-root',
     data: {
         currentPath: window.location.pathname,
-        navMenuList: [{ title:"Foo" }, {title:"bar"}]
+        navMenuList: []
     },
     methods: {
-        updateMenu: function() {
-            $.ajax({ type:"GET", url:"/menuData" + this.currentPath, dataType:"json" }).done(this.asyncSetMenu);
-        },
-        asyncSetMenu: function (outerList) {
-            if (outerList) { console.log(outerList); this.navMenuList = outerList; }
-        }
+        updateMenu: function() { jQuery.ajax({ type:"GET", url:"/menuData" + this.currentPath, dataType:"json", success:this.asyncSetMenu }); },
+        asyncSetMenu: function (outerList) { if (outerList) { this.navMenuList = outerList; } }
     },
     computed: {
-        getScreenTitle: function() {
-            // TODO: get title from nav menu data
-            return ""
-        }
+        ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; }
     },
     components: {
         /* 'header-navbar': { props: ['navMenuList'] }, */
