@@ -36,35 +36,8 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign displayMenu = sri.activeInCurrentMenu!>
     <#assign menuId = .node["@id"]!"subscreensMenu">
     <#assign menuTitle = .node["@title"]!sri.getActiveScreenDef().getDefaultMenuName()!"Menu">
-    <#if .node["@type"]! == "popup">
-        <li id="${menuId}" class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
-            <ul class="dropdown-menu">
-                <#list sri.getActiveScreenDef().getMenuSubscreensItems() as subscreensItem>
-                    <#assign urlInstance = sri.buildUrl(subscreensItem.name)>
-                    <#if urlInstance.isPermitted()>
-                        <li<#if urlInstance.inCurrentScreenPath> class="active"</#if>><a href="<#if urlInstance.disableLink>#<#else>${urlInstance.minimalPathUrlWithParams}</#if>"><#rt>
-                            <#assign expandedMenuTitle = ec.getResource().expand(subscreensItem.menuTitle, "")>
-                            <#if urlInstance.sui.menuImage?has_content>
-                                <#if urlInstance.sui.menuImageType == "icon">
-                                    <#t><i class="${urlInstance.sui.menuImage}" style="padding-right: 8px;"></i>
-                                <#elseif urlInstance.sui.menuImageType == "url-plain">
-                                    <#t><img src="${urlInstance.sui.menuImage}" alt="${expandedMenuTitle}" width="18" style="padding-right: 4px;"/>
-                                <#else><#rt>
-                                    <#t><img src="${sri.buildUrl(urlInstance.sui.menuImage).url}" alt="${expandedMenuTitle}" height="18" style="padding-right: 4px;"/>
-                                </#if><#rt>
-                            <#else><#rt>
-                                <#t><i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
-                            </#if><#rt>
-                            <#t>${expandedMenuTitle}
-                        <#lt></a></li>
-                    </#if>
-                </#list>
-            </ul>
-        </li>
-        <#-- move the menu to the header-menus container -->
-        <script>$("#${.node["@header-menus-id"]!"header-menus"}").append($("#${menuId}"));</script>
-    <#elseif .node["@type"]! == "popup-tree">
+    <#if .node["@type"]! == "popup"><#-- NOTE: popup menus no longer handled here, how handled dynamically in navbar.html.ftl -->
+    <#elseif .node["@type"]! == "popup-tree"><#-- popup-tree was never implemented, does nothing -->
     <#else>
         <#-- default to type=tab -->
         <#if displayMenu!>
@@ -93,36 +66,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign displayMenu = sri.activeInCurrentMenu!true && hideNav! != "true">
     <#assign menuId><#if .node["@id"]?has_content>${.node["@id"]}-menu<#else>subscreensPanelMenu</#if></#assign>
     <#assign menuTitle = .node["@title"]!sri.getActiveScreenDef().getDefaultMenuName()!"Menu">
-    <#if .node["@type"]! == "popup">
-        <#if hideNav! != "true">
-        <li id="${menuId}" class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
-            <ul class="dropdown-menu">
-                <#list sri.getActiveScreenDef().getMenuSubscreensItems() as subscreensItem>
-                    <#assign urlInstance = sri.buildUrl(subscreensItem.name)>
-                    <#if urlInstance.isPermitted()>
-                        <li<#if urlInstance.inCurrentScreenPath> class="active"</#if>><a href="<#if urlInstance.disableLink>#<#else>${urlInstance.minimalPathUrlWithParams}</#if>"><#rt>
-                            <#assign expandedMenuTitle = ec.getResource().expand(subscreensItem.menuTitle, "")>
-                            <#if urlInstance.sui.menuImage?has_content>
-                                <#if urlInstance.sui.menuImageType == "icon">
-                                    <#t><i class="${urlInstance.sui.menuImage}" style="padding-right: 8px;"></i>
-                                <#elseif urlInstance.sui.menuImageType == "url-plain">
-                                    <#t><img src="${urlInstance.sui.menuImage}" alt="${expandedMenuTitle}" width="18" style="padding-right: 4px;"/>
-                                <#else><#rt>
-                                    <#t><img src="${sri.buildUrl(urlInstance.sui.menuImage).url}" alt="${expandedMenuTitle}" height="18" style="padding-right: 4px;"/>
-                                </#if><#rt>
-                            <#else><#rt>
-                                <#t><i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
-                            </#if><#rt>
-                            <#t>${expandedMenuTitle}
-                        <#lt></a></li>
-                    </#if>
-                </#list>
-            </ul>
-        </li>
-        <#-- move the menu to the header menus section -->
-        <script>$("#${.node["@header-menus-id"]!"header-menus"}").append($("#${menuId}"));</script>
-        </#if>
+    <#if .node["@type"]! == "popup"><#-- NOTE: popup menus no longer handled here, how handled dynamically in navbar.html.ftl -->
         ${sri.renderSubscreen()}
     <#elseif .node["@type"]! == "stack">
         <h1>LATER stack type subscreens-panel not yet supported.</h1>

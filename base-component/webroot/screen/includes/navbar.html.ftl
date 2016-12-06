@@ -1,3 +1,16 @@
+<#--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
 <nav class="navbar navbar-inverse navbar-fixed-top"><#-- navbar-static-top --><div class="container-fluid">
     <#-- Brand and toggle get grouped for better mobile display -->
     <header class="navbar-header">
@@ -32,14 +45,6 @@
         </ul>
         <m-link v-if="navMenuList.length > 0" class="navbar-text" v-bind:href="navMenuList[navMenuList.length - 1].urlWithParams">{{navMenuList[navMenuList.length - 1].title}}</m-link>
 
-
-        <ul id="header-menus" class="nav navbar-nav">
-            <#-- NOTE: menu drop-downs are appended here using JS as subscreens render so this is empty -->
-        </ul>
-        <div id="navbar-menu-crumbs">
-            <#-- NOTE: non-menu bread crumbs are appended here using JS as subscreens render so this is empty -->
-        </div>
-        <a class="navbar-text" href="${sri.getScreenUrlInstance().getUrlWithParams()}">${html_title!(ec.resource.expand(sri.screenUrlInfo.targetScreen.getDefaultMenuName()!"Page", ""))}</a>
         <#-- logout button -->
         <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="Logout ${(ec.getUser().getUserAccount().userFullName)!}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right">
             <i class="glyphicon glyphicon-off"></i>

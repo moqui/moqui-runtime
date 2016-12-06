@@ -75,7 +75,7 @@ along with this software (see the LICENSE.md file). If not, see
         html_scripts.add('/js/NotificationClient.js')
 
         // Vue instance, in footer
-        footer_scripts.add('/js/MoquiVue.js')
+        footer_scripts.add('/js/WebrootVue.js')
     ]]></script></pre-actions>
 
     <widgets><container id="apps-root">
@@ -123,10 +123,8 @@ along with this software (see the LICENSE.md file). If not, see
                 </widgets></section-iterate>
             </widgets></section>
 
-            <!-- NOTE: inline-template blocks router rendering, but without ignores content for initial render... -->
-            <render-mode><text type="html"><![CDATA[<current-page><div id="current-page-root">]]></text></render-mode>
-            <subscreens-active/>
-            <render-mode><text type="html"><![CDATA[</div></current-page>]]></text></render-mode>
+            <render-mode><text type="html"><![CDATA[<component v-bind:is="currentComponent"></component>]]></text></render-mode>
+            <!-- TODO maybe do this for non-html render modes? <subscreens-active/> -->
         </container></container></container>
 
         <section name="BottomNavSection" condition="hideNav != 'true'"><widgets>
