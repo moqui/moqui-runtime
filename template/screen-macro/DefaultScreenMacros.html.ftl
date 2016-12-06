@@ -37,7 +37,6 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign menuId = .node["@id"]!"subscreensMenu">
     <#assign menuTitle = .node["@title"]!sri.getActiveScreenDef().getDefaultMenuName()!"Menu">
     <#if .node["@type"]! == "popup"><#-- NOTE: popup menus no longer handled here, how handled dynamically in navbar.html.ftl -->
-    <#elseif .node["@type"]! == "popup-tree"><#-- popup-tree was never implemented, does nothing -->
     <#else>
         <#-- default to type=tab -->
         <#if displayMenu!>
@@ -50,9 +49,6 @@ along with this software (see the LICENSE.md file). If not, see
                 </#list>
             </ul>
         </#if>
-        <#-- add to navbar bread crumbs too -->
-        <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
-        <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
     </#if>
 </#if></#macro>
 
@@ -94,11 +90,6 @@ along with this software (see the LICENSE.md file). If not, see
                     </#list>
                     </ul>
                 </#if>
-            </#if>
-            <#if hideNav! != "true">
-                <#-- add to navbar bread crumbs too -->
-                <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
-                <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
             </#if>
             <#if !dynamic || !displayMenu>
             <#-- these make it more similar to the HTML produced when dynamic, but not needed: <div<#if .node["@id"]?has_content> id="${.node["@id"]}-active"</#if> class="ui-tabs-panel"> -->

@@ -29,17 +29,21 @@ along with this software (see the LICENSE.md file). If not, see
         <ul id="dynamic-menus" class="nav navbar-nav">
             <li v-for="(navMenuItem, menuIndex) in navMenuList" class="dropdown">
                 <template v-if="menuIndex < (navMenuList.length - 1)">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></a>
-                    <ul v-if="navMenuItem.subscreens && navMenuItem.subscreens.length > 0" class="dropdown-menu">
-                        <li v-for="subscreen in navMenuItem.subscreens" v-bind:class="{ active: subscreen.active }">
-                            <m-link v-bind:href="subscreen.path">
-                                <template v-if="subscreen.image">
-                                    <i v-if="subscreen.imageType === 'icon'" v-bind:class="subscreen.image" style="padding-right: 8px;"></i>
-                                    <img v-else v-bind:src="subscreen.image" v-bind:alt="subscreen.title" width="18" style="padding-right: 4px;"/>
-                                </template>
-                                <i v-else class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
-                                {{subscreen.title}}</m-link></li>
-                    </ul>
+                    <m-link v-if="navMenuItem.hasTabMenu" v-bind:href="navMenuItem.path">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></m-link>
+                    <template v-else-if="navMenuItem.subscreens && navMenuItem.subscreens.length > 0">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></a>
+                        <ul class="dropdown-menu">
+                            <li v-for="subscreen in navMenuItem.subscreens" v-bind:class="{ active: subscreen.active }">
+                                <m-link v-bind:href="subscreen.urlWithParams">
+                                    <template v-if="subscreen.image">
+                                        <i v-if="subscreen.imageType === 'icon'" v-bind:class="subscreen.image" style="padding-right: 8px;"></i>
+                                        <img v-else v-bind:src="subscreen.image" v-bind:alt="subscreen.title" width="18" style="padding-right: 4px;"/>
+                                    </template>
+                                    <i v-else class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                                    {{subscreen.title}}</m-link></li>
+                        </ul>
+                    </template>
+                    <m-link v-else v-bind:href="navMenuItem.path">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></m-link>
                 </template>
             </li>
         </ul>

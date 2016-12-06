@@ -1,7 +1,6 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 /* TODO:
- - fix parameter passing window.location.target instead of pathname?
  - grey screen and/or add spinner overly when loading currentComponent (element always there with a bound class to show/hide)
 
  - use m-link for other links instead of a (or somehow intercept?)
@@ -31,7 +30,7 @@ Vue.component('m-link', {
     methods: {
         go: function(event) {
             event.preventDefault();
-            this.$root.currentPath = this.href;
+            this.$root.CurrentUrl = this.href;
             window.history.pushState(null, this.$root.ScreenTitle, this.href);
         }
     }
@@ -41,6 +40,7 @@ var webrootVue = new Vue({
     el: '#apps-root',
     data: {
         currentPath: "",
+        currentSearch: "",
         navMenuList: [],
         currentComponent: EmptyComponent
     },
@@ -48,13 +48,15 @@ var webrootVue = new Vue({
         asyncSetMenu: function(outerList) { if (outerList) { this.navMenuList = outerList; } }
     },
     watch: {
-        currentPath: function(path) {
-            if (!path || path.length === 0) return;
-            jQuery.ajax({ type:"GET", url:"/menuData" + path, dataType:"json", success:this.asyncSetMenu });
+        // NOTE: this may eventually split to change the currentComponent only on currentPath change (for screens that support it)
+        //     and if ever needed some sort of data refresh if currentSearch changes
+        CurrentUrl: function(newUrl) {
+            if (!newUrl || newUrl.length === 0) return;
+            jQuery.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json", success:this.asyncSetMenu });
 
-            var url = path + (path.includes('?') ? '&' : '?') + "lastStandalone=-2";
+            var url = newUrl + (newUrl.includes('?') ? '&' : '?') + "lastStandalone=-2";
             jQuery.ajax({ type:"GET", url:url, success: function (screenText) {
-                console.log("getScreenComponent " + path);
+                console.log("getScreenComponent " + newUrl);
                 // console.log(screenText);
                 if (screenText) { webrootVue.currentComponent = Vue.extend({
                     template: '<div id="current-page-root">' + screenText + '</div>'
@@ -65,9 +67,17 @@ var webrootVue = new Vue({
         }
     },
     computed: {
+        CurrentUrl: {
+            get: function() { return this.currentPath + this.currentSearch; },
+            set: function(href) {
+                var splitHref = href.split("?");
+                this.currentPath = splitHref[0];
+                this.currentSearch = splitHref.length > 1 ? '?' + splitHref[1] : "";
+            }
+        },
         ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; }
     },
-    mounted: function() { this.currentPath = window.location.pathname; }
+    mounted: function() { this.currentPath = window.location.pathname; this.currentSearch = window.location.search; }
 });
 
-window.addEventListener('popstate', function() { webrootVue.currentPath = window.location.pathname; });
+window.addEventListener('popstate', function() { webrootVue.currentPath = window.location.pathname; webrootVue.currentSearch = window.location.search; });
