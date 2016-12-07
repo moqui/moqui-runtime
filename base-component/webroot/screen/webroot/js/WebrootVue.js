@@ -31,7 +31,7 @@ var EmptyComponent = Vue.extend({ template: '<div id="current-page-root"></div>'
 /* ========== inline components ========== */
 Vue.component('m-link', {
     template: '<a v-bind:href="href" v-on:click="go"><slot></slot></a>',
-    props: { href: {type: String, required: true }, loadId: { type: String } },
+    props: { href:{ type:String, required:true }, loadId:String },
     methods: {
         go: function(event) {
             if (this.loadId && this.loadId.length > 0) {
@@ -44,9 +44,21 @@ Vue.component('m-link', {
         }
     }
 });
+Vue.component('m-script', {
+    template: '<div style="display:none;"><slot></slot></div>',
+    mounted: function () {
+        var parent = this.$el.parentElement;
+        var s = document.createElement('script');
+        s.type = 'text/javascript';
+        s.appendChild(document.createTextNode(this.$el.innerHTML));
+        Vue.util.remove(this.$el);
+        parent.appendChild(s);
+    }
+});
 Vue.component('drop-down', {
-    props: ['options', 'value', 'combo', 'multiple', 'allowEmpty', 'optionsUrl', 'optionsParameters', 'labelField', 'valueField', 'dependsOn'],
-    data: function() { return { curVal: null, curData: null, s2Opts: null } },
+    props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String,
+        optionsUrl:String, optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object },
+    data: function() { return { curData: null, s2Opts: null } },
     template: '<select><slot></slot></select>',
     methods: {
         populateFromUrl: function() {
@@ -62,7 +74,7 @@ Vue.component('drop-down', {
                 if (!doValue) { hasAllParms = false; break; }
                 reqData[doParm] = doValue;
             }}
-            if (!hasAllParms) { this.options = null; return; }
+            if (!hasAllParms) { this.curData = null; return; }
 
             var vm = this;
             $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json" }).done( function(list) { if (list) {
@@ -81,15 +93,16 @@ Vue.component('drop-down', {
     },
     mounted: function () {
         var vm = this;
-        var opts = { minimumResultsForSearch:15, theme:'bootstrap', data: this.options };
+        var opts = { minimumResultsForSearch:15, theme:'bootstrap' };
         if (this.combo) { opts.tags = true; opts.tokenSeparators = [',',' ']; }
-        if (this.multiple) { opts.multiple = true; }
+        if (this.multiple == "multiple") { opts.multiple = true; }
+        if (this.options && this.options.length > 0) { opts.data = this.options; }
         this.s2Opts = opts;
-        if (this.value) { $(this.$el).val(this.value); }
         var jqEl = $(this.$el);
-        jqEl.select2(opts).on('change', function () { vm.$emit('input', this.value) })
-                .on('select2:select', function () { $(vm.$el).select2('open').select2('close'); });
-        if (this.optionsUrl && this.optionsUrl.length > 0) { // TODO: do this before init select2?
+        jqEl.select2(opts).on('change', function () { vm.$emit('input', this.value); })
+                .on('select2:select', function () { jqEl.select2('open').select2('close'); });
+        if (this.value && this.value.length > 0) { this.curVal = this.value; }
+        if (this.optionsUrl && this.optionsUrl.length > 0) {
             var dependsOnMap = this.dependsOn;
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
                 $('#' + dependsOnMap[doParm]).on('change', function() { vm.populateFromUrl(); });
@@ -98,10 +111,13 @@ Vue.component('drop-down', {
         }
     },
     watch: {
-        value: function (value) { this.curVal = value },
-        options: function (options) { this.curData = options },
-        curVal: function (value) { $(this.$el).select2().val(value).trigger('change') },
-        curData: function (options) { this.s2Opts.data = options; $(this.$el).select2(this.s2Opts).trigger('change') },
+        value: function (value) { this.curVal = value; },
+        options: function (options) { this.curData = options; },
+        curData: function (options) { this.s2Opts.data = options; $(this.$el).select2(this.s2Opts); }
+    },
+    computed: {
+        curVal: { get: function () { return $(this.$el).select2().val(); },
+            set: function (value) { $(this.$el).select2().val(value).trigger('select2:change'); } }
     },
     destroyed: function () { $(this.$el).off().select2('destroy') }
 });
@@ -109,13 +125,7 @@ Vue.component('drop-down', {
 /* ========== webrootVue - root Vue component with router ========== */
 var webrootVue = new Vue({
     el: '#apps-root',
-    data: {
-        currentPath: "",
-        currentSearch: "",
-        navMenuList: [],
-        currentComponent: EmptyComponent,
-        moquiSessionToken: ""
-    },
+    data: { currentPath:"", currentSearch:"", navMenuList:[], currentComponent:EmptyComponent, moquiSessionToken:"" },
     methods: {
         asyncSetMenu: function(outerList) { if (outerList) { this.navMenuList = outerList; } }
     },
