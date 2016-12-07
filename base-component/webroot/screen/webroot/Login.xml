@@ -40,7 +40,7 @@ along with this software (see the LICENSE.md file). If not, see
     </script></pre-actions>
     <widgets>
         <!-- NOTE: this screen is not under the apps screen, but uses similar header/footer/etc -->
-        <container id="content"><container style="inner"><container style="container-fluid">
+        <container id="content" style="Login"><container style="inner"><container style="container-fluid">
             <section-include name="MessagesSection" location="component://webroot/screen/webroot/apps.xml"/>
 
             <!-- if there are no user accounts, other than the _NA_ UserAccount which is in seed data, show form to create admin account -->

@@ -44,7 +44,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <#list sri.getActiveScreenDef().getMenuSubscreensItems() as subscreensItem>
                     <#assign urlInstance = sri.buildUrl(subscreensItem.name)>
                     <#if urlInstance.isPermitted()>
-                        <li class="<#if urlInstance.inCurrentScreenPath>active</#if><#if urlInstance.disableLink> disabled</#if>"><#if urlInstance.disableLink>${ec.getResource().expand(subscreensItem.menuTitle, "")}<#else><a href="${urlInstance.minimalPathUrlWithParams}">${ec.getL10n().localize(subscreensItem.menuTitle)}</a></#if></li>
+                        <li class="<#if urlInstance.inCurrentScreenPath>active</#if><#if urlInstance.disableLink> disabled</#if>">
+                            <#if urlInstance.disableLink>${ec.getResource().expand(subscreensItem.menuTitle, "")}<#else><m-link href="${urlInstance.pathWithParams}">${ec.getL10n().localize(subscreensItem.menuTitle)}</m-link></#if></li>
                     </#if>
                 </#list>
             </ul>
@@ -85,7 +86,8 @@ along with this software (see the LICENSE.md file). If not, see
                                     <#assign urlInstance = urlInstance.addParameters(ec.getWeb().requestParameters)>
                                 </#if>
                             </#if>
-                            <li class="<#if urlInstance.disableLink>disabled<#elseif urlInstance.inCurrentScreenPath>active</#if>"><a href="<#if urlInstance.disableLink>#<#else>${urlInstance.minimalPathUrlWithParams}</#if>">${ec.getResource().expand(subscreensItem.menuTitle, "")}</a></li>
+                            <li class="<#if urlInstance.disableLink>disabled<#elseif urlInstance.inCurrentScreenPath>active</#if>">
+                                <#if urlInstance.disableLink>${ec.getResource().expand(subscreensItem.menuTitle, "")}<#else><m-link href="${urlInstance.pathWithParams}">${ec.getL10n().localize(subscreensItem.menuTitle)}</m-link></#if></li>
                         </#if>
                     </#list>
                     </ul>
