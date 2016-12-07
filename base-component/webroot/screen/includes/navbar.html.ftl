@@ -11,6 +11,7 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
+<input type="hidden" id="moquiSessionToken" value="${ec.web.sessionToken}">
 <nav class="navbar navbar-inverse navbar-fixed-top"><#-- navbar-static-top --><div class="container-fluid">
     <#-- Brand and toggle get grouped for better mobile display -->
     <header class="navbar-header">
@@ -48,15 +49,10 @@ along with this software (see the LICENSE.md file). If not, see
             </li>
         </ul>
         <m-link v-if="navMenuList.length > 0" class="navbar-text" v-bind:href="navMenuList[navMenuList.length - 1].urlWithParams">{{navMenuList[navMenuList.length - 1].title}}</m-link>
-
         <#-- logout button -->
-        <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="Logout ${(ec.getUser().getUserAccount().userFullName)!}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right">
-            <i class="glyphicon glyphicon-off"></i>
-        </a>
+        <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="Logout ${(ec.user.userAccount.userFullName)!''}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-off"></i></a>
         <#-- dark/light switch -->
-        <a href="#" onclick="switchDarkLight();" data-toggle="tooltip" data-original-title="Switch Dark/Light" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right">
-            <i class="glyphicon glyphicon-adjust"></i>
-        </a>
+        <a href="#" onclick="switchDarkLight();" data-toggle="tooltip" data-original-title="Switch Dark/Light" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-adjust"></i></a>
         <#-- header navbar items from the theme -->
         <#assign navbarItemList = sri.getThemeValues("STRT_HEADER_NAVBAR_ITEM")>
         <#list navbarItemList! as navbarItem>

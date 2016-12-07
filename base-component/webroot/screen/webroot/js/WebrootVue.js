@@ -41,24 +41,63 @@ Vue.component('m-link', {
     }
 });
 Vue.component('drop-down', {
-    props: ['options', 'value', 'combo', 'optionsUrl', 'labelField', 'valueField', 'dependsOn'],
-    template: "<select><slot></slot></select>",
+    props: ['options', 'value', 'combo', 'multiple', 'allowEmpty', 'optionsUrl', 'optionsParameters', 'labelField', 'valueField', 'dependsOn'],
+    data: function() { return { curVal: null, curData: null, s2Opts: null } },
+    template: '<select><slot></slot></select>',
     methods: {
-        populate: function() {
-            // TODO
+        populateFromUrl: function() {
+            if (!this.optionsUrl || this.optionsUrl.length === 0) return;
+            var hasAllParms = true;
+            var dependsOnMap = this.dependsOn;
+            var parmMap = this.optionsParameters;
+            var reqData = { moquiSessionToken: this.$root.moquiSessionToken };
+
+            for (var parmName in parmMap) { if (parmMap.hasOwnProperty(parmName)) reqData[parmName] = parmMap[parmName]; }
+            for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
+                var doValue = $('#' + dependsOnMap[doParm]).val();
+                if (!doValue) { hasAllParms = false; break; }
+                reqData[doParm] = doValue;
+            }}
+            if (!hasAllParms) { this.options = null; return; }
+
+            var vm = this;
+            $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json" }).done( function(list) { if (list) {
+                var newData = [];
+                if (vm.allowEmpty) newData.push({ id:'', text:'' });
+                // var curValue = this.value; var isArray = Array.isArray(curValue);
+                var labelField = vm.labelField; if (!labelField) labelField = "label";
+                var valueField = vm.valueField; if (!valueField) valueField = "value";
+                $.each(list, function(idx, curObj) {
+                    // if ((isArray && curOptions.indexOf(optionValue) >= 0) || optionValue == "${currentValue}")
+                    newData.push({ id: curObj[valueField], text: curObj[labelField] })
+                });
+                vm.curData = newData;
+            }});
         }
     },
     mounted: function () {
         var vm = this;
         var opts = { minimumResultsForSearch:15, theme:'bootstrap', data: this.options };
         if (this.combo) { opts.tags = true; opts.tokenSeparators = [',',' ']; }
+        if (this.multiple) { opts.multiple = true; }
+        this.s2Opts = opts;
         if (this.value) { $(this.$el).val(this.value); }
-        $(this.$el).select2(opts).on('change', function () { vm.$emit('input', this.value) })
-                .on("select2:select", function () { $(vm.$el).select2("open").select2("close"); });
+        var jqEl = $(this.$el);
+        jqEl.select2(opts).on('change', function () { vm.$emit('input', this.value) })
+                .on('select2:select', function () { $(vm.$el).select2('open').select2('close'); });
+        if (this.optionsUrl && this.optionsUrl.length > 0) { // TODO: do this before init select2?
+            var dependsOnMap = this.dependsOn;
+            for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
+                $('#' + dependsOnMap[doParm]).on('change', function() { vm.populateFromUrl(); });
+            }}
+            this.populateFromUrl();
+        }
     },
     watch: {
-        value: function (value) { $(this.$el).select2('val', value) },
-        options: function (options) { $(this.$el).select2({ data: options }) }
+        value: function (value) { this.curVal = value },
+        options: function (options) { this.curData = options },
+        curVal: function (value) { $(this.$el).select2().val(value).trigger('change') },
+        curData: function (options) { this.s2Opts.data = options; $(this.$el).select2(this.s2Opts).trigger('change') },
     },
     destroyed: function () { $(this.$el).off().select2('destroy') }
 });
@@ -70,7 +109,8 @@ var webrootVue = new Vue({
         currentPath: "",
         currentSearch: "",
         navMenuList: [],
-        currentComponent: EmptyComponent
+        currentComponent: EmptyComponent,
+        moquiSessionToken: ""
     },
     methods: {
         asyncSetMenu: function(outerList) { if (outerList) { this.navMenuList = outerList; } }
@@ -106,7 +146,10 @@ var webrootVue = new Vue({
         },
         ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; }
     },
-    mounted: function() { this.currentPath = window.location.pathname; this.currentSearch = window.location.search; }
+    mounted: function() {
+        this.currentPath = window.location.pathname; this.currentSearch = window.location.search;
+        this.moquiSessionToken = $("#moquiSessionToken").val();
+    }
 });
 
 window.addEventListener('popstate', function() { webrootVue.currentPath = window.location.pathname; webrootVue.currentSearch = window.location.search; });

@@ -123,7 +123,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </widgets></section-iterate>
             </widgets></section>
 
-            <render-mode><text type="html"><![CDATA[<component v-bind:is="currentComponent"></component>]]></text></render-mode>
+            <render-mode><text type="html" template="false"><![CDATA[<component v-bind:is="currentComponent"></component>]]></text></render-mode>
             <!-- TODO maybe do this for non-html render modes? <subscreens-active/> -->
         </container></container></container>
 
