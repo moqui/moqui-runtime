@@ -396,12 +396,24 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#-- NOTE: the void(0) is needed for Firefox and other browsers that render the result of the JS expression -->
                 <#assign urlText>javascript:{$('#${linkNode["@dynamic-load-id"]}').load('${urlInstance.urlWithParams}'); void(0);}</#assign>
             <#else>
-                <#if linkNode["@url-noparam"]! == "true"><#assign urlText = urlInstance.url/>
-                    <#else><#assign urlText = urlInstance.urlWithParams/></#if>
             </#if>
-            <#rt><a href="${urlText}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if> class="<#if linkNode["@link-type"]! != "anchor">btn btn-primary btn-sm</#if><#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"<#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>><#if iconClass?has_content><i class="${iconClass}"></i></#if>
-            <#t><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if>
-            <#t></a>
+            <#assign linkNoParam = linkNode["@url-noparam"]! == "true">
+            <#if urlInstance.isScreenUrl()>
+                <#assign linkElement = "m-link">
+                <#if linkNoParam><#assign urlText = urlInstance.path/><#else><#assign urlText = urlInstance.pathWithParams/></#if>
+            <#else>
+                <#assign linkElement = "a">
+                <#if linkNoParam><#assign urlText = urlInstance.url/><#else><#assign urlText = urlInstance.urlWithParams/></#if>
+            </#if>
+            <${linkElement} href="${urlText}"<#if linkFormId?has_content> id="${linkFormId}"</#if>
+                <#t><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>
+                <#t><#if linkNode["@dynamic-load-id"]?has_content> load-id="${linkNode["@dynamic-load-id"]}"</#if>
+                <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>
+                <#t> class="<#if linkNode["@link-type"]! != "anchor">btn btn-primary btn-sm</#if><#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"
+                <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
+                <#t><#if iconClass?has_content><i class="${iconClass}"></i></#if><#rt>
+                <#t><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if>
+                <#t></${linkElement}>
         <#else>
             <#if linkFormId?has_content>
             <#rt><button type="submit" form="${linkFormId}" id="${linkFormId}_button" class="btn btn-primary btn-sm<#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"
@@ -1000,7 +1012,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <h4 class="modal-title">${ec.getL10n().localize("Generate PDF")}</h4>
                 </div>
                 <div class="modal-body">
-                    <form id="${formId}_Pdf" method="post" action="${ec.web.getWebappRootUrl(false, null)}/fop${pdfLinkUrl.getScreenPath()}">
+                    <form id="${formId}_Pdf" method="post" action="${ec.web.getWebappRootUrl(false, null)}/fop${pdfLinkUrl.getPath()}">
                         <input type="hidden" name="pageNoLimit" value="true">
                         <#list pdfLinkUrlParms.keySet() as parmName>
                             <input type="hidden" name="${parmName}" value="${pdfLinkUrlParms.get(parmName)!?html}"></#list>

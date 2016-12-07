@@ -31,12 +31,16 @@ var EmptyComponent = Vue.extend({ template: '<div id="current-page-root"></div>'
 /* ========== inline components ========== */
 Vue.component('m-link', {
     template: '<a v-bind:href="href" v-on:click="go"><slot></slot></a>',
-    props: { href: String, required: true },
+    props: { href: {type: String, required: true }, loadId: { type: String } },
     methods: {
         go: function(event) {
-            event.preventDefault();
-            this.$root.CurrentUrl = this.href;
-            window.history.pushState(null, this.$root.ScreenTitle, this.href);
+            if (this.loadId && this.loadId.length > 0) {
+                $('#' + this.loadId).load(this.href);
+            } else {
+                event.preventDefault();
+                this.$root.CurrentUrl = this.href;
+                window.history.pushState(null, this.$root.ScreenTitle, this.href);
+            }
         }
     }
 });
