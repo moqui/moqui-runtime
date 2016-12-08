@@ -12,9 +12,6 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 
-<#-- set here because used in drop-down, container-dialog and dynamic-dialog -->
-<#assign select2DefaultOptions = "minimumResultsForSearch:15, theme:'bootstrap'">
-
 <#macro @element><p>=== Doing nothing for element ${.node?node_name}, not yet implemented. ===</p></#macro>
 
 <#macro screen>
@@ -253,7 +250,7 @@ ${sri.renderSection(.node["@name"])}
     </div>
     <m-script>
         $('#${cdDivId}').on('shown.bs.modal', function() {
-            $("#${cdDivId} select").select2({ ${select2DefaultOptions} });
+            $("#${cdDivId} select").select2({ });
             $("#${cdDivId} .default-focus").focus();
         });
         <#if _openDialog! == cdDivId>$('#${cdDivId}').modal('show');</#if>
@@ -861,7 +858,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </div>
             </div></div>
         </div>
-        <m-script>$('#${headerFormDialogId}').on('shown.bs.modal', function() { $("#${headerFormDialogId} select:not([name='orderBySelect'])").select2({ ${select2DefaultOptions} }); })</m-script>
+        <m-script>$('#${headerFormDialogId}').on('shown.bs.modal', function() { $("#${headerFormDialogId} select:not([name^='orderBySelect'])").select2({ }); })</m-script>
     </#if>
     <#if isSelectColumns>
         <#assign selectColumnsDialogId = formId + "_SelColsDialog">
@@ -1019,7 +1016,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <button type="submit" class="btn btn-default">${ec.getL10n().localize("Generate PDF")}</button>
                         </fieldset>
                     </form>
-                    <m-script>$("#${formId}_Pdf_layoutMaster").select2({ ${select2DefaultOptions} });</m-script>
+                    <m-script>$("#${formId}_Pdf_layoutMaster").select2({ });</m-script>
                 </div>
             </div></div>
         </div>
@@ -1052,7 +1049,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         </#list>
                     </select>
                     <m-script>
-                        $("#${quickSavedFindId}").select2({ ${select2DefaultOptions}, placeholder:'${ec.getL10n().localize("Saved Finds")}' });
+                        $("#${quickSavedFindId}").select2({ placeholder:'${ec.getL10n().localize("Saved Finds")}' });
                         $("#${quickSavedFindId}").on('select2:select', function(evt) {
                             var dataAction = $(evt.params.data.element).attr("data-action");
                             if (dataAction) window.open(dataAction, "_self");
@@ -1530,10 +1527,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <option value="month" <#if fvPeriod == "month"> selected="selected"</#if>>${ec.getL10n().localize("Month")}</option>
             <option value="year" <#if fvPeriod == "year"> selected="selected"</#if>>${ec.getL10n().localize("Year")}</option>
         </select>
-        <m-script>
-            $("#${id}_poffset").select2({ ${select2DefaultOptions} });
-            $("#${id}_period").select2({ ${select2DefaultOptions} });
-        </m-script>
+        <m-script>$("#${id}_poffset").select2({ }); $("#${id}_period").select2({ });</m-script>
     </div>
 </#macro>
 
@@ -1688,7 +1682,7 @@ a => A, d => D, y => Y
             <#t><#else>
                 :options="[<#if !allowMultiple && !optionsHasCurrent>{id:'${currentValue}',text:'<#if currentDescription?has_content>${currentDescription}<#else>${currentValue}</#if>'},</#if><#rt>
                     <#t><#if allowEmpty || !(options?has_content)>{id:'',text:' '},</#if><#list (options.keySet())! as key>{id:'${key}',text:'${options.get(key)?replace("'", "")}'}<#sep>,</#list>]"
-                <#t><#if allowMultiple> :value="[<#list currentValueList as curVal>'${curVal}'<#sep>,</#list>]"<#else> value="${currentValue!}"</#if>
+                <#t><#if allowMultiple> :value="[<#list currentValueList as curVal><#if curVal?has_content>'${curVal}',</#if></#list>]"<#else> value="${currentValue!}"</#if>
             <#t></#if>>
             <#-- support <#if .node["@current"]! == "first-in-list"> again? -->
     </drop-down>

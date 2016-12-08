@@ -142,7 +142,7 @@ Vue.component('drop-down', {
     },
     mounted: function() {
         var vm = this;
-        var opts = { minimumResultsForSearch:15, theme:'bootstrap' };
+        var opts = { minimumResultsForSearch:15 };
         if (this.combo) { opts.tags = true; opts.tokenSeparators = [',',' ']; }
         if (this.multiple == "multiple") { opts.multiple = true; }
         if (this.options && this.options.length > 0) { opts.data = this.options; }
