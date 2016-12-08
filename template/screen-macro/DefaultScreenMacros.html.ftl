@@ -299,9 +299,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 url: function (node) { return '${ajaxUrlInfo.url}'; },
                 data: function (node) { return { treeNodeId: node.id,
                     treeNodeName: (node.li_attr && node.li_attr.treeNodeName ? node.li_attr.treeNodeName : ''),
-                    moquiSessionToken: "${(ec.getWeb().sessionToken)!}"
-                    <#if .node["@open-path"]??>, treeOpenPath: "${ec.getResource().expandNoL10n(.node["@open-path"], "")}"</#if>
-                    <#list ajaxParms.keySet() as pKey>, "${pKey}": "${ajaxParms.get(pKey)!""}"</#list> }; }
+                    moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
+                    <#t><#if .node["@open-path"]??>, treeOpenPath: "${ec.getResource().expandNoL10n(.node["@open-path"], "")}"</#if>
+                    <#t><#list ajaxParms.keySet() as pKey>, "${pKey}": "${ajaxParms.get(pKey)!""}"</#list> }; }
             }
         }
     });
