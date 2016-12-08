@@ -16,7 +16,7 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         require-authentication="false" screen-theme-type-enum-id="STT_ERROR" default-menu-include="false">
     <pre-actions><script><![CDATA[
-        html_stylesheets.add('/libs/bootstrap/css/bootstrap.min.css')
+        html_stylesheets.add('/libs/twitter-bootstrap/css/bootstrap.min.css')
 
         html_scripts.add('/libs/jquery/jquery.min.js')
         html_scripts.add('/libs/twitter-bootstrap/js/bootstrap.min.js')
