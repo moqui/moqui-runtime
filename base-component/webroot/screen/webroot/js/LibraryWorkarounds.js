@@ -12,6 +12,8 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
+$.fn.select2.defaults.set("theme", "bootstrap");
+$.fn.select2.defaults.set("minimumResultsForSearch", "15");
 // this is a fix for Select2 search input within Bootstrap Modal
 $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 
