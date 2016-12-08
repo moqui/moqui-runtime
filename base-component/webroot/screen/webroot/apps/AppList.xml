@@ -36,7 +36,7 @@ along with this software (see the LICENSE.md file). If not, see
                             !currentScreenDef.getParameterMap() &amp;&amp; currentUrlInstance?.isPermitted()</expression></condition>
                         <widgets>
                             <render-mode><text type="html"><![CDATA[
-                                <a href="${currentUrlInstance.url}" class="btn btn-primary app-list-link">
+                                <m-link href="${currentUrlInstance.path}" class="btn btn-primary app-list-link">
                                     <#if currentUrlInstance.sui.menuImage?has_content>
                                         <#if currentUrlInstance.sui.menuImageType == "icon">
                                             <i class="${currentUrlInstance.sui.menuImage}" style="padding-right: 8px;"></i>
@@ -49,7 +49,7 @@ along with this software (see the LICENSE.md file). If not, see
                                         <i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
                                     </#if>
                                     ${ec.resource.expand(currentSubscreensItem.menuTitle, "")}
-                                </a>
+                                </m-link>
                             ]]></text></render-mode>
                         </widgets>
                         <fail-widgets>

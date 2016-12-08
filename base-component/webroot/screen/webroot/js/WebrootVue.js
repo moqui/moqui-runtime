@@ -44,7 +44,7 @@ Vue.component('m-link', {
         }
     }
 });
-Vue.component('m-loader', {
+Vue.component('dynamic-container', {
     props: { url:{type:String} },
     data: function() { return { curComponent:EmptyComponent, curUrl:"" } },
     template: '<component v-bind:is="curComponent"></component>',
@@ -61,23 +61,19 @@ Vue.component('m-loader', {
     },
     mounted: function() { this.curUrl = this.url; }
 });
-Vue.component('m-loader-dialog', {
+Vue.component('dynamic-dialog', {
     props: { id:{type:String,required:true}, url:{type:String,required:true}, width:{type:String,default:'760'},
         openDialog:{type:Boolean,default:false}, title:String },
     data: function() { return { curComponent:EmptyComponent, curUrl:"", dialogStyle:{width:this.width + 'px'} } },
     template:
         '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">' +
-            '<div class="modal-dialog" :style="dialogStyle">' +
-                '<div class="modal-content">' +
-                    '<div class="modal-header">' +
-                        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
-                        '<h4 class="modal-title">{{title}}</h4>' +
-                    '</div>' +
-                    '<div class="modal-body">' +
-                        '<component v-bind:is="curComponent"></component>' +
-                    '</div>' +
+            '<div class="modal-dialog" :style="dialogStyle"><div class="modal-content">' +
+                '<div class="modal-header">' +
+                    '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+                    '<h4 class="modal-title">{{title}}</h4>' +
                 '</div>' +
-            '</div>' +
+                '<div class="modal-body"><component v-bind:is="curComponent"></component></div>' +
+            '</div></div>' +
         '</div>',
     watch: {
         curUrl: function (newUrl) {
@@ -182,27 +178,34 @@ var webrootVue = new Vue({
     el: '#apps-root',
     data: { currentPath:"", currentSearch:"", navMenuList:[], currentComponent:EmptyComponent, loading:false, moquiSessionToken:"" },
     methods: {
-        asyncSetMenu: function(outerList) { if (outerList) { this.navMenuList = outerList; } }
+        switchDarkLight: function() {
+            var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
+            var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
+            $.ajax({ type:'POST', url:'/apps/setPreference', data:{ moquiSessionToken: this.moquiSessionToken,
+                preferenceKey:'OUTER_STYLE', preferenceValue:currentStyle } });
+        }
     },
     watch: {
         // NOTE: this may eventually split to change the currentComponent only on currentPath change (for screens that support it)
         //     and if ever needed some sort of data refresh if currentSearch changes
         CurrentUrl: function(newUrl) {
             if (!newUrl || newUrl.length === 0) return;
+            var vm = this;
             this.loading = true;
             console.log("CurrentUrl changing to " + newUrl);
             // update menu
-            jQuery.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json", success:this.asyncSetMenu });
+            jQuery.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json",
+                success: function(outerList) { if (outerList) { vm.navMenuList = outerList; } }});
             // update currentComponent
             var url = newUrl + (newUrl.includes('?') ? '&' : '?') + "lastStandalone=-2";
             jQuery.ajax({ type:"GET", url:url, success: function (screenText) {
                 // console.log(screenText);
                 if (screenText) {
-                    webrootVue.currentComponent = Vue.extend({ template: '<div id="current-page-root">' + screenText + '</div>' })
+                    vm.currentComponent = Vue.extend({ template: '<div id="current-page-root">' + screenText + '</div>' })
                 } else {
-                    webrootVue.currentComponent = NotFound
+                    vm.currentComponent = NotFound
                 }
-                webrootVue.loading = false;
+                vm.loading = false;
             }});
         }
     },
@@ -219,6 +222,8 @@ var webrootVue = new Vue({
     },
     mounted: function() {
         this.moquiSessionToken = $("#moquiSessionToken").val();
+        $('.navbar [data-toggle="tooltip"]').tooltip();
+        // load the current screen
         this.CurrentUrl = window.location.pathname + window.location.search;
     }
 });

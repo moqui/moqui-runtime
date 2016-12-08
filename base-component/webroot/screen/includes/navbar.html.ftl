@@ -22,7 +22,7 @@ along with this software (see the LICENSE.md file). If not, see
             <span class="icon-bar"></span>
         </button>
         <#assign headerLogoList = sri.getThemeValues("STRT_HEADER_LOGO")>
-        <#if headerLogoList?has_content><a href="${sri.buildUrl("/").getUrl()}" class="navbar-brand"><img src="${sri.buildUrl(headerLogoList?first).getUrl()}" alt="Home"></a></#if>
+        <#if headerLogoList?has_content><m-link href="/apps" class="navbar-brand"><img src="${sri.buildUrl(headerLogoList?first).getUrl()}" alt="Home"></m-link></#if>
         <#assign headerTitleList = sri.getThemeValues("STRT_HEADER_TITLE")>
         <#if headerTitleList?has_content><div class="navbar-brand">${ec.resource.expand(headerTitleList?first, "")}</div></#if>
     </header>
@@ -52,7 +52,7 @@ along with this software (see the LICENSE.md file). If not, see
         <#-- logout button -->
         <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="Logout ${(ec.user.userAccount.userFullName)!''}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-off"></i></a>
         <#-- dark/light switch -->
-        <a href="#" onclick="switchDarkLight();" data-toggle="tooltip" data-original-title="Switch Dark/Light" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-adjust"></i></a>
+        <a href="#" @click="switchDarkLight()" data-toggle="tooltip" data-original-title="Switch Dark/Light" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-adjust"></i></a>
         <#-- header navbar items from the theme -->
         <#assign navbarItemList = sri.getThemeValues("STRT_HEADER_NAVBAR_ITEM")>
         <#list navbarItemList! as navbarItem>
@@ -81,17 +81,10 @@ along with this software (see the LICENSE.md file). If not, see
                 </a></li>
             </#list></ul>
         </div>
+        <m-script>
+            $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        </m-script>
+
         <div class="btn btn-default btn-sm navbar-btn navbar-right" :class="{ hidden: !loading }"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>
     </div>
-    <#-- dark/light switch JS method; TODO: switch this to Vue method? -->
-    <script>
-        $('.navbar [data-toggle="tooltip"]').tooltip();
-        $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
-        function switchDarkLight() {
-            $("body").toggleClass("bg-dark");
-            $("body").toggleClass("bg-light");
-            var currentStyle = $("body").hasClass("bg-dark") ? "bg-dark" : "bg-light";
-            $.ajax({ type:'POST', url:'${sri.buildUrl("/apps/setPreference").url}', data:{ 'moquiSessionToken': '${ec.web.sessionToken}','preferenceKey': 'OUTER_STYLE', 'preferenceValue': currentStyle }, dataType:'json' });
-        }
-    </script>
 </div></nav>
