@@ -120,8 +120,8 @@ span.shaded-area { display: inline-block; white-space: normal; }
 /* Bootstrap by default has a 20px height for this, for 30px height shift up 5px */
 .navbar-brand>img { height: 30px; margin-top: -5px; }
 /* Bootstrap has no margin for a.navbar-btn so add them; note margin-right in bootstrap is -15px because of other styles, so for a margin of 10px set to -5px */
-.navbar-right.btn { margin-right: -6px; margin-left: 10px; }
-.navbar-right.btn-group { margin-right: -6px; margin-left: 0px; }
+.navbar-right.btn, .navbar-right.dropdown { margin-right: 0px; margin-left: 4px; }
+.navbar-right.btn-group { margin-right: 0px; margin-left: 0px; }
 
 nav.form-list-nav .pagination { margin: 6px 6px 0 6px; }
 nav.form-list-nav>form.form-inline { display: inline-block; margin: 2px 6px 0 0; float: left; }
@@ -162,7 +162,7 @@ a.jstree-anchor { white-space: normal; }
 /* style for bootstrap-notify (growl alerts) */
 .notify-container { padding-right: 30px; }
 
-.tt-menu { width: 360px; margin: 12px 0; padding: 8px 0; border: 1px solid rgba(0, 0, 0, 0.2);
+.tt-menu { width: 360px; margin: 4px 0; padding: 8px 0; border: 1px solid rgba(0, 0, 0, 0.2);
     -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px; overflow: hidden; }
 .tt-suggestion { padding: 4px 8px; }
 .tt-suggestion p { margin: 0; }

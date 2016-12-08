@@ -1,8 +1,6 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 /* TODO:
- - grey screen and/or add spinner overly when loading currentComponent (element always there with a bound class to show/hide)
-
  - use m-link for other links instead of a (or somehow intercept?)
  - do something with form submits to submit in background and refresh current html based component (new client rendered screens won't need this)
 
@@ -26,22 +24,79 @@
  */
 
 var NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
-var EmptyComponent = Vue.extend({ template: '<div id="current-page-root"></div>' });
+var EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>' });
 
 /* ========== inline components ========== */
 Vue.component('m-link', {
-    template: '<a v-bind:href="href" v-on:click="go"><slot></slot></a>',
-    props: { href:{ type:String, required:true }, loadId:String },
+    template: '<a :href="href" @click="go"><slot></slot></a>',
+    props: { href:{type:String,required:true}, loadRef:String },
     methods: {
         go: function(event) {
-            if (this.loadId && this.loadId.length > 0) {
-                $('#' + this.loadId).load(this.href);
+            if (this.loadRef && this.loadRef.length > 0) {
+                var comp = this.$refs[this.loadRef];
+                if (!comp) { console.log("Load ref not found, not loading: " + this.loadRef); return; }
+                comp.curUrl = this.href;
             } else {
                 event.preventDefault();
                 this.$root.CurrentUrl = this.href;
                 window.history.pushState(null, this.$root.ScreenTitle, this.href);
             }
         }
+    }
+});
+Vue.component('m-loader', {
+    props: { url:{type:String} },
+    data: function() { return { curComponent:EmptyComponent, curUrl:"" } },
+    template: '<component v-bind:is="curComponent"></component>',
+    watch: {
+        curUrl: function (newUrl) {
+            if (!newUrl || newUrl.length === 0) { this.curComponent = EmptyComponent; return; }
+            var vm = this;
+            jQuery.ajax({ type:"GET", url:newUrl, success: function (screenText) {
+                // console.log(screenText);
+                if (screenText) { vm.curComponent = Vue.extend({ template: '<div>' + screenText + '</div>' }) }
+                else { vm.curComponent = NotFound }
+            }});
+        }
+    },
+    mounted: function() { this.curUrl = this.url; }
+});
+Vue.component('m-loader-dialog', {
+    props: { id:{type:String,required:true}, url:{type:String,required:true}, width:{type:String,default:'760'},
+        openDialog:{type:Boolean,default:false}, title:String },
+    data: function() { return { curComponent:EmptyComponent, curUrl:"", dialogStyle:{width:this.width + 'px'} } },
+    template:
+        '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">' +
+            '<div class="modal-dialog" :style="dialogStyle">' +
+                '<div class="modal-content">' +
+                    '<div class="modal-header">' +
+                        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+                        '<h4 class="modal-title">{{title}}</h4>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<component v-bind:is="curComponent"></component>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>',
+    watch: {
+        curUrl: function (newUrl) {
+            if (!newUrl || newUrl.length === 0) { this.curComponent = EmptyComponent; return; }
+            var vm = this;
+            jQuery.ajax({ type:"GET", url:newUrl, success: function (screenText) {
+                // console.log(screenText);
+                if (screenText) { vm.curComponent = Vue.extend({ template: '<div>' + screenText + '</div>' }) }
+                else { vm.curComponent = NotFound }
+            }});
+        }
+    },
+    mounted: function() {
+        var jqEl = $(this.$el);
+        var vm = this;
+        jqEl.on("show.bs.modal", function() { vm.curUrl = vm.url; });
+        jqEl.on("hidden.bs.modal", function() { vm.curUrl = ""; });
+        jqEl.on("shown.bs.modal", function() { $("#" + id + "select").select2({ }); });
+        if (this.openDialog) { jqEl.modal('show'); }
     }
 });
 Vue.component('m-script', {
@@ -91,7 +146,7 @@ Vue.component('drop-down', {
             }});
         }
     },
-    mounted: function () {
+    mounted: function() {
         var vm = this;
         var opts = { minimumResultsForSearch:15, theme:'bootstrap' };
         if (this.combo) { opts.tags = true; opts.tokenSeparators = [',',' ']; }
@@ -125,7 +180,7 @@ Vue.component('drop-down', {
 /* ========== webrootVue - root Vue component with router ========== */
 var webrootVue = new Vue({
     el: '#apps-root',
-    data: { currentPath:"", currentSearch:"", navMenuList:[], currentComponent:EmptyComponent, moquiSessionToken:"" },
+    data: { currentPath:"", currentSearch:"", navMenuList:[], currentComponent:EmptyComponent, loading:false, moquiSessionToken:"" },
     methods: {
         asyncSetMenu: function(outerList) { if (outerList) { this.navMenuList = outerList; } }
     },
@@ -134,6 +189,7 @@ var webrootVue = new Vue({
         //     and if ever needed some sort of data refresh if currentSearch changes
         CurrentUrl: function(newUrl) {
             if (!newUrl || newUrl.length === 0) return;
+            this.loading = true;
             console.log("CurrentUrl changing to " + newUrl);
             // update menu
             jQuery.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json", success:this.asyncSetMenu });
@@ -141,11 +197,12 @@ var webrootVue = new Vue({
             var url = newUrl + (newUrl.includes('?') ? '&' : '?') + "lastStandalone=-2";
             jQuery.ajax({ type:"GET", url:url, success: function (screenText) {
                 // console.log(screenText);
-                if (screenText) { webrootVue.currentComponent = Vue.extend({
-                    template: '<div id="current-page-root">' + screenText + '</div>'
-                }) } else {
+                if (screenText) {
+                    webrootVue.currentComponent = Vue.extend({ template: '<div id="current-page-root">' + screenText + '</div>' })
+                } else {
                     webrootVue.currentComponent = NotFound
                 }
+                webrootVue.loading = false;
             }});
         }
     },
@@ -161,9 +218,9 @@ var webrootVue = new Vue({
         ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; }
     },
     mounted: function() {
-        this.currentPath = window.location.pathname; this.currentSearch = window.location.search;
         this.moquiSessionToken = $("#moquiSessionToken").val();
+        this.CurrentUrl = window.location.pathname + window.location.search;
     }
 });
 
-window.addEventListener('popstate', function() { webrootVue.currentPath = window.location.pathname; webrootVue.currentSearch = window.location.search; });
+window.addEventListener('popstate', function() { webrootVue.CurrentUrl = window.location.pathname + window.location.search; });

@@ -81,6 +81,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </a></li>
             </#list></ul>
         </div>
+        <div class="btn btn-default btn-sm navbar-btn navbar-right" :class="{ hidden: !loading }"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>
     </div>
     <#-- dark/light switch JS method; TODO: switch this to Vue method? -->
     <script>

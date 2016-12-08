@@ -237,7 +237,6 @@ ${sri.renderSection(.node["@name"])}
     <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
     <#assign cdDivId><@nodeId .node/></#assign>
     <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
-    <#if _openDialog! == cdDivId><#assign afterScreenScript>$('#${cdDivId}').modal('show'); </#assign><#t>${sri.appendToScriptWriter(afterScreenScript)}</#if>
     <div id="${cdDivId}" class="modal container-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
         <div class="modal-dialog" style="width: ${.node["@width"]!"760"}px;">
             <div class="modal-content">
@@ -252,20 +251,19 @@ ${sri.renderSection(.node["@name"])}
             </div>
         </div>
     </div>
-    <m-script>$('#${cdDivId}').on('shown.bs.modal', function() {
-        $("#${cdDivId} select").select2({ ${select2DefaultOptions} });
-        $("#${cdDivId} .default-focus").focus();
-    });</m-script>
+    <m-script>
+        $('#${cdDivId}').on('shown.bs.modal', function() {
+            $("#${cdDivId} select").select2({ ${select2DefaultOptions} });
+            $("#${cdDivId} .default-focus").focus();
+        });
+        <#if _openDialog! == cdDivId>$('#${cdDivId}').modal('show');</#if>
+    </m-script>
 </#macro>
 
 <#macro "dynamic-container">
     <#assign dcDivId><@nodeId .node/></#assign>
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", dcDivId)>
-    <div id="${dcDivId}"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>
-    <m-script>
-        function load${dcDivId}() { $("#${dcDivId}").load("${urlInstance.passThroughSpecialParameters().urlWithParams}", function() { <#-- activateAllButtons() --> }); }
-        load${dcDivId}();
-    </m-script>
+    <m-loader ref="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().pathWithParams}"></m-loader>
 </#macro>
 
 <#macro "dynamic-dialog">
@@ -275,26 +273,7 @@ ${sri.renderSection(.node["@name"])}
 
     <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
     <#assign afterFormText>
-    <div id="${ddDivId}" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
-        <div class="modal-dialog" style="width: ${.node["@width"]!"760"}px;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">${buttonText}</h4>
-                </div>
-                <div class="modal-body" id="${ddDivId}-body">
-                    <img src="/images/wait_anim_16x16.gif" alt="Loading...">
-                </div>
-                <#-- <div class="modal-footer"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></div> -->
-            </div>
-        </div>
-    </div>
-    <m-script>
-        $("#${ddDivId}").on("show.bs.modal", function (e) { $("#${ddDivId}-body").load('${urlInstance.urlWithParams}'); });
-        $("#${ddDivId}").on("hidden.bs.modal", function (e) { $("#${ddDivId}-body").empty(); $("#${ddDivId}-body").append('<img src="/images/wait_anim_16x16.gif" alt="Loading...">'); });
-        $('#${ddDivId}').on('shown.bs.modal', function() {$("#${ddDivId} select").select2({ ${select2DefaultOptions} });});
-        <#if _openDialog! == ddDivId>$('#${ddDivId}').modal('show');</#if>
-    </m-script>
+    <m-loader-dialog id="${ddDivId}" url="${urlInstance.urlWithParams}" width="${.node["@width"]!"760"}" title="${buttonText}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></m-loader-dialog>
     </#assign>
     <#t>${sri.appendToAfterScreenWriter(afterFormText)}
 </#macro>
@@ -394,11 +373,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if (linkNode["@link-type"]! == "anchor" || linkNode["@link-type"]! == "anchor-button") ||
             ((!linkNode["@link-type"]?has_content || linkNode["@link-type"] == "auto") &&
              ((linkNode["@url-type"]?has_content && linkNode["@url-type"] != "transition") || (!urlInstance.hasActions)))>
-            <#if linkNode["@dynamic-load-id"]?has_content>
-                <#-- NOTE: the void(0) is needed for Firefox and other browsers that render the result of the JS expression -->
-                <#assign urlText>javascript:{$('#${linkNode["@dynamic-load-id"]}').load('${urlInstance.urlWithParams}'); void(0);}</#assign>
-            <#else>
-            </#if>
             <#assign linkNoParam = linkNode["@url-noparam"]! == "true">
             <#if urlInstance.isScreenUrl()>
                 <#assign linkElement = "m-link">
@@ -409,7 +383,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#if>
             <${linkElement} href="${urlText}"<#if linkFormId?has_content> id="${linkFormId}"</#if>
                 <#t><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>
-                <#t><#if linkNode["@dynamic-load-id"]?has_content> load-id="${linkNode["@dynamic-load-id"]}"</#if>
+                <#t><#if linkNode["@dynamic-load-id"]?has_content> load-ref="${linkNode["@dynamic-load-id"]}"</#if>
                 <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>
                 <#t> class="<#if linkNode["@link-type"]! != "anchor">btn btn-primary btn-sm</#if><#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"
                 <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
