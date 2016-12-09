@@ -94,16 +94,5 @@ along with this software (see the LICENSE.md file). If not, see
                 </widgets>
             </section>
         </container></container></container>
-        <container id="footer" style="bg-dark">
-            <render-mode><text type="html"><![CDATA[
-                    <#assign footerItemList = sri.getThemeValues("STRT_FOOTER_ITEM")>
-                    <div id="apps-footer-content">
-                        <#list footerItemList! as footerItem>
-                            <#assign footerItemTemplate = footerItem?interpret>
-                            <@footerItemTemplate/>
-                        </#list>
-                    </div>
-                ]]></text></render-mode>
-        </container>
     </widgets>
 </screen>

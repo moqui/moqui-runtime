@@ -1070,8 +1070,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if (curPageIndex > 0)>
                     <#assign firstUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", 0)>
                     <#assign previousUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", (curPageIndex - 1))>
-                    <li><a href="${firstUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-fast-backward"></i></a></li>
-                    <li><a href="${previousUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-backward"></i></a></li>
+                    <li><m-link href="${firstUrlInfo.pathWithParams}"><i class="glyphicon glyphicon-fast-backward"></i></m-link></li>
+                    <li><m-link href="${previousUrlInfo.pathWithParams}"><i class="glyphicon glyphicon-backward"></i></m-link></li>
                 <#else>
                     <li><span><i class="glyphicon glyphicon-fast-backward"></i></span></li>
                     <li><span><i class="glyphicon glyphicon-backward"></i></span></li>
@@ -1079,21 +1079,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
                 <#if (prevPageIndexMax >= 0)><#list prevPageIndexMin..prevPageIndexMax as pageLinkIndex>
                     <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
-                    <li><a href="${pageLinkUrlInfo.getUrlWithParams()}">${pageLinkIndex + 1}</a></li>
+                    <li><m-link href="${pageLinkUrlInfo.pathWithParams}">${pageLinkIndex + 1}</m-link></li>
                 </#list></#if>
                 <#assign paginationTemplate = ec.getL10n().localize("PaginationTemplate")?interpret>
-                <li><a href="${sri.getScreenUrlInstance().getUrlWithParams()}"><@paginationTemplate /></a></li>
+                <li><m-link href="${sri.getScreenUrlInstance().pathWithParams}"><@paginationTemplate /></m-link></li>
 
                 <#if (nextPageIndexMin <= curPageMaxIndex)><#list nextPageIndexMin..nextPageIndexMax as pageLinkIndex>
                     <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
-                    <li><a href="${pageLinkUrlInfo.getUrlWithParams()}">${pageLinkIndex + 1}</a></li>
+                    <li><m-link href="${pageLinkUrlInfo.pathWithParams}">${pageLinkIndex + 1}</m-link></li>
                 </#list></#if>
 
                 <#if (curPageIndex < curPageMaxIndex)>
                     <#assign lastUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", curPageMaxIndex)>
                     <#assign nextUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", curPageIndex + 1)>
-                    <li><a href="${nextUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-forward"></i></a></li>
-                    <li><a href="${lastUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-fast-forward"></i></a></li>
+                    <li><m-link href="${nextUrlInfo.pathWithParams}"><i class="glyphicon glyphicon-forward"></i></m-link></li>
+                    <li><m-link href="${lastUrlInfo.pathWithParams}"><i class="glyphicon glyphicon-fast-forward"></i></m-link></li>
                 <#else>
                     <li><span><i class="glyphicon glyphicon-forward"></i></span></li>
                     <li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li>
@@ -1124,10 +1124,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if formNode["@show-all-button"]! == "true" && (context[listName + 'Count'] < 500)>
                     <#if context["pageNoLimit"]?has_content>
                         <#assign allLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageNoLimit")>
-                        <a href="${allLinkUrl.getUrlWithParams()}" class="btn btn-default">Paginate</a>
+                        <m-link href="${allLinkUrl.pathWithParams}" class="btn btn-default">Paginate</m-link>
                     <#else>
                         <#assign allLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageNoLimit", "true")>
-                        <a href="${allLinkUrl.getUrlWithParams()}" class="btn btn-default">Show All</a>
+                        <m-link href="${allLinkUrl.pathWithParams()}" class="btn btn-default">Show All</m-link>
                     </#if>
                 </#if>
             </#if>

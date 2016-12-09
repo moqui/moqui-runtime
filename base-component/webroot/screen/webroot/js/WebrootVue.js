@@ -174,7 +174,8 @@ Vue.component('drop-down', {
 /* ========== webrootVue - root Vue component with router ========== */
 var webrootVue = new Vue({
     el: '#apps-root',
-    data: { currentPath:"", currentSearch:"", navMenuList:[], currentComponent:EmptyComponent, loading:false, moquiSessionToken:"" },
+    data: { currentPath:"", currentSearch:"", navMenuList:[], navHistoryList:[], currentComponent:EmptyComponent,
+        loading:false, moquiSessionToken:"" },
     methods: {
         switchDarkLight: function() {
             var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
@@ -206,10 +207,39 @@ var webrootVue = new Vue({
                 vm.loading = false;
             }});
         },
-        navMenuList: function(newList) {
-            if (newList.length > 1) document.title = newList[newList.length - 2].title + ' - ' + newList[newList.length - 1].title;
-            else if (newList.length > 0) document.title = newList[newList.length - 1].title;
-        }
+        navMenuList: function(newList) { if (newList.length > 0) {
+            var cur = newList[newList.length - 1]; var par = newList.length > 1 ? newList[newList.length - 2] : null;
+            var newTitle = (par ? par.title + ' - ' : '') + cur.title;
+            var curUrl = cur.urlWithParams; var questIdx = curUrl.indexOf("?");
+            if (questIdx > 0) {
+                var parmList = curUrl.substring(questIdx+1).split("&");
+                curUrl = curUrl.substring(0, questIdx);
+                var dpCount = 0;
+                var titleParms = "";
+                for (var pi=0; pi<parmList.length; pi++) {
+                    var parm = parmList[pi];
+                    if (parm.indexOf("pageIndex=") == 0) continue;
+                    if (curUrl.indexOf("?") == -1) { curUrl += "?"; } else { curUrl += "&"; }
+                    curUrl += parm;
+                    if (dpCount > 1) continue; // add up to 2 parms to the title
+                    var eqIdx = parm.indexOf("=");
+                    if (eqIdx > 0) {
+                        var key = parm.substring(0, eqIdx);
+                        if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || key == "moquiSessionToken") continue;
+                        if (titleParms.length > 0) titleParms += ", ";
+                        titleParms += parm.substring(eqIdx + 1);
+                    }
+                }
+                if (titleParms.length > 0) newTitle = newTitle + " (" + titleParms + ")";
+            }
+            for (var i=0; i<this.navHistoryList.length;) {
+                if (this.navHistoryList[i].urlWithParams == curUrl) { this.navHistoryList.splice(i,1); }
+                else { i++; }
+            }
+            this.navHistoryList.unshift({ title:newTitle, urlWithParams:curUrl, image:cur.image, imageType:cur.imageType });
+            while (this.navHistoryList.length > 25) { this.navHistoryList.pop(); }
+            document.title = newTitle;
+        }}
     },
     computed: {
         CurrentUrl: {
@@ -225,6 +255,7 @@ var webrootVue = new Vue({
     mounted: function() {
         this.moquiSessionToken = $("#moquiSessionToken").val();
         $('.navbar [data-toggle="tooltip"]').tooltip();
+        $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
         // load the current screen
         this.CurrentUrl = window.location.pathname + window.location.search;
     }

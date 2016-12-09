@@ -30,25 +30,25 @@ along with this software (see the LICENSE.md file). If not, see
         <ul id="dynamic-menus" class="nav navbar-nav">
             <li v-for="(navMenuItem, menuIndex) in navMenuList" class="dropdown">
                 <template v-if="menuIndex < (navMenuList.length - 1)">
-                    <m-link v-if="navMenuItem.hasTabMenu" v-bind:href="navMenuItem.path">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></m-link>
+                    <m-link v-if="navMenuItem.hasTabMenu" :href="navMenuItem.path">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></m-link>
                     <template v-else-if="navMenuItem.subscreens && navMenuItem.subscreens.length > 0">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></a>
                         <ul class="dropdown-menu">
-                            <li v-for="subscreen in navMenuItem.subscreens" v-bind:class="{ active: subscreen.active }">
-                                <m-link v-bind:href="subscreen.urlWithParams">
+                            <li v-for="subscreen in navMenuItem.subscreens" :class="{active:subscreen.active}">
+                                <m-link :href="subscreen.urlWithParams">
                                     <template v-if="subscreen.image">
-                                        <i v-if="subscreen.imageType === 'icon'" v-bind:class="subscreen.image" style="padding-right: 8px;"></i>
-                                        <img v-else v-bind:src="subscreen.image" v-bind:alt="subscreen.title" width="18" style="padding-right: 4px;"/>
+                                        <i v-if="subscreen.imageType === 'icon'" :class="subscreen.image" style="padding-right: 8px;"></i>
+                                        <img v-else :src="subscreen.image" :alt="subscreen.title" width="18" style="padding-right: 4px;"/>
                                     </template>
                                     <i v-else class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
                                     {{subscreen.title}}</m-link></li>
                         </ul>
                     </template>
-                    <m-link v-else v-bind:href="navMenuItem.path">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></m-link>
+                    <m-link v-else :href="navMenuItem.path">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></m-link>
                 </template>
             </li>
         </ul>
-        <m-link v-if="navMenuList.length > 0" class="navbar-text" v-bind:href="navMenuList[navMenuList.length - 1].urlWithParams">{{navMenuList[navMenuList.length - 1].title}}</m-link>
+        <m-link v-if="navMenuList.length > 0" class="navbar-text" :href="navMenuList[navMenuList.length - 1].urlWithParams">{{navMenuList[navMenuList.length - 1].title}}</m-link>
         <#-- logout button -->
         <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="Logout ${(ec.user.userAccount.userFullName)!''}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-off"></i></a>
         <#-- dark/light switch -->
@@ -60,30 +60,20 @@ along with this software (see the LICENSE.md file). If not, see
             <@navbarItemTemplate/>
         </#list>
         <#-- screen history menu -->
-        <#assign screenHistoryList = ec.web.getScreenHistory()>
+        <#-- get initial history from server? <#assign screenHistoryList = ec.web.getScreenHistory()><#list screenHistoryList as screenHistory><#if (screenHistory_index >= 25)><#break></#if>{url:urlWithParams, name:title}</#list> -->
         <div id="history-menu" class="nav navbar-right dropdown">
             <a id="history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="History">
                 <i class="glyphicon glyphicon-list"></i></a>
-            <ul class="dropdown-menu"><#list screenHistoryList as screenHistory><#if (screenHistory_index >= 25)><#break></#if>
-                <li><a href="${screenHistory.url}">
-                    <#if screenHistory.image?has_content>
-                        <#if screenHistory.imageType == "icon">
-                            <i class="${screenHistory.image}" style="padding-right: 8px;"></i>
-                        <#elseif screenHistory.imageType == "url-plain">
-                            <img src="${screenHistory.image}" alt="${screenHistory.name}" width="18" style="padding-right: 4px;"/>
-                        <#else>
-                            <img src="${sri.buildUrl(screenHistory.image).url}" alt="${screenHistory.name}" height="18" style="padding-right: 4px;"/>
-                        </#if>
-                    <#else>
-                        <i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
-                    </#if>
-                    ${screenHistory.name}
-                </a></li>
-            </#list></ul>
+            <ul class="dropdown-menu">
+                <li v-for="histItem in navHistoryList"><m-link :href="histItem.urlWithParams">
+                    <template v-if="histItem.image">
+                        <i v-if="histItem.imageType === 'icon'" :class="histItem.image" style="padding-right: 8px;"></i>
+                        <img v-else :src="histItem.image" :alt="histItem.title" width="18" style="padding-right: 4px;"/>
+                    </template>
+                    <i v-else class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                    {{histItem.title}}</m-link></li>
+            </ul>
         </div>
-        <m-script>
-            $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
-        </m-script>
 
         <div class="btn btn-default btn-sm navbar-btn navbar-right" :class="{ hidden: !loading }"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>
     </div>
