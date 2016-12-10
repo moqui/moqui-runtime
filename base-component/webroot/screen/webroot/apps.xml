@@ -71,10 +71,7 @@ along with this software (see the LICENSE.md file). If not, see
         // Workarounds for library issues (select2 jquery validator integration, select2 Bootstrap Modal fix, extensions, etc)
         html_scripts.add('/js/LibraryWorkarounds.js')
 
-        // Moqui Notification Client
-        html_scripts.add('/js/NotificationClient.js')
-
-        // Vue instance, in footer
+        // Vue instance (and NotificationClient, etc), in footer so runs after page loaded
         footer_scripts.add('/js/WebrootVue.js')
     ]]></script></pre-actions>
 

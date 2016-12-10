@@ -61,7 +61,7 @@ Vue.component('dynamic-container', {
         curUrl: function (newUrl) {
             if (!newUrl || newUrl.length === 0) { this.curComponent = EmptyComponent; return; }
             var vm = this;
-            jQuery.ajax({ type:"GET", url:newUrl, success: function (screenText) {
+            $.ajax({ type:"GET", url:newUrl, success: function (screenText) {
                 // console.log(screenText);
                 if (screenText) { vm.curComponent = Vue.extend({ template: '<div>' + screenText + '</div>' }) }
                 else { vm.curComponent = NotFound }
@@ -88,7 +88,7 @@ Vue.component('dynamic-dialog', {
         curUrl: function (newUrl) {
             if (!newUrl || newUrl.length === 0) { this.curComponent = EmptyComponent; return; }
             var vm = this;
-            jQuery.ajax({ type:"GET", url:newUrl, success: function (screenText) {
+            $.ajax({ type:"GET", url:newUrl, success: function (screenText) {
                 // console.log(screenText);
                 if (screenText) { vm.curComponent = Vue.extend({ template: '<div>' + screenText + '</div>' }) }
                 else { vm.curComponent = NotFound }
@@ -171,11 +171,43 @@ Vue.component('drop-down', {
     destroyed: function () { $(this.$el).off().select2('destroy') }
 });
 
+/* NOTE: this has a dependency on the SimpleScreens component, here temporarily; TODO move to SimpleScreens as a navbar component once supported */
+Vue.component('my-account-nav', {
+    data: function() { return { notificationCount:0, messageCount:0, eventCount:0, taskCount:0 } },
+    template:
+    '<div class="btn-group navbar-right">' +
+        '<m-link href="/apps/my/User/Notifications" data-toggle="tooltip" data-container="body" data-original-title="Notifications" data-placement="bottom" class="btn btn-default btn-sm navbar-btn">' +
+            '<i class="glyphicon glyphicon-info-sign"></i> <span class="label label-info">{{notificationCount}}</span></m-link>' +
+        '<m-link href="/apps/my/User/Messages/FindMessage?statusId=CeReceived&toPartyId=${ec.user.userAccount.partyId!}" data-toggle="tooltip" data-container="body" data-original-title="Messages" data-placement="bottom" class="btn btn-default btn-sm navbar-btn">' +
+            '<i class="glyphicon glyphicon-envelope"></i> <span class="label label-warning">{{messageCount}}</span></m-link>' +
+        '<m-link href="/apps/my/User/Calendar/MyCalendar" data-toggle="tooltip" data-container="body" data-original-title="Events This Week" data-placement="bottom" class="btn btn-default btn-sm navbar-btn">' +
+            '<i class="glyphicon glyphicon-calendar"></i> <span class="label label-primary">{{eventCount}}</span></m-link>' +
+        '<m-link href="/apps/my/User/Task/MyTasks" data-toggle="tooltip" data-container="body" data-original-title="Open Tasks" data-placement="bottom" class="btn btn-default btn-sm navbar-btn">' +
+            '<i class="glyphicon glyphicon-check"></i> <span class="label label-success">{{taskCount}}</span></m-link>' +
+    '</div>',
+    methods: {
+        updateCounts: function() {
+            var vm = this; $.ajax({ type:'GET', url:'/apps/my/counts', dataType:'json', success: function(countObj) {
+                if (countObj) { vm.notificationCount = countObj.notificationCount; vm.messageCount = countObj.messageCount;
+                    vm.eventCount = countObj.eventCount; vm.taskCount = countObj.taskCount; }
+            }});
+        },
+        notificationListener: function(jsonObj, webSocket) {
+            // TODO: improve this to look for new message, event, and task notifications and increment their counters (or others to decrement...)
+            this.notificationCount++;
+        }
+    },
+    mounted: function() {
+        this.updateCounts(); setInterval(this.updateCounts, 5*60*1000); /* update every 5 minutes */
+        this.$root.notificationClient.registerListener("ALL", this.notificationListener);
+    }
+});
+
 /* ========== webrootVue - root Vue component with router ========== */
-var webrootVue = new Vue({
+const webrootVue = new Vue({
     el: '#apps-root',
     data: { currentPath:"", currentSearch:"", navMenuList:[], navHistoryList:[], currentComponent:EmptyComponent,
-        loading:false, moquiSessionToken:"" },
+        loading:false, moquiSessionToken:"", appHost:"", appRootPath:"/", notificationClient:null },
     methods: {
         switchDarkLight: function() {
             var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
@@ -193,11 +225,11 @@ var webrootVue = new Vue({
             this.loading = true;
             console.log("CurrentUrl changing to " + newUrl);
             // update menu
-            jQuery.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json",
+            $.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json",
                 success: function(outerList) { if (outerList) { vm.navMenuList = outerList; } }});
             // update currentComponent
             var url = newUrl + (newUrl.includes('?') ? '&' : '?') + "lastStandalone=-2";
-            jQuery.ajax({ type:"GET", url:url, success: function (screenText) {
+            $.ajax({ type:"GET", url:url, success: function (screenText) {
                 // console.log(screenText);
                 if (screenText) {
                     vm.currentComponent = Vue.extend({ template: '<div id="current-page-root">' + screenText + '</div>' })
@@ -252,13 +284,102 @@ var webrootVue = new Vue({
         },
         ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; }
     },
-    mounted: function() {
+    created: function() {
         this.moquiSessionToken = $("#moquiSessionToken").val();
+        this.appHost = $("#appHost").val();
+        this.appRootPath = $("#appRootPath").val();
+        this.notificationClient = new NotificationClient("ws://" + this.appHost + this.appRootPath + "/notws");
+    },
+    mounted: function() {
         $('.navbar [data-toggle="tooltip"]').tooltip();
         $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
         // load the current screen
         this.CurrentUrl = window.location.pathname + window.location.search;
+        // init the NotificationClient and register 'displayNotify' as the default listener
+        this.notificationClient.registerListener("ALL");
     }
 });
 
 window.addEventListener('popstate', function() { webrootVue.CurrentUrl = window.location.pathname + window.location.search; });
+
+// NotificationClient, note does not connect the WebSocket until notificationClient.registerListener() is called the first time
+function NotifyOptions(message, url, type, icon) {
+    this.message = message;
+    if (url) this.url = url;
+    if (icon) {
+        this.icon = icon;
+    } else {
+        if (type == 'success') this.icon = 'glyphicon glyphicon-ok-sign';
+        else if (type == 'warning') this.icon = 'glyphicon glyphicon-warning-sign';
+        else if (type == 'danger') this.icon = 'glyphicon glyphicon-exclamation-sign';
+        else this.icon = 'glyphicon glyphicon-info-sign';
+    }
+}
+function NotifySettings(type) {
+    this.delay = 6000; this.offset = { x:20, y:70 };
+    this.animate = { enter:'animated fadeInDown', exit:'animated fadeOutUp' };
+    if (type) { this.type = type; } else { this.type = 'info'; }
+    this.template = '<div data-notify="container" class="notify-container col-xs-11 col-sm-3 alert alert-{0}" role="alert">' +
+        '<button type="button" aria-hidden="true" class="close" data-notify="dismiss">&times;</button>' +
+        '<span data-notify="icon"></span> <span data-notify="message">{2}</span>' +
+        '<a href="{3}" target="{4}" data-notify="url"></a>' +
+        '</div>'
+}
+function NotificationClient(webSocketUrl) {
+    this.displayEnable = true;
+    this.webSocketUrl = webSocketUrl;
+    this.topicListeners = {};
+
+    this.disableDisplay = function() { this.displayEnable = false; };
+    this.enableDisplay = function() { this.displayEnable = true; };
+
+    this.initWebSocket = function() {
+        this.webSocket = new WebSocket(this.webSocketUrl);
+        this.webSocket.clientObj = this;
+
+        this.webSocket.onopen = function(event) {
+            var topics = [];
+            for (var topic in this.clientObj.topicListeners) { topics.push(topic); }
+            this.send("subscribe:" + topics.join(","));
+        };
+        this.webSocket.onmessage = function(event) {
+            var jsonObj = JSON.parse(event.data);
+            var callbacks = this.clientObj.topicListeners[jsonObj.topic];
+            if (callbacks) callbacks.forEach(function(callback) { callback(jsonObj, this) }, this);
+            var allCallbacks = this.clientObj.topicListeners["ALL"];
+            if (allCallbacks) allCallbacks.forEach(function(allCallbacks) { allCallbacks(jsonObj, this) }, this);
+        };
+        this.webSocket.onclose = function(event) { console.log(event); };
+        this.webSocket.onerror = function(event) { console.log(event); };
+    };
+
+    this.displayNotify = function(jsonObj, webSocket) {
+        if (!webSocket.clientObj.displayEnable) return;
+        // console.log(jsonObj);
+        if (jsonObj.title && jsonObj.showAlert == true) {
+            $.notify(new NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), new NotifySettings(jsonObj.type));
+        }
+    };
+    this.registerListener = function(topic, callback) {
+        if (!this.webSocket) this.initWebSocket();
+
+        if (!callback) callback = this.displayNotify;
+        var listenerArray = this.topicListeners[topic];
+        if (!listenerArray) {
+            listenerArray = [];
+            this.topicListeners[topic] = listenerArray;
+            if (this.webSocket.readyState == WebSocket.OPEN) this.webSocket.send("subscribe:" + topic);
+        }
+        if (listenerArray.indexOf(callback) < 0) { listenerArray.push(callback); }
+    };
+}
+/* Example Notification Listener Registration (note listener method defaults to displayNotify as in first example;
+you can register more than one listener method for the same topic):
+<#if ec.factory.serverContainer?has_content>
+    <script>
+        notificationClient.registerListener("ALL"); // register for all topics
+        notificationClient.registerListener("MantleEvent", notificationClient.displayNotify);
+    </script>
+</#if>
+*/
+

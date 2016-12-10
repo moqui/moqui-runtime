@@ -12,6 +12,8 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 <input type="hidden" id="moquiSessionToken" value="${ec.web.sessionToken}">
+<input type="hidden" id="appHost" value="${ec.web.getHostName(true)}">
+<input type="hidden" id="appRootPath" value="${ec.web.servletContext.contextPath}">
 <nav class="navbar navbar-inverse navbar-fixed-top"><#-- navbar-static-top --><div class="container-fluid">
     <#-- Brand and toggle get grouped for better mobile display -->
     <header class="navbar-header">
@@ -53,12 +55,9 @@ along with this software (see the LICENSE.md file). If not, see
         <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="Logout ${(ec.user.userAccount.userFullName)!''}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-off"></i></a>
         <#-- dark/light switch -->
         <a href="#" @click="switchDarkLight()" data-toggle="tooltip" data-original-title="Switch Dark/Light" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-adjust"></i></a>
-        <#-- header navbar items from the theme -->
-        <#assign navbarItemList = sri.getThemeValues("STRT_HEADER_NAVBAR_ITEM")>
-        <#list navbarItemList! as navbarItem>
-            <#assign navbarItemTemplate = navbarItem?interpret>
-            <@navbarItemTemplate/>
-        </#list>
+
+        <#-- TODO: new approach for header navbar items from the theme as vue components (STRT_HEADER_NAVBAR_COMP or something), or support mounting from a screen and only showing when that screen is in the render path -->
+        <my-account-nav></my-account-nav>
         <#-- screen history menu -->
         <#-- get initial history from server? <#assign screenHistoryList = ec.web.getScreenHistory()><#list screenHistoryList as screenHistory><#if (screenHistory_index >= 25)><#break></#if>{url:urlWithParams, name:title}</#list> -->
         <div id="history-menu" class="nav navbar-right dropdown">
@@ -74,7 +73,6 @@ along with this software (see the LICENSE.md file). If not, see
                     {{histItem.title}}</m-link></li>
             </ul>
         </div>
-
         <div class="btn btn-default btn-sm navbar-btn navbar-right" :class="{ hidden: !loading }"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>
     </div>
 </div></nav>
