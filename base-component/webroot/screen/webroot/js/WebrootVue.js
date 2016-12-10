@@ -21,6 +21,30 @@
 
  */
 
+// simple stub for define if it doesn't exist (ie no require.js, etc)
+if (!window.define) window.define = function(obj) { return obj };
+
+// NOTE: this may eventually split to change the currentComponent only on currentPath change (for screens that support it)
+//     and if ever needed some sort of data refresh if currentSearch changes
+function loadComponent(url, callback, divId) {
+    var questIdx = url.indexOf('?');
+    var path = questIdx > 0 ? url.slice(0, questIdx) : url;
+    var isJsPath = path.slice(-3) == '.js';
+    if (!isJsPath) url = url + (questIdx > 0 ? '&' : '?') + "lastStandalone=-2";
+    $.ajax({ type:"GET", url:url, success: function (screenText) {
+        // console.log(screenText);
+        if (screenText && screenText.length > 0) {
+            if (isJsPath || screenText.slice(0,7) == 'define(') {
+                callback(eval(screenText));
+            } else {
+                callback({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + screenText + '</div>' });
+            }
+        } else {
+            callback(NotFound);
+        }
+    }});
+}
+
 var NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
 var EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>' });
 
@@ -44,7 +68,7 @@ Vue.component('m-link', {
 });
 Vue.component('m-script', {
     template: '<div style="display:none;"><slot></slot></div>',
-    mounted: function () {
+    mounted: function() {
         var parent = this.$el.parentElement;
         var s = document.createElement('script');
         s.type = 'text/javascript';
@@ -57,17 +81,10 @@ Vue.component('dynamic-container', {
     props: { url:{type:String} },
     data: function() { return { curComponent:EmptyComponent, curUrl:"" } },
     template: '<component v-bind:is="curComponent"></component>',
-    watch: {
-        curUrl: function (newUrl) {
-            if (!newUrl || newUrl.length === 0) { this.curComponent = EmptyComponent; return; }
-            var vm = this;
-            $.ajax({ type:"GET", url:newUrl, success: function (screenText) {
-                // console.log(screenText);
-                if (screenText) { vm.curComponent = Vue.extend({ template: '<div>' + screenText + '</div>' }) }
-                else { vm.curComponent = NotFound }
-            }});
-        }
-    },
+    watch: { curUrl: function(newUrl) {
+        if (!newUrl || newUrl.length === 0) { this.curComponent = EmptyComponent; return; }
+        var vm = this; loadComponent(newUrl, function(comp) { vm.curComponent = comp; });
+    }},
     mounted: function() { this.curUrl = this.url; }
 });
 Vue.component('dynamic-dialog', {
@@ -84,17 +101,10 @@ Vue.component('dynamic-dialog', {
                 '<div class="modal-body"><component v-bind:is="curComponent"></component></div>' +
             '</div></div>' +
         '</div>',
-    watch: {
-        curUrl: function (newUrl) {
-            if (!newUrl || newUrl.length === 0) { this.curComponent = EmptyComponent; return; }
-            var vm = this;
-            $.ajax({ type:"GET", url:newUrl, success: function (screenText) {
-                // console.log(screenText);
-                if (screenText) { vm.curComponent = Vue.extend({ template: '<div>' + screenText + '</div>' }) }
-                else { vm.curComponent = NotFound }
-            }});
-        }
-    },
+    watch: { curUrl: function (newUrl) {
+        if (!newUrl || newUrl.length === 0) { this.curComponent = EmptyComponent; return; }
+        var vm = this; loadComponent(newUrl, function(comp) { vm.curComponent = comp; });
+    }},
     mounted: function() {
         var jqEl = $(this.$el);
         var vm = this;
@@ -171,44 +181,14 @@ Vue.component('drop-down', {
     destroyed: function () { $(this.$el).off().select2('destroy') }
 });
 
-/* NOTE: this has a dependency on the SimpleScreens component, here temporarily; TODO move to SimpleScreens as a navbar component once supported */
-Vue.component('my-account-nav', {
-    data: function() { return { notificationCount:0, messageCount:0, eventCount:0, taskCount:0 } },
-    template:
-    '<div class="btn-group navbar-right">' +
-        '<m-link href="/apps/my/User/Notifications" data-toggle="tooltip" data-container="body" data-original-title="Notifications" data-placement="bottom" class="btn btn-default btn-sm navbar-btn">' +
-            '<i class="glyphicon glyphicon-info-sign"></i> <span class="label label-info">{{notificationCount}}</span></m-link>' +
-        '<m-link href="/apps/my/User/Messages/FindMessage?statusId=CeReceived&toPartyId=${ec.user.userAccount.partyId!}" data-toggle="tooltip" data-container="body" data-original-title="Messages" data-placement="bottom" class="btn btn-default btn-sm navbar-btn">' +
-            '<i class="glyphicon glyphicon-envelope"></i> <span class="label label-warning">{{messageCount}}</span></m-link>' +
-        '<m-link href="/apps/my/User/Calendar/MyCalendar" data-toggle="tooltip" data-container="body" data-original-title="Events This Week" data-placement="bottom" class="btn btn-default btn-sm navbar-btn">' +
-            '<i class="glyphicon glyphicon-calendar"></i> <span class="label label-primary">{{eventCount}}</span></m-link>' +
-        '<m-link href="/apps/my/User/Task/MyTasks" data-toggle="tooltip" data-container="body" data-original-title="Open Tasks" data-placement="bottom" class="btn btn-default btn-sm navbar-btn">' +
-            '<i class="glyphicon glyphicon-check"></i> <span class="label label-success">{{taskCount}}</span></m-link>' +
-    '</div>',
-    methods: {
-        updateCounts: function() {
-            var vm = this; $.ajax({ type:'GET', url:'/apps/my/counts', dataType:'json', success: function(countObj) {
-                if (countObj) { vm.notificationCount = countObj.notificationCount; vm.messageCount = countObj.messageCount;
-                    vm.eventCount = countObj.eventCount; vm.taskCount = countObj.taskCount; }
-            }});
-        },
-        notificationListener: function(jsonObj, webSocket) {
-            // TODO: improve this to look for new message, event, and task notifications and increment their counters (or others to decrement...)
-            this.notificationCount++;
-        }
-    },
-    mounted: function() {
-        this.updateCounts(); setInterval(this.updateCounts, 5*60*1000); /* update every 5 minutes */
-        this.$root.notificationClient.registerListener("ALL", this.notificationListener);
-    }
-});
-
 /* ========== webrootVue - root Vue component with router ========== */
 const webrootVue = new Vue({
     el: '#apps-root',
-    data: { currentPath:"", currentSearch:"", navMenuList:[], navHistoryList:[], currentComponent:EmptyComponent,
-        loading:false, moquiSessionToken:"", appHost:"", appRootPath:"/", notificationClient:null },
+    data: { currentPath:"", currentSearch:"", currentParameters:{}, navMenuList:[], navHistoryList:[], navPlugins:[],
+        currentComponent:EmptyComponent, loading:false,
+        moquiSessionToken:"", appHost:"", appRootPath:"/", userId:"", partyId:"", notificationClient:null },
     methods: {
+        addNavPlugin: function(url) { var vm = this; loadComponent(url, function(comp) { vm.navPlugins.push(comp); }) },
         switchDarkLight: function() {
             var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
             var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
@@ -217,8 +197,6 @@ const webrootVue = new Vue({
         }
     },
     watch: {
-        // NOTE: this may eventually split to change the currentComponent only on currentPath change (for screens that support it)
-        //     and if ever needed some sort of data refresh if currentSearch changes
         CurrentUrl: function(newUrl) {
             if (!newUrl || newUrl.length === 0) return;
             var vm = this;
@@ -228,16 +206,7 @@ const webrootVue = new Vue({
             $.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json",
                 success: function(outerList) { if (outerList) { vm.navMenuList = outerList; } }});
             // update currentComponent
-            var url = newUrl + (newUrl.includes('?') ? '&' : '?') + "lastStandalone=-2";
-            $.ajax({ type:"GET", url:url, success: function (screenText) {
-                // console.log(screenText);
-                if (screenText) {
-                    vm.currentComponent = Vue.extend({ template: '<div id="current-page-root">' + screenText + '</div>' })
-                } else {
-                    vm.currentComponent = NotFound
-                }
-                vm.loading = false;
-            }});
+            loadComponent(newUrl, function (comp) { vm.currentComponent = comp; vm.loading = false; }, 'current-page-root');
         },
         navMenuList: function(newList) { if (newList.length > 0) {
             var cur = newList[newList.length - 1]; var par = newList.length > 1 ? newList[newList.length - 2] : null;
@@ -246,8 +215,7 @@ const webrootVue = new Vue({
             if (questIdx > 0) {
                 var parmList = curUrl.substring(questIdx+1).split("&");
                 curUrl = curUrl.substring(0, questIdx);
-                var dpCount = 0;
-                var titleParms = "";
+                var dpCount = 0; var titleParms = "";
                 for (var pi=0; pi<parmList.length; pi++) {
                     var parm = parmList[pi];
                     if (parm.indexOf("pageIndex=") == 0) continue;
@@ -271,23 +239,38 @@ const webrootVue = new Vue({
             this.navHistoryList.unshift({ title:newTitle, urlWithParams:curUrl, image:cur.image, imageType:cur.imageType });
             while (this.navHistoryList.length > 25) { this.navHistoryList.pop(); }
             document.title = newTitle;
-        }}
+        }},
+        currentSearch: function(newSearch) {
+            this.currentParameters = {};
+            if (!newSearch || newSearch.length == 0) return;
+            var parmList = newSearch.slice(1).split("&");
+            for (var i=0; i<parmList.length; i++) {
+                var parm = parmList[i]; var ps = parm.split("=");
+                if (ps.length > 1) this.currentParameters[ps[0]] = ps[1];
+            }
+        }
     },
     computed: {
         CurrentUrl: {
             get: function() { return this.currentPath + this.currentSearch; },
             set: function(href) {
+                var ssIdx = href.indexOf('//');
+                if (ssIdx >= 0) { var slIdx = href.indexOf('/', ssIdx + 1); if (slIdx == -1) { return; } href = href.slice(slIdx); }
                 var splitHref = href.split("?");
                 this.currentPath = splitHref[0];
-                this.currentSearch = splitHref.length > 1 ? '?' + splitHref[1] : "";
+                if (splitHref.length > 1 && splitHref[1].length > 0) { this.currentSearch = '?' + splitHref[1]; } else { this.currentSearch = ""; }
             }
         },
         ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; }
     },
+    components: {
+        'add-nav-plugin': { props:{url:{type:String,required:true}}, template:'<span></span>',
+            mounted:function() { this.$root.addNavPlugin(this.url); Vue.util.remove(this.$el); }}
+    },
     created: function() {
         this.moquiSessionToken = $("#moquiSessionToken").val();
-        this.appHost = $("#appHost").val();
-        this.appRootPath = $("#appRootPath").val();
+        this.appHost = $("#appHost").val(); this.appRootPath = $("#appRootPath").val();
+        this.userId = $("#userId").val(); this.partyId = $("#partyId").val();
         this.notificationClient = new NotificationClient("ws://" + this.appHost + this.appRootPath + "/notws");
     },
     mounted: function() {
@@ -319,10 +302,11 @@ function NotifySettings(type) {
     this.delay = 6000; this.offset = { x:20, y:70 };
     this.animate = { enter:'animated fadeInDown', exit:'animated fadeOutUp' };
     if (type) { this.type = type; } else { this.type = 'info'; }
-    this.template = '<div data-notify="container" class="notify-container col-xs-11 col-sm-3 alert alert-{0}" role="alert">' +
-        '<button type="button" aria-hidden="true" class="close" data-notify="dismiss">&times;</button>' +
-        '<span data-notify="icon"></span> <span data-notify="message">{2}</span>' +
-        '<a href="{3}" target="{4}" data-notify="url"></a>' +
+    this.template =
+        '<div data-notify="container" class="notify-container col-xs-11 col-sm-3 alert alert-{0}" role="alert">' +
+            '<button type="button" aria-hidden="true" class="close" data-notify="dismiss">&times;</button>' +
+            '<span data-notify="icon"></span> <span data-notify="message">{2}</span>' +
+            '<a href="{3}" target="{4}" data-notify="url"></a>' +
         '</div>'
 }
 function NotificationClient(webSocketUrl) {

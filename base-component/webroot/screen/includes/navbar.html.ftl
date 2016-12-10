@@ -14,6 +14,8 @@ along with this software (see the LICENSE.md file). If not, see
 <input type="hidden" id="moquiSessionToken" value="${ec.web.sessionToken}">
 <input type="hidden" id="appHost" value="${ec.web.getHostName(true)}">
 <input type="hidden" id="appRootPath" value="${ec.web.servletContext.contextPath}">
+<input type="hidden" id="userId" value="${ec.user.userId!''}">
+<input type="hidden" id="partyId" value="${ec.user.userAccount.partyId!''}">
 <nav class="navbar navbar-inverse navbar-fixed-top"><#-- navbar-static-top --><div class="container-fluid">
     <#-- Brand and toggle get grouped for better mobile display -->
     <header class="navbar-header">
@@ -56,8 +58,9 @@ along with this software (see the LICENSE.md file). If not, see
         <#-- dark/light switch -->
         <a href="#" @click="switchDarkLight()" data-toggle="tooltip" data-original-title="Switch Dark/Light" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-adjust"></i></a>
 
-        <#-- TODO: new approach for header navbar items from the theme as vue components (STRT_HEADER_NAVBAR_COMP or something), or support mounting from a screen and only showing when that screen is in the render path -->
-        <my-account-nav></my-account-nav>
+        <template v-for="navPlugin in navPlugins"><component :is="navPlugin"></component></template>
+        <#assign navbarCompList = sri.getThemeValues("STRT_HEADER_NAVBAR_COMP")>
+        <#list navbarCompList! as navbarComp><add-nav-plugin url="${navbarComp}"></add-nav-plugin></#list>
         <#-- screen history menu -->
         <#-- get initial history from server? <#assign screenHistoryList = ec.web.getScreenHistory()><#list screenHistoryList as screenHistory><#if (screenHistory_index >= 25)><#break></#if>{url:urlWithParams, name:title}</#list> -->
         <div id="history-menu" class="nav navbar-right dropdown">

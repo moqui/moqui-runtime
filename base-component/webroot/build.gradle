@@ -17,7 +17,6 @@ def downloadBase = "http://cdnjs.cloudflare.com/ajax/libs/"
 
 def fileMap = [
         "twitter-bootstrap/3.3.7/css/bootstrap.min.css":"",
-        "twitter-bootstrap/3.3.7/css/bootstrap.min.css.map":"",
         "twitter-bootstrap/3.3.7/js/bootstrap.min.js":"",
         "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.eot":"",
         "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.svg":"",
