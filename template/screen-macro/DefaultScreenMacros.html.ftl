@@ -234,27 +234,9 @@ ${sri.renderSection(.node["@name"])}
     <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
     <#assign cdDivId><@nodeId .node/></#assign>
     <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
-    <div id="${cdDivId}" class="modal container-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
-        <div class="modal-dialog" style="width: ${.node["@width"]!"760"}px;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">${buttonText}</h4>
-                </div>
-                <div class="modal-body">
-                    <#recurse>
-                </div>
-                <#-- <div class="modal-footer"><button type="button" class="btn btn-primary" data-dismiss="modal">Close</button></div> -->
-            </div>
-        </div>
-    </div>
-    <m-script>
-        $('#${cdDivId}').on('shown.bs.modal', function() {
-            $("#${cdDivId} select").select2({ });
-            $("#${cdDivId} .default-focus").focus();
-        });
-        <#if _openDialog! == cdDivId>$('#${cdDivId}').modal('show');</#if>
-    </m-script>
+    <container-dialog id="${cdDivId}" width="${.node["@width"]!"760"}" title="${buttonText}"<#if _openDialog! == cdDivId> :openDialog="true"</#if>>
+        <#recurse>
+    </container-dialog>
 </#macro>
 
 <#macro "dynamic-container">
@@ -506,47 +488,24 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if ownerForm?has_content><#assign skipStart = true><#assign skipEnd = true></#if>
     <#assign urlInstance = sri.makeUrlByType(formNode["@transition"], "transition", null, "true")>
     <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
+    <#-- TODO: remove form-single.@background-submit attribute in XSD, now all are -->
     <#if !skipStart>
-    <form name="${formId}" id="${formId}" class="validation-engine-init" method="post" action="${urlInstance.url}"<#if formInstance.isUpload()> enctype="multipart/form-data"</#if>>
+    <form-single name="${formId}" id="${formId}" action="${urlInstance.url}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
+            <#t><#if formInstance.isUpload()> :is-upload="true"</#if>
+            <#t><#if formNode["@background-message"]?has_content> submit-message="${formNode["@background-message"]}"</#if>
+            <#t><#if formNode["@background-reload-id"]?has_content> submit-reload-ref="${formNode["@background-reload-id"]}"</#if>
+            <#t><#if formNode["@background-hide-id"]?has_content> submit-hide-id="${formNode["@background-hide-id"]}"</#if>>
         <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
     </#if>
-        <fieldset class="form-horizontal"><#-- was form-single-outer -->
+        <fieldset class="form-horizontal">
         <#if formNode["field-layout"]?has_content>
             <#recurse formNode["field-layout"][0]/>
         <#else>
             <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode formId/></#list>
         </#if>
         </fieldset>
-    <#if !skipEnd></form></#if>
-    <#if !skipStart>
-        <m-script>
-            $("#${formId}").validate({ errorClass: 'help-block', errorElement: 'span',
-                highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
-                unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
-            });
-            $('#${formId} [data-toggle="tooltip"]').tooltip();
-
-            <#-- if background-submit=true init ajaxForm; for examples see http://www.malsup.com/jquery/form/#ajaxForm -->
-            <#if formNode["@background-submit"]! == "true">
-            function backgroundSuccess${formId}(responseText, statusText, xhr, $form) {
-                <#if formNode["@background-reload-id"]?has_content>
-                    load${formNode["@background-reload-id"]}();
-                </#if>
-                <#if formNode["@background-message"]?has_content>
-                    alert("${formNode["@background-message"]}");
-                </#if>
-                <#if formNode["@background-hide-id"]?has_content>
-                    $('#${formNode["@background-hide-id"]}').modal('hide');
-                </#if>
-            }
-            $("#${formId}").ajaxForm({ success: backgroundSuccess${formId}, resetForm: false });
-            </#if>
-        </m-script>
-    </#if>
-    <#if formNode["@focus-field"]?has_content>
-        <m-script>$("#${formId}_${formNode["@focus-field"]}").addClass('default-focus').focus();</m-script>
-    </#if>
+    <#if !skipEnd></form-single></#if>
     <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
     <#if sri.doBoundaryComments()><!-- END   form-single[@name=${.node["@name"]}] --></#if>
     <#assign ownerForm = ""><#-- clear ownerForm so later form fields don't pick it up -->
@@ -1798,12 +1757,13 @@ a => A, d => D, y => Y
         </m-script>
     <#else>
         <#assign tlAlign = tlFieldNode["@align"]!"left">
-        <#t><input id="${id}" type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>"
-        <#t> name="${name}" value="${fieldValue?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
-        <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if>
-        <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
-        <#t><#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if>
-        <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+        <#t><input id="${id}" <#--v-model="fields.${name}"--> type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>"
+            <#t> name="${name}" value="${fieldValue?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
+            <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if>
+            <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
+            <#t><#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if>
+            <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
+            <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>>
         <#if .node["@default-transition"]?has_content>
             <#assign defUrlInfo = sri.makeUrlByType(.node["@default-transition"], "transition", .node, "false")>
             <#assign defUrlParameterMap = defUrlInfo.getParameterMap()>
