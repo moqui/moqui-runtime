@@ -157,7 +157,6 @@ ${sri.renderSection(.node["@name"])}
         </#if>
     </div>
 </#macro>
-
 <#macro "container-row">
     <#assign contRowDivId><@nodeId .node/></#assign>
     <div class="row<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"<#if contRowDivId?has_content> id="${contRowDivId}"</#if>>
@@ -168,66 +167,31 @@ ${sri.renderSection(.node["@name"])}
         </#list>
     </div>
 </#macro>
-
 <#macro "container-panel">
     <#assign panelId><@nodeId .node/></#assign>
-    <#-- DEJ 24 Jan 2014: disabling dynamic panels for now, need to research with new Metis admin theme:
-    <#if .node["@dynamic"]! == "true">
-        <#assign afterScreenScript>
-        $("#${panelId}").layout({
-        defaults: { closable: true, resizable: true, slidable: false, livePaneResizing: true, spacing_open: 5 },
-        <#if .node["panel-header"]?has_content><#assign panelNode = .node["panel-header"][0]>north: { showOverflowOnHover: true, closable: ${panelNode["@closable"]!"true"}, resizable: ${panelNode["@resizable"]!"false"}, spacing_open: ${panelNode["@spacing"]!"5"}, size: "${panelNode["@size"]!"auto"}"<#if panelNode["@size-min"]?has_content>, minSize: ${panelNode["@size-min"]}</#if><#if panelNode["@size-min"]?has_content>, maxSize: ${panelNode["@size-max"]}</#if> },</#if>
-        <#if .node["panel-footer"]?has_content><#assign panelNode = .node["panel-footer"][0]>south: { showOverflowOnHover: true, closable: ${panelNode["@closable"]!"true"}, resizable: ${panelNode["@resizable"]!"false"}, spacing_open: ${panelNode["@spacing"]!"5"}, size: "${panelNode["@size"]!"auto"}"<#if panelNode["@size-min"]?has_content>, minSize: ${panelNode["@size-min"]}</#if><#if panelNode["@size-min"]?has_content>, maxSize: ${panelNode["@size-max"]}</#if> },</#if>
-        <#if .node["panel-left"]?has_content><#assign panelNode = .node["panel-left"][0]>west: { closable: ${panelNode["@closable"]!"true"}, resizable: ${panelNode["@resizable"]!"true"}, spacing_open: ${panelNode["@spacing"]!"5"}, size: "${panelNode["@size"]!"180"}"<#if panelNode["@size-min"]?has_content>, minSize: ${panelNode["@size-min"]}</#if><#if panelNode["@size-min"]?has_content>, maxSize: ${panelNode["@size-max"]}</#if> },</#if>
-        <#if .node["panel-right"]?has_content><#assign panelNode = .node["panel-right"][0]>east: { closable: ${panelNode["@closable"]!"true"}, resizable: ${panelNode["@resizable"]!"true"}, spacing_open: ${panelNode["@spacing"]!"5"}, size: "${panelNode["@size"]!"180"}"<#if panelNode["@size-min"]?has_content>, minSize: ${panelNode["@size-min"]}</#if><#if panelNode["@size-min"]?has_content>, maxSize: ${panelNode["@size-max"]}</#if> },</#if>
-        center: { minWidth: 200 }
-        });
-        </#assign>
-        <#t>${sri.appendToScriptWriter(afterScreenScript)}
-        <div<#if panelId?has_content> id="${panelId}"</#if>>
-            <#if .node["panel-header"]?has_content>
-                <div<#if panelId?has_content> id="${panelId}-header"</#if> class="ui-layout-north ui-helper-clearfix"><#recurse .node["panel-header"][0]>
-                </div></#if>
+    <div<#if panelId?has_content> id="${panelId}"</#if> class="container-panel-outer">
+        <#if .node["panel-header"]?has_content>
+            <div<#if panelId?has_content> id="${panelId}-header"</#if> class="container-panel-header"><#recurse .node["panel-header"][0]>
+            </div>
+        </#if>
+        <div class="container-panel-middle">
             <#if .node["panel-left"]?has_content>
-                <div<#if panelId?has_content> id="${panelId}-left"</#if> class="ui-layout-west"><#recurse .node["panel-left"][0]>
+                <div<#if panelId?has_content> id="${panelId}-left"</#if> class="container-panel-left" style="width: ${.node["panel-left"][0]["@size"]!"180"}px;"><#recurse .node["panel-left"][0]>
                 </div>
             </#if>
-            <div<#if panelId?has_content> id="${panelId}-center"</#if> class="ui-layout-center"><#recurse .node["panel-center"][0]>
-            </div>
-            <#if .node["panel-right"]?has_content>
-                <div<#if panelId?has_content> id="${panelId}-right"</#if> class="ui-layout-east"><#recurse .node["panel-right"][0]>
-                </div>
-            </#if>
-            <#if .node["panel-footer"]?has_content>
-                <div<#if panelId?has_content> id="${panelId}-footer"</#if> class="ui-layout-south"><#recurse .node["panel-footer"][0]>
-                </div></#if>
+            <#assign centerClass><#if .node["panel-left"]?has_content><#if .node["panel-right"]?has_content>container-panel-center-both<#else>container-panel-center-left</#if><#else><#if .node["panel-right"]?has_content>container-panel-center-right<#else>container-panel-center-only</#if></#if></#assign>
+            <div<#if panelId?has_content> id="${panelId}-center"</#if> class="${centerClass}"><#recurse .node["panel-center"][0]>
         </div>
-    <#else>
-    -->
-        <div<#if panelId?has_content> id="${panelId}"</#if> class="container-panel-outer">
-            <#if .node["panel-header"]?has_content>
-                <div<#if panelId?has_content> id="${panelId}-header"</#if> class="container-panel-header"><#recurse .node["panel-header"][0]>
-                </div>
-            </#if>
-            <div class="container-panel-middle">
-                <#if .node["panel-left"]?has_content>
-                    <div<#if panelId?has_content> id="${panelId}-left"</#if> class="container-panel-left" style="width: ${.node["panel-left"][0]["@size"]!"180"}px;"><#recurse .node["panel-left"][0]>
-                    </div>
-                </#if>
-                <#assign centerClass><#if .node["panel-left"]?has_content><#if .node["panel-right"]?has_content>container-panel-center-both<#else>container-panel-center-left</#if><#else><#if .node["panel-right"]?has_content>container-panel-center-right<#else>container-panel-center-only</#if></#if></#assign>
-                <div<#if panelId?has_content> id="${panelId}-center"</#if> class="${centerClass}"><#recurse .node["panel-center"][0]>
+        <#if .node["panel-right"]?has_content>
+            <div<#if panelId?has_content> id="${panelId}-right"</#if> class="container-panel-right" style="width: ${.node["panel-right"][0]["@size"]!"180"}px;"><#recurse .node["panel-right"][0]>
             </div>
-            <#if .node["panel-right"]?has_content>
-                <div<#if panelId?has_content> id="${panelId}-right"</#if> class="container-panel-right" style="width: ${.node["panel-right"][0]["@size"]!"180"}px;"><#recurse .node["panel-right"][0]>
-                </div>
-            </#if>
-            </div>
-            <#if .node["panel-footer"]?has_content>
-                <div<#if panelId?has_content> id="${panelId}-footer"</#if> class="container-panel-footer"><#recurse .node["panel-footer"][0]>
-                </div>
-            </#if>
+        </#if>
         </div>
-    <#-- </#if> -->
+        <#if .node["panel-footer"]?has_content>
+            <div<#if panelId?has_content> id="${panelId}-footer"</#if> class="container-panel-footer"><#recurse .node["panel-footer"][0]>
+            </div>
+        </#if>
+    </div>
 </#macro>
 
 <#macro "container-dialog">
@@ -238,18 +202,15 @@ ${sri.renderSection(.node["@name"])}
         <#recurse>
     </container-dialog>
 </#macro>
-
 <#macro "dynamic-container">
     <#assign dcDivId><@nodeId .node/></#assign>
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", dcDivId)>
     <dynamic-container ref="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().pathWithParams}"></dynamic-container>
 </#macro>
-
 <#macro "dynamic-dialog">
     <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
     <#assign ddDivId><@nodeId .node/></#assign>
-
     <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
     <#assign afterFormText>
     <dynamic-dialog id="${ddDivId}" url="${urlInstance.urlWithParams}" width="${.node["@width"]!"760"}" title="${buttonText}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></dynamic-dialog>
@@ -268,7 +229,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro tree>
     <#assign ajaxUrlInfo = sri.makeUrlByType(.node["@transition"]!"getTreeSubNodes", "transition", .node, "true")>
     <#assign ajaxParms = ajaxUrlInfo.getParameterMap()>
-
     <div id="${.node["@name"]}"></div>
     <m-script>
     $("#${.node["@name"]}").bind('select_node.jstree', function(e,data) {window.location.href = data.node.a_attr.href;}).jstree({
@@ -1719,49 +1679,21 @@ a => A, d => D, y => Y
         <#assign acUseActual = .node["@ac-use-actual"]! == "true">
         <#if .node["@ac-initial-text"]?has_content><#assign valueText = ec.getResource().expand(.node["@ac-initial-text"]!, "")>
             <#else><#assign valueText = fieldValue></#if>
-        <input id="${tlId}_ac" name="${name}_ac" type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>"<#rt>
-            <#t> value="${valueText?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
-            <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if>
-            <#t> class="form-control typeahead<#if validationClasses?has_content> ${validationClasses}</#if>"
-            <#t><#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if>
-            <#t><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if>
-            <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
-            <#t> autocomplete="off"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
-        <input id="${tlId}" type="hidden" name="${name}" value="${fieldValue?html}"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
-        <#if acShowValue><span id="${tlId}_value" class="form-autocomplete-value"><#if valueText?has_content>${valueText?html}<#else>&nbsp;</#if></span></#if>
         <#assign depNodeList = .node["depends-on"]>
+        <text-autocomplete id="${tlId}" name="${name}" url="${acUrlInfo.url}" value="${fieldValue?html}" value-text="${valueText?html}"<#rt>
+                <#t> type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>" size="${.node.@size!"30"}"
+                <#t><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
+                <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> :disabled="true"</#if>
+                <#t><#if validationClasses?has_content> validation-classes="${validationClasses}"</#if>
+                <#t><#if validationClasses?contains("required")> :required="true"</#if>
+                <#t><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if>
+                <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
+                <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>
+                <#t><#if .node["@ac-min-length"]?has_content> :min-length="${.node["@ac-min-length"]}"</#if>
+                <#t> :depends-on="{<#list depNodeList as depNode><#local depNodeField = depNode["@field"]>'${depNode["@parameter"]!depNodeField}':'<@fieldIdByName depNodeField/>'<#sep>, </#list>}"
+                <#t> :ac-parameters="{<#list acUrlParameterMap?keys as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>'${parameterKey}':'${acUrlParameterMap.get(parameterKey)}', </#if></#list>}"
+                <#t><#if .node["@ac-initial-text"]?has_content> :skip-initial="true"</#if>/>
         <#-- TODO delay? <#if .node["@ac-delay"]?has_content>delay: ${.node["@ac-delay"]},</#if> -->
-        <m-script>
-            $("#${tlId}_ac").typeahead({ <#if .node["@ac-min-length"]?has_content>minLength: ${.node["@ac-min-length"]},</#if> highlight: true, hint: false }, { limit: 20,
-                source: function(query, syncResults, asyncResults) { $.ajax({
-                    url: "${acUrlInfo.url}", type: "POST", dataType: "json", data: { term: query, moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
-                        <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = acUrlParameterMap.remove(depNodeField)!>, '${depNode["@parameter"]!depNodeField}': $('#<@fieldIdByName depNodeField/>').val()</#list>
-                        <#t><#list acUrlParameterMap?keys as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${acUrlParameterMap.get(parameterKey)}"</#if></#list> },
-                    success: function(data) { asyncResults($.map(data, function(item) { return { label: item.label, value: item.value } })); }
-                }); },
-                display: function(item) { return item.label; }
-            });
-            $("#${tlId}_ac").bind('typeahead:select', function(event, item) {
-                if (item) { this.value = item.value; $("#${tlId}").val(item.value); $("#${tlId}").trigger("change"); $("#${tlId}_ac").val(item.label);<#if acShowValue> if (item.label) { $("#${tlId}_value").html(item.label); }</#if> return false; }
-            });
-
-            $("#${tlId}_ac").change(function() { if (!$("#${tlId}_ac").val()) { $("#${tlId}").val(""); $("#${tlId}").trigger("change"); }<#if acUseActual> else { $("#${tlId}").val($("#${tlId}_ac").val()); $("#${tlId}").trigger("change"); }</#if> });
-            <#list depNodeList as depNode>
-                $("#<@fieldIdByName depNode["@field"]/>").change(function() { $("#${tlId}").val(""); $("#${tlId}_ac").val(""); });
-            </#list>
-            <#if !.node["@ac-initial-text"]?has_content>
-            /* load the initial value if there is one */
-            if ($("#${tlId}").val()) {
-                $.ajax({ url: "${acUrlInfo.url}", type: "POST", dataType: "json", data: { term: $("#${tlId}").val(), moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#list acUrlParameterMap?keys as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${acUrlParameterMap.get(parameterKey)}"</#if></#list> },
-                    success: function(data) {
-                        var curValue = $("#${tlId}").val();
-                        for (var i = 0; i < data.length; i++) { if (data[i].value == curValue) { $("#${tlId}_ac").val(data[i].label); <#if acShowValue>$("#${tlId}_value").html(data[i].label);</#if> break; } }
-                        <#-- don't do this by default if we haven't found a valid one: if (data && data[0].label) { $("#${id}_ac").val(data[0].label); <#if acShowValue>$("#${id}_value").html(data[0].label);</#if> } -->
-                    }
-                });
-            }
-            </#if>
-        </m-script>
     <#else>
         <#assign tlAlign = tlFieldNode["@align"]!"left">
         <#t><input id="${tlId}" <#--v-model="fields.${name}"--> type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>"
