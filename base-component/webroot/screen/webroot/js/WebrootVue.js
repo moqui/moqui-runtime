@@ -34,14 +34,9 @@ function loadComponent(url, callback, divId) {
     $.ajax({ type:"GET", url:url, success: function (screenText) {
         // console.log(screenText);
         if (screenText && screenText.length > 0) {
-            if (isJsPath || screenText.slice(0,7) == 'define(') {
-                callback(eval(screenText));
-            } else {
-                callback({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + screenText + '</div>' });
-            }
-        } else {
-            callback(NotFound);
-        }
+            if (isJsPath || screenText.slice(0,7) == 'define(') { callback(eval(screenText)); }
+            else { callback({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + screenText + '</div>' }); }
+        } else { callback(NotFound); }
     }});
 }
 
@@ -52,29 +47,24 @@ var EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><img sr
 Vue.component('m-link', {
     props: { href:{type:String,required:true}, loadRef:String },
     template: '<a :href="href" @click.prevent="go"><slot></slot></a>',
-    methods: {
-        go: function go() {
-            if (this.loadRef && this.loadRef.length > 0) {
-                // TODO: this is not working, never finding by the ref
-                var comp = this.$root.$refs[this.loadRef];
-                if (!comp) { console.log("Load ref not found, not loading: " + this.loadRef); return; }
-                comp.curUrl = this.href;
-            } else {
-                this.$root.CurrentUrl = this.href;
-                window.history.pushState(null, this.ScreenTitle, this.href);
-            }
+    methods: { go: function go() {
+        if (this.loadRef && this.loadRef.length > 0) {
+            // TODO: this is not working, never finding by the ref
+            var comp = this.$root.$refs[this.loadRef];
+            if (!comp) { console.log("Load ref not found, not loading: " + this.loadRef); return; }
+            comp.curUrl = this.href;
+        } else {
+            this.$root.CurrentUrl = this.href;
+            window.history.pushState(null, this.ScreenTitle, this.href);
         }
-    }
+    }}
 });
 Vue.component('m-script', {
     template: '<div style="display:none;"><slot></slot></div>',
     mounted: function() {
-        var parent = this.$el.parentElement;
-        var s = document.createElement('script');
-        s.type = 'text/javascript';
+        var parent = this.$el.parentElement; var s = document.createElement('script'); s.type = 'text/javascript';
         s.appendChild(document.createTextNode(this.$el.innerText));
-        Vue.util.remove(this.$el);
-        parent.appendChild(s);
+        Vue.util.remove(this.$el); parent.appendChild(s);
     }
 });
 Vue.component('container-dialog', {
@@ -90,8 +80,7 @@ Vue.component('container-dialog', {
         '</div>',
     methods: { hide: function() { $(this.$el).modal('hide'); } },
     mounted: function() {
-        var jqEl = $(this.$el);
-        var vm = this;
+        var jqEl = $(this.$el); var vm = this;
         jqEl.on("hidden.bs.modal", function() { vm.isHidden = true; vm.$root.openModal = null; });
         jqEl.on("shown.bs.modal", function() { vm.isHidden = false; vm.$root.openModal = vm;
                 jqEl.find("select").select2({ }); jqEl.find(".default-focus").focus(); });
@@ -131,8 +120,7 @@ Vue.component('dynamic-dialog', {
         var vm = this; loadComponent(newUrl, function(comp) { vm.curComponent = comp; });
     }},
     mounted: function() {
-        var jqEl = $(this.$el);
-        var vm = this;
+        var jqEl = $(this.$el); var vm = this;
         jqEl.on("show.bs.modal", function() { vm.curUrl = vm.url; });
         jqEl.on("hidden.bs.modal", function() { vm.isHidden = true; vm.$root.openModal = null; vm.curUrl = ""; });
         jqEl.on("shown.bs.modal", function() { vm.isHidden = false; vm.$root.openModal = vm;
@@ -158,7 +146,7 @@ Vue.component('form-single', {
                 if (resp.messages) for (var mi=0; mi < resp.messages.length; mi++) {
                     $.notify({ message:resp.messages[mi] }, $.extend(notifyOpts, {type:'info'})); notified = true; }
                 if (resp.errors) for (var ei=0; ei < resp.messages.length; ei++) {
-                    $.notify({ message:resp.messages[ei] }, $.extend(notifyOpts, {type:'danger'})); notified = true; }
+                    $.notify({ message:resp.messages[ei] }, $.extend(notifyOpts, {delay:60000, type:'danger'})); notified = true; }
                 if (resp.screenUrl && resp.screenUrl.length > 0) {
                     this.$root.CurrentUrl = resp.screenUrl;
                     window.history.pushState(null, this.ScreenTitle, resp.screenUrl);
@@ -181,7 +169,6 @@ Vue.component('form-single', {
             unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
         });
         jqEl.find('[data-toggle="tooltip"]').tooltip();
-
         if (this.focusField && this.focusField.length > 0) jqEl.find('[name=' + this.focusField + ']').addClass('default-focus').focus();
     }
 });
@@ -193,11 +180,8 @@ Vue.component('drop-down', {
     methods: {
         populateFromUrl: function() {
             if (!this.optionsUrl || this.optionsUrl.length === 0) return;
-            var hasAllParms = true;
-            var dependsOnMap = this.dependsOn;
-            var parmMap = this.optionsParameters;
+            var hasAllParms = true; var dependsOnMap = this.dependsOn; var parmMap = this.optionsParameters;
             var reqData = { moquiSessionToken: this.$root.moquiSessionToken };
-
             for (var parmName in parmMap) { if (parmMap.hasOwnProperty(parmName)) reqData[parmName] = parmMap[parmName]; }
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
                 var doValue = $('#' + dependsOnMap[doParm]).val();
@@ -205,7 +189,6 @@ Vue.component('drop-down', {
                 reqData[doParm] = doValue;
             }}
             if (!hasAllParms) { this.curData = null; return; }
-
             var vm = this;
             $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json", success: function(list) { if (list) {
                 var newData = [];
@@ -222,21 +205,18 @@ Vue.component('drop-down', {
         }
     },
     mounted: function() {
-        var vm = this;
-        var opts = { minimumResultsForSearch:15 };
+        var vm = this; var opts = { minimumResultsForSearch:15 };
         if (this.combo) { opts.tags = true; opts.tokenSeparators = [',',' ']; }
         if (this.multiple == "multiple") { opts.multiple = true; }
         if (this.options && this.options.length > 0) { opts.data = this.options; }
-        this.s2Opts = opts;
-        var jqEl = $(this.$el);
+        this.s2Opts = opts; var jqEl = $(this.$el);
         jqEl.select2(opts).on('change', function () { vm.$emit('input', this.value); })
-                .on('select2:select', function () { jqEl.select2('open').select2('close'); });
+            .on('select2:select', function () { jqEl.select2('open').select2('close'); });
         if (this.value && this.value.length > 0) { this.curVal = this.value; }
         if (this.optionsUrl && this.optionsUrl.length > 0) {
             var dependsOnMap = this.dependsOn;
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
-                $('#' + dependsOnMap[doParm]).on('change', function() { vm.populateFromUrl(); });
-            }}
+                $('#' + dependsOnMap[doParm]).on('change', function() { vm.populateFromUrl(); }); }}
             this.populateFromUrl();
         }
     },
@@ -250,6 +230,25 @@ Vue.component('drop-down', {
             set: function (value) { $(this.$el).select2().val(value).trigger('select2:change'); } }
     },
     destroyed: function () { $(this.$el).off().select2('destroy') }
+});
+Vue.component('text-autocomplete', {
+    props: { id:{type:String,required:true}, name:{type:String,required:true}, url:{type:String,required:true}, value:String, valueText:String,
+        minLength:String, showValue:Boolean, useActual:Boolean, dependsOn:Object,
+        type:String, size:String, maxlength:String, disabled:Boolean, validationClasses:String, dataVvValidation:String, required:Boolean,
+        pattern:String, tooltip:String, ownerForm:String },
+    template: '<input :id="acId" :name="acName" :type="type" :value="valueText" :size="size" :maxlength="maxlength" :disabled="{disabled:disabled}"' +
+        ' :class="allClasses" :data-vv-validation="validationClasses" :required="{required:required}" :pattern="pattern"' +
+        ' :data-toggle="{tooltip:tooltip}" :title="tooltip" autocomplete="off" :form="ownerForm">',
+    /*
+<input id="${tlId}" type="hidden" name="${name}" value="${fieldValue?html}"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
+<#if acShowValue><span id="${tlId}_value" class="form-autocomplete-value"><#if valueText?has_content>${valueText?html}<#else>&nbsp;</#if></span></#if>', */
+
+    methods: { },
+    watch: { },
+    computed: { acId: function() { return this.id + '_ac'; }, acName: function() { return this.name + '_ac'; },
+        allClasses: function() { return 'form-control typeahead' + this.validationClasses ? ' ' + this.validationClasses : ''; },
+    },
+    mounted: function() { }
 });
 
 /* ========== webrootVue - root Vue component with router ========== */
@@ -289,8 +288,7 @@ const webrootVue = new Vue({
                 curUrl = curUrl.substring(0, questIdx);
                 var dpCount = 0; var titleParms = "";
                 for (var pi=0; pi<parmList.length; pi++) {
-                    var parm = parmList[pi];
-                    if (parm.indexOf("pageIndex=") == 0) continue;
+                    var parm = parmList[pi]; if (parm.indexOf("pageIndex=") == 0) continue;
                     if (curUrl.indexOf("?") == -1) { curUrl += "?"; } else { curUrl += "&"; }
                     curUrl += parm;
                     if (dpCount > 1) continue; // add up to 2 parms to the title
@@ -313,23 +311,18 @@ const webrootVue = new Vue({
             document.title = newTitle;
         }},
         currentSearch: function(newSearch) {
-            this.currentParameters = {};
-            if (!newSearch || newSearch.length == 0) return;
+            this.currentParameters = {}; if (!newSearch || newSearch.length == 0) { return };
             var parmList = newSearch.slice(1).split("&");
             for (var i=0; i<parmList.length; i++) {
-                var parm = parmList[i]; var ps = parm.split("=");
-                if (ps.length > 1) this.currentParameters[ps[0]] = ps[1];
-            }
+                var parm = parmList[i]; var ps = parm.split("="); if (ps.length > 1) { this.currentParameters[ps[0]] = ps[1]; } }
         }
     },
     computed: {
-        CurrentUrl: {
-            get: function() { return this.currentPath + this.currentSearch; },
+        CurrentUrl: { get: function() { return this.currentPath + this.currentSearch; },
             set: function(href) {
                 var ssIdx = href.indexOf('//');
                 if (ssIdx >= 0) { var slIdx = href.indexOf('/', ssIdx + 1); if (slIdx == -1) { return; } href = href.slice(slIdx); }
-                var splitHref = href.split("?");
-                this.currentPath = splitHref[0];
+                var splitHref = href.split("?"); this.currentPath = splitHref[0];
                 if (splitHref.length > 1 && splitHref[1].length > 0) { this.currentSearch = '?' + splitHref[1]; } else { this.currentSearch = ""; }
             }
         },
@@ -354,15 +347,13 @@ const webrootVue = new Vue({
         this.notificationClient.registerListener("ALL");
     }
 });
-
 window.addEventListener('popstate', function() { webrootVue.CurrentUrl = window.location.pathname + window.location.search; });
 
 // NotificationClient, note does not connect the WebSocket until notificationClient.registerListener() is called the first time
 function NotifyOptions(message, url, type, icon) {
     this.message = message;
     if (url) this.url = url;
-    if (icon) {
-        this.icon = icon;
+    if (icon) { this.icon = icon;
     } else {
         if (type == 'success') this.icon = 'glyphicon glyphicon-ok-sign';
         else if (type == 'warning') this.icon = 'glyphicon glyphicon-warning-sign';
@@ -388,14 +379,11 @@ function NotificationClient(webSocketUrl) {
 
     this.disableDisplay = function() { this.displayEnable = false; };
     this.enableDisplay = function() { this.displayEnable = true; };
-
     this.initWebSocket = function() {
         this.webSocket = new WebSocket(this.webSocketUrl);
         this.webSocket.clientObj = this;
-
         this.webSocket.onopen = function(event) {
-            var topics = [];
-            for (var topic in this.clientObj.topicListeners) { topics.push(topic); }
+            var topics = []; for (var topic in this.clientObj.topicListeners) { topics.push(topic); }
             this.send("subscribe:" + topics.join(","));
         };
         this.webSocket.onmessage = function(event) {
@@ -408,13 +396,11 @@ function NotificationClient(webSocketUrl) {
         this.webSocket.onclose = function(event) { console.log(event); };
         this.webSocket.onerror = function(event) { console.log(event); };
     };
-
     this.displayNotify = function(jsonObj, webSocket) {
         if (!webSocket.clientObj.displayEnable) return;
         // console.log(jsonObj);
         if (jsonObj.title && jsonObj.showAlert == true) {
-            $.notify(new NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), new NotifySettings(jsonObj.type));
-        }
+            $.notify(new NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), new NotifySettings(jsonObj.type)); }
     };
     this.registerListener = function(topic, callback) {
         if (!this.webSocket) this.initWebSocket();
@@ -422,8 +408,7 @@ function NotificationClient(webSocketUrl) {
         if (!callback) callback = this.displayNotify;
         var listenerArray = this.topicListeners[topic];
         if (!listenerArray) {
-            listenerArray = [];
-            this.topicListeners[topic] = listenerArray;
+            listenerArray = []; this.topicListeners[topic] = listenerArray;
             if (this.webSocket.readyState == WebSocket.OPEN) this.webSocket.send("subscribe:" + topic);
         }
         if (listenerArray.indexOf(callback) < 0) { listenerArray.push(callback); }
