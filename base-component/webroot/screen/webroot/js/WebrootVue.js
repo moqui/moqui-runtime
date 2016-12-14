@@ -1,7 +1,6 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 /* TODO:
- - finding by ref for dynamic-container not working; see in EditExampleItems after create new
  - form-single validate before submit; see FindExample create form
  - drop-down with allow-empty=false somehow adding empty element; see FindExample create form
 
@@ -31,6 +30,7 @@ function loadComponent(url, callback, divId) {
     var path = questIdx > 0 ? url.slice(0, questIdx) : url;
     var isJsPath = path.slice(-3) == '.js';
     if (!isJsPath) url = url + (questIdx > 0 ? '&' : '?') + "lastStandalone=-2";
+    // console.log("loading " + url + " id " + divId);
     $.ajax({ type:"GET", url:url, success: function (screenText) {
         // console.log(screenText);
         if (screenText && screenText.length > 0) {
@@ -45,18 +45,11 @@ var EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><img sr
 
 /* ========== inline components ========== */
 Vue.component('m-link', {
-    props: { href:{type:String,required:true}, loadRef:String },
+    props: { href:{type:String,required:true}, loadId:String },
     template: '<a :href="href" @click.prevent="go"><slot></slot></a>',
     methods: { go: function go() {
-        if (this.loadRef && this.loadRef.length > 0) {
-            // TODO: this is not working, never finding by the ref
-            var comp = this.$root.$refs[this.loadRef];
-            if (!comp) { console.log("Load ref not found, not loading: " + this.loadRef); return; }
-            comp.curUrl = this.href;
-        } else {
-            this.$root.CurrentUrl = this.href;
-            window.history.pushState(null, this.ScreenTitle, this.href);
-        }
+        if (this.loadId && this.loadId.length > 0) { this.$root.loadContainer(this.loadId, this.href); }
+        else { this.$root.goto(this.href); }
     }}
 });
 Vue.component('m-script', {
@@ -88,16 +81,16 @@ Vue.component('container-dialog', {
     }
 });
 Vue.component('dynamic-container', {
-    props: { url:{type:String} },
+    props: { id:{type:String,required:true}, url:{type:String} },
     data: function() { return { curComponent:EmptyComponent, curUrl:"" } },
-    template: '<component v-bind:is="curComponent"></component>',
-    methods: { reload: function() { var saveUrl = this.curUrl; this.curUrl = ""; this.curUrl = saveUrl; }},
+    template: '<component :is="curComponent"></component>',
+    methods: { reload: function() { var saveUrl = this.curUrl; this.curUrl = ""; var vm = this; setTimeout(function() { vm.curUrl = saveUrl; }, 20); },
+        load: function(url) { this.curUrl = url; }},
     watch: { curUrl: function(newUrl) {
         if (!newUrl || newUrl.length === 0) { this.curComponent = EmptyComponent; return; }
-        var vm = this; loadComponent(newUrl, function(comp) { vm.curComponent = comp; });
+        var vm = this; loadComponent(newUrl, function(comp) { vm.curComponent = comp; }, this.id);
     }},
-    mounted: function() { this.curUrl = this.url;
-        console.log(this.$ref); console.log(this.$root.$refs); }
+    mounted: function() { this.$root.addContainer(this.id, this); this.curUrl = this.url; }
 });
 Vue.component('dynamic-dialog', {
     props: { id:{type:String,required:true}, url:{type:String,required:true}, width:{type:String,default:'760'},
@@ -108,19 +101,19 @@ Vue.component('dynamic-dialog', {
             '<div class="modal-dialog" :style="dialogStyle"><div class="modal-content">' +
                 '<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
                     '<h4 class="modal-title">{{title}}</h4></div>' +
-                '<div class="modal-body"><component v-bind:is="curComponent"></component></div>' +
+                '<div class="modal-body"><component :is="curComponent"></component></div>' +
             '</div></div>' +
         '</div>',
     methods: {
         reload: function() { if (!this.isHidden) { var jqEl = $(this.$el); jqEl.modal('hide'); jqEl.modal('show'); }},
-        hide: function() { $(this.$el).modal('hide'); }
+        load: function(url) { this.curUrl = url; }, hide: function() { $(this.$el).modal('hide'); }
     },
     watch: { curUrl: function (newUrl) {
         if (!newUrl || newUrl.length === 0) { this.curComponent = EmptyComponent; return; }
-        var vm = this; loadComponent(newUrl, function(comp) { vm.curComponent = comp; });
+        var vm = this; loadComponent(newUrl, function(comp) { vm.curComponent = comp; }, this.id);
     }},
     mounted: function() {
-        var jqEl = $(this.$el); var vm = this;
+        this.$root.addContainer(this.id, this); var jqEl = $(this.$el); var vm = this;
         jqEl.on("show.bs.modal", function() { vm.curUrl = vm.url; });
         jqEl.on("hidden.bs.modal", function() { vm.isHidden = true; vm.$root.openModal = null; vm.curUrl = ""; });
         jqEl.on("shown.bs.modal", function() { vm.isHidden = false; vm.$root.openModal = vm;
@@ -130,34 +123,27 @@ Vue.component('dynamic-dialog', {
 });
 Vue.component('form-single', {
     props: { action:{type:String,required:true}, method:{type:String,default:'POST'}, isUpload:Boolean,
-        submitMessage:String, submitReloadRef:String, submitHideId:String, focusField:String },
+        submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String },
     data: function() { return { fields:{} }},
     template: '<form @submit.prevent="submitForm" class="validation-engine-init"><slot></slot></form>',
     methods: {
         submitForm: function submitForm() {
-            // TODO: how to handle upload fields? (isUpload)
+            // TODO: anything special to handle upload fields? (isUpload)
             $(this.$el).ajaxSubmit({ resetForm:false, type:this.method, url:this.action, data:this.fields,
                 headers:{Accept:'application/json'}, success:this.handleResponse });
         },
         handleResponse: function(resp) {
             var notified = false;
             if (resp && resp === Object(resp)) {
-                console.log(resp);
+                console.log('form-single response ' + JSON.stringify(resp));
                 if (resp.messages) for (var mi=0; mi < resp.messages.length; mi++) {
                     $.notify({ message:resp.messages[mi] }, $.extend(notifyOpts, {type:'info'})); notified = true; }
                 if (resp.errors) for (var ei=0; ei < resp.messages.length; ei++) {
                     $.notify({ message:resp.messages[ei] }, $.extend(notifyOpts, {delay:60000, type:'danger'})); notified = true; }
-                if (resp.screenUrl && resp.screenUrl.length > 0) {
-                    this.$root.CurrentUrl = resp.screenUrl;
-                    window.history.pushState(null, this.ScreenTitle, resp.screenUrl);
-                }
+                if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.goto(resp.screenUrl); }
             }
             if (this.submitHideId && this.submitHideId.length > 0) { $('#' + this.submitHideId).modal('hide'); }
-            if (this.submitReloadRef && this.submitReloadRef.length > 0) {
-                var comp = this.$root.$refs[this.submitReloadRef];
-                if (!comp) { console.log("Load ref not found, not loading: " + this.submitReloadRef); return; }
-                comp.reload();
-            }
+            if (this.submitReloadId && this.submitReloadId.length > 0) { this.$root.reloadContainer(this.submitReloadId); }
             var msg = this.submitMessage && this.submitMessage.length > 0 ? this.submitMessage : (notified ? null : "Form data saved");
             if (msg) $.notify({ message:msg }, $.extend(notifyOpts, {type:'success'}));
         }
@@ -290,9 +276,16 @@ Vue.component('text-autocomplete', {
 const webrootVue = new Vue({
     el: '#apps-root',
     data: { currentPath:"", currentSearch:"", currentParameters:{}, navMenuList:[], navHistoryList:[], navPlugins:[],
-        currentComponent:EmptyComponent, loading:false, openModal:null,
+        currentComponent:EmptyComponent, loading:false, openModal:null, activeContainers:{},
         moquiSessionToken:"", appHost:"", appRootPath:"/", userId:"", partyId:"", notificationClient:null },
     methods: {
+        goto: function (url) { this.CurrentUrl = url; window.history.pushState(null, this.ScreenTitle, url); },
+        // all container components added with this must have reload() and load(url) methods
+        addContainer: function (contId, comp) { this.activeContainers[contId] = comp; },
+        reloadContainer: function(contId) { var contComp = this.activeContainers[contId];
+            if (contComp) { contComp.reload(); } else { console.log("Container with ID " + contId + " not found, not reloading"); }},
+        loadContainer: function(contId, url) { var contComp = this.activeContainers[contId];
+            if (contComp) { contComp.load(url); } else { console.log("Container with ID " + contId + " not found, not loading url " + url); }},
         addNavPlugin: function(url) { var vm = this; loadComponent(url, function(comp) { vm.navPlugins.push(comp); }) },
         switchDarkLight: function() {
             var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
@@ -308,6 +301,7 @@ const webrootVue = new Vue({
             this.loading = true;
             console.log("CurrentUrl changing to " + newUrl);
             if (this.openModal) { this.openModal.hide(); this.openModal = null; }
+            this.activeContainers = {};
             // update menu
             $.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json",
                 success: function(outerList) { if (outerList) { vm.navMenuList = outerList; } }});
@@ -432,8 +426,7 @@ function NotificationClient(webSocketUrl) {
         this.webSocket.onerror = function(event) { console.log(event); };
     };
     this.displayNotify = function(jsonObj, webSocket) {
-        if (!webSocket.clientObj.displayEnable) return;
-        // console.log(jsonObj);
+        if (!webSocket.clientObj.displayEnable) return; // console.log(jsonObj);
         if (jsonObj.title && jsonObj.showAlert == true) {
             $.notify(new NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), new NotifySettings(jsonObj.type)); }
     };

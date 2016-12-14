@@ -205,7 +205,7 @@ ${sri.renderSection(.node["@name"])}
 <#macro "dynamic-container">
     <#assign dcDivId><@nodeId .node/></#assign>
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", dcDivId)>
-    <dynamic-container ref="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().pathWithParams}"></dynamic-container>
+    <dynamic-container id="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().pathWithParams}"></dynamic-container>
 </#macro>
 <#macro "dynamic-dialog">
     <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
@@ -322,7 +322,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#if>
             <${linkElement} href="${urlText}"<#if linkFormId?has_content> id="${linkFormId}"</#if>
                 <#t><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>
-                <#t><#if linkNode["@dynamic-load-id"]?has_content> load-ref="${linkNode["@dynamic-load-id"]}"</#if>
+                <#t><#if linkNode["@dynamic-load-id"]?has_content> load-id="${linkNode["@dynamic-load-id"]}"</#if>
                 <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>
                 <#t> class="<#if linkNode["@link-type"]! != "anchor">btn btn-primary btn-sm</#if><#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"
                 <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
@@ -453,7 +453,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <form-single name="${formId}" id="${formId}" action="${urlInstance.url}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
             <#t><#if formInstance.isUpload()> :is-upload="true"</#if>
             <#t><#if formNode["@background-message"]?has_content> submit-message="${formNode["@background-message"]}"</#if>
-            <#t><#if formNode["@background-reload-id"]?has_content> submit-reload-ref="${formNode["@background-reload-id"]}"</#if>
+            <#t><#if formNode["@background-reload-id"]?has_content> submit-reload-id="${formNode["@background-reload-id"]}"</#if>
             <#t><#if formNode["@background-hide-id"]?has_content> submit-hide-id="${formNode["@background-hide-id"]}"</#if>>
         <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
