@@ -1,9 +1,6 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 /* TODO:
- - form-single validate before submit; see FindExample create form
- - drop-down with allow-empty=false somehow adding empty element; see FindExample create form
-
  - use m-link for other links instead of a (or somehow intercept?)
  - do something with form submits to submit in background and refresh current html based component (new client rendered screens won't need this)
 
@@ -127,10 +124,10 @@ Vue.component('form-single', {
     data: function() { return { fields:{} }},
     template: '<form @submit.prevent="submitForm" class="validation-engine-init"><slot></slot></form>',
     methods: {
+        // TODO: anything special to handle upload fields? (isUpload)
         submitForm: function submitForm() {
-            // TODO: anything special to handle upload fields? (isUpload)
-            $(this.$el).ajaxSubmit({ resetForm:false, type:this.method, url:this.action, data:this.fields,
-                headers:{Accept:'application/json'}, success:this.handleResponse });
+            var jqEl = $(this.$el); if (jqEl.valid()) { jqEl.ajaxSubmit({ resetForm:false, type:this.method, url:this.action,
+                data:this.fields, headers:{Accept:'application/json'}, success:this.handleResponse }); }
         },
         handleResponse: function(resp) {
             var notified = false;
@@ -149,8 +146,7 @@ Vue.component('form-single', {
         }
     },
     mounted: function() {
-        var jqEl = $(this.$el);
-        jqEl.validate({ errorClass: 'help-block', errorElement: 'span',
+        var jqEl = $(this.$el); jqEl.validate({ errorClass: 'help-block', errorElement: 'span',
             highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
             unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
         });
@@ -158,6 +154,7 @@ Vue.component('form-single', {
         if (this.focusField && this.focusField.length > 0) jqEl.find('[name=' + this.focusField + ']').addClass('default-focus').focus();
     }
 });
+/* ========== form field widget components ========== */
 Vue.component('drop-down', {
     props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String,
         optionsUrl:String, optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object },
