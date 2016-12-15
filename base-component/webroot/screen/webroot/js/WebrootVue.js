@@ -44,7 +44,7 @@ var EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><img sr
 Vue.component('m-link', {
     props: { href:{type:String,required:true}, loadId:String },
     template: '<a :href="href" @click.prevent="go"><slot></slot></a>',
-    methods: { go: function go() {
+    methods: { go: function() {
         if (this.loadId && this.loadId.length > 0) { this.$root.loadContainer(this.loadId, this.href); }
         else { this.$root.goto(this.href); }
     }}
@@ -53,8 +53,7 @@ Vue.component('m-script', {
     template: '<div style="display:none;"><slot></slot></div>',
     mounted: function() {
         var parent = this.$el.parentElement; var s = document.createElement('script'); s.type = 'text/javascript';
-        s.appendChild(document.createTextNode(this.$el.innerText));
-        Vue.util.remove(this.$el); parent.appendChild(s);
+        s.appendChild(document.createTextNode(this.$el.innerText)); Vue.util.remove(this.$el); parent.appendChild(s);
     }
 });
 Vue.component('container-dialog', {
@@ -118,6 +117,26 @@ Vue.component('dynamic-dialog', {
         if (this.openDialog) { jqEl.modal('show'); }
     }
 });
+Vue.component('m-editable', {
+    props: { id:{type:String,required:true}, labelType:{type:String,default:'span'}, labelValue:{type:String,required:true},
+        url:{type:String,required:true}, urlParameters:{type:Object,default:{}},
+        parameterName:{type:String,default:'value'}, widgetType:{type:String,default:'textarea'},
+        loadUrl:String, loadParameters:Object, indicator:{type:String,default:'Saving'}, tooltip:{type:String,default:'Click to edit'},
+        cancel:{type:String,default:'Cancel'}, submit:{type:String,default:'Save'} },
+    template: '<p v-if="labelType == p" :id="id" class="editable-label">{{labelValue}}</p>',
+    mounted: function() {
+        var reqData = $.extend({ moquiSessionToken:this.$root.moquiSessionToken, parameterName:this.parameterName }, this.urlParameters);
+        var edConfig = { indicator:this.indicator, tooltip:this.tooltip, cancel:this.cancel, submit:this.submit,
+                name:this.parameterName, type:this.widgetType, cssclass:'editable-form', submitdata:reqData };
+        if (this.loadUrl && this.loadUrl.length > 0) {
+            var vm = this; edConfig.loadurl = this.loadUrl; edConfig.loadtype = "POST";
+            edConfig.loaddata = function(value) { return $.extend({ currentValue:value, moquiSessionToken:vm.$root.moquiSessionToken }, vm.loadParameters); };
+        }
+        $(this.$el).editable(this.url, edConfig);
+    },
+    render: function(createEl) { return createEl(this.labelType, { attrs:{ id:this.id, class:'editable-label' }, domProps: { innerHTML:this.labelValue } }); }
+});
+/* ========== form components ========== */
 Vue.component('form-single', {
     props: { action:{type:String,required:true}, method:{type:String,default:'POST'}, isUpload:Boolean,
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String },
@@ -204,15 +223,15 @@ Vue.component('drop-down', {
         }
     },
     watch: {
-        value: function (value) { this.curVal = value; },
-        options: function (options) { this.curData = options; },
-        curData: function (options) { this.s2Opts.data = options; $(this.$el).select2(this.s2Opts); }
+        value: function(value) { this.curVal = value; },
+        options: function(options) { this.curData = options; },
+        curData: function(options) { this.s2Opts.data = options; $(this.$el).select2(this.s2Opts); }
     },
     computed: {
-        curVal: { get: function () { return $(this.$el).select2().val(); },
-            set: function (value) { $(this.$el).select2().val(value).trigger('select2:change'); } }
+        curVal: { get: function() { return $(this.$el).select2().val(); },
+            set: function(value) { $(this.$el).select2().val(value).trigger('select2:change'); } }
     },
-    destroyed: function () { $(this.$el).off().select2('destroy') }
+    destroyed: function() { $(this.$el).off().select2('destroy') }
 });
 Vue.component('text-autocomplete', {
     props: { id:{type:String,required:true}, name:{type:String,required:true}, value:String, valueText:String,

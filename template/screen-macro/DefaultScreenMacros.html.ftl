@@ -409,25 +409,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#-- for docs on JS usage see: http://www.appelsiini.net/projects/jeditable -->
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
     <#assign urlParms = urlInstance.getParameterMap()>
-    <#assign editableDivId><@nodeId .node/></#assign>
-    <#assign labelType = .node["@type"]?default("span")>
     <#assign labelValue = ec.getResource().expand(.node["@text"], "")>
-    <#assign parameterName = .node["@parameter-name"]!"value">
+    <#if .node["@encode"]! == "true"><#assign labelValue = labelValue?html?replace("\n", "<br>")></#if>
     <#if labelValue?trim?has_content>
-        <${labelType} id="${editableDivId}" class="editable-label"><#if .node["@encode"]! == "true">${labelValue?html?replace("\n", "<br>")}<#else>${labelValue}</#if></${labelType}>
-        <m-script>
-        $("#${editableDivId}").editable("${urlInstance.url}", { indicator:"${ec.getL10n().localize("Saving")}",
-            tooltip:"${ec.getL10n().localize("Click to edit")}", cancel:"${ec.getL10n().localize("Cancel")}",
-            submit:"${ec.getL10n().localize("Save")}", name:"${parameterName}",
-            type:"${.node["@widget-type"]!"textarea"}", cssclass:"editable-form",
-            submitdata:{<#list urlParms.keySet() as parameterKey>${parameterKey}:"${urlParms[parameterKey]}", </#list>parameterName:"${parameterName}", moquiSessionToken:"${(ec.getWeb().sessionToken)!}"}
-            <#if .node["editable-load"]?has_content>
-                <#assign loadNode = .node["editable-load"][0]>
-                <#assign loadUrlInfo = sri.makeUrlByType(loadNode["@transition"], "transition", loadNode, "true")>
-                <#assign loadUrlParms = loadUrlInfo.getParameterMap()>
-            , loadurl:"${loadUrlInfo.url}", loadtype:"POST", loaddata:function(value, settings) { return {<#list loadUrlParms.keySet() as parameterKey>${parameterKey}:"${loadUrlParms[parameterKey]}", </#list>currentValue:value, moquiSessionToken:"${(ec.getWeb().sessionToken)!}"}; }
-            </#if>});
-        </m-script>
+        <#assign hasLoad = false>
+        <#if .node["editable-load"]?has_content>
+            <#assign hasLoad = true><#assign loadNode = .node["editable-load"][0]>
+            <#assign loadUrlInfo = sri.makeUrlByType(loadNode["@transition"], "transition", loadNode, "true")>
+            <#assign loadUrlParms = loadUrlInfo.getParameterMap()>
+        </#if>
+        <m-editable id="<@nodeId .node/>" label-type="${.node["@type"]!"span"}" label-value="${labelValue}"<#rt>
+            <#t> url="${urlInstance.url}" :url-parameters="{<#list urlParms.keySet() as parameterKey>'${parameterKey}':'${urlParms[parameterKey]}',</#list>}"
+            <#t> parameter-name="${.node["@parameter-name"]!"value"}" widget-type="${.node["@widget-type"]!"textarea"}"
+            <#t> indicator="${ec.getL10n().localize("Saving")}" tooltip="${ec.getL10n().localize("Click to edit")}"
+            <#t> cancel="${ec.getL10n().localize("Cancel")}" submit="${ec.getL10n().localize("Save")}"
+            <#t> <#if hasLoad> load-url="${loadUrlInfo.url}" :load-parameters="{<#list loadUrlParms.keySet() as parameterKey>'${parameterKey}':'${loadUrlParms[parameterKey]}',</#list>}"</#if>/>
     </#if>
 </#macro>
 <#macro parameter><#-- do nothing, used directly in other elements --></#macro>
