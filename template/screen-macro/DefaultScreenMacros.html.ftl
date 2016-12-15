@@ -354,7 +354,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
              ((linkNode["@url-type"]?has_content && linkNode["@url-type"] != "transition") || (!urlInstance.hasActions)))>
             <#-- do nothing -->
         <#else>
-            <form action="${urlInstance.url}" name="${linkFormId!""}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>><#-- :no-validate="true" -->
+            <#if urlInstance.getTargetTransition()?has_content><#assign linkFormType = "m-form"><#else><#assign linkFormType = "s-form"></#if>
+            <${linkFormType} action="${urlInstance.path}" name="${linkFormId!""}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>><#-- :no-validate="true" -->
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                 <#assign targetParameters = urlInstance.getParameterMap()>
                 <#-- NOTE: using .keySet() here instead of ?keys because ?keys was returning all method names with the other keys, not sure why -->
@@ -374,7 +375,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if>${linkText}</button>
                     </#if>
                 </#if>
-            </form>
+            </${linkFormType}>
         </#if>
     </#if>
 </#macro>
@@ -446,7 +447,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#-- TODO: remove form-single.@background-submit attribute in XSD, now all are -->
     <#if !skipStart>
-    <m-form name="${formId}" id="${formId}" action="${urlInstance.url}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
+    <m-form name="${formId}" id="${formId}" action="${urlInstance.path}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
             <#t><#if formInstance.isUpload()> :is-upload="true"</#if>
             <#t><#if formNode["@background-message"]?has_content> submit-message="${formNode["@background-message"]}"</#if>
             <#t><#if formNode["@background-reload-id"]?has_content> submit-reload-id="${formNode["@background-reload-id"]}"</#if>
@@ -645,138 +646,129 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign headerFormDialogId = formId + "_hdialog">
         <#assign headerFormId = formId + "_header">
         <#assign headerFormButtonText = ec.getL10n().localize("Find Options")>
-        <div id="${headerFormDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
-            <div class="modal-dialog" style="width: 800px;"><div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">${headerFormButtonText}</h4>
-                </div>
-                <div class="modal-body">
-                <#-- Saved Finds -->
-                <#if isSavedFinds && isHeaderDialog><h4 style="margin-top: 0;">${ec.getL10n().localize("Saved Finds")}</h4></#if>
-                <#if isSavedFinds>
-                    <#assign activeFormListFind = formListInfo.getFormInstance().getActiveFormListFind(ec)!>
-                    <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").url>
-                    <#assign descLabel = ec.getL10n().localize("Description")>
-                    <#if activeFormListFind?has_content>
-                        <h5>Active Saved Find: ${activeFormListFind.description?html}</h5>
-                    </#if>
+        <container-dialog id="${headerFormDialogId}" title="${headerFormButtonText}">
+            <#-- Saved Finds -->
+            <#if isSavedFinds && isHeaderDialog><h4 style="margin-top: 0;">${ec.getL10n().localize("Saved Finds")}</h4></#if>
+            <#if isSavedFinds>
+                <#assign activeFormListFind = formListInfo.getFormInstance().getActiveFormListFind(ec)!>
+                <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").path>
+                <#assign descLabel = ec.getL10n().localize("Description")>
+                <#if activeFormListFind?has_content>
+                    <h5>Active Saved Find: ${activeFormListFind.description?html}</h5>
+                </#if>
+                <#if currentFindUrlParms?has_content>
+                    <#-- TODO: make sure list of saved finds reloads, perhaps in place -->
+                    <div><m-form class="form-inline" id="${formId}_NewFind" action="${formSaveFindUrl}">
+                        <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+                        <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
+                        <#list currentFindUrlParms.keySet() as parmName>
+                            <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
+                        </#list>
+                        <div class="form-group">
+                            <label class="sr-only" for="${formId}_NewFind_description">${descLabel}</label>
+                            <input type="text" size="40" name="description" id="${formId}_NewFind_description" placeholder="${descLabel}" class="form-control required" required="required">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">${ec.getL10n().localize("Save New Find")}</button>
+                    </m-form></div>
+                <#else>
+                    <p>${ec.getL10n().localize("No find parameters, choose some to save a new find or update existing")}</p>
+                </#if>
+                <#assign userFindInfoList = formListInfo.getUserFormListFinds(ec)>
+                <#list userFindInfoList as userFindInfo>
+                    <#assign formListFind = userFindInfo.formListFind>
+                    <#assign findParameters = userFindInfo.findParameters>
+                    <#assign doFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameters(findParameters).removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
+                    <#assign saveFindFormId = formId + "_SaveFind" + userFindInfo_index>
+                    <div>
                     <#if currentFindUrlParms?has_content>
                         <#-- TODO: make sure list of saved finds reloads, perhaps in place -->
-                        <div><m-form class="form-inline" id="${formId}_NewFind" action="${formSaveFindUrl}">
+                        <m-form class="form-inline" id="${saveFindFormId}" action="${formSaveFindUrl}">
                             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
-                            <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
+                            <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
+                            <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
                             <#list currentFindUrlParms.keySet() as parmName>
                                 <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
                             </#list>
                             <div class="form-group">
-                                <label class="sr-only" for="${formId}_NewFind_description">${descLabel}</label>
-                                <input type="text" size="40" name="description" id="${formId}_NewFind_description" placeholder="${descLabel}" class="form-control required" required="required">
+                                <label class="sr-only" for="${saveFindFormId}_description">${descLabel}</label>
+                                <input type="text" size="40" name="description" id="${saveFindFormId}_description" value="${formListFind.description?html}" class="form-control required" required="required">
                             </div>
-                            <button type="submit" class="btn btn-primary btn-sm">${ec.getL10n().localize("Save New Find")}</button>
-                        </m-form></div>
+                            <button type="submit" name="UpdateFind" class="btn btn-primary btn-sm">${ec.getL10n().localize("Update to Current")}</button>
+                            <#if userFindInfo.isByUserId == "true"><button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');">&times;</button></#if>
+                        </m-form>
+                        <m-link href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.getL10n().localize("Do Find")}</m-link>
                     <#else>
-                        <p>${ec.getL10n().localize("No find parameters, choose some to save a new find or update existing")}</p>
-                    </#if>
-                    <#assign userFindInfoList = formListInfo.getUserFormListFinds(ec)>
-                    <#list userFindInfoList as userFindInfo>
-                        <#assign formListFind = userFindInfo.formListFind>
-                        <#assign findParameters = userFindInfo.findParameters>
-                        <#assign doFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameters(findParameters).removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
-                        <#assign saveFindFormId = formId + "_SaveFind" + userFindInfo_index>
-                        <div>
-                        <#if currentFindUrlParms?has_content>
-                            <m-form class="form-inline" id="${saveFindFormId}" action="${formSaveFindUrl}">
-                                <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
-                                <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
-                                <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
-                                <#list currentFindUrlParms.keySet() as parmName>
-                                    <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
-                                </#list>
-                                <div class="form-group">
-                                    <label class="sr-only" for="${saveFindFormId}_description">${descLabel}</label>
-                                    <input type="text" size="40" name="description" id="${saveFindFormId}_description" value="${formListFind.description?html}" class="form-control required" required="required">
-                                </div>
-                                <button type="submit" name="UpdateFind" class="btn btn-primary btn-sm">${ec.getL10n().localize("Update to Current")}</button>
-                                <#if userFindInfo.isByUserId == "true"><button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');">&times;</button></#if>
-                            </m-form>
-                            <m-link href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.getL10n().localize("Do Find")}</m-link>
-                        <#else>
-                            <m-link href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.getL10n().localize("Do Find")}</m-link>
-                            <#if userFindInfo.isByUserId == "true">
-                            <#-- TODO: make sure list of saved finds reloads, perhaps in place -->
-                            <m-form class="form-inline" id="${saveFindFormId}" action="${formSaveFindUrl}" :no-validate="true">
-                                <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
-                                <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
-                                <button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');">&times;</button>
-                            </m-form>
-                            </#if>
-                            <strong>${formListFind.description?html}</strong>
+                        <m-link href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.getL10n().localize("Do Find")}</m-link>
+                        <#if userFindInfo.isByUserId == "true">
+                        <#-- TODO: make sure list of saved finds reloads, perhaps in place -->
+                        <m-form class="form-inline" id="${saveFindFormId}" action="${formSaveFindUrl}" :no-validate="true">
+                            <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+                            <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
+                            <button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');">&times;</button>
+                        </m-form>
                         </#if>
-                        </div>
-                    </#list>
-                </#if>
-                <#if isSavedFinds && isHeaderDialog><h4>${ec.getL10n().localize("Find Parameters")}</h4></#if>
-                <#if isHeaderDialog>
-                    <#-- Find Parameters Form -->
-                    <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-                    <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
-                        <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
-                        <fieldset class="form-horizontal">
-                            <#-- Always add an orderByField to select one or more columns to order by -->
-                            <div class="form-group">
-                                <label class="control-label col-sm-2" for="${headerFormId}_orderByField">${ec.getL10n().localize("Order By")}</label>
-                                <div class="col-sm-10">
-                                    <select name="orderBySelect" id="${headerFormId}_orderBySelect" multiple="multiple" style="width: 100%;">
-                                        <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content>
-                                            <#assign headerFieldNode = fieldNode["header-field"][0]>
-                                            <#assign showOrderBy = (headerFieldNode["@show-order-by"])!>
-                                            <#if showOrderBy?has_content && showOrderBy != "false">
-                                                <#assign caseInsensitive = showOrderBy == "case-insensitive">
-                                                <#assign orderFieldName = fieldNode["@name"]>
-                                                <#assign orderFieldTitle><@fieldTitle headerFieldNode/></#assign>
-                                                <option value="${"+" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} ${ec.getL10n().localize("(Asc)")}</option>
-                                                <option value="${"-" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} ${ec.getL10n().localize("(Desc)")}</option>
-                                            </#if>
-                                        </#if></#list>
-                                    </select>
-                                    <input type="hidden" id="${headerFormId}_orderByField" name="orderByField" value="${orderByField!""}">
-                                    <m-script>
-                                        $("#${headerFormId}_orderBySelect").selectivity({ positionDropdown: function(dropdownEl, selectEl) { dropdownEl.css("width", "300px"); } })[0].selectivity.filterResults = function(results) {
-                                            // Filter out asc and desc options if anyone selected.
-                                            return results.filter(function(item){return !this._data.some(function(data_item) {return data_item.id.substring(1) === item.id.substring(1);});}, this);
-                                        };
-                                        <#assign orderByJsValue = formListInfo.getOrderByActualJsString(ec.getContext().orderByField)>
-                                        <#if orderByJsValue?has_content>$("#${headerFormId}_orderBySelect").selectivity("value", ${orderByJsValue});</#if>
-                                        $("div#${headerFormId}_orderBySelect").on("change", function(evt) {
-                                            if (evt.value) $("#${headerFormId}_orderByField").val(evt.value.join(","));
-                                        });
-                                    </m-script>
-                                </div>
+                        <strong>${formListFind.description?html}</strong>
+                    </#if>
+                    </div>
+                </#list>
+            </#if>
+            <#if isSavedFinds && isHeaderDialog><h4>${ec.getL10n().localize("Find Parameters")}</h4></#if>
+            <#if isHeaderDialog>
+                <#-- Find Parameters Form -->
+                <#assign curUrlInstance = sri.getCurrentScreenUrl()>
+                <s-form name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}">
+                    <fieldset class="form-horizontal">
+                        <#-- Always add an orderByField to select one or more columns to order by -->
+                        <div class="form-group">
+                            <label class="control-label col-sm-2" for="${headerFormId}_orderByField">${ec.getL10n().localize("Order By")}</label>
+                            <div class="col-sm-10">
+                                <select name="orderBySelect" id="${headerFormId}_orderBySelect" multiple="multiple" style="width: 100%;" class="noselect2">
+                                    <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content>
+                                        <#assign headerFieldNode = fieldNode["header-field"][0]>
+                                        <#assign showOrderBy = (headerFieldNode["@show-order-by"])!>
+                                        <#if showOrderBy?has_content && showOrderBy != "false">
+                                            <#assign caseInsensitive = showOrderBy == "case-insensitive">
+                                            <#assign orderFieldName = fieldNode["@name"]>
+                                            <#assign orderFieldTitle><@fieldTitle headerFieldNode/></#assign>
+                                            <option value="${"+" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} ${ec.getL10n().localize("(Asc)")}</option>
+                                            <option value="${"-" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} ${ec.getL10n().localize("(Desc)")}</option>
+                                        </#if>
+                                    </#if></#list>
+                                </select>
+                                <input type="hidden" id="${headerFormId}_orderByField" name="orderByField" value="${orderByField!""}">
+                                <m-script>
+                                    $("#${headerFormId}_orderBySelect").selectivity({ positionDropdown: function(dropdownEl, selectEl) { dropdownEl.css("width", "300px"); } })[0].selectivity.filterResults = function(results) {
+                                        // Filter out asc and desc options if anyone selected.
+                                        return results.filter(function(item){return !this._data.some(function(data_item) {return data_item.id.substring(1) === item.id.substring(1);});}, this);
+                                    };
+                                    <#assign orderByJsValue = formListInfo.getOrderByActualJsString(ec.getContext().orderByField)>
+                                    <#if orderByJsValue?has_content>$("#${headerFormId}_orderBySelect").selectivity("value", ${orderByJsValue});</#if>
+                                    $("div#${headerFormId}_orderBySelect").on("change", function(evt) {
+                                        if (evt.value) $("#${headerFormId}_orderByField").val(evt.value.join(","));
+                                    });
+                                </m-script>
                             </div>
-                            <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
-                                <#assign headerFieldNode = fieldNode["header-field"][0]>
-                                <#assign defaultFieldNode = (fieldNode["default-field"][0])!>
-                                <#assign allHidden = true>
-                                <#list fieldNode?children as fieldSubNode>
-                                    <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
-                                </#list>
+                        </div>
+                        <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
+                            <#assign headerFieldNode = fieldNode["header-field"][0]>
+                            <#assign defaultFieldNode = (fieldNode["default-field"][0])!>
+                            <#assign allHidden = true>
+                            <#list fieldNode?children as fieldSubNode>
+                                <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
+                            </#list>
 
-                                <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") || allHidden ||
-                                        ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                        ((fieldNode["header-field"][0]["hidden"])?has_content || (fieldNode["header-field"][0]["ignored"])?has_content)))>
-                                    <@formSingleWidget headerFieldNode headerFormId "col-sm" false false/>
-                                <#elseif (headerFieldNode["hidden"])?has_content>
-                                    <#recurse headerFieldNode/>
-                                </#if>
-                            </#if></#list>
-                        </fieldset>
-                    </form>
-                </#if>
-                </div>
-            </div></div>
-        </div>
-        <m-script>$('#${headerFormDialogId}').on('shown.bs.modal', function() { $("#${headerFormDialogId} select:not([name^='orderBySelect'])").select2({ }); })</m-script>
+                            <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") || allHidden ||
+                                    ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
+                                    ((fieldNode["header-field"][0]["hidden"])?has_content || (fieldNode["header-field"][0]["ignored"])?has_content)))>
+                                <@formSingleWidget headerFieldNode headerFormId "col-sm" false false/>
+                            <#elseif (headerFieldNode["hidden"])?has_content>
+                                <#recurse headerFieldNode/>
+                            </#if>
+                        </#if></#list>
+                    </fieldset>
+                </s-form>
+            </#if>
+        </container-dialog>
     </#if>
     <#if isSelectColumns>
         <#assign selectColumnsDialogId = formId + "_SelColsDialog">
@@ -813,7 +805,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
                         </#list></#if>
                     </ul>
-                    <m-form class="form-inline" id="${formId}_SelColsForm" action="${sri.buildUrl("formSelectColumns").url}">
+                    <m-form class="form-inline" id="${formId}_SelColsForm" action="${sri.buildUrl("formSelectColumns").path}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                         <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
                         <input type="hidden" id="${formId}_SelColsForm_columnsTree" name="columnsTree" value="">
@@ -1022,7 +1014,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if (curPageMaxIndex > 4)>
                     <#assign goPageUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
                     <#assign goPageUrlParms = goPageUrl.getParameterMap()>
-                    <form class="form-inline" id="${formId}_GoPage" action="${goPageUrl.getUrl()}"><#-- :no-validate="true" -->
+                    <s-form class="form-inline" id="${formId}_GoPage" action="${goPageUrl.path}" :no-validate="true">
                         <#list goPageUrlParms.keySet() as parmName>
                             <input type="hidden" name="${parmName}" value="${goPageUrlParms.get(parmName)!?html}"></#list>
                         <div class="form-group">
@@ -1030,7 +1022,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <input type="text" class="form-control" size="6" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="${ec.getL10n().localize("Page #")}">
                         </div>
                         <button type="submit" class="btn btn-default">${ec.getL10n().localize("Go##Page")}</button>
-                    </form>
+                    </s-form>
                     <m-script>
                         $("#${formId}_GoPage").validate({ errorClass: 'help-block', errorElement: 'span',
                             rules: { pageIndex: { required:true, min:1, max:${(curPageMaxIndex + 1)?c} } },
@@ -1097,7 +1089,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#-- all form elements outside table element and referred to with input/etc.@form attribute for proper HTML -->
     <#if !(isMulti || skipForm) && listHasContent><#list listObject as listEntry>
         ${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
-        <m-form name="${formId}_${listEntry_index}" id="${formId}_${listEntry_index}" action="${formListUrlInfo.url}">
+        <m-form name="${formId}_${listEntry_index}" id="${formId}_${listEntry_index}" action="${formListUrlInfo.path}">
             <#assign listEntryIndex = listEntry_index>
             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
             <#-- hidden fields -->
@@ -1110,15 +1102,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if !skipStart>
         <#if needHeaderForm && !isHeaderDialog>
             <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-        <m-form name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.url}">
+        <s-form name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}">
             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
             <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
             <#list hiddenFieldList as hiddenField><#if hiddenField["header-field"]?has_content><#recurse hiddenField["header-field"][0]/></#if></#list>
-        </m-form>
+        </s-form>
         </#if>
         <#if isMulti>
-        <m-form name="${formId}" id="${formId}" action="${formListUrlInfo.url}">
+        <m-form name="${formId}" id="${formId}" action="${formListUrlInfo.path}">
             <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
             <input type="hidden" name="_isMulti" value="true">
