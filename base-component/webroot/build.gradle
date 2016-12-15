@@ -65,8 +65,8 @@ def fileMap = [
 
         "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
-        "vue/2.1.4/vue.js":"", // TODO: remove this, change to min in apps.xml
-        "vue/2.1.4/vue.min.js":""
+        "vue/2.1.6/vue.js":"", // TODO: remove this, change to min in apps.xml
+        "vue/2.1.6/vue.min.js":""
 ]
 
 String getTargetPath(String sourcePath, String targetPath) {
