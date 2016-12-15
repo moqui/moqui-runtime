@@ -354,7 +354,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
              ((linkNode["@url-type"]?has_content && linkNode["@url-type"] != "transition") || (!urlInstance.hasActions)))>
             <#-- do nothing -->
         <#else>
-            <form method="post" action="${urlInstance.url}" name="${linkFormId!""}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>>
+            <form action="${urlInstance.url}" name="${linkFormId!""}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>><#-- :no-validate="true" -->
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                 <#assign targetParameters = urlInstance.getParameterMap()>
                 <#-- NOTE: using .keySet() here instead of ?keys because ?keys was returning all method names with the other keys, not sure why -->
@@ -446,7 +446,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#-- TODO: remove form-single.@background-submit attribute in XSD, now all are -->
     <#if !skipStart>
-    <form-single name="${formId}" id="${formId}" action="${urlInstance.url}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
+    <m-form name="${formId}" id="${formId}" action="${urlInstance.url}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
             <#t><#if formInstance.isUpload()> :is-upload="true"</#if>
             <#t><#if formNode["@background-message"]?has_content> submit-message="${formNode["@background-message"]}"</#if>
             <#t><#if formNode["@background-reload-id"]?has_content> submit-reload-id="${formNode["@background-reload-id"]}"</#if>
@@ -461,7 +461,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode formId/></#list>
         </#if>
         </fieldset>
-    <#if !skipEnd></form-single></#if>
+    <#if !skipEnd></m-form></#if>
     <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
     <#if sri.doBoundaryComments()><!-- END   form-single[@name=${.node["@name"]}] --></#if>
     <#assign ownerForm = ""><#-- clear ownerForm so later form fields don't pick it up -->
@@ -518,7 +518,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign accIsActive = accordionIndex?string == accordionActive>
         <div class="panel panel-default">
             <div class="panel-heading" role="tab" id="${accordionId}_heading${accordionIndex}"><h4 class="panel-title">
-                <a <#if !accIsActive>class="collapsed" </#if>role="button" data-toggle="collapse" data-parent="#${accordionId}" href="#${accordionId}_collapse${accordionIndex}" aria-expanded="true" aria-controls="${accordionId}_collapse${accordionIndex}">${fgTitle!"Fields"}</a>
+                <a role="button" data-toggle="collapse" data-parent="#${accordionId}" href="#${accordionId}_collapse${accordionIndex}"
+                   aria-expanded="true" aria-controls="${accordionId}_collapse${accordionIndex}"<#if !accIsActive> class="collapsed"</#if>>${fgTitle!"Fields"}</a>
             </h4></div>
             <div id="${accordionId}_collapse${accordionIndex}" class="panel-collapse collapse<#if accIsActive> in</#if>" role="tabpanel" aria-labelledby="${accordionId}_heading${accordionIndex}">
                 <div class="panel-body<#if .node["@style"]?has_content> ${.node["@style"]}</#if>">
@@ -661,7 +662,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <h5>Active Saved Find: ${activeFormListFind.description?html}</h5>
                     </#if>
                     <#if currentFindUrlParms?has_content>
-                        <div><form class="form-inline" id="${formId}_NewFind" method="post" action="${formSaveFindUrl}">
+                        <#-- TODO: make sure list of saved finds reloads, perhaps in place -->
+                        <div><m-form class="form-inline" id="${formId}_NewFind" action="${formSaveFindUrl}">
                             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                             <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
                             <#list currentFindUrlParms.keySet() as parmName>
@@ -669,10 +671,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             </#list>
                             <div class="form-group">
                                 <label class="sr-only" for="${formId}_NewFind_description">${descLabel}</label>
-                                <input type="text" class="form-control" size="40" name="description" id="${formId}_NewFind_description" placeholder="${descLabel}">
+                                <input type="text" size="40" name="description" id="${formId}_NewFind_description" placeholder="${descLabel}" class="form-control required" required="required">
                             </div>
                             <button type="submit" class="btn btn-primary btn-sm">${ec.getL10n().localize("Save New Find")}</button>
-                        </form></div>
+                        </m-form></div>
                     <#else>
                         <p>${ec.getL10n().localize("No find parameters, choose some to save a new find or update existing")}</p>
                     </#if>
@@ -684,7 +686,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#assign saveFindFormId = formId + "_SaveFind" + userFindInfo_index>
                         <div>
                         <#if currentFindUrlParms?has_content>
-                            <form class="form-inline" id="${saveFindFormId}" method="post" action="${formSaveFindUrl}">
+                            <m-form class="form-inline" id="${saveFindFormId}" action="${formSaveFindUrl}">
                                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                                 <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
                                 <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
@@ -693,20 +695,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 </#list>
                                 <div class="form-group">
                                     <label class="sr-only" for="${saveFindFormId}_description">${descLabel}</label>
-                                    <input type="text" class="form-control" size="40" name="description" id="${saveFindFormId}_description" value="${formListFind.description?html}">
+                                    <input type="text" size="40" name="description" id="${saveFindFormId}_description" value="${formListFind.description?html}" class="form-control required" required="required">
                                 </div>
                                 <button type="submit" name="UpdateFind" class="btn btn-primary btn-sm">${ec.getL10n().localize("Update to Current")}</button>
                                 <#if userFindInfo.isByUserId == "true"><button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');">&times;</button></#if>
-                            </form>
-                            <a href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.getL10n().localize("Do Find")}</a>
+                            </m-form>
+                            <m-link href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.getL10n().localize("Do Find")}</m-link>
                         <#else>
-                            <a href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.getL10n().localize("Do Find")}</a>
+                            <m-link href="${doFindUrl.urlWithParams}" class="btn btn-success btn-sm">${ec.getL10n().localize("Do Find")}</m-link>
                             <#if userFindInfo.isByUserId == "true">
-                            <form class="form-inline" id="${saveFindFormId}" method="post" action="${formSaveFindUrl}">
+                            <#-- TODO: make sure list of saved finds reloads, perhaps in place -->
+                            <m-form class="form-inline" id="${saveFindFormId}" action="${formSaveFindUrl}" :no-validate="true">
                                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                                 <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
                                 <button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');">&times;</button>
-                            </form>
+                            </m-form>
                             </#if>
                             <strong>${formListFind.description?html}</strong>
                         </#if>
@@ -810,7 +813,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
                         </#list></#if>
                     </ul>
-                    <form class="form-inline" id="${formId}_SelColsForm" method="post" action="${sri.buildUrl("formSelectColumns").url}">
+                    <m-form class="form-inline" id="${formId}_SelColsForm" action="${sri.buildUrl("formSelectColumns").url}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                         <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
                         <input type="hidden" id="${formId}_SelColsForm_columnsTree" name="columnsTree" value="">
@@ -819,7 +822,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         </#list></#if>
                         <input type="submit" name="SaveColumns" value="${ec.getL10n().localize("Save Columns")}" class="btn btn-primary btn-sm"/>
                         <input type="submit" name="ResetColumns" value="${ec.getL10n().localize("Reset to Default")}" class="btn btn-primary btn-sm"/>
-                    </form>
+                    </m-form>
                 </div>
             </div></div>
         </div>
@@ -857,6 +860,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <h4 class="modal-title">${ec.getL10n().localize("Export Fixed-Width Plain Text")}</h4>
                 </div>
                 <div class="modal-body">
+                    <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
                     <form id="${formId}_Text" method="post" action="${textLinkUrl.getUrl()}">
                         <input type="hidden" name="renderMode" value="text">
                         <input type="hidden" name="pageNoLimit" value="true">
@@ -900,6 +904,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <h4 class="modal-title">${ec.getL10n().localize("Generate PDF")}</h4>
                 </div>
                 <div class="modal-body">
+                    <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
                     <form id="${formId}_Pdf" method="post" action="${ec.web.getWebappRootUrl(false, null)}/fop${pdfLinkUrl.getPath()}">
                         <input type="hidden" name="pageNoLimit" value="true">
                         <#list pdfLinkUrlParms.keySet() as parmName>
@@ -1017,7 +1022,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if (curPageMaxIndex > 4)>
                     <#assign goPageUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken")>
                     <#assign goPageUrlParms = goPageUrl.getParameterMap()>
-                    <form class="form-inline" id="${formId}_GoPage" method="post" action="${goPageUrl.getUrl()}">
+                    <form class="form-inline" id="${formId}_GoPage" action="${goPageUrl.getUrl()}"><#-- :no-validate="true" -->
                         <#list goPageUrlParms.keySet() as parmName>
                             <input type="hidden" name="${parmName}" value="${goPageUrlParms.get(parmName)!?html}"></#list>
                         <div class="form-group">
@@ -1092,41 +1097,41 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#-- all form elements outside table element and referred to with input/etc.@form attribute for proper HTML -->
     <#if !(isMulti || skipForm) && listHasContent><#list listObject as listEntry>
         ${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
-        <form name="${formId}_${listEntry_index}" id="${formId}_${listEntry_index}" method="post" action="${formListUrlInfo.url}">
+        <m-form name="${formId}_${listEntry_index}" id="${formId}_${listEntry_index}" action="${formListUrlInfo.url}">
             <#assign listEntryIndex = listEntry_index>
             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
             <#-- hidden fields -->
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
             <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
             <#assign listEntryIndex = "">
-        </form>
+        </m-form>
         ${sri.endFormListRow()}
     </#list></#if>
     <#if !skipStart>
         <#if needHeaderForm && !isHeaderDialog>
             <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-        <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
+        <m-form name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.url}">
             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
             <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
             <#list hiddenFieldList as hiddenField><#if hiddenField["header-field"]?has_content><#recurse hiddenField["header-field"][0]/></#if></#list>
-        </form>
+        </m-form>
         </#if>
         <#if isMulti>
-        <form name="${formId}" id="${formId}" method="post" action="${formListUrlInfo.url}">
+        <m-form name="${formId}" id="${formId}" action="${formListUrlInfo.url}">
             <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
             <input type="hidden" name="_isMulti" value="true">
             <#if listHasContent><#list listObject as listEntry>
                 <#assign listEntryIndex = listEntry_index>
-                ${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
+                <#t>${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
                 <#-- hidden fields -->
                 <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
-                ${sri.endFormListRow()}
+                <#t>${sri.endFormListRow()}
                 <#assign listEntryIndex = "">
             </#list></#if>
-        </form>
+        </m-form>
         </#if>
 
         <#if !skipHeader><@paginationHeaderModals formListInfo formId isHeaderDialog/></#if>
@@ -1134,7 +1139,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if !skipHeader>
             <thead>
                 <@paginationHeader formListInfo formId isHeaderDialog/>
-
                 <#assign ownerForm = headerFormId>
                 <tr>
                 <#list mainColInfoList as columnFieldList>
@@ -1158,12 +1162,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         </th></#list>
                     </thead></table></div></td></tr>
                 </#if>
-                <#if needHeaderForm>
-                    <#if _dynamic_container_id?has_content>
-                        <#-- if we have an _dynamic_container_id this was loaded in a dynamic-container so init ajaxForm; for examples see http://www.malsup.com/jquery/form/#ajaxForm -->
-                        <m-script>$("#${headerFormId}").ajaxForm({ target: '#${_dynamic_container_id}', <#-- success: activateAllButtons, --> resetForm: false });</m-script>
-                    </#if>
-                </#if>
                 <#assign ownerForm = "">
             </thead>
         </#if>
@@ -1173,7 +1171,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if listHasContent><#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
-        ${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
+        <#t>${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
         <tr>
         <#if !(isMulti || skipForm)><#assign ownerForm = formId + "_" + listEntry_index></#if>
         <#-- actual columns -->
@@ -1188,27 +1186,19 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </tr>
             <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed">
                 <#list aggregateSubList as subListEntry><tr>
-                    ${sri.startFormListSubRow(formListInfo, subListEntry, subListEntry_index, subListEntry_has_next)}
+                    <#t>${sri.startFormListSubRow(formListInfo, subListEntry, subListEntry_index, subListEntry_has_next)}
                     <#list subColInfoList as subColFieldList><td>
                         <#list subColFieldList as fieldNode>
                             <@formListSubField fieldNode true false isMulti false/>
                         </#list>
                     </td></#list>
-                    ${sri.endFormListSubRow()}
+                    <#t>${sri.endFormListSubRow()}
                 </tr></#list>
             </table></div></td><#-- note no /tr, let following blocks handle it -->
         </#if></#if>
         </tr>
-        <#if !(isMulti || skipForm)>
-            <m-script>
-                $("#${formId}_${listEntryIndex}").validate({ errorClass: 'help-block', errorElement: 'span',
-                    highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
-                    unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
-                });
-            </m-script>
-            <#assign ownerForm = "">
-        </#if>
-        ${sri.endFormListRow()}
+        <#if !(isMulti || skipForm)><#assign ownerForm = ""></#if>
+        <#t>${sri.endFormListRow()}
     </#list></#if>
     <#assign listEntryIndex = "">
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
@@ -1221,15 +1211,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </tbody>
             <#assign ownerForm = "">
         </table>
-    </#if>
-    <#if isMulti && !skipStart>
-        <m-script>
-            $("#${formId}").validate({ errorClass: 'help-block', errorElement: 'span',
-                highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
-                unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
-            });
-            $('#${formId} [data-toggle="tooltip"]').tooltip();
-        </m-script>
     </#if>
     <#if hasSubColumns><m-script>makeColumnsConsistent('${formId}_table');</m-script></#if>
     <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
@@ -1267,8 +1248,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if ascActive><#assign ascOrderByUrlInfo = descOrderByUrlInfo></#if>
             <#if descActive><#assign descOrderByUrlInfo = ascOrderByUrlInfo></#if>
             <span class="form-order-by">
-                <a href="${ascOrderByUrlInfo.getUrlWithParams()}"<#if ascActive> class="active"</#if>><i class="glyphicon glyphicon-triangle-top"></i></a>
-                <a href="${descOrderByUrlInfo.getUrlWithParams()}"<#if descActive> class="active"</#if>><i class="glyphicon glyphicon-triangle-bottom"></i></a>
+                <m-link href="${ascOrderByUrlInfo.getUrlWithParams()}"<#if ascActive> class="active"</#if>><i class="glyphicon glyphicon-triangle-top"></i></m-link>
+                <m-link href="${descOrderByUrlInfo.getUrlWithParams()}"<#if descActive> class="active"</#if>><i class="glyphicon glyphicon-triangle-bottom"></i></m-link>
             </span>
         </#if>
     <#t></div>

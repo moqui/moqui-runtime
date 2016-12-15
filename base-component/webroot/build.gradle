@@ -65,7 +65,7 @@ def fileMap = [
 
         "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
-        "vue/2.1.4/vue.js":"", // TODO: remove this
+        "vue/2.1.4/vue.js":"", // TODO: remove this, change to min in apps.xml
         "vue/2.1.4/vue.min.js":""
 ]
 

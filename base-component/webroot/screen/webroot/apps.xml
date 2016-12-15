@@ -42,12 +42,11 @@ along with this software (see the LICENSE.md file). If not, see
         html_scripts.add('/libs/jquery/jquery.min.js')
         // Bootstrap
         html_scripts.add('/libs/twitter-bootstrap/js/bootstrap.min.js')
-        // Twitter TypeAhead
-        html_scripts.add('/libs/typeahead.js/typeahead.jquery.min.js')
-
         // Vue JS
         html_scripts.add('/libs/vue/vue.js')
 
+        // Autocomplete (Twitter TypeAhead)
+        html_scripts.add('/libs/typeahead.js/typeahead.jquery.min.js')
         // Form Validation and AJAX (jquery-validation, jquery-form)
         html_scripts.add('/libs/jquery-validate/jquery.validate.min.js')
         html_scripts.add('/libs/jquery-validate/additional-methods.min.js')
