@@ -39,8 +39,12 @@ function loadComponent(url, callback, divId) {
     $.ajax({ type:"GET", url:url, success: function (screenText) {
         // console.log(screenText);
         if (screenText && screenText.length > 0) {
-            if (isJsPath || screenText.slice(0,7) == 'define(') { callback(eval(screenText)); }
-            else { callback({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + screenText + '</div>' }); }
+            if (isJsPath || screenText.slice(0,7) == 'define(') {
+                callback(eval(screenText));
+            } else {
+                var templateText = screenText.replace('<script>', '<m-script>').replace('</script>', '</m-script>');
+                callback({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' });
+            }
         } else { callback(NotFound); }
     }});
 }
@@ -281,7 +285,7 @@ Vue.component('text-autocomplete', {
     mounted: function() {
         var vm = this; var acJqEl = $(this.$refs.acinput); var hidJqEl = $(this.$refs.hidden);
         var showJqEl = this.$refs.show ? $(this.$refs.show) : null;
-        acJqEl.typeahead({ minLength:(this.minLength ? this.minLength : 1), highlight: true, hint: false }, { limit: 20,
+        acJqEl.typeahead({ minLength:(this.minLength ? this.minLength : 1), highlight:true, hint:false }, { limit:20,
             source: function(query, syncResults, asyncResults) {
                 var dependsOnMap = vm.dependsOn; var parmMap = vm.acParameters;
                 var reqData = { term: query, moquiSessionToken: vm.$root.moquiSessionToken };
@@ -289,7 +293,7 @@ Vue.component('text-autocomplete', {
                 for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
                     var doValue = $('#' + dependsOnMap[doParm]).val(); if (doValue) reqData[doParm] = doValue; }}
                 $.ajax({ url: vm.url, type:"POST", dataType:"json", data:reqData, success: function(data) {
-                    asyncResults($.map(data, function(item) { return { label: item.label, value: item.value } })); }});
+                    asyncResults($.map(data, function(item) { return { label:item.label, value:item.value } })); }});
             }, display: function(item) { return item.label; }
         });
         acJqEl.bind('typeahead:select', function(event, item) {
