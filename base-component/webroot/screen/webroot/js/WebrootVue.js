@@ -37,7 +37,13 @@ function loadComponent(url, callback, divId) {
         // console.log(screenText);
         if (screenText && screenText.length > 0) {
             if (isJsPath || screenText.slice(0,7) == 'define(') {
-                callback(eval(screenText));
+                var compObj = eval(screenText);
+                if (compObj.template) { callback(compObj); }
+                else {
+                    var htmlUrl = (path.slice(-3) == '.js' ? path.slice(0, -3) : path) + '.html';
+                    $.ajax({ type:"GET", url:htmlUrl, success: function (htmlText) {
+                        compObj.template = htmlText; callback(compObj); }});
+                }
             } else {
                 var templateText = screenText.replace('<script>', '<m-script>').replace('</script>', '</m-script>');
                 callback({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' });
