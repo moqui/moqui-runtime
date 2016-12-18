@@ -1,8 +1,9 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 /* TODO:
- - some approach for loading additional scripts and stylesheets, current adds to html_scripts, html_stylesheets, etc doesn't work
-   when header not reloaded (see MyCalendar screen)
+ - some approach for loading additional scripts and stylesheets
+   - current adds to html_scripts, html_stylesheets, etc doesn't work when header not reloaded
+   - one workaround is to use inline script and link elements (see MyCalendar.xml screen in SimpleScreens)
 
  - anchor (a) only used for link if UrlInstance.isScreenUrl() is false which looks only at default-response for url-type=plain or
    type=none; if a transition has conditional or error responses of different types it won't response properly
@@ -72,7 +73,7 @@ function loadComponent(url, callback, divId) {
                 }
             } else {
                 console.log("loaded HTML " + url + " id " + divId);
-                var templateText = resp.replace('<script>', '<m-script>').replace('</script>', '</m-script>');
+                var templateText = resp.replace(/<script/g, '<m-script').replace(/<\/script>/g, '</m-script>');
                 callback({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' });
             }
         } else if (resp === Object(resp)) {
@@ -95,7 +96,9 @@ Vue.component('m-link', {
 Vue.component('m-script', {
     template: '<div style="display:none;"><slot></slot></div>',
     mounted: function() {
-        var parent = this.$el.parentElement; var s = document.createElement('script'); s.type = 'text/javascript';
+        var parent = this.$el.parentElement; var s = document.createElement('script');
+        if (this.$el.hasAttribute('src')) s.setAttribute('src', this.$el.getAttribute('src'));
+        if (this.$el.hasAttribute('type')) s.setAttribute('type', this.$el.getAttribute('type'));
         s.appendChild(document.createTextNode(this.$el.innerText)); Vue.util.remove(this.$el); parent.appendChild(s);
     }
 });
