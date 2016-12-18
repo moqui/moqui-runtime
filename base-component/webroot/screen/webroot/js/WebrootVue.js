@@ -388,7 +388,7 @@ const webrootVue = new Vue({
             if (this.openModal) { this.openModal.hide(); this.openModal = null; }
             this.activeContainers = {};
             // update menu
-            $.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json", error:handleAjaxError,
+            $.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json",
                 success: function(outerList) { if (outerList) { vm.navMenuList = outerList; } }});
             // update currentComponent
             loadComponent(newUrl, function (comp) { vm.currentComponent = comp; vm.loading = false; }, 'current-page-root');
