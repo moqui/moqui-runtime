@@ -75,7 +75,11 @@ along with this software (see the LICENSE.md file). If not, see
     ]]></script></pre-actions>
 
     <widgets>
-        <render-mode><text type="html" location="component://webroot/screen/includes/navbar.html.ftl"/></render-mode>
-        <!-- TODO maybe do this for non-html render modes? not generally needed as they use lastStandalone: <subscreens-active/> -->
+        <render-mode>
+            <!-- for html just render the navbar (Vue page wrapper and nav component) -->
+            <text type="html" location="component://webroot/screen/includes/navbar.html.ftl"/>
+            <!-- for anything else render the subscreen, same as subscreens-active -->
+            <text template="true">${sri.renderSubscreen()}</text>
+        </render-mode>
     </widgets>
 </screen>

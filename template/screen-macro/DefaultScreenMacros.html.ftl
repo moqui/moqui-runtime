@@ -309,9 +309,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <a href="#"<#if linkFormId?has_content> id="${linkFormId}"</#if> class="disabled text-muted <#if linkNode["@link-type"]! != "anchor" && linkNode["@link-type"]! != "hidden-form-link">btn btn-primary btn-sm</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"><#if iconClass?has_content><i class="${iconClass}"></i></#if><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if></a>
     <#else>
         <#assign confirmationMessage = ec.getResource().expand(linkNode["@confirmation"]!, "")/>
-        <#if (linkNode["@link-type"]! == "anchor" || linkNode["@link-type"]! == "anchor-button") ||
-            ((!linkNode["@link-type"]?has_content || linkNode["@link-type"] == "auto") &&
-             ((linkNode["@url-type"]?has_content && linkNode["@url-type"] != "transition") || (!urlInstance.hasActions)))>
+        <#if sri.isAnchorLink(linkNode, urlInstance)>
             <#assign linkNoParam = linkNode["@url-noparam"]! == "true">
             <#if urlInstance.isScreenUrl()>
                 <#assign linkElement = "m-link">
@@ -346,36 +344,28 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
 </#macro>
 <#macro linkFormForm linkNode linkFormId linkText urlInstance>
-    <#if urlInstance.disableLink>
-        <#-- do nothing -->
-    <#else>
-        <#if (linkNode["@link-type"]! == "anchor" || linkNode["@link-type"]! == "anchor-button") ||
-            ((!linkNode["@link-type"]?has_content || linkNode["@link-type"] == "auto") &&
-             ((linkNode["@url-type"]?has_content && linkNode["@url-type"] != "transition") || (!urlInstance.hasActions)))>
-            <#-- do nothing -->
-        <#else>
-            <#if urlInstance.getTargetTransition()?has_content><#assign linkFormType = "m-form"><#else><#assign linkFormType = "s-form"></#if>
-            <${linkFormType} action="${urlInstance.path}" name="${linkFormId!""}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>><#-- :no-validate="true" -->
-                <#assign targetParameters = urlInstance.getParameterMap()>
-                <#-- NOTE: using .keySet() here instead of ?keys because ?keys was returning all method names with the other keys, not sure why -->
-                <#if targetParameters?has_content><#list targetParameters.keySet() as pKey>
-                    <input type="hidden" name="${pKey?html}" value="${targetParameters.get(pKey)?default("")?html}"/>
-                </#list></#if>
-                <#if !linkFormId?has_content>
-                    <#assign confirmationMessage = ec.getResource().expand(linkNode["@confirmation"]!, "")/>
-                    <#if linkNode["image"]?has_content><#assign imageNode = linkNode["image"][0]/>
-                        <input type="image" src="${sri.makeUrlByType(imageNode["@url"],imageNode["@url-type"]!"content",null,"true")}"<#if imageNode["@alt"]?has_content> alt="${imageNode["@alt"]}"</#if><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>>
-                    <#else>
-                        <#assign iconClass = linkNode["@icon"]!>
-                        <#if !iconClass?has_content && linkNode["@text"]?has_content><#assign iconClass = sri.getThemeIconClass(linkNode["@text"])!></#if>
-                        <#rt><button type="submit" class="<#if linkNode["@link-type"]! == "hidden-form-link">button-plain<#else>btn btn-primary btn-sm</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"
-                            <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>
-                            <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
-                            <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if>${linkText}</button>
-                    </#if>
+    <#if !urlInstance.disableLink && !sri.isAnchorLink(linkNode, urlInstance)>
+        <#if urlInstance.getTargetTransition()?has_content><#assign linkFormType = "m-form"><#else><#assign linkFormType = "form-link"></#if>
+        <${linkFormType} action="${urlInstance.path}" name="${linkFormId!""}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>><#-- :no-validate="true" -->
+            <#assign targetParameters = urlInstance.getParameterMap()>
+            <#-- NOTE: using .keySet() here instead of ?keys because ?keys was returning all method names with the other keys, not sure why -->
+            <#if targetParameters?has_content><#list targetParameters.keySet() as pKey>
+                <input type="hidden" name="${pKey?html}" value="${targetParameters.get(pKey)?default("")?html}"/>
+            </#list></#if>
+            <#if !linkFormId?has_content>
+                <#assign confirmationMessage = ec.getResource().expand(linkNode["@confirmation"]!, "")/>
+                <#if linkNode["image"]?has_content><#assign imageNode = linkNode["image"][0]/>
+                    <input type="image" src="${sri.makeUrlByType(imageNode["@url"],imageNode["@url-type"]!"content",null,"true")}"<#if imageNode["@alt"]?has_content> alt="${imageNode["@alt"]}"</#if><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>>
+                <#else>
+                    <#assign iconClass = linkNode["@icon"]!>
+                    <#if !iconClass?has_content && linkNode["@text"]?has_content><#assign iconClass = sri.getThemeIconClass(linkNode["@text"])!></#if>
+                    <#rt><button type="submit" class="<#if linkNode["@link-type"]! == "hidden-form-link">button-plain<#else>btn btn-primary btn-sm</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"
+                        <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>
+                        <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
+                        <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if>${linkText}</button>
                 </#if>
-            </${linkFormType}>
-        </#if>
+            </#if>
+        </${linkFormType}>
     </#if>
 </#macro>
 
@@ -444,11 +434,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if ownerForm?has_content><#assign skipStart = true><#assign skipEnd = true></#if>
     <#assign urlInstance = sri.makeUrlByType(formNode["@transition"], "transition", null, "true")>
     <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
-    <#if urlInstance.getTargetTransition()?has_content><#assign formSingleType = "m-form"><#else><#assign formSingleType = "s-form"></#if>
+    <#if urlInstance.getTargetTransition()?has_content><#assign formSingleType = "m-form"><#else><#assign formSingleType = "form-link"></#if>
     <#-- TODO: remove form-single.@background-submit attribute in XSD, now all are -->
     <#if !skipStart>
     <${formSingleType} name="${formId}" id="${formId}" action="${urlInstance.path}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
-            <#t><#if formInstance.isUpload()> :is-upload="true"</#if>
             <#t><#if formNode["@background-message"]?has_content> submit-message="${formNode["@background-message"]}"</#if>
             <#t><#if formNode["@background-reload-id"]?has_content> submit-reload-id="${formNode["@background-reload-id"]}"</#if>
             <#t><#if formNode["@background-hide-id"]?has_content> submit-hide-id="${formNode["@background-hide-id"]}"</#if>>
@@ -709,7 +698,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if isHeaderDialog>
                 <#-- Find Parameters Form -->
                 <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-                <s-form name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}">
+                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}">
                     <fieldset class="form-horizontal">
                         <#-- Always add an orderByField to select one or more columns to order by -->
                         <div class="form-group">
@@ -759,7 +748,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             </#if>
                         </#if></#list>
                     </fieldset>
-                </s-form>
+                </form-link>
             </#if>
         </container-dialog>
     </#if>
@@ -1006,7 +995,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if (curPageMaxIndex > 4)>
                     <#assign goPageUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("lastStandalone")>
                     <#assign goPageUrlParms = goPageUrl.getParameterMap()>
-                    <s-form class="form-inline" id="${formId}_GoPage" action="${goPageUrl.path}" :no-validate="true">
+                    <form-link class="form-inline" id="${formId}_GoPage" action="${goPageUrl.path}" :no-validate="true">
                         <#list goPageUrlParms.keySet() as parmName>
                             <input type="hidden" name="${parmName}" value="${goPageUrlParms.get(parmName)!?html}"></#list>
                         <div class="form-group">
@@ -1014,7 +1003,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <input type="text" class="form-control" size="6" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="${ec.getL10n().localize("Page #")}">
                         </div>
                         <button type="submit" class="btn btn-default">${ec.getL10n().localize("Go##Page")}</button>
-                    </s-form>
+                    </form-link>
                     <m-script>
                         $("#${formId}_GoPage").validate({ errorClass: 'help-block', errorElement: 'span',
                             rules: { pageIndex: { required:true, min:1, max:${(curPageMaxIndex + 1)?c} } },
@@ -1093,11 +1082,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if !skipStart>
         <#if needHeaderForm && !isHeaderDialog>
             <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-        <s-form name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}">
+        <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}">
             <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
             <#list hiddenFieldList as hiddenField><#if hiddenField["header-field"]?has_content><#recurse hiddenField["header-field"][0]/></#if></#list>
-        </s-form>
+        </form-link>
         </#if>
         <#if isMulti>
         <m-form name="${formId}" id="${formId}" action="${formListUrlInfo.path}">
