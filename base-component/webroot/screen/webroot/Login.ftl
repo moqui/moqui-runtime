@@ -12,14 +12,14 @@
 <!-- currently general/common HTML5 and ES5 support is currently required, so check for IE and older browsers -->
 <!-- TODO: check for older versions of various browsers, or for HTML5 features like input/etc.@form attribute, ES5 stuff -->
 <script>
-    var UA = inBrowser && window.navigator.userAgent.toLowerCase();
+    var UA = window.navigator.userAgent.toLowerCase();
     var isIE = UA && /msie|trident/.test(UA);
     if (isIE) $("#browser-warning").removeClass("hidden");
 </script>
 
 <div class="tab-content">
     <div id="login" class="tab-pane active">
-        <form method="post" action="${sri.makeUrlByType("login", "transition", null, "false").getUrl()}" class="form-signin" id="login_form">
+        <form method="post" action="${sri.buildUrl("login").url}" class="form-signin" id="login_form">
             <p class="text-muted text-center">Enter your username and password to sign in</p>
             <#-- not needed for this request: <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"> -->
             <input type="text" name="username" value="${(ec.getWeb().getErrorParameters().get("username"))!""}" placeholder="Username" required="required" class="form-control top" id="login_form_username">
@@ -29,7 +29,7 @@
         <script>$("#login_form_username").focus();</script>
     </div>
     <div id="reset" class="tab-pane">
-        <form method="post" action="${sri.makeUrlByType("resetPassword", "transition", null, "false").getUrl()}" class="form-signin" id="reset_form">
+        <form method="post" action="${sri.buildUrl("resetPassword").url}" class="form-signin" id="reset_form">
             <p class="text-muted text-center">Enter your username to reset and email your password</p>
             <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
             <input type="text" name="username" placeholder="Username" required="required" class="form-control">
@@ -37,7 +37,7 @@
         </form>
     </div>
     <div id="change" class="tab-pane">
-        <form method="post" action="${sri.makeUrlByType("changePassword", "transition", null, "false").getUrl()}" class="form-signin" id="change_form">
+        <form method="post" action="${sri.buildUrl("changePassword").url}" class="form-signin" id="change_form">
             <p class="text-muted text-center">Enter details to change your password</p>
             <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
             <input type="text" name="username" value="${(ec.getWeb().getErrorParameters().get("username"))!""}" placeholder="Username" required="required" class="form-control top">
