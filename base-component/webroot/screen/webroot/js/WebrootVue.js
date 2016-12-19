@@ -85,7 +85,7 @@ function loadComponent(url, callback, divId) {
                 }
             } else {
                 var templateText = resp.replace(/<script/g, '<m-script').replace(/<\/script>/g, '</m-script>');
-                console.log("loaded HTML template " + url + " id " + divId/* + ": " + templateText*/);
+                console.log("loaded HTML template " + url + (divId ? " id " + divId : "") /* + ": " + templateText*/);
                 callback({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' });
             }
         } else if (resp === Object(resp)) {
@@ -101,9 +101,10 @@ const EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><img 
 /* ========== inline components ========== */
 Vue.component('m-link', {
     props: { href:{type:String,required:true}, loadId:String },
-    template: '<a :href="href" @click.prevent="go"><slot></slot></a>',
+    template: '<a :href="linkHref" @click.prevent="go"><slot></slot></a>',
     methods: { go: function() { if (this.loadId && this.loadId.length > 0) { this.$root.loadContainer(this.loadId, this.href); }
-        else { this.$root.goto(this.href); } }}
+        else { this.$root.goto(this.href); } }},
+    computed: { linkHref: function () { return this.href.indexOf(this.$root.basePath) == 0 ? this.href.replace(this.$root.basePath, this.$root.linkBasePath) : this.href; } }
 });
 Vue.component('m-script', {
     template: '<div style="display:none;"><slot></slot></div>',
@@ -128,8 +129,8 @@ Vue.component('container-dialog', {
     methods: { hide: function() { $(this.$el).modal('hide'); } },
     mounted: function() {
         var jqEl = $(this.$el); var vm = this;
-        jqEl.on("hidden.bs.modal", function() { vm.isHidden = true; vm.$root.openModal = null; });
-        jqEl.on("shown.bs.modal", function() { vm.isHidden = false; vm.$root.openModal = vm;
+        jqEl.on("hidden.bs.modal", function() { vm.isHidden = true; });
+        jqEl.on("shown.bs.modal", function() { vm.isHidden = false;
                 jqEl.find(":not(.noselect2)>select:not(.noselect2)").select2({ }); jqEl.find(".default-focus").focus(); });
         if (this.openDialog) { jqEl.modal('show'); }
     }
@@ -167,8 +168,8 @@ Vue.component('dynamic-dialog', {
     mounted: function() {
         this.$root.addContainer(this.id, this); var jqEl = $(this.$el); var vm = this;
         jqEl.on("show.bs.modal", function() { vm.curUrl = vm.url; });
-        jqEl.on("hidden.bs.modal", function() { vm.isHidden = true; vm.$root.openModal = null; vm.curUrl = ""; });
-        jqEl.on("shown.bs.modal", function() { vm.isHidden = false; vm.$root.openModal = vm;
+        jqEl.on("hidden.bs.modal", function() { vm.isHidden = true; vm.curUrl = ""; });
+        jqEl.on("shown.bs.modal", function() { vm.isHidden = false;
                 jqEl.find(":not(.noselect2)>select:not(.noselect2)").select2({ }); jqEl.find(".default-focus").focus(); });
         if (this.openDialog) { jqEl.modal('show'); }
     }
@@ -209,7 +210,7 @@ Vue.component('m-form', {
         },
         handleResponse: function(resp) {
             var notified = false;
-            // console.log('m-form response ' + JSON.stringify(resp));
+            console.log('m-form response ' + JSON.stringify(resp));
             if (resp && resp === Object(resp)) {
                 if (resp.messages) for (var mi=0; mi < resp.messages.length; mi++) {
                     $.notify({ message:resp.messages[mi] }, $.extend({}, notifyOpts, {type:'info'})); notified = true; }
@@ -392,11 +393,13 @@ Vue.component('subscreens-tabs', {
 Vue.component('subscreens-active', {
     data: function() { return { activeComponent:EmptyComponent, pathIndex:-1, pathName:null } },
     template: '<component :is="activeComponent"></component>',
-    watch: { pathName: function(newPath) {
+    // setPathName is a method instead of a watch on pathName so that it runs even when newPath is the same
+    methods: { setPathName: function(newPath) {
+        this.pathName = newPath;
         if (!newPath || newPath.length === 0) { this.activeComponent = EmptyComponent; return; }
         var newUrl = this.$root.basePath + '/' + this.$root.currentPathList.slice(0, this.pathIndex + 1).join('/');
         var search = this.$root.currentSearch; if (search.length > 0) newUrl += ('?' + search);
-        console.log('subscreens-active pathIndex ' + this.pathIndex + ' pathName ' + this.pathName + ' newUrl ' + newUrl);
+        console.log('subscreens-active setPathName pathIndex ' + this.pathIndex + ' pathName ' + this.pathName + ' newUrl ' + newUrl);
         var vm = this; vm.$root.loading++;
         loadComponent(newUrl, function(comp) { vm.activeComponent = comp; vm.$root.loading--; });
     }},
@@ -404,13 +407,15 @@ Vue.component('subscreens-active', {
 });
 const webrootVue = new Vue({
     el: '#apps-root',
-    data: { basePath:"", currentPathList:[], currentParameters:{}, activeSubscreens:[],
-        navMenuList:[], navHistoryList:[], navPlugins:[],
-        loading:0, openModal:null, activeContainers:{},
+    data: { basePath:"", linkBasePath:"", currentPathList:[], currentParameters:{}, activeSubscreens:[],
+        navMenuList:[], navHistoryList:[], navPlugins:[], loading:0, activeContainers:{},
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", partyId:"", notificationClient:null },
     methods: {
         goto: function (url) {
-            // TODO: this will have to change, don't set to empty first as kills the path diff based load
+            // make sure any open modals are closed before setting currentUrl
+            $('.modal.in').modal('hide');
+            if (url.indexOf(this.basePath) == 0) url = url.replace(this.basePath, this.linkBasePath);
+            // NOTE: this may have to change, don't set to empty first as kills the path diff based load
             if (this.currentUrl == url) {  this.currentUrl = ""; var vm = this; setTimeout(function() { vm.currentUrl = url; }, 10) }
             else { this.currentUrl = url; window.history.pushState(null, this.ScreenTitle, url); }
         },
@@ -420,7 +425,7 @@ const webrootVue = new Vue({
             console.log('addSubscreen idx ' + pathIdx + ' pathName ' + this.currentPathList[pathIdx]);
             saComp.pathIndex = pathIdx;
             // this may be undefined if we have more activeSubscreens than currentPathList items
-            saComp.pathName = this.currentPathList[pathIdx];
+            saComp.setPathName(this.currentPathList[pathIdx]);
             this.activeSubscreens.push(saComp);
         },
         // all container components added with this must have reload() and load(url) methods
@@ -442,7 +447,6 @@ const webrootVue = new Vue({
             if (!newUrl || newUrl.length === 0) return;
             var vm = this;
             console.log("currentUrl changing to " + newUrl);
-            if (this.openModal) { this.openModal.hide(); this.openModal = null; }
             // TODO: somehow only clear out activeContainers that are in subscreens actually reloaded? may cause issues if any but last screen have dynamic-container
             this.activeContainers = {};
             // update menu
@@ -491,15 +495,15 @@ const webrootVue = new Vue({
         }},
         currentPathList: function(newList) {
             console.log('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
-            if (newList.length == 0 && this.activeSubscreens.length > 0) { this.activeSubscreens[0].pathName = null; this.activeSubscreens.splice(1); return; }
+            if (newList.length == 0 && this.activeSubscreens.length > 0) { this.activeSubscreens[0].setPathName(null); this.activeSubscreens.splice(1); return; }
             for (var i=0; i<this.activeSubscreens.length; i++) {
                 if (i >= newList.length) break;
                 var newName = newList[i];
                 var curName = this.activeSubscreens[i].pathName;
-                console.log('set currentPathList idx ' + i + ' curName ' + curName + ' newName ' + newName);
-                if (newName != curName) {
+                // console.log('set currentPathList idx ' + i + ' curName ' + curName + ' newName ' + newName);
+                if (newName != curName || i == (newList.length - 1)) {
                     // update the pathName at the current position to load the new component
-                    this.activeSubscreens[i].pathName = newName;
+                    this.activeSubscreens[i].setPathName(newName);
                     // clear out remaining activeSubscreens, after first changed loads its placeholders will register and load
                     this.activeSubscreens.splice(i+1);
                 }
@@ -542,7 +546,8 @@ const webrootVue = new Vue({
     },
     created: function() {
         this.moquiSessionToken = $("#moquiSessionToken").val();
-        this.appHost = $("#appHost").val(); this.appRootPath = $("#appRootPath").val(); this.basePath = $("#basePath").val();
+        this.appHost = $("#appHost").val(); this.appRootPath = $("#appRootPath").val();
+        this.basePath = $("#basePath").val(); this.linkBasePath = $("#linkBasePath").val();
         this.userId = $("#userId").val(); this.partyId = $("#partyId").val();
         this.notificationClient = new NotificationClient("ws://" + this.appHost + this.appRootPath + "/notws");
     },

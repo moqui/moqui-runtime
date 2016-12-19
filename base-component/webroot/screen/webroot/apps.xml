@@ -41,11 +41,9 @@ along with this software (see the LICENSE.md file). If not, see
         html_scripts.add('/libs/jquery/jquery.min.js')
         // Bootstrap
         html_scripts.add('/libs/twitter-bootstrap/js/bootstrap.min.js')
-        // Vue JS
-        html_scripts.add('/libs/vue/vue.js')
-
-        // Autocomplete (Twitter TypeAhead)
+        // Twitter TypeAhead
         html_scripts.add('/libs/typeahead.js/typeahead.jquery.min.js')
+
         // Form Validation and AJAX (jquery-validation, jquery-form)
         html_scripts.add('/libs/jquery-validate/jquery.validate.min.js')
         html_scripts.add('/libs/jquery-validate/additional-methods.min.js')
@@ -68,19 +66,72 @@ along with this software (see the LICENSE.md file). If not, see
 
         // Workarounds for library issues (select2 jquery validator integration, select2 Bootstrap Modal fix, extensions, etc)
         html_scripts.add('/js/LibraryWorkarounds.js')
+
         // Moqui Notification Client
         html_scripts.add('/js/NotificationClient.js')
-
-        // Vue instance, in footer so runs after page loaded
-        footer_scripts.add('/js/WebrootVue.js')
         ]]></script></pre-actions>
 
     <widgets>
-        <render-mode>
-            <!-- for html just render the navbar (Vue page wrapper and nav component) -->
-            <text type="html" location="component://webroot/screen/includes/WebrootVue.vuet.ftl"/>
-            <!-- for anything else render the subscreen, same as subscreens-active -->
-            <text template="true">${sri.renderSubscreen()}</text>
-        </render-mode>
+        <render-mode><text type="html"><![CDATA[<script>var notificationClient = new NotificationClient("ws://${ec.web.getHostName(true)}${ec.web.servletContext.contextPath}/notws");</script>]]></text></render-mode>
+        <section name="TopNavSection" condition="hideNav != 'true'"><widgets>
+            <container id="top">
+                <render-mode><text type="html" location="component://webroot/screen/includes/navbar.html.ftl"/></render-mode>
+                <subscreens-menu type="popup" id="header-menu" title="Application"/>
+            </container>
+        </widgets></section>
+
+        <container id="content"><container style="inner"><container style="container-fluid">
+            <section name="MessagesSection"><widgets>
+                <section-iterate name="headerMessages" list="ec.message.messages" entry="message"><widgets>
+                    <render-mode><text type="html"><![CDATA[<div class="alert alert-success fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                    <label text="${message}" type="h4"/>
+                    <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+                </widgets></section-iterate>
+                <section-iterate name="headerErrors" list="ec.message.errors" entry="errorMessage"><widgets>
+                    <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                    <label text="${errorMessage}" type="h4"/>
+                    <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+                </widgets></section-iterate>
+                <section-iterate name="headerValidationErrors" list="ec.message.validationErrors" entry="validationError"><widgets>
+                    <!-- TODO: put these by fields instead of in header -->
+                    <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                    <label text="${validationError.message} (for field ${validationError.field})" type="h4"/>
+                    <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+                </widgets></section-iterate>
+
+                <section-iterate name="headerSavedMessages" list="ec.web?.savedMessages" entry="message"><widgets>
+                    <render-mode><text type="html"><![CDATA[<div class="alert alert-success fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                    <label text="${message}" type="h4"/>
+                    <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+                </widgets></section-iterate>
+                <section-iterate name="headerSavedErrors" list="ec.web?.savedErrors" entry="errorMessage"><widgets>
+                    <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                    <label text="${errorMessage}" type="h4"/>
+                    <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+                </widgets></section-iterate>
+                <section-iterate name="headerSavedValidationErrors" list="ec.web?.savedValidationErrors" entry="validationError"><widgets>
+                    <!-- TODO: put these by fields instead of in header -->
+                    <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                    <label text="${validationError.message} (for field ${validationError.field})" type="h4"/>
+                    <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+                </widgets></section-iterate>
+            </widgets></section>
+
+            <subscreens-active/>
+        </container></container></container>
+
+        <section name="BottomNavSection" condition="hideNav != 'true'"><widgets>
+            <container id="footer" style="bg-dark">
+                <render-mode><text type="html"><![CDATA[
+                <#assign footerItemList = sri.getThemeValues("STRT_FOOTER_ITEM")>
+                <div id="apps-footer-content">
+                    <#list footerItemList! as footerItem>
+                        <#assign footerItemTemplate = footerItem?interpret>
+                        <@footerItemTemplate/>
+                    </#list>
+                </div>
+            ]]></text></render-mode>
+            </container>
+        </widgets></section>
     </widgets>
 </screen>
