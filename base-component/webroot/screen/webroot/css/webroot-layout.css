@@ -162,7 +162,9 @@ a.jstree-anchor { white-space: normal; }
 /* style for bootstrap-notify (growl alerts) */
 .notify-container { padding-right: 30px; }
 
-.tt-menu { width: 360px; margin: 12px 0; padding: 8px 0; border: 1px solid rgba(0, 0, 0, 0.2);
+/* overrides default display: inline-block to fix being pushed down, higher margin-top for tt-menu to compensate for no height */
+.twitter-typeahead { display: inline !important; }
+.tt-menu { width: 360px; margin: 18px 0; padding: 8px 0; border: 1px solid rgba(0, 0, 0, 0.2);
     -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px; overflow: hidden; }
 .tt-suggestion { padding: 4px 8px; }
 .tt-suggestion p { margin: 0; }
