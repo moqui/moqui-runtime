@@ -77,7 +77,7 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <render-mode>
             <!-- for html just render the navbar (Vue page wrapper and nav component) -->
-            <text type="html" location="component://webroot/screen/includes/navbar.html.ftl"/>
+            <text type="html" location="component://webroot/screen/includes/WebrootVue.vuet.ftl"/>
             <!-- for anything else render the subscreen, same as subscreens-active -->
             <text template="true">${sri.renderSubscreen()}</text>
         </render-mode>

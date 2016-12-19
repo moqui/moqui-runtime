@@ -44,9 +44,7 @@ along with this software (see the LICENSE.md file). If not, see
             <text type="html" location="component://webroot/screen/includes/Header.html.ftl" no-boundary-comment="true"/>
             <text type="xsl-fo" location="component://webroot/screen/includes/Header.xsl-fo.ftl" no-boundary-comment="true"/>
         </render-mode>
-
-        <subscreens-active/>
-
+        <render-mode><text template="true">${sri.renderSubscreen()}</text></render-mode>
         <render-mode>
             <text type="html" location="component://webroot/screen/includes/Footer.html.ftl"/>
             <text type="xsl-fo"><![CDATA[${sri.getAfterScreenWriterText()}</fo:flow></fo:page-sequence></fo:root>]]></text>
