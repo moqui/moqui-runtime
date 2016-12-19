@@ -29,7 +29,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <pre-actions><script>
         // if user already logged in redirect to root
-        if (ec.user.username) sri.sendRedirectAndStopRender('/')
+        if (ec.user.userId) sri.sendRedirectAndStopRender('/')
 
         // jQuery/UI
         html_scripts.add('/libs/jquery/jquery.min.js')
@@ -38,7 +38,7 @@ along with this software (see the LICENSE.md file). If not, see
         // Moqui webroot layout
         html_stylesheets.add('/css/webroot-layout.css')
     </script></pre-actions>
-    <widgets><container id="apps-root">
+    <widgets>
         <!-- NOTE: this screen is not under the apps screen, but uses similar header/footer/etc -->
         <container id="content" style="Login"><container style="inner"><container style="container-fluid">
             <section-iterate name="headerSavedMessages" list="ec.web?.savedMessages" entry="message"><widgets>
@@ -93,5 +93,5 @@ along with this software (see the LICENSE.md file). If not, see
                 ]]></text></render-mode></widgets>
             </section>
         </container></container></container>
-    </container></widgets>
+    </widgets>
 </screen>
