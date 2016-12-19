@@ -13,7 +13,7 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
-        require-authentication="false" screen-theme-type-enum-id="STT_INTERNAL" default-menu-title="Applications">
+        require-authentication="false" screen-theme-type-enum-id="STT_INTERNAL" default-menu-title="Applications" allow-extra-path="true">
     <!-- NOTE: require-authentication=false is required to allow sub-screens to decide. -->
 
     <transition name="ScreenTree"><default-response url="../ScreenTree"/></transition>
@@ -27,14 +27,6 @@ along with this software (see the LICENSE.md file). If not, see
         <actions><script>ec.user.setPreference(preferenceKey, preferenceValue)</script></actions>
         <default-response type="screen-last"/>
     </transition>
-
-    <subscreens default-item="AppList">
-        <!-- refer to the various app roots here -->
-        <subscreens-item name="system" location="component://tools/screen/System.xml"
-                menu-title="System" menu-index="98"/>
-        <subscreens-item name="tools" location="component://tools/screen/Tools.xml"
-                menu-title="Tools" menu-index="99"/>
-    </subscreens>
 
     <pre-actions><script><![CDATA[
         // jQuery
@@ -73,7 +65,7 @@ along with this software (see the LICENSE.md file). If not, see
 
         // Vue instance, in footer so runs after page loaded
         footer_scripts.add('/js/WebrootVue.js')
-        ]]></script></pre-actions>
+    ]]></script></pre-actions>
 
     <widgets>
         <render-mode>

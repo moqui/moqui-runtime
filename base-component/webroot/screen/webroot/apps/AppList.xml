@@ -50,8 +50,7 @@ along with this software (see the LICENSE.md file). If not, see
                                     </#if>
                                     ${ec.resource.expand(currentSubscreensItem.menuTitle, "")}
                                 </a>
-                            ]]></text></render-mode>
-                            <render-mode><text type="vuet"><![CDATA[
+                            ]]></text><text type="vuet"><![CDATA[
                                 <m-link href="${currentUrlInstance.path}" class="btn btn-primary app-list-link">
                                     <#if currentUrlInstance.sui.menuImage?has_content>
                                         <#if currentUrlInstance.sui.menuImageType == "icon">
@@ -68,9 +67,6 @@ along with this software (see the LICENSE.md file). If not, see
                                 </m-link>
                             ]]></text></render-mode>
                         </widgets>
-                        <fail-widgets>
-                            <render-mode><text type="vuet"><![CDATA[<!-- excluding screen at path ${currentScreenPath} -->]]></text></render-mode>
-                        </fail-widgets>
                     </section>
                 </widgets>
             </section-iterate>
