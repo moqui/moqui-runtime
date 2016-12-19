@@ -5,9 +5,7 @@
  - going to minimal path causes menu reload; avoid? better to cache menus and do partial requests...
 
  - support dual mode, server and client rendered in parallel
-   - restore master branch DefaultScreenMacros.html.ftl, navbar.html.ftl
-   - merge AppList for render modes html and vuet
-   - restore Header.html.ftl, but somehow drop screenName class on body
+   - in Header.html.ftl somehow drop screenName class on body (only for vue rendering...)
    - use something other than apps.xml as root for vue to allow in parallel? (vapps.xml, still use /apps as basePath)
 
  - some approach for loading additional scripts and stylesheets
@@ -486,17 +484,16 @@ const webrootVue = new Vue({
                 if (titleParms.length > 0) newTitle = newTitle + " (" + titleParms + ")";
             }
             for (var i=0; i<this.navHistoryList.length;) {
-                if (this.navHistoryList[i].pathWithParams == curUrl) { this.navHistoryList.splice(i,1); }
-                else { i++; }
-            }
+                if (this.navHistoryList[i].pathWithParams == curUrl) { this.navHistoryList.splice(i,1); } else { i++; } }
             this.navHistoryList.unshift({ title:newTitle, pathWithParams:curUrl, image:cur.image, imageType:cur.imageType });
             while (this.navHistoryList.length > 25) { this.navHistoryList.pop(); }
             document.title = newTitle;
         }},
         currentPathList: function(newList) {
             console.log('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
+            if (newList.length == 0 && this.activeSubscreens.length > 0) { this.activeSubscreens[0].pathName = null; this.activeSubscreens.splice(1); return; }
             for (var i=0; i<this.activeSubscreens.length; i++) {
-                if (i >= newList.length) { /*this.activeSubscreens = [];*/ break; }
+                if (i >= newList.length) break;
                 var newName = newList[i];
                 var curName = this.activeSubscreens[i].pathName;
                 console.log('set currentPathList idx ' + i + ' curName ' + curName + ' newName ' + newName);
@@ -526,7 +523,8 @@ const webrootVue = new Vue({
                 for (var i=0; i<parmList.length; i++) {
                     var parm = parmList[i]; var ps = parm.split("="); if (ps.length > 1) { this.currentParameters[ps[0]] = ps[1]; } }
             }},
-        currentUrl: { get: function() { var srch = this.currentSearch; return this.currentPath + (srch.length > 0 ? '?' + this.currentSearch : ''); },
+        currentUrl: {
+            get: function() { var srch = this.currentSearch; return this.currentPath + (srch.length > 0 ? '?' + this.currentSearch : ''); },
             set: function(href) {
                 var ssIdx = href.indexOf('//');
                 if (ssIdx >= 0) { var slIdx = href.indexOf('/', ssIdx + 1); if (slIdx == -1) { return; } href = href.slice(slIdx); }

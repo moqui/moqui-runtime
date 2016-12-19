@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <#-- TODO: some way to set these dynamically as a screen is loaded
     <#if html_keywords?has_content><meta name="keywords" content="${html_keywords}"></#if>
     <#if html_description?has_content><meta name="description" content="${html_description}"></#if>
     <#assign parentMenuName = (sri.screenUrlInfo.parentScreen.getDefaultMenuName())!"">
     <#assign defaultMenuName = sri.screenUrlInfo.targetScreen.getDefaultMenuName()>
-    -->
-    <title>Moqui Application</title>
+    <title><#if html_title?has_content>${html_title}<#else><#if parentMenuName?has_content>${ec.resource.expand(parentMenuName, "")} - </#if><#if defaultMenuName?has_content>${ec.resource.expand(defaultMenuName, "")}</#if></#if></title>
     <link rel="apple-touch-icon" href="/MoquiLogo100.png"/>
 <#-- Style Sheets -->
 <#list sri.getThemeValues("STRT_STYLESHEET") as styleSheetLocation>
@@ -31,5 +29,4 @@
 </#list>
 </head>
 <#assign bodyClassList = sri.getThemeValues("STRT_BODY_CLASS")>
-<body class="${(ec.user.getPreference("OUTER_STYLE")!(bodyClassList?first))!"bg-light"}<#if hideNav! == "true"> hide-nav</#if>"><!-- try "bg-dark" or "bg-light" -->
-<#-- TODO: somehow add class to vue loaded screens: ${(sri.screenUrlInfo.targetScreen.screenName)!""} -->
+<body class="${(ec.user.getPreference("OUTER_STYLE")!(bodyClassList?first))!"bg-light"} ${(sri.screenUrlInfo.targetScreen.screenName)!""}<#if hideNav! == "true"> hide-nav</#if>"><!-- try "bg-dark" or "bg-light" -->

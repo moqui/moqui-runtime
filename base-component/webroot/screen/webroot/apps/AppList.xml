@@ -35,6 +35,22 @@ along with this software (see the LICENSE.md file). If not, see
                         <condition><expression>currentScreenDef != null &amp;&amp;
                             !currentScreenDef.getParameterMap() &amp;&amp; currentUrlInstance?.isPermitted()</expression></condition>
                         <widgets>
+                            <render-mode><text type="html"><![CDATA[
+                                <a href="${currentUrlInstance.url}" class="btn btn-primary app-list-link">
+                                    <#if currentUrlInstance.sui.menuImage?has_content>
+                                        <#if currentUrlInstance.sui.menuImageType == "icon">
+                                            <i class="${currentUrlInstance.sui.menuImage}" style="padding-right: 8px;"></i>
+                                        <#elseif currentUrlInstance.sui.menuImageType == "url-plain">
+                                            <img src="${currentUrlInstance.sui.menuImage}" width="18" style="padding-right: 4px;"/>
+                                        <#else>
+                                            <img src="${sri.buildUrl(currentUrlInstance.sui.menuImage).url}" height="18" style="padding-right: 4px;"/>
+                                        </#if>
+                                    <#else>
+                                        <i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                                    </#if>
+                                    ${ec.resource.expand(currentSubscreensItem.menuTitle, "")}
+                                </a>
+                            ]]></text></render-mode>
                             <render-mode><text type="vuet"><![CDATA[
                                 <m-link href="${currentUrlInstance.path}" class="btn btn-primary app-list-link">
                                     <#if currentUrlInstance.sui.menuImage?has_content>
