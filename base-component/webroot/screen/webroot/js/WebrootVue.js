@@ -412,7 +412,7 @@ const webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], currentParameters:{}, activeSubscreens:[],
         navMenuList:[], navHistoryList:[], navPlugins:[], loading:0, activeContainers:{},
-        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", partyId:"", notificationClient:null },
+        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", notificationClient:null },
     methods: {
         goto: function (url) {
             // make sure any open modals are closed before setting currentUrl
@@ -453,7 +453,7 @@ const webrootVue = new Vue({
             // TODO: somehow only clear out activeContainers that are in subscreens actually reloaded? may cause issues if any but last screen have dynamic-container
             this.activeContainers = {};
             // update menu
-            $.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json", success: function(outerList) {
+            $.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json", error:handleAjaxError, success: function(outerList) {
                 if (outerList) { vm.navMenuList = outerList; } }});
             // active screen updates when currentPathList is updated activeSubscreens is populated
         },
@@ -551,7 +551,7 @@ const webrootVue = new Vue({
         this.moquiSessionToken = $("#moquiSessionToken").val();
         this.appHost = $("#appHost").val(); this.appRootPath = $("#appRootPath").val();
         this.basePath = $("#basePath").val(); this.linkBasePath = $("#linkBasePath").val();
-        this.userId = $("#userId").val(); this.partyId = $("#partyId").val();
+        this.userId = $("#userId").val();
         this.notificationClient = new NotificationClient("ws://" + this.appHost + this.appRootPath + "/notws");
     },
     mounted: function() {

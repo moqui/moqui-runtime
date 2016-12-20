@@ -29,25 +29,19 @@ along with this software (see the LICENSE.md file). If not, see
 <#-- ================ Subscreens ================ -->
 <#macro "subscreens-menu"><#if hideNav! != "true">
     <#if .node["@type"]! == "popup"><#-- NOTE: popup menus no longer handled here, how handled dynamically in navbar.html.ftl -->
-    <#else><#-- default to type=tab -->
-        <subscreens-tabs/>
-    </#if>
+    <#-- default to type=tab -->
+    <#else><subscreens-tabs/></#if>
 </#if></#macro>
-
-<#macro "subscreens-active"><subscreens-active/><#-- ${sri.renderSubscreen()} --></#macro>
-
+<#macro "subscreens-active"><subscreens-active/></#macro>
 <#macro "subscreens-panel">
-    <#assign displayMenu = sri.activeInCurrentMenu!true && hideNav! != "true">
-    <#assign menuId><#if .node["@id"]?has_content>${.node["@id"]}-menu<#else>subscreensPanelMenu</#if></#assign>
-    <#assign menuTitle = .node["@title"]!sri.getActiveScreenDef().getDefaultMenuName()!"Menu">
     <#if .node["@type"]! == "popup"><#-- NOTE: popup menus no longer handled here, how handled dynamically in navbar.html.ftl -->
-        <subscreens-active/><#-- ${sri.renderSubscreen()} -->
+        <subscreens-active/>
     <#elseif .node["@type"]! == "stack"><h1>LATER stack type subscreens-panel not yet supported.</h1>
     <#elseif .node["@type"]! == "wizard"><h1>LATER wizard type subscreens-panel not yet supported.</h1>
     <#else><#-- default to type=tab -->
         <div<#if .node["@id"]?has_content> id="${.node["@id"]}-tabpanel"</#if>>
             <subscreens-tabs/>
-            <subscreens-active/><#-- ${sri.renderSubscreen()} -->
+            <subscreens-active/>
         </div>
     </#if>
 </#macro>
