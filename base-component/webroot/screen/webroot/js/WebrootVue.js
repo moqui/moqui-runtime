@@ -1,12 +1,10 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 /* TODO:
- - make sure link to same screen with different parameters is working
  - going to minimal path causes menu reload; avoid? better to cache menus and do partial requests...
 
  - support dual mode, server and client rendered in parallel
    - in Header.html.ftl somehow drop screenName class on body (only for vue rendering...)
-   - use something other than apps.xml as root for vue to allow in parallel? (vapps.xml, still use /apps as basePath)
 
  - some approach for loading additional scripts and stylesheets
    - current adds to html_scripts, html_stylesheets, etc doesn't work when header not reloaded
@@ -59,7 +57,7 @@ const notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ e
 function handleAjaxError(jqXHR, textStatus, errorThrown) {
     console.log('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response text: ' + jqXHR.responseText); // console.log(jqXHR);
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
-    if (jqXHR.status == 401) { window.location.reload(true); }
+    if (jqXHR.status == 401) { if (webrootVue) { window.location.href = webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
     else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, notifyOpts, {delay:10000, type:'danger'})); }
     else { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, notifyOpts, {delay:10000, type:'danger'})); }
 }
@@ -314,7 +312,7 @@ Vue.component('drop-down', {
         }
     },
     computed: { curVal: { get: function() { return $(this.$el).select2().val(); },
-        set: function(value) { $(this.$el).select2().val(value).trigger('select2:change'); } } },
+        set: function(value) { $(this.$el).val(value).trigger('change'); } } },
     watch: { value: function(value) { this.curVal = value; }, options: function(options) { this.curData = options; },
         curData: function(options) { this.s2Opts.data = options; $(this.$el).select2(this.s2Opts); } },
     destroyed: function() { $(this.$el).off().select2('destroy') }
@@ -518,9 +516,11 @@ const webrootVue = new Vue({
             get: function() { return this.basePath + '/' + this.currentPathList.join('/'); },
             set: function(newPath) {
                 if (!newPath || newPath.length == 0) { this.currentPathList = []; return; }
+                if (newPath.slice(newPath.length - 1) == '/') newPath = newPath.slice(0, newPath.length - 1);
                 var basePathSize = this.basePath.split('/').length;
                 this.currentPathList = newPath.split('/').slice(basePathSize);
             }},
+        currentLinkPath: function() { return this.linkBasePath + '/' + this.currentPathList.join('/'); },
         currentSearch: {
             get: function() { var search = ''; $.each(this.currentParameters, function (key, value) {
                 search = search + (search.length > 0 ? '&' : '') + key + '=' + value; }); return search; },
@@ -531,7 +531,7 @@ const webrootVue = new Vue({
                     var parm = parmList[i]; var ps = parm.split("="); if (ps.length > 1) { this.currentParameters[ps[0]] = ps[1]; } }
             }},
         currentUrl: {
-            get: function() { var srch = this.currentSearch; return this.currentPath + (srch.length > 0 ? '?' + this.currentSearch : ''); },
+            get: function() { var srch = this.currentSearch; return this.currentPath + (srch.length > 0 ? '?' + srch : ''); },
             set: function(href) {
                 var ssIdx = href.indexOf('//');
                 if (ssIdx >= 0) { var slIdx = href.indexOf('/', ssIdx + 1); if (slIdx == -1) { return; } href = href.slice(slIdx); }
@@ -541,6 +541,7 @@ const webrootVue = new Vue({
                 this.currentPath = splitHref[0];
             }
         },
+        currentLinkUrl: function() { var srch = this.currentSearch; return this.currentLinkPath + (srch.length > 0 ? '?' + srch : ''); },
         ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; }
     },
     components: {
@@ -563,4 +564,4 @@ const webrootVue = new Vue({
         this.notificationClient.registerListener("ALL");
     }
 });
-window.addEventListener('popstate', function() { webrootVue.currentUrl = window.location.pathname + window.location.search; });
+window.addEventListener('popstate', function() { webrootVue.goto(window.location.pathname + window.location.search); });
