@@ -50,11 +50,23 @@ along with this software (see the LICENSE.md file). If not, see
                                     </#if>
                                     ${ec.resource.expand(currentSubscreensItem.menuTitle, "")}
                                 </a>
+                            ]]></text><text type="vuet"><![CDATA[
+                                <m-link href="${currentUrlInstance.path}" class="btn btn-primary app-list-link">
+                                    <#if currentUrlInstance.sui.menuImage?has_content>
+                                        <#if currentUrlInstance.sui.menuImageType == "icon">
+                                            <i class="${currentUrlInstance.sui.menuImage}" style="padding-right: 8px;"></i>
+                                        <#elseif currentUrlInstance.sui.menuImageType == "url-plain">
+                                            <img src="${currentUrlInstance.sui.menuImage}" width="18" style="padding-right: 4px;"/>
+                                        <#else>
+                                            <img src="${sri.buildUrl(currentUrlInstance.sui.menuImage).url}" height="18" style="padding-right: 4px;"/>
+                                        </#if>
+                                    <#else>
+                                        <i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                                    </#if>
+                                    ${ec.resource.expand(currentSubscreensItem.menuTitle, "")}
+                                </m-link>
                             ]]></text></render-mode>
                         </widgets>
-                        <fail-widgets>
-                            <render-mode><text type="html"><![CDATA[<!-- excluding screen at path ${currentScreenPath} -->]]></text></render-mode>
-                        </fail-widgets>
                     </section>
                 </widgets>
             </section-iterate>

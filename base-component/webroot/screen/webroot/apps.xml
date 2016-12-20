@@ -12,8 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
-<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         require-authentication="false" screen-theme-type-enum-id="STT_INTERNAL" default-menu-title="Applications">
     <!-- NOTE: require-authentication=false is required to allow sub-screens to decide. -->
 
@@ -67,12 +66,13 @@ along with this software (see the LICENSE.md file). If not, see
 
         // Workarounds for library issues (select2 jquery validator integration, select2 Bootstrap Modal fix, extensions, etc)
         html_scripts.add('/js/LibraryWorkarounds.js')
-
         // Moqui Notification Client
         html_scripts.add('/js/NotificationClient.js')
     ]]></script></pre-actions>
 
     <widgets>
+        <render-mode><text type="html"><![CDATA[<script>var notificationClient = new NotificationClient("ws://${ec.web.getHostName(true)}${ec.web.servletContext.contextPath}/notws");</script>]]></text></render-mode>
+
         <section name="TopNavSection" condition="hideNav != 'true'"><widgets>
             <container id="top">
                 <render-mode><text type="html" location="component://webroot/screen/includes/navbar.html.ftl"/></render-mode>
@@ -121,8 +121,7 @@ along with this software (see the LICENSE.md file). If not, see
         </container></container></container>
 
         <section name="BottomNavSection" condition="hideNav != 'true'"><widgets>
-            <container id="footer" style="bg-dark">
-                <render-mode><text type="html"><![CDATA[
+            <container id="footer" style="bg-dark"><render-mode><text type="html"><![CDATA[
                 <#assign footerItemList = sri.getThemeValues("STRT_FOOTER_ITEM")>
                 <div id="apps-footer-content">
                     <#list footerItemList! as footerItem>
@@ -130,8 +129,7 @@ along with this software (see the LICENSE.md file). If not, see
                         <@footerItemTemplate/>
                     </#list>
                 </div>
-            ]]></text></render-mode>
-            </container>
+            ]]></text></render-mode></container>
         </widgets></section>
     </widgets>
 </screen>
