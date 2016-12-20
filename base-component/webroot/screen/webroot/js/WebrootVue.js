@@ -119,13 +119,13 @@ Vue.component('container-dialog', {
     props: { id:{type:String,required:true}, title:String, width:{type:String,default:'760'}, openDialog:{type:Boolean,default:false} },
     data: function() { return { isHidden:true, dialogStyle:{width:this.width + 'px'}}},
     template:
-        '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">' +
-            '<div class="modal-dialog" :style="dialogStyle"><div class="modal-content">' +
-                '<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
-                    '<h4 class="modal-title">{{title}}</h4></div>' +
-                '<div class="modal-body"><slot></slot></div>' +
-            '</div></div>' +
-        '</div>',
+    '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">' +
+        '<div class="modal-dialog" :style="dialogStyle"><div class="modal-content">' +
+            '<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+                '<h4 class="modal-title">{{title}}</h4></div>' +
+            '<div class="modal-body"><slot></slot></div>' +
+        '</div></div>' +
+    '</div>',
     methods: { hide: function() { $(this.$el).modal('hide'); } },
     mounted: function() {
         var jqEl = $(this.$el); var vm = this;
@@ -152,13 +152,13 @@ Vue.component('dynamic-dialog', {
         openDialog:{type:Boolean,default:false} },
     data: function() { return { curComponent:EmptyComponent, curUrl:"", isHidden:true, dialogStyle:{width:this.width + 'px'}}},
     template:
-        '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">' +
-            '<div class="modal-dialog" :style="dialogStyle"><div class="modal-content">' +
-                '<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
-                    '<h4 class="modal-title">{{title}}</h4></div>' +
-                '<div class="modal-body"><component :is="curComponent"></component></div>' +
-            '</div></div>' +
-        '</div>',
+    '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">' +
+        '<div class="modal-dialog" :style="dialogStyle"><div class="modal-content">' +
+            '<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
+                '<h4 class="modal-title">{{title}}</h4></div>' +
+            '<div class="modal-body"><component :is="curComponent"></component></div>' +
+        '</div></div>' +
+    '</div>',
     methods: {
         reload: function() { if (!this.isHidden) { var jqEl = $(this.$el); jqEl.modal('hide'); jqEl.modal('show'); }},
         load: function(url) { this.curUrl = url; }, hide: function() { $(this.$el).modal('hide'); }
@@ -324,11 +324,13 @@ Vue.component('text-autocomplete', {
         type:String, size:String, maxlength:String, disabled:Boolean, validationClasses:String, dataVvValidation:String,
         required:Boolean, pattern:String, tooltip:String, form:String,
         url:{type:String,required:true}, dependsOn:Object, acParameters:Object, minLength:Number, showValue:Boolean, useActual:Boolean, skipInitial:Boolean },
-    template: '<span><input ref="acinput" :id="acId" :name="acName" :type="type" :value="valueText" :size="size" :maxlength="maxlength" :disabled="disabled"' +
+    template:
+    '<span><input ref="acinput" :id="acId" :name="acName" :type="type" :value="valueText" :size="size" :maxlength="maxlength" :disabled="disabled"' +
         ' :class="allClasses" :data-vv-validation="validationClasses" :required="required" :pattern="pattern"' +
         ' :data-toggle="tooltipToggle" :title="tooltip" autocomplete="off" :form="form">' +
         '<input ref="hidden" :id="id" type="hidden" :name="name" :value="value" :form="form">' +
-        '<span ref="show" v-if="showValue" :id="showId" class="form-autocomplete-value">{{valueText}}</span></span>',
+        '<span ref="show" v-if="showValue" :id="showId" class="form-autocomplete-value">{{valueText}}</span>' +
+    '</span>',
     computed: { acId: function() { return this.id + '_ac'; }, acName: function() { return this.name + '_ac'; },
         allClasses: function() { return 'form-control typeahead' + (this.validationClasses ? ' ' + this.validationClasses : ''); },
         showId: function() { return this.id + '_show'; }, tooltipToggle: function() { return this.tooltip && this.tooltip.length > 0 ? 'tooltip' : null; }
@@ -373,25 +375,26 @@ Vue.component('text-autocomplete', {
 
 /* ========== webrootVue - root Vue component with router ========== */
 Vue.component('subscreens-tabs', {
-    props: { screenPath:{type:String,required:true}, containerId:{type:String,required:true} },
-    data: function() { return { tabList:[] }},
+    data: function() { return { pathIndex:-1 }},
     template:
-    '<ul class="nav nav-tabs" role="tablist">' +
-        '<li v-for="tab in tabList" :class="{active:isActive(tab),disabled:tab.disabled}">' +
+    '<ul v-if="subscreens.length > 0" class="nav nav-tabs" role="tablist">' +
+        '<li v-for="tab in subscreens" :class="{active:tab.active,disabled:tab.disableLink}">' +
             '<span v-if="tab.disabled">{{tab.title}}</span>' +
             '<m-link v-else :href="tab.pathWithParams">{{tab.title}}</m-link>' +
         '</li>' +
     '</ul>',
-    methods: {
-        isActive: function(path) { return (this.$root.currentPath.indexOf(path) == 0) }
-    },
-    mounted: function() {
-        // TODO: populate tabList, from this.$root.navMenuList[?] matching .path against screenPath && hasTabMenu
-
-    }
+    // use this with isActive(tab.path)?
+    // methods: { isActive: function(path) { return (this.$root.currentPath.indexOf(path) == 0) } },
+    computed: { subscreens: function() {
+        if (!this.pathIndex || this.pathIndex < 0) return [];
+        var navMenu = this.$root.navMenuList[this.pathIndex];
+        return navMenu ? navMenu.subscreens : [];
+    }},
+    // this approach to get pathIndex won't work if the subscreens-active tag comes before subscreens-tabs
+    mounted: function() { this.pathIndex = this.$root.activeSubscreens.length; }
 });
 Vue.component('subscreens-active', {
-    data: function() { return { activeComponent:EmptyComponent, pathIndex:-1, pathName:null } },
+    data: function() { return { activeComponent:EmptyComponent, pathIndex:-1, pathName:null, menuComponent:null } },
     template: '<component :is="activeComponent"></component>',
     // setPathName is a method instead of a watch on pathName so that it runs even when newPath is the same
     methods: { setPathName: function(newPath) {
