@@ -14,7 +14,7 @@ along with this software (see the LICENSE.md file). If not, see
 -->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.0.xsd"
         require-authentication="false" screen-theme-type-enum-id="STT_INTERNAL" default-menu-title="Applications" allow-extra-path="true">
-    <!-- NOTE: require-authentication=false but in pre-actions if no user logged in goes to login screen -->
+    <!-- NOTE: require-authentication=false so no permission required but in pre-actions if no user logged in goes to login screen -->
 
     <transition name="ScreenTree"><default-response url="../ScreenTree"/></transition>
     <transition name="setPreference">
@@ -29,8 +29,8 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <pre-actions><script><![CDATA[
-        // if user not logged in redirect to Login
-        if (!ec.user.userId) sri.sendRedirectAndStopRender('/Login')
+        // if user not logged in save current path and params then redirect to Login
+        if (!ec.user.userId) { ec.web.saveScreenLastInfo(null, null); sri.sendRedirectAndStopRender('/Login') }
 
         // jQuery
         html_scripts.add('/libs/jquery/jquery.min.js')
