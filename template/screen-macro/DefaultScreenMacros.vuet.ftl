@@ -28,52 +28,20 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#-- ================ Subscreens ================ -->
 <#macro "subscreens-menu"><#if hideNav! != "true">
-    <#assign displayMenu = sri.activeInCurrentMenu!>
-    <#assign menuId = .node["@id"]!"subscreensMenu">
-    <#assign menuTitle = .node["@title"]!sri.getActiveScreenDef().getDefaultMenuName()!"Menu">
     <#if .node["@type"]! == "popup"><#-- NOTE: popup menus no longer handled here, how handled dynamically in navbar.html.ftl -->
-    <#else><#-- default to type=tab -->
-        <#if displayMenu!>
-            <ul<#if .node["@id"]?has_content> id="${.node["@id"]}"</#if> class="nav nav-tabs" role="tablist">
-                <#list sri.getActiveScreenDef().getMenuSubscreensItems() as subscreensItem>
-                    <#assign urlInstance = sri.buildUrl(subscreensItem.name)>
-                    <#if urlInstance.isPermitted()>
-                        <li class="<#if urlInstance.inCurrentScreenPath>active</#if><#if urlInstance.disableLink> disabled</#if>">
-                            <#if urlInstance.disableLink>${ec.getResource().expand(subscreensItem.menuTitle, "")}<#else><m-link href="${urlInstance.pathWithParams}">${ec.getL10n().localize(subscreensItem.menuTitle)}</m-link></#if></li>
-                    </#if>
-                </#list>
-            </ul>
-        </#if>
-    </#if>
+    <#-- default to type=tab -->
+    <#else><subscreens-tabs/></#if>
 </#if></#macro>
-
-<#macro "subscreens-active"><subscreens-active/><#-- ${sri.renderSubscreen()} --></#macro>
-
+<#macro "subscreens-active"><subscreens-active/></#macro>
 <#macro "subscreens-panel">
-    <#assign displayMenu = sri.activeInCurrentMenu!true && hideNav! != "true">
-    <#assign menuId><#if .node["@id"]?has_content>${.node["@id"]}-menu<#else>subscreensPanelMenu</#if></#assign>
-    <#assign menuTitle = .node["@title"]!sri.getActiveScreenDef().getDefaultMenuName()!"Menu">
     <#if .node["@type"]! == "popup"><#-- NOTE: popup menus no longer handled here, how handled dynamically in navbar.html.ftl -->
-        <subscreens-active/><#-- ${sri.renderSubscreen()} -->
+        <subscreens-active/>
     <#elseif .node["@type"]! == "stack"><h1>LATER stack type subscreens-panel not yet supported.</h1>
     <#elseif .node["@type"]! == "wizard"><h1>LATER wizard type subscreens-panel not yet supported.</h1>
     <#else><#-- default to type=tab -->
         <div<#if .node["@id"]?has_content> id="${.node["@id"]}-tabpanel"</#if>>
-            <#assign menuSubscreensItems=sri.getActiveScreenDef().getMenuSubscreensItems()>
-            <#if menuSubscreensItems?has_content && (menuSubscreensItems?size > 1)>
-                <#if displayMenu>
-                    <ul<#if .node["@id"]?has_content> id="${.node["@id"]}-menu"</#if> class="nav nav-tabs" role="tablist">
-                    <#list menuSubscreensItems as subscreensItem>
-                        <#assign urlInstance = sri.buildUrl(subscreensItem.name)>
-                        <#if urlInstance.isPermitted()>
-                            <li class="<#if urlInstance.disableLink>disabled<#elseif urlInstance.inCurrentScreenPath>active</#if>">
-                                <#if urlInstance.disableLink>${ec.getResource().expand(subscreensItem.menuTitle, "")}<#else><m-link href="${urlInstance.pathWithParams}">${ec.getL10n().localize(subscreensItem.menuTitle)}</m-link></#if></li>
-                        </#if>
-                    </#list>
-                    </ul>
-                </#if>
-            </#if>
-            <subscreens-active/><#-- ${sri.renderSubscreen()} -->
+            <subscreens-tabs/>
+            <subscreens-active/>
         </div>
     </#if>
 </#macro>

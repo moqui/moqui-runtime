@@ -18,7 +18,6 @@ along with this software (see the LICENSE.md file). If not, see
     <input type="hidden" id="basePath" value="${ec.web.servletContext.contextPath}/apps">
     <input type="hidden" id="linkBasePath" value="${ec.web.servletContext.contextPath}/vapps">
     <input type="hidden" id="userId" value="${ec.user.userId!''}">
-    <input type="hidden" id="partyId" value="${ec.user.userAccount.partyId!''}">
     <#if hideNav! != 'true'>
     <div id="top"><nav class="navbar navbar-inverse navbar-fixed-top"><#-- navbar-static-top --><div class="container-fluid">
         <#-- Brand and toggle get grouped for better mobile display -->

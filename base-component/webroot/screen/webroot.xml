@@ -29,8 +29,10 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
     <transition name="menuData" read-only="true" begin-transaction="false">
         <actions><script><![CDATA[
-            List menuDataList = sri.getMenuData(sri.screenUrlInfo.extraPathNameList)
-            if (menuDataList != null) ec.web.sendJsonResponse(menuDataList)
+            try {
+                List menuDataList = sri.getMenuData(sri.screenUrlInfo.extraPathNameList)
+                if (menuDataList != null) ec.web.sendJsonResponse(menuDataList)
+            } catch (Exception e) { }
         ]]></script></actions>
         <default-response type="none"/>
     </transition>
