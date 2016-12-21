@@ -473,7 +473,7 @@ Vue.component('subscreens-active', {
 const webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], currentParameters:{}, activeSubscreens:[],
-        navMenuList:[], navHistoryList:[], navPlugins:[], loading:0, activeContainers:{},
+        navMenuList:[], navHistoryList:[], navPlugins:[], lastNavTime:Date.now(), loading:0, activeContainers:{},
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", notificationClient:null },
     methods: {
         goto: function (url) {
@@ -511,6 +511,7 @@ const webrootVue = new Vue({
             if (!newUrl || newUrl.length === 0) return;
             var vm = this;
             console.log("currentUrl changing to " + newUrl);
+            this.lastNavTime = Date.now();
             // TODO: somehow only clear out activeContainers that are in subscreens actually reloaded? may cause issues if any but last screen have dynamic-container
             this.activeContainers = {};
             // update menu
