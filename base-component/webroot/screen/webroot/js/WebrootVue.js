@@ -450,7 +450,8 @@ Vue.component('subscreens-tabs', {
     computed: { subscreens: function() {
         if (!this.pathIndex || this.pathIndex < 0) return [];
         var navMenu = this.$root.navMenuList[this.pathIndex];
-        return navMenu ? navMenu.subscreens : [];
+        if (!navMenu) return [];
+        return navMenu.subscreens ? navMenu.subscreens : [];
     }},
     // this approach to get pathIndex won't work if the subscreens-active tag comes before subscreens-tabs
     mounted: function() { this.pathIndex = this.$root.activeSubscreens.length; }
