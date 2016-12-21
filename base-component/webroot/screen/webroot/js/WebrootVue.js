@@ -6,11 +6,6 @@
  - support dual mode, server and client rendered in parallel
    - in Header.html.ftl somehow drop screenName class on body (only for vue rendering...)
 
- - some approach for loading additional scripts and stylesheets
-   - current adds to html_scripts, html_stylesheets, etc doesn't work when header not reloaded
-   - one workaround is to use inline script and link elements (see MyCalendar.xml screen in SimpleScreens)
-   - NOTE: this isn't working any more, not sure why or what changed to cause it
-
  - anchor (a) only used for link if UrlInstance.isScreenUrl() is false which looks only at default-response for url-type=plain or
    type=none; if a transition has conditional or error responses of different types it won't response properly
    - consider changing loadComponent to pass a header telling ScreenRenderImpl that it is for a component
@@ -47,6 +42,8 @@
    - goal would be to use FTL macros to transform more detailed XML into library specific output
  */
 
+const notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
+
 // simple stub for define if it doesn't exist (ie no require.js, etc); mimic pattern of require.js define()
 if (!window.define) window.define = function(name, deps, callback) {
     if (typeof name !== 'string') { callback = deps; deps = name; name = null; }
@@ -54,8 +51,36 @@ if (!window.define) window.define = function(name, deps, callback) {
     if (Object.prototype.toString.call(callback) === '[object Function]') { return callback(); } else { return callback }
 };
 
-const notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
+/* ========== script and stylesheet handling methods ========== */
+function loadScript(src) {
+    // make sure the script isn't loaded
+    var loaded = false;
+    $('head script').each(function(i, hscript) { if (hscript.src.indexOf(src) != -1) loaded = true; });
+    if (loaded) return;
+    // add it to the header
+    var script = document.createElement('script'); script.src = src; script.async = false;
+    document.head.appendChild(script);
+}
+function loadStylesheet(href, rel, type) {
+    if (!rel) rel = 'stylesheet'; if (!type) type = 'text/css';
+    // make sure the stylesheet isn't loaded
+    var loaded = false;
+    $('head link').each(function(i, hlink) { if (hlink.href.indexOf(href) != -1) loaded = true; });
+    if (loaded) return;
+    // add it to the header
+    var link = document.createElement('link'); link.href = href; link.rel = rel; link.type = type;
+    document.head.appendChild(link);
+}
+function retryInlineScript(src, count) {
+    try { eval(src); } catch(e) {
+        src = src.trim();
+        console.log('error ' + count + ' running inline script: ' + src.slice(0, 30) + '...');
+        console.log(e);
+        if (count <= 5) setTimeout(retryInlineScript, 200, src, count+1);
+    }
+}
 
+/* ========== component loading methods ========== */
 function handleAjaxError(jqXHR, textStatus, errorThrown) {
     console.log('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response text: ' + jqXHR.responseText);
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
@@ -84,8 +109,8 @@ function loadComponent(url, callback, divId) {
                         compObj.template = htmlText; callback(compObj); }});
                 }
             } else {
-                var templateText = resp.replace(/<script/g, '<m-script').replace(/<\/script>/g, '</m-script>');
-                console.log("loaded HTML template from " + url + (divId ? " id " + divId : "") + ": " + templateText);
+                var templateText = resp.replace(/<script/g, '<m-script').replace(/<\/script>/g, '</m-script>').replace(/<link/g, '<m-stylesheet');
+                console.log("loaded HTML template from " + url + (divId ? " id " + divId : "") /*+ ": " + templateText*/);
                 callback({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' });
             }
         } else if (resp === Object(resp)) {
@@ -95,6 +120,7 @@ function loadComponent(url, callback, divId) {
     }});
 }
 
+/* ========== placeholder components ========== */
 const NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
 const EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>' });
 
@@ -107,15 +133,27 @@ Vue.component('m-link', {
     computed: { linkHref: function () { return this.href.indexOf(this.$root.basePath) == 0 ? this.href.replace(this.$root.basePath, this.$root.linkBasePath) : this.href; } }
 });
 Vue.component('m-script', {
-    template: '<div style="display:none;"><slot></slot></div>',
+    props: { src:String, type:{type:String,default:'text/javascript'} },
+    template: '<div :type="type" style="display:none;"><slot></slot></div>',
+    created: function() { if (this.src && this.src.length > 0) { loadScript(this.src); } },
     mounted: function() {
-        var parent = this.$el.parentElement; var s = document.createElement('script');
-        if (this.$el.hasAttribute('src')) s.setAttribute('src', this.$el.getAttribute('src'));
-        if (this.$el.hasAttribute('type')) s.setAttribute('type', this.$el.getAttribute('type'));
-        // TODO: issue where scripts run out of order, this doesn't fix it in Chrome
-        s.async = false;
-        s.appendChild(document.createTextNode(this.$el.innerText)); $(this.$el).remove(); parent.appendChild(s);
+        var innerText = this.$el.innerText;
+        if (innerText && innerText.trim().length > 0) {
+            // console.log('running: ' + innerText);
+            retryInlineScript(innerText, 1);
+            /* these don't work on initial load (with script elements that have @src followed by inline script)
+            // eval(innerText);
+            var parent = this.$el.parentElement; var s = document.createElement('script');
+            s.appendChild(document.createTextNode(this.$el.innerText)); parent.appendChild(s);
+            */
+        }
+        // maybe better not to, nice to see in dom: $(this.$el).remove();
     }
+});
+Vue.component('m-stylesheet', {
+    props: { href:{type:String,required:true}, rel:{type:String,default:'stylesheet'}, type:{type:String,default:'text/css'} },
+    template: '<div :type="type" style="display:none;"></div>',
+    created: function() { loadStylesheet(this.href, this.rel, this.type); }
 });
 Vue.component('container-dialog', {
     props: { id:{type:String,required:true}, title:String, width:{type:String,default:'760'}, openDialog:{type:Boolean,default:false} },
@@ -194,6 +232,7 @@ Vue.component('m-editable', {
     },
     render: function(createEl) { return createEl(this.labelType, { attrs:{ id:this.id, class:'editable-label' }, domProps: { innerHTML:this.labelValue } }); }
 });
+
 /* ========== form components ========== */
 Vue.component('m-form', {
     props: { action:{type:String,required:true}, method:{type:String,default:'POST'},
@@ -295,6 +334,7 @@ Vue.component('form-link', {
         if (this.focusField && this.focusField.length > 0) jqEl.find('[name=' + this.focusField + ']').addClass('default-focus').focus();
     }
 });
+
 /* ========== form field widget components ========== */
 Vue.component('drop-down', {
     props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String,
