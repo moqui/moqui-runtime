@@ -55,7 +55,7 @@ if (!window.define) window.define = function(name, deps, callback) {
 const notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
 
 function handleAjaxError(jqXHR, textStatus, errorThrown) {
-    console.log('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response text: ' + jqXHR.responseText); // console.log(jqXHR);
+    console.log('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response text: ' + jqXHR.responseText);
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status == 401) { if (webrootVue) { window.location.href = webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
     else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, notifyOpts, {delay:10000, type:'danger'})); }
@@ -68,13 +68,13 @@ function loadComponent(url, callback, divId) {
     var path = questIdx > 0 ? url.slice(0, questIdx) : url;
     var isJsPath = path.slice(-3) == '.js';
     if (isJsPath) { url = path; } else { url = path + '.vuet' + (questIdx > 0 ? url.slice(questIdx)  : ''); }
-    console.log("loading " + url + " id " + divId);
+    console.log("loadComponent " + url + (divId ? " id " + divId : ''));
     $.ajax({ type:"GET", url:url, error:handleAjaxError, success: function(resp) {
         // console.log(resp);
         if (!resp) { callback(NotFound); }
         if (Object.prototype.toString.call(resp) == '[object String]' && resp.length > 0) {
             if (isJsPath || resp.slice(0,7) == 'define(') {
-                console.log("loaded JS " + url + " id " + divId);
+                console.log("loaded JS from " + url + (divId ? " id " + divId : ""));
                 var compObj = eval(resp);
                 if (compObj.template) { callback(compObj); } else {
                     var htmlUrl = (path.slice(-3) == '.js' ? path.slice(0, -3) : path) + '.vuet';
@@ -83,7 +83,7 @@ function loadComponent(url, callback, divId) {
                 }
             } else {
                 var templateText = resp.replace(/<script/g, '<m-script').replace(/<\/script>/g, '</m-script>');
-                console.log("loaded HTML template " + url + (divId ? " id " + divId : "") /* + ": " + templateText*/);
+                console.log("loaded HTML template from " + url + (divId ? " id " + divId : "") /* + ": " + templateText*/);
                 callback({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' });
             }
         } else if (resp === Object(resp)) {
@@ -198,17 +198,30 @@ Vue.component('m-form', {
     template: '<form @submit.prevent="submitForm" class="validation-engine-init"><slot></slot></form>',
     methods: {
         submitForm: function submitForm() {
-            var jqEl = $(this.$el); var otherParms = $.extend({ moquiSessionToken:this.$root.moquiSessionToken }, this.fields);
-            var $btn = $(document.activeElement);
-            if ($btn.length && jqEl.has($btn) && $btn.is('button[type="submit"], input[type="submit"], input[type="image"]') && $btn.is('[name]')) {
-                otherParms[$btn.attr('name')] = $btn.val(); }
-            // console.log('m-form parameters ' + jqEl.formSerialize()); console.log('m-form other parameters ' + JSON.stringify(otherParms));
-            if (this.noValidate || jqEl.valid()) { jqEl.ajaxSubmit({ resetForm:false, type:this.method, url:this.action,
-                data:otherParms, headers:{Accept:'application/json'}, error:handleAjaxError, success:this.handleResponse }); }
+            var jqEl = $(this.$el);
+            if (this.noValidate || jqEl.valid()) {
+                var allParms = $.extend({ moquiSessionToken:this.$root.moquiSessionToken }, this.fields);
+                var $btn = $(document.activeElement);
+                if ($btn.length && jqEl.has($btn) && $btn.is('button[type="submit"], input[type="submit"], input[type="image"]') && $btn.is('[name]')) {
+                    allParms[$btn.attr('name')] = $btn.val(); }
+
+                var parmList = jqEl.serializeArray();
+                for (var i=0; i<parmList.length; i++) {
+                    var parm = parmList[i];
+                    var cur = allParms[parm.name];
+                    if (cur) {
+                         if (Object.prototype.toString.call(cur) === '[object Array]') { cur.push(parm.value); }
+                         else { allParms[parm.name] = [cur, parm.value]; }
+                    } else { allParms[parm.name] = parm.value; }
+                }
+                // console.log('m-form parameters ' + JSON.stringify(allParms));
+                $.ajax({ type:this.method, url:this.action, data:allParms, headers:{Accept:'application/json'},
+                    error:handleAjaxError, success:this.handleResponse });
+            }
         },
         handleResponse: function(resp) {
             var notified = false;
-            console.log('m-form response ' + JSON.stringify(resp));
+            // console.log('m-form response ' + JSON.stringify(resp));
             if (resp && resp === Object(resp)) {
                 if (resp.messages) for (var mi=0; mi < resp.messages.length; mi++) {
                     $.notify({ message:resp.messages[mi] }, $.extend({}, notifyOpts, {type:'info'})); notified = true; }
@@ -241,19 +254,26 @@ Vue.component('form-link', {
         submitForm: function submitForm() {
             var jqEl = $(this.$el); if (this.noValidate || jqEl.valid()) {
                 var otherParms = this.fields;
-                var parmStr = ""; var parmList = jqEl.formSerialize().split("&");
+                var parmStr = ""; var parmList = jqEl.serializeArray();
                 for (var parmName in otherParms) { if (otherParms.hasOwnProperty(parmName)) {
                     if (parmStr.length > 0) { parmStr += '&'; } parmStr += (parmName + '=' + otherParms[parmName]); }}
                 var extraList = []; var plainKeyList = [];
                 for (var pi=0; pi<parmList.length; pi++) {
-                    var parm = parmList[pi]; var parmSplit = parm.split("="); var key = parmSplit[0];
-                    if (parmSplit.length < 2 || parmSplit[1].length == 0 || key == "moquiSessionToken" || key.indexOf('%5B%5D') > 0) continue;
+                    var parm = parmList[pi]; var key = parm.name; var value = parm.value;
+                    if (value.length == 0 || key == "moquiSessionToken" || key.indexOf('%5B%5D') > 0) continue;
                     if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0) { extraList.push(parm); }
-                    else { plainKeyList.push(key); if (parmStr.length > 0) { parmStr += '&'; } parmStr += parm; }
+                    else {
+                        plainKeyList.push(key);
+                        if (parmStr.length > 0) { parmStr += '&'; }
+                        parmStr += (encodeURIComponent(key) + '=' + encodeURIComponent(value));
+                    }
                 }
                 for (var ei=0; ei<extraList.length; ei++) {
-                    var eparm = extraList[ei]; var keyName = eparm.substring(0, eparm.indexOf('_'));
-                    if (plainKeyList.indexOf(keyName) >= 0) { if (parmStr.length > 0) { parmStr += '&'; } parmStr += eparm; }
+                    var eparm = extraList[ei]; var keyName = eparm.name.substring(0, eparm.indexOf('_'));
+                    if (plainKeyList.indexOf(keyName) >= 0) {
+                        if (parmStr.length > 0) { parmStr += '&'; }
+                        parmStr += (encodeURIComponent(eparm.name) + '=' + encodeURIComponent(eparm.value));
+                    }
                 }
                 var url = this.action;
                 if (url.indexOf('?') > 0) { url = url + '&' + parmStr; } else { url = url + '?' + parmStr; }
@@ -422,10 +442,9 @@ const webrootVue = new Vue({
         },
         addSubscreen: function(saComp) {
             var pathIdx = this.activeSubscreens.length;
-            // setting pathName here handles initial load of subscreens-active
-            console.log('addSubscreen idx ' + pathIdx + ' pathName ' + this.currentPathList[pathIdx]);
+            // console.log('addSubscreen idx ' + pathIdx + ' pathName ' + this.currentPathList[pathIdx]);
             saComp.pathIndex = pathIdx;
-            // this may be undefined if we have more activeSubscreens than currentPathList items
+            // setting pathName here handles initial load of subscreens-active; this may be undefined if we have more activeSubscreens than currentPathList items
             saComp.setPathName(this.currentPathList[pathIdx]);
             this.activeSubscreens.push(saComp);
         },
@@ -495,7 +514,7 @@ const webrootVue = new Vue({
             document.title = newTitle;
         }},
         currentPathList: function(newList) {
-            console.log('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
+            // console.log('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
             if (newList.length == 0 && this.activeSubscreens.length > 0) { this.activeSubscreens[0].setPathName(null); this.activeSubscreens.splice(1); return; }
             for (var i=0; i<this.activeSubscreens.length; i++) {
                 if (i >= newList.length) break;
