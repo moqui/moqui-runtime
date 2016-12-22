@@ -71,18 +71,16 @@ along with this software (see the LICENSE.md file). If not, see
 
         <section name="XmlActionDisplaySection" condition="sd.xmlAction"><widgets>
             <label text="XML Actions" type="h3"/>
-            <container type="pre" style="line-numbers"><label text="${org.moqui.util.StringUtilities.encodeForXmlAttribute(serviceNode.first('actions')?.toString())}"
-                    type="code" style="language-markup" encode="false"/></container>
+            <container type="pre" style="line-numbers"><label text="${serviceNode.first('actions')?.toString()}"
+                    type="code" style="language-markup" encode="true"/></container>
 
             <label text="Generated Groovy" type="h3"/>
             <container type="pre" style="line-numbers">
-                <!-- TODO: encode set to true to work with vuet but messes up formatting of groovy; issue where Vue tries to interpret the text as html -->
                 <label text="${sd.xmlAction.groovyString}" type="code" style="language-groovy" encode="true"/></container>
         </widgets></section>
         <section name="LocationDisplaySection" condition="sd.serviceNode.attribute('location') &amp;&amp; sd.serviceNode.attribute('type')!='java'"><widgets>
             <label text="Script" type="h3"/>
             <container type="pre" style="line-numbers">
-                <!-- TODO: encode set to true to work with vuet but messes up formatting of groovy; issue where Vue tries to interpret the text as html -->
                 <label text="${ec.resource.getLocationText(sd.serviceNode.attribute('location'), false)}" type="code"
                        style="language-groovy" encode="true"/></container>
         </widgets></section>

@@ -75,24 +75,13 @@ ${sri.renderSection(.node["@name"])}
 
 <#macro "container-box">
     <#assign contBoxDivId><@nodeId .node/></#assign>
-    <div class="panel panel-default"<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if>>
-        <div class="panel-heading">
-            <#recurse .node["box-header"][0]>
-            <#if .node["box-toolbar"]?has_content>
-                <div class="panel-toolbar">
-                    <#recurse .node["box-toolbar"][0]>
-                </div>
-            </#if>
-        </div>
-        <#if .node["box-body"]?has_content>
-            <div class="panel-body">
-                <#recurse .node["box-body"][0]>
-            </div>
-        </#if>
-        <#if .node["box-body-nopad"]?has_content>
-            <#recurse .node["box-body-nopad"][0]>
-        </#if>
-    </div>
+    <container-box<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if>>
+        <#-- NOTE: direct use of the container-box component would not use template elements but rather use the 'slot' attribute directly on the child elements which we can't do here -->
+        <template slot="header"><#recurse .node["box-header"][0]></template>
+        <#if .node["box-toolbar"]?has_content><template slot="toolbar"><#recurse .node["box-toolbar"][0]></template></#if>
+        <#if .node["box-body"]?has_content><box-body><#recurse .node["box-body"][0]></box-body></#if>
+        <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
+    </container-box>
 </#macro>
 <#macro "container-row">
     <#assign contRowDivId><@nodeId .node/></#assign>
@@ -213,7 +202,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
 </#if>
 </#macro>
-
 <#macro text><#-- do nothing, is used only through "render-mode" --></#macro>
 
 <#-- ================== Standalone Fields ==================== -->
@@ -319,16 +307,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
         <#assign labelType = .node["@type"]!"span">
+        <#assign labelDivId><@nodeId .node/></#assign>
         <#assign textMap = "">
         <#if .node["@text-map"]?has_content><#assign textMap = ec.getResource().expression(.node["@text-map"], "")!></#if>
-        <#if textMap?has_content>
-            <#assign labelValue = ec.getResource().expand(.node["@text"], "", textMap)>
-        <#else>
-            <#assign labelValue = ec.getResource().expand(.node["@text"], "")/>
-        </#if>
-        <#assign labelDivId><@nodeId .node/></#assign>
+        <#if textMap?has_content><#assign labelValue = ec.getResource().expand(.node["@text"], "", textMap)>
+            <#else><#assign labelValue = ec.getResource().expand(.node["@text"], "")/></#if>
         <#if labelValue?trim?has_content || .node["@condition"]?has_content>
-<${labelType}<#if labelDivId?has_content> id="${labelDivId}"</#if><#if .node["@style"]?has_content> class="${ec.getResource().expandNoL10n(.node["@style"], "")}"</#if><#if .node["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node["@tooltip"], "")}"</#if>><#if !.node["@encode"]?has_content || .node["@encode"] == "true">${labelValue?html?replace("\n", "<br>")}<#else>${labelValue}</#if></${labelType}>
+            <#if .node["@encode"]! != "false"><#assign labelValue = labelValue?html>
+                <#if labelType != 'code' && labelType != 'pre'><#assign labelValue = labelValue?replace("\n", "<br>")></#if></#if>
+<${labelType}<#if labelDivId?has_content> id="${labelDivId}"</#if><#if .node["@style"]?has_content> class="${ec.getResource().expandNoL10n(.node["@style"], "")}"</#if><#if .node["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node["@tooltip"], "")}"</#if>>${labelValue}</${labelType}>
         </#if>
     </#if>
 </#macro>
@@ -1485,7 +1472,7 @@ a => A, d => D, y => Y
             <#t><#else>
                 <#t><#if allowMultiple> :value="[<#list currentValueList as curVal><#if curVal?has_content>'${curVal}',</#if></#list>]"<#else> value="${currentValue!}"</#if>
                 :options="[<#if currentValue?has_content && !allowMultiple && !optionsHasCurrent>{id:'${currentValue}',text:'<#if currentDescription?has_content>${currentDescription}<#else>${currentValue}</#if>'},</#if><#rt>
-                    <#t><#if allowEmpty || !(options?has_content)>{id:'',text:' '},</#if><#list (options.keySet())! as key>{id:'${key}',text:'${options.get(key)?replace("'", "")}'}<#sep>,</#list>]"
+                    <#t><#if allowEmpty || !(options?has_content)>{id:'',text:' '},</#if><#list (options.keySet())! as key>{id:'${key}',text:'${options.get(key)?js_string}'}<#sep>,</#list>]"
             <#t></#if>>
             <#-- support <#if .node["@current"]! == "first-in-list"> again? -->
     </drop-down>

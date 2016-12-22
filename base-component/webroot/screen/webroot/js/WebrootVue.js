@@ -155,6 +155,17 @@ Vue.component('m-stylesheet', {
     template: '<div :type="type" style="display:none;"></div>',
     created: function() { loadStylesheet(this.href, this.rel, this.type); }
 });
+/* ========== layout components ========== */
+Vue.component('container-box', { template:
+    '<div class="panel panel-default">' +
+        '<div class="panel-heading">' +
+            '<slot name="header"></slot>' +
+            '<div class="panel-toolbar"><slot name="toolbar"></slot></div>' +
+        '</div>' +
+        '<slot></slot>' +
+    '</div>'
+});
+Vue.component('box-body', { template: '<div class="panel-body"><slot></slot></div>' });
 Vue.component('container-dialog', {
     props: { id:{type:String,required:true}, title:String, width:{type:String,default:'760'}, openDialog:{type:Boolean,default:false} },
     data: function() { return { isHidden:true, dialogStyle:{width:this.width + 'px'}}},
@@ -214,6 +225,7 @@ Vue.component('dynamic-dialog', {
         if (this.openDialog) { jqEl.modal('show'); }
     }
 });
+/* ========== general field components ========== */
 Vue.component('m-editable', {
     props: { id:{type:String,required:true}, labelType:{type:String,default:'span'}, labelValue:{type:String,required:true},
         url:{type:String,required:true}, urlParameters:{type:Object,default:{}},
