@@ -312,7 +312,7 @@ Vue.component('form-link', {
                     }
                 }
                 for (var ei=0; ei<extraList.length; ei++) {
-                    var eparm = extraList[ei]; var keyName = eparm.name.substring(0, eparm.indexOf('_'));
+                    var eparm = extraList[ei]; var keyName = eparm.name.substring(0, eparm.name.indexOf('_'));
                     if (plainKeyList.indexOf(keyName) >= 0) {
                         if (parmStr.length > 0) { parmStr += '&'; }
                         parmStr += (encodeURIComponent(eparm.name) + '=' + encodeURIComponent(eparm.value));
