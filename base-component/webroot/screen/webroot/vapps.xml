@@ -16,18 +16,6 @@ along with this software (see the LICENSE.md file). If not, see
         require-authentication="false" screen-theme-type-enum-id="STT_INTERNAL" default-menu-title="Applications" allow-extra-path="true">
     <!-- NOTE: require-authentication=false so no permission required but in pre-actions if no user logged in goes to login screen -->
 
-    <transition name="ScreenTree"><default-response url="../ScreenTree"/></transition>
-    <transition name="setPreference">
-        <parameter name="preferenceKey"/><parameter name="preferenceValue"/>
-        <actions><script>ec.user.setPreference(preferenceKey, preferenceValue)</script></actions>
-        <default-response type="none"/>
-    </transition>
-    <transition name="setPrefGoLast" read-only="true">
-        <parameter name="preferenceKey"/><parameter name="preferenceValue"/>
-        <actions><script>ec.user.setPreference(preferenceKey, preferenceValue)</script></actions>
-        <default-response type="screen-last"/>
-    </transition>
-
     <pre-actions><script><![CDATA[
         // if user not logged in save current path and params then redirect to Login
         if (!ec.user.userId) { ec.web.saveScreenLastInfo(null, null); sri.sendRedirectAndStopRender('/Login') }
@@ -74,8 +62,7 @@ along with this software (see the LICENSE.md file). If not, see
         <render-mode>
             <!-- for html just render the navbar (Vue page wrapper and nav component) -->
             <text type="html" location="component://webroot/screen/includes/WebrootVue.vuet.ftl"/>
-            <!-- for anything else render the subscreen, same as subscreens-active -->
-            <text template="true">${sri.renderSubscreen()}</text>
+            <!-- not meant to be used for anything else, for all other render modes go directly through /apps -->
         </render-mode>
     </widgets>
 </screen>
