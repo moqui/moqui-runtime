@@ -628,6 +628,8 @@ var webrootVue = new Vue({
                 var ssIdx = href.indexOf('//');
                 if (ssIdx >= 0) { var slIdx = href.indexOf('/', ssIdx + 1); if (slIdx == -1) { return; } href = href.slice(slIdx); }
                 var splitHref = href.split("?");
+                // clear out extra path, to be set from nav menu data if needed
+                this.extraPathList = [];
                 // set currentSearch before currentPath so that it is available when path updates
                 if (splitHref.length > 1 && splitHref[1].length > 0) { this.currentSearch = splitHref[1]; } else { this.currentSearch = ""; }
                 this.currentPath = splitHref[0];
