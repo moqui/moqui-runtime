@@ -92,11 +92,20 @@ function handleAjaxError(jqXHR, textStatus, errorThrown) {
 }
 // NOTE: this may eventually split to change the activeSubscreens only on currentPathList change (for screens that support it)
 //     and if ever needed some sort of data refresh if currentParameters changes
-function loadComponent(url, callback, divId) {
-    var questIdx = url.indexOf('?');
-    var path = questIdx > 0 ? url.slice(0, questIdx) : url;
-    var isJsPath = path.slice(-3) == '.js';
-    if (isJsPath) { url = path; } else { url = path + '.vuet' + (questIdx > 0 ? url.slice(questIdx)  : ''); }
+function loadComponent(urlInfo, callback, divId) {
+    var path, extraPath, search;
+    if (typeof urlInfo === 'string') {
+        var questIdx = urlInfo.indexOf('?');
+        if (questIdx > 0) { path = urlInfo.slice(0, questIdx); search = urlInfo.slice(questIdx+1); }
+        else { path = urlInfo; }
+    } else {
+        path = urlInfo.path; extraPath = urlInfo.extraPath; search = urlInfo.search;
+    }
+    var url = path; var isJsPath = (path.slice(-3) == '.js');
+    if (!isJsPath) url += '.vuet';
+    if (extraPath && extraPath.length > 0) url += ('/' + extraPath);
+    if (search && search.length > 0) url += ('?' + search);
+
     console.log("loadComponent " + url + (divId ? " id " + divId : ''));
     $.ajax({ type:"GET", url:url, error:handleAjaxError, success: function(resp) {
         // console.log(resp);
@@ -477,13 +486,13 @@ Vue.component('subscreens-active', {
         var newPath = curPathList[pathIndex];
         this.pathName = newPath;
         if (!newPath || newPath.length === 0) { this.activeComponent = EmptyComponent; return; }
-        var newUrl = root.basePath + '/' + curPathList.slice(0, pathIndex + 1).join('/');
+        var urlInfo = { path: root.basePath + '/' + curPathList.slice(0, pathIndex + 1).join('/') };
         if (pathIndex == (curPathList.length - 1)) {
-            var extra = root.extraPathList; if (extra && extra.length > 0) { newUrl += ('/' + extra.join('/')); } }
-        var search = root.currentSearch; if (search && search.length > 0) newUrl += ('?' + search);
-        console.log('subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' newUrl ' + newUrl);
+            var extra = root.extraPathList; if (extra && extra.length > 0) { urlInfo.extraPath = extra.join('/'); } }
+        var search = root.currentSearch; if (search && search.length > 0) { urlInfo.search = search; }
+        console.log('subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
         root.loading++;
-        loadComponent(newUrl, function(comp) { vm.activeComponent = comp; root.loading--; });
+        loadComponent(urlInfo, function(comp) { vm.activeComponent = comp; root.loading--; });
     }},
     mounted: function() { this.$root.addSubscreen(this); }
 });
