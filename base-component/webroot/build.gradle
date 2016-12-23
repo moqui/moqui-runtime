@@ -24,57 +24,57 @@ def libPath = "screen/webroot/libs"
 def downloadBase = "http://cdnjs.cloudflare.com/ajax/libs/"
 
 def fileMap = [
-        "twitter-bootstrap/3.3.7/css/bootstrap.min.css":"",
-        "twitter-bootstrap/3.3.7/js/bootstrap.min.js":"",
-        "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.eot":"",
-        "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.svg":"",
-        "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.ttf":"",
-        "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff":"",
-        "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff2":"",
+    "twitter-bootstrap/3.3.7/css/bootstrap.min.css":"",
+    "twitter-bootstrap/3.3.7/js/bootstrap.min.js":"",
+    "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.eot":"",
+    "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.svg":"",
+    "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.ttf":"",
+    "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff":"",
+    "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff2":"",
 
-        "bootstrap-datetimepicker/4.17.43/css/bootstrap-datetimepicker.min.css":"",
-        "bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js":"",
+    "bootstrap-datetimepicker/4.17.43/css/bootstrap-datetimepicker.min.css":"",
+    "bootstrap-datetimepicker/4.17.43/js/bootstrap-datetimepicker.min.js":"",
 
-        "mouse0270-bootstrap-notify/3.1.5/bootstrap-notify.min.js":"",
+    "mouse0270-bootstrap-notify/3.1.5/bootstrap-notify.min.js":"",
 
-        "font-awesome/4.7.0/css/font-awesome.min.css":"",
-        "font-awesome/4.7.0/fonts/FontAwesome.otf":"",
-        "font-awesome/4.7.0/fonts/fontawesome-webfont.eot":"",
-        "font-awesome/4.7.0/fonts/fontawesome-webfont.svg":"",
-        "font-awesome/4.7.0/fonts/fontawesome-webfont.ttf":"",
-        "font-awesome/4.7.0/fonts/fontawesome-webfont.woff":"",
-        "font-awesome/4.7.0/fonts/fontawesome-webfont.woff2":"",
+    "font-awesome/4.7.0/css/font-awesome.min.css":"",
+    "font-awesome/4.7.0/fonts/FontAwesome.otf":"",
+    "font-awesome/4.7.0/fonts/fontawesome-webfont.eot":"",
+    "font-awesome/4.7.0/fonts/fontawesome-webfont.svg":"",
+    "font-awesome/4.7.0/fonts/fontawesome-webfont.ttf":"",
+    "font-awesome/4.7.0/fonts/fontawesome-webfont.woff":"",
+    "font-awesome/4.7.0/fonts/fontawesome-webfont.woff2":"",
 
-        "jeditable.js/1.7.3/jeditable.min.js":"",
+    "jeditable.js/1.7.3/jeditable.min.js":"",
 
-        "jquery/2.2.4/jquery.min.js":"",
+    "jquery/2.2.4/jquery.min.js":"",
 
-        "jquery.form/3.51/jquery.form.min.js":"",
+    "jquery.form/3.51/jquery.form.min.js":"",
 
-        // can get jquery-sortable-lists from cdnjs? http://camohub.github.io/jquery-sortable-lists/
+    // can get jquery-sortable-lists from cdnjs? http://camohub.github.io/jquery-sortable-lists/
 
-        "jquery-validate/1.15.1/jquery.validate.min.js":"",
-        "jquery-validate/1.15.1/additional-methods.min.js":"",
+    "jquery-validate/1.15.1/jquery.validate.min.js":"",
+    "jquery-validate/1.15.1/additional-methods.min.js":"",
 
-        "jstree/3.3.3/jstree.min.js":"",
-        "jstree/3.3.3/themes/default/style.min.css":"",
-        "jstree/3.3.3/themes/default/32px.png":"",
-        "jstree/3.3.3/themes/default/40px.png":"",
-        "jstree/3.3.3/themes/default/throbber.gif":"",
+    "jstree/3.3.3/jstree.min.js":"",
+    "jstree/3.3.3/themes/default/style.min.css":"",
+    "jstree/3.3.3/themes/default/32px.png":"",
+    "jstree/3.3.3/themes/default/40px.png":"",
+    "jstree/3.3.3/themes/default/throbber.gif":"",
 
-        "moment.js/2.17.0/moment-with-locales.min.js":"",
+    "moment.js/2.17.0/moment-with-locales.min.js":"",
 
-        // js/select2/select2.min.js 4.0.3 has small changes so that widths are handled properly, so not in download list
-        "select2/4.0.3/css/select2.min.css":"",
-        "select2-bootstrap-theme/0.1.0-beta.9/select2-bootstrap.min.css":"",
+    // js/select2/select2.min.js 4.0.3 has small changes so that widths are handled properly, so not in download list
+    "select2/4.0.3/css/select2.min.css":"",
+    "select2-bootstrap-theme/0.1.0-beta.9/select2-bootstrap.min.css":"",
 
-        "Selectivity.js/2.1.0/selectivity-full.min.js":"",
-        "Selectivity.js/2.1.0/selectivity-full.min.css":"",
+    "Selectivity.js/2.1.0/selectivity-full.min.js":"",
+    "Selectivity.js/2.1.0/selectivity-full.min.css":"",
 
-        "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
+    "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
-        "vue/2.1.6/vue.js":"", // TODO: remove this, change to min in apps.xml
-        "vue/2.1.6/vue.min.js":""
+    "vue/2.1.6/vue.js":"", // TODO: remove this, change to min in apps.xml
+    "vue/2.1.6/vue.min.js":""
 ]
 
 String getTargetPath(String sourcePath, String targetPath) {
