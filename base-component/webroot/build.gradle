@@ -12,6 +12,14 @@
  * <http://creativecommons.org/publicdomain/zero/1.0/>.
  */
 
+plugins {
+    id "com.eriwen.gradle.js" version "2.14.1"
+}
+minifyJs {
+    source = file("screen/webroot/js/WebrootVue.js")
+    dest = file("screen/webroot/js/WebrootVue.min.js")
+}
+
 def libPath = "screen/webroot/libs"
 def downloadBase = "http://cdnjs.cloudflare.com/ajax/libs/"
 
@@ -76,7 +84,6 @@ String getTargetPath(String sourcePath, String targetPath) {
     }
     return targetPath
 }
-
 task downloadFiles { doLast {
     for (Map.Entry fileEntry in fileMap.entrySet()) {
         String sourcePath = fileEntry.key
@@ -95,8 +102,6 @@ task downloadFiles { doLast {
 task build {
     dependsOn downloadFiles
 }
-
-
 task cleanFiles { doLast {
     delete file(libPath)
 } }

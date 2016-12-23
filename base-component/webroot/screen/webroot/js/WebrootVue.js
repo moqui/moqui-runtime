@@ -44,7 +44,7 @@
    - goal would be to use FTL macros to transform more detailed XML into library specific output
  */
 
-const notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
+var notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
 
 // simple stub for define if it doesn't exist (ie no require.js, etc); mimic pattern of require.js define()
 if (!window.define) window.define = function(name, deps, callback) {
@@ -125,26 +125,26 @@ function loadComponent(urlInfo, callback, divId) {
                 callback({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' });
             }
         } else if (resp === Object(resp)) {
-            if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.goto(resp.screenUrl); }
+            if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.setUrl(resp.screenUrl); }
             else if (resp.redirectUrl && resp.redirectUrl.length > 0) { window.location.replace(resp.redirectUrl); }
         } else { callback(NotFound); }
     }});
 }
 
 /* ========== placeholder components ========== */
-const NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
-const EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>' });
+var NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
+var EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>' });
 
 /* ========== inline components ========== */
 Vue.component('m-link', {
     props: { href:{type:String,required:true}, loadId:String },
     template: '<a :href="linkHref" @click.prevent="go"><slot></slot></a>',
     methods: { go: function() { if (this.loadId && this.loadId.length > 0) { this.$root.loadContainer(this.loadId, this.href); }
-        else { this.$root.goto(this.href); } }},
+        else { this.$root.setUrl(this.href); } }},
     computed: { linkHref: function () { return this.href.indexOf(this.$root.basePath) == 0 ? this.href.replace(this.$root.basePath, this.$root.linkBasePath) : this.href; } }
 });
 Vue.component('m-script', {
-    props: { src:String, type:{type:String,default:'text/javascript'} },
+    props: { src:String, type:{type:String,'default':'text/javascript'} },
     template: '<div :type="type" style="display:none;"><slot></slot></div>',
     created: function() { if (this.src && this.src.length > 0) { loadScript(this.src); } },
     mounted: function() {
@@ -162,7 +162,7 @@ Vue.component('m-script', {
     }
 });
 Vue.component('m-stylesheet', {
-    props: { href:{type:String,required:true}, rel:{type:String,default:'stylesheet'}, type:{type:String,default:'text/css'} },
+    props: { href:{type:String,required:true}, rel:{type:String,'default':'stylesheet'}, type:{type:String,'default':'text/css'} },
     template: '<div :type="type" style="display:none;"></div>',
     created: function() { loadStylesheet(this.href, this.rel, this.type); }
 });
@@ -178,7 +178,7 @@ Vue.component('container-box', { template:
 });
 Vue.component('box-body', { template: '<div class="panel-body"><slot></slot></div>' });
 Vue.component('container-dialog', {
-    props: { id:{type:String,required:true}, title:String, width:{type:String,default:'760'}, openDialog:{type:Boolean,default:false} },
+    props: { id:{type:String,required:true}, title:String, width:{type:String,'default':'760'}, openDialog:{type:Boolean,'default':false} },
     data: function() { return { isHidden:true, dialogStyle:{width:this.width + 'px'}}},
     template:
     '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">' +
@@ -210,8 +210,8 @@ Vue.component('dynamic-container', {
     mounted: function() { this.$root.addContainer(this.id, this); this.curUrl = this.url; }
 });
 Vue.component('dynamic-dialog', {
-    props: { id:{type:String,required:true}, url:{type:String,required:true}, title:String, width:{type:String,default:'760'},
-        openDialog:{type:Boolean,default:false} },
+    props: { id:{type:String,required:true}, url:{type:String,required:true}, title:String, width:{type:String,'default':'760'},
+        openDialog:{type:Boolean,'default':false} },
     data: function() { return { curComponent:EmptyComponent, curUrl:"", isHidden:true, dialogStyle:{width:this.width + 'px'}}},
     template:
     '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">' +
@@ -238,11 +238,11 @@ Vue.component('dynamic-dialog', {
 });
 /* ========== general field components ========== */
 Vue.component('m-editable', {
-    props: { id:{type:String,required:true}, labelType:{type:String,default:'span'}, labelValue:{type:String,required:true},
-        url:{type:String,required:true}, urlParameters:{type:Object,default:{}},
-        parameterName:{type:String,default:'value'}, widgetType:{type:String,default:'textarea'},
-        loadUrl:String, loadParameters:Object, indicator:{type:String,default:'Saving'}, tooltip:{type:String,default:'Click to edit'},
-        cancel:{type:String,default:'Cancel'}, submit:{type:String,default:'Save'} },
+    props: { id:{type:String,required:true}, labelType:{type:String,'default':'span'}, labelValue:{type:String,required:true},
+        url:{type:String,required:true}, urlParameters:{type:Object,'default':{}},
+        parameterName:{type:String,'default':'value'}, widgetType:{type:String,'default':'textarea'},
+        loadUrl:String, loadParameters:Object, indicator:{type:String,'default':'Saving'}, tooltip:{type:String,'default':'Click to edit'},
+        cancel:{type:String,'default':'Cancel'}, submit:{type:String,'default':'Save'} },
     mounted: function() {
         var reqData = $.extend({ moquiSessionToken:this.$root.moquiSessionToken, parameterName:this.parameterName }, this.urlParameters);
         var edConfig = { indicator:this.indicator, tooltip:this.tooltip, cancel:this.cancel, submit:this.submit,
@@ -253,12 +253,12 @@ Vue.component('m-editable', {
         }
         $(this.$el).editable(this.url, edConfig);
     },
-    render: function(createEl) { return createEl(this.labelType, { attrs:{ id:this.id, class:'editable-label' }, domProps: { innerHTML:this.labelValue } }); }
+    render: function(createEl) { return createEl(this.labelType, { attrs:{ id:this.id, 'class':'editable-label' }, domProps: { innerHTML:this.labelValue } }); }
 });
 
 /* ========== form components ========== */
 Vue.component('m-form', {
-    props: { action:{type:String,required:true}, method:{type:String,default:'POST'},
+    props: { action:{type:String,required:true}, method:{type:String,'default':'POST'},
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean },
     data: function() { return { fields:{} }},
     template: '<form @submit.prevent="submitForm" class="validation-engine-init"><slot></slot></form>',
@@ -293,7 +293,7 @@ Vue.component('m-form', {
                     $.notify({ message:resp.messages[mi] }, $.extend({}, notifyOpts, {type:'info'})); notified = true; }
                 if (resp.errors) for (var ei=0; ei < resp.messages.length; ei++) {
                     $.notify({ message:resp.messages[ei] }, $.extend({}, notifyOpts, {delay:60000, type:'danger'})); notified = true; }
-                if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.goto(resp.screenUrl); }
+                if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.setUrl(resp.screenUrl); }
                 else if (resp.redirectUrl && resp.redirectUrl.length > 0) { window.location.href = resp.redirectUrl; }
             } else { console.log('m-form no reponse or non-JSON response: ' + JSON.stringify(resp)) }
             if (this.submitHideId && this.submitHideId.length > 0) { $('#' + this.submitHideId).modal('hide'); }
@@ -343,7 +343,7 @@ Vue.component('form-link', {
                 }
                 var url = this.action;
                 if (url.indexOf('?') > 0) { url = url + '&' + parmStr; } else { url = url + '?' + parmStr; }
-                this.$root.goto(url);
+                this.$root.setUrl(url);
             }
         }
     },
@@ -496,13 +496,13 @@ Vue.component('subscreens-active', {
     }},
     mounted: function() { this.$root.addSubscreen(this); }
 });
-const webrootVue = new Vue({
+var webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{},
         navMenuList:[], navHistoryList:[], navPlugins:[], lastNavTime:Date.now(), loading:0, activeContainers:{},
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", notificationClient:null },
     methods: {
-        goto: function (url) {
+        setUrl: function (url) {
             // make sure any open modals are closed before setting currentUrl
             $('.modal.in').modal('hide');
             if (url.indexOf(this.basePath) == 0) url = url.replace(this.basePath, this.linkBasePath);
@@ -656,4 +656,4 @@ const webrootVue = new Vue({
         this.notificationClient.registerListener("ALL");
     }
 });
-window.addEventListener('popstate', function() { webrootVue.goto(window.location.pathname + window.location.search); });
+window.addEventListener('popstate', function() { webrootVue.setUrl(window.location.pathname + window.location.search); });
