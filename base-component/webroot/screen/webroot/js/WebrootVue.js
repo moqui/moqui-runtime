@@ -1,8 +1,6 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 /* TODO:
- - to properly handle extraPathList and parameters change loadComponent to have 3 args instead of url: path, extraPath, parameters
-
  - going to minimal path causes menu reload; avoid? better to cache menus and do partial requests...
  - add screen attribute to flag as cache-able (better term... static?)
    - cache rendered screen on server (for render modes that support it, any that is always last standalone?)
@@ -133,7 +131,7 @@ function loadComponent(urlInfo, callback, divId) {
 
 /* ========== placeholder components ========== */
 var NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
-var EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>' });
+var EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>Loading…</div></div></div>' });
 
 /* ========== inline components ========== */
 Vue.component('m-link', {

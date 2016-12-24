@@ -79,7 +79,7 @@ along with this software (see the LICENSE.md file). If not, see
                         {{histItem.title}}</m-link></li>
                 </ul>
             </div>
-            <div class="btn btn-default btn-sm navbar-btn navbar-right" :class="{ hidden: loading < 1 }"><img src="/images/wait_anim_16x16.gif" alt="Loading..."></div>
+            <div class="navbar-right" style="padding:8px;" :class="{ hidden: loading < 1 }"><div class="spinner small"><div>Loading…</div></div></div>
         </div>
     </div></nav></div>
     </#if>
