@@ -45,6 +45,8 @@ form { display: inline; }
 
 a.disabled { pointer-events: none; text-decoration: none; }
 
+ul.tree-list, ul.tree-list ul { list-style-type: none; padding: 4px 4px 4px 20px; }
+
 /* ======================= XML Screen Styles ======================= */
 
 /* styles for non-dynamic table layout, not using jquery-layout */

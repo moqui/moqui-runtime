@@ -155,6 +155,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro tree>
     <#assign ajaxUrlInfo = sri.makeUrlByType(.node["@transition"]!"getTreeSubNodes", "transition", .node, "true")>
     <#assign ajaxParms = ajaxUrlInfo.getParameterMap()>
+    <tree-top id="foo${.node["@name"]}" items="${ajaxUrlInfo.path}" open-path="${ec.getResource().expandNoL10n(.node["@open-path"], "")}"
+              :parameters="{<#list ajaxParms.keySet() as pKey>'${pKey}':'${ajaxParms.get(pKey)!""}'<#sep>,</#list>}"></tree-top>
+
     <div id="${.node["@name"]}"></div>
     <m-script>
     $("#${.node["@name"]}").bind('select_node.jstree', function(e,data) {window.location.href = data.node.a_attr.href;}).jstree({

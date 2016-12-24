@@ -43,12 +43,19 @@
  */
 
 var notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
+var util = {
+    isString: function(obj) { return typeof obj === 'string'; },
+    isBoolean: function(obj) { return typeof obj === 'boolean'; },
+    isNumber: function(obj) { return typeof obj === 'number'; },
+    isArray: function(obj) { return Object.prototype.toString.call(obj) === '[object Array]'; },
+    isFunction: function(obj) { return Object.prototype.toString.call(obj) === '[object Function]'; }
+};
 
 // simple stub for define if it doesn't exist (ie no require.js, etc); mimic pattern of require.js define()
 if (!window.define) window.define = function(name, deps, callback) {
-    if (typeof name !== 'string') { callback = deps; deps = name; name = null; }
-    if (Object.prototype.toString.call(deps) !== '[object Array]') { callback = deps; deps = null; }
-    if (Object.prototype.toString.call(callback) === '[object Function]') { return callback(); } else { return callback }
+    if (!util.isString(name)) { callback = deps; deps = name; name = null; }
+    if (!util.isArray(deps)) { callback = deps; deps = null; }
+    if (util.isFunction(callback)) { return callback(); } else { return callback }
 };
 
 /* ========== script and stylesheet handling methods ========== */
@@ -108,7 +115,7 @@ function loadComponent(urlInfo, callback, divId) {
     $.ajax({ type:"GET", url:url, error:handleAjaxError, success: function(resp) {
         // console.log(resp);
         if (!resp) { callback(NotFound); }
-        if (Object.prototype.toString.call(resp) == '[object String]' && resp.length > 0) {
+        if (util.isString(resp) && resp.length > 0) {
             if (isJsPath || resp.slice(0,7) == 'define(') {
                 console.log("loaded JS from " + url + (divId ? " id " + divId : ""));
                 var compObj = eval(resp);
@@ -234,6 +241,54 @@ Vue.component('dynamic-dialog', {
         if (this.openDialog) { jqEl.modal('show'); }
     }
 });
+Vue.component('tree-top', {
+    template: '<ul :id="id" class="tree-list"><tree-item v-for="model in itemList" :model="model" :top="top"/></ul>',
+    props: { id:{type:String,required:true}, items:{type:[String,Array],required:true}, openPath:String, parameters:Object },
+    data: function() { return { urlItems:null, currentPath:null, top:this }},
+    computed: {
+        itemList: function() { if (this.urlItems) { return this.urlItems; } return util.isArray(this.items) ? this.items : []; }
+    },
+    methods: { },
+    mounted: function() { if (util.isString(this.items)) {
+        this.currentPath = this.openPath;
+        var allParms = $.extend({ moquiSessionToken:this.$root.moquiSessionToken, treeNodeId:'#', treeOpenPath:this.openPath }, this.parameters);
+        // console.log('tree-top parms ' + JSON.stringify(allParms));
+        var vm = this; $.ajax({ type:'POST', dataType:'json', url:this.items, headers:{Accept:'application/json'}, data:allParms,
+            error:handleAjaxError, success:function(resp) { vm.urlItems = resp; /*console.log('tree-top response ' + JSON.stringify(resp));*/ } });
+    }}
+});
+Vue.component('tree-item', {
+    template:
+    '<li :id="model.id">' +
+        '<i v-if="isFolder" @click="toggle" class="glyphicon" :class="{\'glyphicon-chevron-right\':!open, \'glyphicon-chevron-down\':open}"></i>' +
+        '<span v-else style="width:1em;display:inline-block;"></span>' +
+        ' <span @click="setSelected"><m-link :href="model.a_attr.urlText" :load-id="model.a_attr.loadId" :class="{\'text-danger\':selected}">{{model.text}}</m-link></span>' +
+        '<ul v-show="open" v-if="hasChildren"><tree-item v-for="model in model.children" :model="model" :top="top"/></ul></li>',
+    props: { model:Object, top:Object },
+    data: function() { return { open:false }},
+    computed: {
+        isFolder: function() { var children = this.model.children; if (!children) { return false; }
+            if (util.isArray(children)) { return children.length > 0 } return true; },
+        hasChildren: function() { var children = this.model.children; return util.isArray(children) && children.length > 0; },
+        selected: function() { return this.top.currentPath == this.model.id; }
+    },
+    watch: { open: function(newVal) { if (newVal) {
+        var children = this.model.children;
+        var url = this.top.items;
+        if (this.open && children && util.isBoolean(children) && util.isString(url)) {
+            var li_attr = this.model.li_attr;
+            var allParms = $.extend({ moquiSessionToken:this.$root.moquiSessionToken, treeNodeId:this.model.id,
+                treeNodeName:(li_attr && li_attr.treeNodeName ? li_attr.treeNodeName : ''), treeOpenPath:this.top.currentPath }, this.parameters);
+            var vm = this; $.ajax({ type:'POST', dataType:'json', url:url, headers:{Accept:'application/json'}, data:allParms,
+                error:handleAjaxError, success:function(resp) { vm.model.children = resp; } });
+        }
+    }}},
+    methods: {
+        toggle: function() { if (this.isFolder) { this.open = !this.open; } },
+        setSelected: function() { this.top.currentPath = this.model.id; this.open = true; }
+    },
+    mounted: function() { if (this.model.state && this.model.state.opened) { this.open = true; } }
+});
 /* ========== general field components ========== */
 Vue.component('m-editable', {
     props: { id:{type:String,required:true}, labelType:{type:String,'default':'span'}, labelValue:{type:String,required:true},
@@ -273,10 +328,8 @@ Vue.component('m-form', {
                 for (var i=0; i<parmList.length; i++) {
                     var parm = parmList[i];
                     var cur = allParms[parm.name];
-                    if (cur) {
-                         if (Object.prototype.toString.call(cur) === '[object Array]') { cur.push(parm.value); }
-                         else { allParms[parm.name] = [cur, parm.value]; }
-                    } else { allParms[parm.name] = parm.value; }
+                    if (cur) { if (util.isArray(cur)) { cur.push(parm.value); } else { allParms[parm.name] = [cur, parm.value]; } }
+                    else { allParms[parm.name] = parm.value; }
                 }
                 // console.log('m-form parameters ' + JSON.stringify(allParms));
                 $.ajax({ type:this.method, url:this.action, data:allParms, headers:{Accept:'application/json'},
