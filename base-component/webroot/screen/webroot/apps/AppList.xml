@@ -70,6 +70,7 @@ along with this software (see the LICENSE.md file). If not, see
                     </section>
                 </widgets>
             </section-iterate>
+            <render-mode><text type="html"><![CDATA[<a href="/vapps">Try the new dynamic interface (beta)</a>]]></text></render-mode>
         </container>
     </widgets>
 </screen>
