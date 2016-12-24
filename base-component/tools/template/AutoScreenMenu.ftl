@@ -13,7 +13,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#assign baseUrlInfo = sri.buildUrlInfo("AutoEditDetail")>
 <div id="auto-menu">
     <ul id="auto-edit-tabs" class="nav nav-tabs" role="tablist">
-        <#assign urlInstance = sri.buildUrlInfo("AutoEditMaster").getInstance(sri, false).addParameter("aen", aen).addParameters(masterPrimaryKeyMap)>
+        <#assign urlInstance = sri.buildUrlInfo("AutoEditMaster").getInstance(sri, false).addParameter("aen", aen).addParameters(masterPrimaryKeyMap).removeParameter("den")>
         <li class="<#if urlInstance.inCurrentScreenPath>active</#if>">
             <a href="${urlInstance.minimalPathUrlWithParams}">${ec.entity.getEntityDefinition(aen).getPrettyName(null, null)}</a></li>
     <#list relationshipInfoList as relationshipInfo>
