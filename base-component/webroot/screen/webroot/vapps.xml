@@ -43,7 +43,7 @@ along with this software (see the LICENSE.md file). If not, see
         // Notify/Growl (Bootstrap Notify)
         html_scripts.add('/libs/mouse0270-bootstrap-notify/bootstrap-notify.min.js')
         // Tree (JSTree)
-        html_scripts.add('/libs/jstree/jstree.min.js')
+        // now using tree-top vue component: html_scripts.add('/libs/jstree/jstree.min.js')
         // Inline Editable
         html_scripts.add('/libs/jeditable.js/jeditable.min.js')
         // Sortable Hierarchical List

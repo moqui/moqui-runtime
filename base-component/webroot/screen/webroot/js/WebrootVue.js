@@ -278,7 +278,8 @@ Vue.component('tree-item', {
         if (this.open && children && util.isBoolean(children) && util.isString(url)) {
             var li_attr = this.model.li_attr;
             var allParms = $.extend({ moquiSessionToken:this.$root.moquiSessionToken, treeNodeId:this.model.id,
-                treeNodeName:(li_attr && li_attr.treeNodeName ? li_attr.treeNodeName : ''), treeOpenPath:this.top.currentPath }, this.parameters);
+                treeNodeName:(li_attr && li_attr.treeNodeName ? li_attr.treeNodeName : ''), treeOpenPath:this.top.currentPath }, this.top.parameters);
+            // console.log('tree-item parms ' + JSON.stringify(allParms));
             var vm = this; $.ajax({ type:'POST', dataType:'json', url:url, headers:{Accept:'application/json'}, data:allParms,
                 error:handleAjaxError, success:function(resp) { vm.model.children = resp; } });
         }

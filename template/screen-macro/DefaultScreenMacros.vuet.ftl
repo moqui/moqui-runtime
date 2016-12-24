@@ -155,25 +155,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro tree>
     <#assign ajaxUrlInfo = sri.makeUrlByType(.node["@transition"]!"getTreeSubNodes", "transition", .node, "true")>
     <#assign ajaxParms = ajaxUrlInfo.getParameterMap()>
-    <tree-top id="foo${.node["@name"]}" items="${ajaxUrlInfo.path}" open-path="${ec.getResource().expandNoL10n(.node["@open-path"], "")}"
+    <tree-top id="${.node["@name"]}" items="${ajaxUrlInfo.path}" open-path="${ec.getResource().expandNoL10n(.node["@open-path"], "")}"
               :parameters="{<#list ajaxParms.keySet() as pKey>'${pKey}':'${ajaxParms.get(pKey)!""}'<#sep>,</#list>}"></tree-top>
-
-    <div id="${.node["@name"]}"></div>
-    <m-script>
-    $("#${.node["@name"]}").bind('select_node.jstree', function(e,data) {window.location.href = data.node.a_attr.href;}).jstree({
-        "core" : { "themes" : { "url" : false, "dots" : true, "icons" : false }, "multiple" : false,
-            'data' : {
-                dataType: 'json', type: 'POST',
-                url: function (node) { return '${ajaxUrlInfo.url}'; },
-                data: function (node) { return { treeNodeId: node.id,
-                    treeNodeName: (node.li_attr && node.li_attr.treeNodeName ? node.li_attr.treeNodeName : ''),
-                    moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
-                    <#t><#if .node["@open-path"]??>, treeOpenPath: "${ec.getResource().expandNoL10n(.node["@open-path"], "")}"</#if>
-                    <#t><#list ajaxParms.keySet() as pKey>, "${pKey}": "${ajaxParms.get(pKey)!""}"</#list> }; }
-            }
-        }
-    });
-    </m-script>
 </#macro>
 <#macro "tree-node"><#-- shouldn't be called directly, but just in case --></#macro>
 <#macro "tree-sub-node"><#-- shouldn't be called directly, but just in case --></#macro>
