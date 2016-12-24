@@ -28,6 +28,9 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <!-- NOTE: this template will take care of the active subscreen, if needed; it's not needed for the dynamic menu -->
-        <render-mode><text type="html,vuet" location="component://tools/template/AutoScreenMenu.ftl"/></render-mode>
+        <render-mode>
+            <text type="html" location="component://tools/template/AutoScreenMenu.ftl"/>
+            <text type="vuet" location="component://tools/template/AutoScreenMenu.vuet.ftl"/>
+        </render-mode>
     </widgets>
 </screen>

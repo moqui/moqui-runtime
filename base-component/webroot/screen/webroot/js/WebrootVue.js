@@ -85,8 +85,8 @@ function handleAjaxError(jqXHR, textStatus, errorThrown) {
     console.log('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response text: ' + jqXHR.responseText);
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status == 401) { if (webrootVue) { window.location.href = webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
-    else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, notifyOpts, {delay:10000, type:'danger'})); }
-    else { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, notifyOpts, {delay:10000, type:'danger'})); }
+    else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, notifyOpts, {delay:30000, type:'danger'})); }
+    else { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, notifyOpts, {delay:30000, type:'danger'})); }
 }
 // NOTE: this may eventually split to change the activeSubscreens only on currentPathList change (for screens that support it)
 //     and if ever needed some sort of data refresh if currentParameters changes

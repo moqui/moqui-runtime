@@ -14,17 +14,17 @@ along with this software (see the LICENSE.md file). If not, see
 <div id="auto-menu">
     <ul id="auto-edit-tabs" class="nav nav-tabs" role="tablist">
         <#assign urlInstance = sri.buildUrlInfo("AutoEditMaster").getInstance(sri, false).addParameter("aen", aen).addParameters(masterPrimaryKeyMap)>
-        <li class="<#if urlInstance.inCurrentScreenPath>active</#if>">
-            <a href="${urlInstance.minimalPathUrlWithParams}">${ec.entity.getEntityDefinition(aen).getPrettyName(null, null)}</a></li>
+        <li class="<#if !den?has_content>active</#if>">
+            <m-link href="${urlInstance.pathWithParams}">${ec.entity.getEntityDefinition(aen).getPrettyName(null, null)}</m-link></li>
     <#list relationshipInfoList as relationshipInfo>
         <#assign curKeyMap = relationshipInfo.getTargetParameterMap(context)>
         <#if curKeyMap?has_content>
             <#assign urlInstance = baseUrlInfo.getInstance(sri, false).addParameters(masterPrimaryKeyMap)
                     .addParameter("den", relationshipInfo.riRelatedEntityName()).addParameter("aen", aen).addParameters(curKeyMap)>
-            <li class="<#if urlInstance.inCurrentScreenPath && relationshipInfo.riRelatedEntityName() == den!>active</#if>">
-                <a href="${urlInstance.minimalPathUrlWithParams}">${relationshipInfo.riPrettyName()}</a></li>
+            <li class="<#if relationshipInfo.riRelatedEntityName() == den!>active</#if>">
+                <m-link href="${urlInstance.pathWithParams}">${relationshipInfo.riPrettyName()}</m-link></li>
         </#if>
     </#list>
     </ul>
-    ${sri.renderSubscreen()}
+    <subscreens-active/>
 </div>
