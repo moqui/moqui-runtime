@@ -4,8 +4,6 @@
  - going to minimal path causes menu reload; avoid? better to cache menus and do partial requests...
  - handle cache-able screens (nav menu data screenStatic=true)
    - cache rendered screen on server (for render modes that support it, any that is always last standalone?)
-   - cache here in loadComponent (50? item LRU)
-   - handle placeholder screens (subscreens-active only) differently? detect by trimmed string and use list of known placeholder only so don't take up space in component cache
 
  - use vue-aware widgets or add vue component wrappers for scripts and widgets
  - remove as many inline m-script elements as possible...
@@ -95,6 +93,7 @@ function LruMap(limit) {
         if (value) { this._keyUsed(key); }
         return value;
     };
+    this.containsKey = function (key) { return !!this.valueMap[key]; };
     this._keyUsed = function(key) {
         var lruList = this.lruList;
         var lruIdx = -1;
@@ -572,15 +571,19 @@ Vue.component('subscreens-active', {
     methods: { loadActive: function() {
         var vm = this; var root = vm.$root; var pathIndex = vm.pathIndex; var curPathList = root.currentPathList;
         var newPath = curPathList[pathIndex];
+        var pathChanged = (this.pathName != newPath);
         this.pathName = newPath;
-        if (!newPath || newPath.length === 0) { this.activeComponent = EmptyComponent; return; }
-        var urlInfo = { path: root.basePath + '/' + curPathList.slice(0, pathIndex + 1).join('/') };
+        if (!newPath || newPath.length === 0) { this.activeComponent = EmptyComponent; return true; }
+        var fullPath = root.basePath + '/' + curPathList.slice(0, pathIndex + 1).join('/');
+        if (!pathChanged && componentCache.containsKey(fullPath)) { return false; } // no need to reload component
+        var urlInfo = { path:fullPath };
         if (pathIndex == (curPathList.length - 1)) {
             var extra = root.extraPathList; if (extra && extra.length > 0) { urlInfo.extraPath = extra.join('/'); } }
         var search = root.currentSearch; if (search && search.length > 0) { urlInfo.search = search; }
         console.log('subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
         root.loading++;
         loadComponent(urlInfo, function(comp) { vm.activeComponent = comp; root.loading--; });
+        return true;
     }},
     mounted: function() { this.$root.addSubscreen(this); }
 });
@@ -645,15 +648,10 @@ var webrootVue = new Vue({
             if (fullPathList.length == 0 && this.activeSubscreens.length > 0) { this.activeSubscreens[0].loadActive(); this.activeSubscreens.splice(1); return; }
             for (var i=0; i<this.activeSubscreens.length; i++) {
                 if (i >= fullPathList.length) break;
-                var newName = fullPathList[i];
-                var curName = this.activeSubscreens[i].pathName;
-                // console.log('set currentPathList idx ' + i + ' curName ' + curName + ' newName ' + newName);
-                if (newName != curName || i == (fullPathList.length - 1)) {
-                    // update the pathName at the current position to load the new component
-                    this.activeSubscreens[i].loadActive();
-                    // clear out remaining activeSubscreens, after first changed loads its placeholders will register and load
-                    this.activeSubscreens.splice(i+1);
-                }
+                // always try loading the active subscreen and see if actually loaded
+                var loaded = this.activeSubscreens[i].loadActive();
+                // clear out remaining activeSubscreens, after first changed loads its placeholders will register and load
+                if (loaded) this.activeSubscreens.splice(i+1);
             }
 
             // update history and document.title
