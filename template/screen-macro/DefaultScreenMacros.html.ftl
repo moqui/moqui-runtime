@@ -368,7 +368,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
 <#-- ============== Tree ============== -->
 <#macro tree>
-    <#assign ajaxUrlInfo = sri.makeUrlByType(.node["@transition"]!"getTreeSubNodes", "transition", .node, "true")>
+    <#if .node["@transition"]?has_content>
+        <#assign ajaxUrlInfo = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
+        <#assign itemsUrl = ajaxUrlInfo.url>
+    <#else>
+        <#assign ajaxUrlInfo = sri.makeUrlByType("actions", "transition", .node, "true")>
+        <#assign itemsUrl = ajaxUrlInfo.url + "/" + .node["@name"]>
+    </#if>
     <#assign ajaxParms = ajaxUrlInfo.getParameterMap()>
 
     <div id="${.node["@name"]}"></div>
@@ -377,7 +383,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         "core" : { "themes" : { "url" : false, "dots" : true, "icons" : false }, "multiple" : false,
             'data' : {
                 dataType: 'json', type: 'POST',
-                url: function (node) { return '${ajaxUrlInfo.url}'; },
+                url: function (node) { return '${itemsUrl}'; },
                 data: function (node) { return { treeNodeId: node.id,
                     treeNodeName: (node.li_attr && node.li_attr.treeNodeName ? node.li_attr.treeNodeName : ''),
                     moquiSessionToken: "${(ec.getWeb().sessionToken)!}"

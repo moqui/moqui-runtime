@@ -2,7 +2,7 @@
 
 /* TODO:
  - going to minimal path causes menu reload; avoid? better to cache menus and do partial requests...
- - add screen attribute to flag as cache-able (better term... static?)
+ - add screen attribute to flag as cache-able (better term... server-static, attribute with render mode(s) like render-mode.text.@type)
    - cache rendered screen on server (for render modes that support it, any that is always last standalone?)
    - cache here in loadComponent (50? item LRU)
    - handle placeholder screens (subscreens-active only) differently? detect by trimmed string and use list of known placeholder only so don't take up space in component cache
