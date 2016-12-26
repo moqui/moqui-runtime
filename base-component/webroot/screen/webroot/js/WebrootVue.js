@@ -2,7 +2,7 @@
 
 /* TODO:
  - going to minimal path causes menu reload; avoid? better to cache menus and do partial requests...
- - add screen attribute to flag as cache-able (better term... server-static, attribute with render mode(s) like render-mode.text.@type)
+ - handle cache-able screens (nav menu data screenStatic=true)
    - cache rendered screen on server (for render modes that support it, any that is always last standalone?)
    - cache here in loadComponent (50? item LRU)
    - handle placeholder screens (subscreens-active only) differently? detect by trimmed string and use list of known placeholder only so don't take up space in component cache
@@ -107,8 +107,9 @@ function loadComponent(urlInfo, callback, divId) {
     if (search && search.length > 0) url += ('?' + search);
 
     console.log("loadComponent " + url + (divId ? " id " + divId : ''));
-    $.ajax({ type:"GET", url:url, error:handleAjaxError, success: function(resp) {
+    $.ajax({ type:"GET", url:url, error:handleAjaxError, success: function(resp, status, jqXHR) {
         // console.log(resp);
+        console.log("component " + url + " server static " + (jqXHR.getResponseHeader("X-Server-Static")));
         if (!resp) { callback(NotFound); }
         if (util.isString(resp) && resp.length > 0) {
             if (isJsPath || resp.slice(0,7) == 'define(') {
@@ -589,7 +590,7 @@ var webrootVue = new Vue({
             this.activeContainers = {};
             // update menu, which triggers update of screen/subscreen components
             $.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json", error:handleAjaxError, success: function(outerList) {
-                if (outerList) { vm.navMenuList = outerList; } }});
+                if (outerList) { vm.navMenuList = outerList; /*console.log('navMenuList ' + JSON.stringify(outerList));*/ } }});
         },
         navMenuList: function(newList) { if (newList.length > 0) {
             var cur = newList[newList.length - 1]; var par = newList.length > 1 ? newList[newList.length - 2] : null;
