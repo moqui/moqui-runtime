@@ -83,6 +83,28 @@ function retryInlineScript(src, count) {
 }
 
 /* ========== component loading methods ========== */
+function LruMap(limit) {
+    this.limit = limit; this.valueMap = {}; this.lruList = []; // end of list is least recently used
+    this.put = function(key, value) {
+        var lruList = this.lruList; var valueMap = this.valueMap;
+        valueMap[key] = value; this._keyUsed(key);
+        while (lruList.length > this.limit) { var rem = lruList.pop(); valueMap[rem] = null; }
+    };
+    this.get = function (key) {
+        var value = this.valueMap[key];
+        if (value) { this._keyUsed(key); }
+        return value;
+    };
+    this._keyUsed = function(key) {
+        var lruList = this.lruList;
+        var lruIdx = -1;
+        for (var i=0; i<lruList.length; i++) { if (lruList[i] == key) { lruIdx = i; break; }}
+        if (lruIdx >= 0) { lruList.splice(lruIdx,1); }
+        lruList.unshift(key);
+    };
+}
+var componentCache = new LruMap(50);
+
 function handleAjaxError(jqXHR, textStatus, errorThrown) {
     console.log('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response text: ' + jqXHR.responseText);
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
@@ -101,6 +123,16 @@ function loadComponent(urlInfo, callback, divId) {
     } else {
         path = urlInfo.path; extraPath = urlInfo.extraPath; search = urlInfo.search;
     }
+
+    // check cache
+    // console.log('component lru ' + JSON.stringify(componentCache.lruList));
+    var cachedComp = componentCache.get(path);
+    if (cachedComp) {
+        // console.log('found cached component for path ' + path);
+        callback(cachedComp); return;
+    }
+
+    // prep url
     var url = path; var isJsPath = (path.slice(-3) == '.js');
     if (!isJsPath) url += '.vuet';
     if (extraPath && extraPath.length > 0) url += ('/' + extraPath);
@@ -109,21 +141,29 @@ function loadComponent(urlInfo, callback, divId) {
     console.log("loadComponent " + url + (divId ? " id " + divId : ''));
     $.ajax({ type:"GET", url:url, error:handleAjaxError, success: function(resp, status, jqXHR) {
         // console.log(resp);
-        console.log("component " + url + " server static " + (jqXHR.getResponseHeader("X-Server-Static")));
         if (!resp) { callback(NotFound); }
+        var isServerStatic = (jqXHR.getResponseHeader("X-Server-Static") == "true");
         if (util.isString(resp) && resp.length > 0) {
             if (isJsPath || resp.slice(0,7) == 'define(') {
                 console.log("loaded JS from " + url + (divId ? " id " + divId : ""));
                 var compObj = eval(resp);
-                if (compObj.template) { callback(compObj); } else {
+                if (compObj.template) {
+                    if (isServerStatic) { componentCache.put(path, compObj); }
+                    callback(compObj);
+                } else {
                     var htmlUrl = (path.slice(-3) == '.js' ? path.slice(0, -3) : path) + '.vuet';
                     $.ajax({ type:"GET", url:htmlUrl, error:handleAjaxError, success: function (htmlText) {
-                        compObj.template = htmlText; callback(compObj); }});
+                        compObj.template = htmlText;
+                        if (isServerStatic) { componentCache.put(path, compObj); }
+                        callback(compObj);
+                    }});
                 }
             } else {
                 var templateText = resp.replace(/<script/g, '<m-script').replace(/<\/script>/g, '</m-script>').replace(/<link/g, '<m-stylesheet');
                 console.log("loaded HTML template from " + url + (divId ? " id " + divId : "") /*+ ": " + templateText*/);
-                callback({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' });
+                var compObj = { template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' };
+                if (isServerStatic) { componentCache.put(path, compObj); }
+                callback(compObj);
             }
         } else if (resp === Object(resp)) {
             if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.setUrl(resp.screenUrl); }
