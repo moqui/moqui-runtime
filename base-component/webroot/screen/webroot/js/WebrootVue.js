@@ -2,8 +2,6 @@
 
 /* TODO:
  - going to minimal path causes menu reload; avoid? better to cache menus and do partial requests...
- - handle cache-able screens (nav menu data screenStatic=true)
-   - cache rendered screen on server (for render modes that support it, any that is always last standalone?)
 
  - use vue-aware widgets or add vue component wrappers for scripts and widgets
  - remove as many inline m-script elements as possible...
@@ -127,7 +125,7 @@ function loadComponent(urlInfo, callback, divId) {
     // console.log('component lru ' + JSON.stringify(componentCache.lruList));
     var cachedComp = componentCache.get(path);
     if (cachedComp) {
-        // console.log('found cached component for path ' + path);
+        console.log('found cached component for path ' + path);
         callback(cachedComp); return;
     }
 
@@ -141,7 +139,7 @@ function loadComponent(urlInfo, callback, divId) {
     $.ajax({ type:"GET", url:url, error:handleAjaxError, success: function(resp, status, jqXHR) {
         // console.log(resp);
         if (!resp) { callback(NotFound); }
-        var isServerStatic = (jqXHR.getResponseHeader("X-Server-Static") == "true");
+        var isServerStatic = (jqXHR.getResponseHeader("Cache-Control").indexOf("max-age") >= 0);
         if (util.isString(resp) && resp.length > 0) {
             if (isJsPath || resp.slice(0,7) == 'define(') {
                 console.log("loaded JS from " + url + (divId ? " id " + divId : ""));
