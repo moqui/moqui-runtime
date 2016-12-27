@@ -1098,7 +1098,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign ownerForm = "">
         </table>
     </#if>
-    <#if hasSubColumns><m-script>makeColumnsConsistent('${formId}_table');</m-script></#if>
+    <#if hasSubColumns><m-script>moqui.makeColumnsConsistent('${formId}_table');</m-script></#if>
     <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
     <#assign skipForm = false>
 </#macro>

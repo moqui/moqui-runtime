@@ -1,5 +1,7 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
+var moqui = moqui || {};
 
+(function(moqui, $, Vue) {
 /* TODO:
  - going to minimal path causes menu reload; avoid? better to cache menus and do partial requests...
 
@@ -731,7 +733,7 @@ var webrootVue = new Vue({
         this.appHost = $("#appHost").val(); this.appRootPath = $("#appRootPath").val();
         this.basePath = $("#basePath").val(); this.linkBasePath = $("#linkBasePath").val();
         this.userId = $("#userId").val();
-        this.notificationClient = new NotificationClient("ws://" + this.appHost + this.appRootPath + "/notws");
+        this.notificationClient = new moqui.NotificationClient("ws://" + this.appHost + this.appRootPath + "/notws");
     },
     mounted: function() {
         $('.navbar [data-toggle="tooltip"]').tooltip();
@@ -743,3 +745,5 @@ var webrootVue = new Vue({
     }
 });
 window.addEventListener('popstate', function() { webrootVue.setUrl(window.location.pathname + window.location.search); });
+})(moqui, $, Vue);
+
