@@ -19,6 +19,7 @@ minifyJs {
     source = file("screen/webroot/js/WebrootVue.js")
     dest = file("screen/webroot/js/WebrootVue.min.js")
 }
+// TODO: before release change to minify on build, and change vapps.xml to use min version
 
 def libPath = "screen/webroot/libs"
 def downloadBase = "http://cdnjs.cloudflare.com/ajax/libs/"
@@ -73,8 +74,8 @@ def fileMap = [
 
     "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
-    "vue/2.1.6/vue.js":"", // TODO: remove this, change to min in apps.xml
-    "vue/2.1.6/vue.min.js":""
+    "vue/2.1.6/vue.js":"" // TODO: change to min here and in vapps.xml; currently using dev version for errors/warnings/etc
+    // NOTE 20161226: found issues with Vue 2.1.7 and list of components, ie navPlugins; and issue with navigating to parent screen from menu
 ]
 
 String getTargetPath(String sourcePath, String targetPath) {

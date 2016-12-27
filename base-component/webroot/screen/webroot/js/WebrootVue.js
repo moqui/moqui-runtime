@@ -72,8 +72,8 @@ function loadStylesheet(href, rel, type) {
 function retryInlineScript(src, count) {
     try { eval(src); } catch(e) {
         src = src.trim();
-        console.log('error ' + count + ' running inline script: ' + src.slice(0, 30) + '...');
-        console.log(e);
+        console.warn('error ' + count + ' running inline script: ' + src.slice(0, 30) + '...');
+        console.warn(e);
         if (count <= 5) setTimeout(retryInlineScript, 200, src, count+1);
     }
 }
@@ -103,7 +103,7 @@ function LruMap(limit) {
 var componentCache = new LruMap(50);
 
 function handleAjaxError(jqXHR, textStatus, errorThrown) {
-    console.log('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response text: ' + jqXHR.responseText);
+    console.error('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response text: ' + jqXHR.responseText);
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status == 401) { if (webrootVue) { window.location.href = webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
     else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, notifyOpts, {delay:30000, type:'danger'})); }
@@ -122,10 +122,10 @@ function loadComponent(urlInfo, callback, divId) {
     }
 
     // check cache
-    // console.log('component lru ' + JSON.stringify(componentCache.lruList));
+    // console.info('component lru ' + JSON.stringify(componentCache.lruList));
     var cachedComp = componentCache.get(path);
     if (cachedComp) {
-        console.log('found cached component for path ' + path);
+        console.info('found cached component for path ' + path);
         callback(cachedComp); return;
     }
 
@@ -135,29 +135,29 @@ function loadComponent(urlInfo, callback, divId) {
     if (extraPath && extraPath.length > 0) url += ('/' + extraPath);
     if (search && search.length > 0) url += ('?' + search);
 
-    console.log("loadComponent " + url + (divId ? " id " + divId : ''));
+    console.info("loadComponent " + url + (divId ? " id " + divId : ''));
     $.ajax({ type:"GET", url:url, error:handleAjaxError, success: function(resp, status, jqXHR) {
-        // console.log(resp);
+        // console.info(resp);
         if (!resp) { callback(NotFound); }
         var isServerStatic = (jqXHR.getResponseHeader("Cache-Control").indexOf("max-age") >= 0);
         if (util.isString(resp) && resp.length > 0) {
             if (isJsPath || resp.slice(0,7) == 'define(') {
-                console.log("loaded JS from " + url + (divId ? " id " + divId : ""));
-                var compObj = eval(resp);
-                if (compObj.template) {
-                    if (isServerStatic) { componentCache.put(path, compObj); }
-                    callback(compObj);
+                console.info("loaded JS from " + url + (divId ? " id " + divId : ""));
+                var jsCompObj = eval(resp);
+                if (jsCompObj.template) {
+                    if (isServerStatic) { componentCache.put(path, jsCompObj); }
+                    callback(jsCompObj);
                 } else {
                     var htmlUrl = (path.slice(-3) == '.js' ? path.slice(0, -3) : path) + '.vuet';
                     $.ajax({ type:"GET", url:htmlUrl, error:handleAjaxError, success: function (htmlText) {
-                        compObj.template = htmlText;
-                        if (isServerStatic) { componentCache.put(path, compObj); }
-                        callback(compObj);
+                        jsCompObj.template = htmlText;
+                        if (isServerStatic) { componentCache.put(path, jsCompObj); }
+                        callback(jsCompObj);
                     }});
                 }
             } else {
                 var templateText = resp.replace(/<script/g, '<m-script').replace(/<\/script>/g, '</m-script>').replace(/<link/g, '<m-stylesheet');
-                console.log("loaded HTML template from " + url + (divId ? " id " + divId : "") /*+ ": " + templateText*/);
+                console.info("loaded HTML template from " + url + (divId ? " id " + divId : "") /*+ ": " + templateText*/);
                 var compObj = { template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' };
                 if (isServerStatic) { componentCache.put(path, compObj); }
                 callback(compObj);
@@ -188,7 +188,7 @@ Vue.component('m-script', {
     mounted: function() {
         var innerText = this.$el.innerText;
         if (innerText && innerText.trim().length > 0) {
-            // console.log('running: ' + innerText);
+            // console.info('running: ' + innerText);
             retryInlineScript(innerText, 1);
             /* these don't work on initial load (with script elements that have @src followed by inline script)
             // eval(innerText);
@@ -285,9 +285,8 @@ Vue.component('tree-top', {
     mounted: function() { if (util.isString(this.items)) {
         this.currentPath = this.openPath;
         var allParms = $.extend({ moquiSessionToken:this.$root.moquiSessionToken, treeNodeId:'#', treeOpenPath:this.openPath }, this.parameters);
-        // console.log('tree-top parms ' + JSON.stringify(allParms));
         var vm = this; $.ajax({ type:'POST', dataType:'json', url:this.items, headers:{Accept:'application/json'}, data:allParms,
-            error:handleAjaxError, success:function(resp) { vm.urlItems = resp; /*console.log('tree-top response ' + JSON.stringify(resp));*/ } });
+            error:handleAjaxError, success:function(resp) { vm.urlItems = resp; /*console.info('tree-top response ' + JSON.stringify(resp));*/ } });
     }}
 });
 Vue.component('tree-item', {
@@ -312,7 +311,6 @@ Vue.component('tree-item', {
             var li_attr = this.model.li_attr;
             var allParms = $.extend({ moquiSessionToken:this.$root.moquiSessionToken, treeNodeId:this.model.id,
                 treeNodeName:(li_attr && li_attr.treeNodeName ? li_attr.treeNodeName : ''), treeOpenPath:this.top.currentPath }, this.top.parameters);
-            // console.log('tree-item parms ' + JSON.stringify(allParms));
             var vm = this; $.ajax({ type:'POST', dataType:'json', url:url, headers:{Accept:'application/json'}, data:allParms,
                 error:handleAjaxError, success:function(resp) { vm.model.children = resp; } });
         }
@@ -365,14 +363,14 @@ Vue.component('m-form', {
                     if (cur) { if (util.isArray(cur)) { cur.push(parm.value); } else { allParms[parm.name] = [cur, parm.value]; } }
                     else { allParms[parm.name] = parm.value; }
                 }
-                // console.log('m-form parameters ' + JSON.stringify(allParms));
+                // console.info('m-form parameters ' + JSON.stringify(allParms));
                 $.ajax({ type:this.method, url:this.action, data:allParms, headers:{Accept:'application/json'},
                     error:handleAjaxError, success:this.handleResponse });
             }
         },
         handleResponse: function(resp) {
             var notified = false;
-            // console.log('m-form response ' + JSON.stringify(resp));
+            // console.info('m-form response ' + JSON.stringify(resp));
             if (resp && resp === Object(resp)) {
                 if (resp.messages) for (var mi=0; mi < resp.messages.length; mi++) {
                     $.notify({ message:resp.messages[mi] }, $.extend({}, notifyOpts, {type:'info'})); notified = true; }
@@ -380,7 +378,7 @@ Vue.component('m-form', {
                     $.notify({ message:resp.messages[ei] }, $.extend({}, notifyOpts, {delay:60000, type:'danger'})); notified = true; }
                 if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.setUrl(resp.screenUrl); }
                 else if (resp.redirectUrl && resp.redirectUrl.length > 0) { window.location.href = resp.redirectUrl; }
-            } else { console.log('m-form no reponse or non-JSON response: ' + JSON.stringify(resp)) }
+            } else { console.warn('m-form no reponse or non-JSON response: ' + JSON.stringify(resp)) }
             if (this.submitHideId && this.submitHideId.length > 0) { $('#' + this.submitHideId).modal('hide'); }
             if (this.submitReloadId && this.submitReloadId.length > 0) { this.$root.reloadContainer(this.submitReloadId); }
             var msg = this.submitMessage && this.submitMessage.length > 0 ? this.submitMessage : (notified ? null : "Form data saved");
@@ -578,7 +576,7 @@ Vue.component('subscreens-active', {
         if (pathIndex == (curPathList.length - 1)) {
             var extra = root.extraPathList; if (extra && extra.length > 0) { urlInfo.extraPath = extra.join('/'); } }
         var search = root.currentSearch; if (search && search.length > 0) { urlInfo.search = search; }
-        console.log('subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
+        console.info('subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
         root.loading++;
         loadComponent(urlInfo, function(comp) { vm.activeComponent = comp; root.loading--; });
         return true;
@@ -601,7 +599,7 @@ var webrootVue = new Vue({
         },
         addSubscreen: function(saComp) {
             var pathIdx = this.activeSubscreens.length;
-            // console.log('addSubscreen idx ' + pathIdx + ' pathName ' + this.currentPathList[pathIdx]);
+            // console.info('addSubscreen idx ' + pathIdx + ' pathName ' + this.currentPathList[pathIdx]);
             saComp.pathIndex = pathIdx;
             // setting pathName here handles initial load of subscreens-active; this may be undefined if we have more activeSubscreens than currentPathList items
             saComp.loadActive();
@@ -610,28 +608,28 @@ var webrootVue = new Vue({
         // all container components added with this must have reload() and load(url) methods
         addContainer: function(contId, comp) { this.activeContainers[contId] = comp; },
         reloadContainer: function(contId) { var contComp = this.activeContainers[contId];
-            if (contComp) { contComp.reload(); } else { console.log("Container with ID " + contId + " not found, not reloading"); }},
+            if (contComp) { contComp.reload(); } else { console.error("Container with ID " + contId + " not found, not reloading"); }},
         loadContainer: function(contId, url) { var contComp = this.activeContainers[contId];
-            if (contComp) { contComp.load(url); } else { console.log("Container with ID " + contId + " not found, not loading url " + url); }},
-        addNavPlugin: function(url) { var vm = this; loadComponent(url, function(comp) { vm.navPlugins.push(comp); }) },
+            if (contComp) { contComp.load(url); } else { console.error("Container with ID " + contId + " not found, not loading url " + url); }},
+        addNavPlugin: function(url) { var vm = this; loadComponent(url, function(comp) { vm.navPlugins.push(comp); console.log(vm.navPlugins); }) },
         switchDarkLight: function() {
             var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
             var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
-            $.ajax({ type:'POST', url:'/apps/setPreference', data:{ moquiSessionToken: this.moquiSessionToken,
-                preferenceKey:'OUTER_STYLE', preferenceValue:currentStyle } });
+            $.ajax({ type:'POST', url:'/apps/setPreference', error:handleAjaxError,
+                data:{ moquiSessionToken: this.moquiSessionToken, preferenceKey:'OUTER_STYLE', preferenceValue:currentStyle } });
         }
     },
     watch: {
         currentUrl: function(newUrl) {
             if (!newUrl || newUrl.length === 0) return;
             var vm = this;
-            console.log("currentUrl changing to " + newUrl);
+            console.info("currentUrl changing to " + newUrl);
             this.lastNavTime = Date.now();
             // TODO: somehow only clear out activeContainers that are in subscreens actually reloaded? may cause issues if any but last screen have dynamic-container
             this.activeContainers = {};
             // update menu, which triggers update of screen/subscreen components
             $.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json", error:handleAjaxError, success: function(outerList) {
-                if (outerList) { vm.navMenuList = outerList; /*console.log('navMenuList ' + JSON.stringify(outerList));*/ } }});
+                if (outerList) { vm.navMenuList = outerList; /*console.info('navMenuList ' + JSON.stringify(outerList));*/ } }});
         },
         navMenuList: function(newList) { if (newList.length > 0) {
             var cur = newList[newList.length - 1]; var par = newList.length > 1 ? newList[newList.length - 2] : null;
@@ -640,7 +638,7 @@ var webrootVue = new Vue({
             // make sure full currentPathList and activeSubscreens is populated (necessary for minimal path urls)
             var basePathSize = this.basePath.split('/').length;
             var fullPathList = cur.path.split('/').slice(basePathSize);
-            console.log('nav updated fullPath ' + JSON.stringify(fullPathList) + ' currentPathList ' + JSON.stringify(this.currentPathList));
+            console.info('nav updated fullPath ' + JSON.stringify(fullPathList) + ' currentPathList ' + JSON.stringify(this.currentPathList));
             this.currentPathList = fullPathList;
 
             if (fullPathList.length == 0 && this.activeSubscreens.length > 0) { this.activeSubscreens[0].loadActive(); this.activeSubscreens.splice(1); return; }
@@ -681,14 +679,14 @@ var webrootVue = new Vue({
             document.title = newTitle;
         }},
         currentPathList: function(newList) {
-            // console.log('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
+            // console.info('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
             var lastPath = newList[newList.length - 1];
             if (lastPath) { $(this.$el).removeClass().addClass(lastPath); }
         }
     },
     computed: {
         currentPath: {
-            get: function() { return this.basePath + '/' + this.currentPathList.join('/') +
+            get: function() { var curPath = this.currentPathList; return this.basePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
                 (this.extraPathList && this.extraPathList.length > 0 ? '/' + this.extraPathList.join('/') : ''); },
             set: function(newPath) {
                 if (!newPath || newPath.length == 0) { this.currentPathList = []; return; }
@@ -723,14 +721,15 @@ var webrootVue = new Vue({
         ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; }
     },
     components: {
-        'add-nav-plugin': { props:{url:{type:String,required:true}}, template:'<span></span>',
-            mounted:function() { this.$root.addNavPlugin(this.url); Vue.util.remove(this.$el); }}
+        'add-nav-plugin': { props:{url:{type:String,required:true}}, template:'<span :url="url"></span>',
+            created: function() { this.$root.addNavPlugin(this.url); }, mounted: function() { /*$(this.$el).remove();*/ }}
     },
     created: function() {
-        this.moquiSessionToken = $("#moquiSessionToken").val();
-        this.appHost = $("#appHost").val(); this.appRootPath = $("#appRootPath").val();
-        this.basePath = $("#basePath").val(); this.linkBasePath = $("#linkBasePath").val();
-        this.userId = $("#userId").val();
+        this.moquiSessionToken = $("#confMoquiSessionToken").val();
+        this.appHost = $("#confAppHost").val(); this.appRootPath = $("#confAppRootPath").val();
+        this.basePath = $("#confBasePath").val(); this.linkBasePath = $("#confLinkBasePath").val();
+        this.userId = $("#confUserId").val();
+        var vm = this; $('.confNavPluginUrl').each(function(idx, el) { vm.addNavPlugin($(el).val()); });
         this.notificationClient = new NotificationClient("ws://" + this.appHost + this.appRootPath + "/notws");
     },
     mounted: function() {
