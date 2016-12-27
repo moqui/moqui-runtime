@@ -1398,7 +1398,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             $('#${formId} [data-toggle="tooltip"]').tooltip();
         </script>
     </#if>
-    <#if hasSubColumns><script>makeColumnsConsistent('${formId}_table');</script></#if>
+    <#if hasSubColumns><script>moqui.makeColumnsConsistent('${formId}_table');</script></#if>
     <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
     <#assign skipForm = false>
 </#macro>

@@ -1,4 +1,7 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
+var moqui = moqui || {};
+
+(function (moqui, $) {
 // NotificationClient, note does not connect the WebSocket until notificationClient.registerListener() is called the first time
 function NotifyOptions(message, url, type, icon) {
     this.message = message; if (url) this.url = url;
@@ -70,3 +73,5 @@ you can register more than one listener method for the same topic):
     </script>
 </#if>
 */
+moqui.NotificationClient = NotificationClient;
+})(moqui, $);

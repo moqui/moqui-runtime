@@ -1,5 +1,7 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
+var moqui = moqui || {};
 
+(function(moqui, $) {
 $.fn.select2.defaults.set("theme", "bootstrap");
 $.fn.select2.defaults.set("minimumResultsForSearch", "15");
 // this is a fix for Select2 search input within Bootstrap Modal
@@ -43,3 +45,6 @@ function makeColumnsConsistent(outerId) {
         for (j = 0; j < row.cells.length; j++) { row.cells[j].style.width = widthPercents[j]+'%'; }
     }
 }
+
+moqui.makeColumnsConsistent = makeColumnsConsistent;
+})(moqui, $);
