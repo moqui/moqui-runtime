@@ -1,6 +1,7 @@
 
 # downloaded lib files
 /base-component/webroot/screen/webroot/libs
+/base-component/webroot/screen/webroot/js/*.min.js
 
 # runtime generated files
 /db/derby/moqui/
