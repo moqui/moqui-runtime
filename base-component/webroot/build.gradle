@@ -156,7 +156,7 @@ task combineVuetJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dest = file("${webrootPath}/js/CombinedVuet.min.js")
 }
 
-task clean { doLast { delete fileTree(dir: "${webrootPath}/js", include: '*') }}
+task clean { doLast { delete fileTree(dir: "${webrootPath}/js", include: '*.min.js') }}
 task build {
     dependsOn downloadFiles
     dependsOn combineBaseJs
