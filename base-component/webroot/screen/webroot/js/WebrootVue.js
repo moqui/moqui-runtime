@@ -563,8 +563,8 @@ moqui.webrootVue = new Vue({
             // make sure any open modals are closed before setting currentUrl
             $('.modal.in').modal('hide');
             if (url.indexOf(this.basePath) == 0) url = url.replace(this.basePath, this.linkBasePath);
-            // NOTE: this may have to change, don't set to empty first as kills the path diff based load
-            if (this.currentUrl == url) {  this.currentUrl = ""; var vm = this; setTimeout(function() { vm.currentUrl = url; }, 10) }
+            // console.log('setting url ' + url + ', cur ' + this.currentLinkUrl);
+            if (this.currentLinkUrl == url) { this.reloadSubscreens(); /* console.log('reloading, same url ' + url); */ }
             else { this.currentUrl = url; window.history.pushState(null, this.ScreenTitle, url); }
         },
         addSubscreen: function(saComp) {
@@ -601,17 +601,6 @@ moqui.webrootVue = new Vue({
         }
     },
     watch: {
-        currentUrl: function(newUrl) {
-            if (!newUrl || newUrl.length === 0) return;
-            var vm = this;
-            console.info("currentUrl changing to " + newUrl);
-            this.lastNavTime = Date.now();
-            // TODO: somehow only clear out activeContainers that are in subscreens actually reloaded? may cause issues if any but last screen have dynamic-container
-            this.activeContainers = {};
-            // update menu, which triggers update of screen/subscreen components
-            $.ajax({ type:"GET", url:"/menuData" + newUrl, dataType:"json", error:moqui.handleAjaxError, success: function(outerList) {
-                if (outerList) { vm.navMenuList = outerList; /*console.info('navMenuList ' + JSON.stringify(outerList));*/ } }});
-        },
         navMenuList: function(newList) { if (newList.length > 0) {
             var cur = newList[newList.length - 1]; var par = newList.length > 1 ? newList[newList.length - 2] : null;
             // if there is an extraPathList set it now
@@ -659,15 +648,19 @@ moqui.webrootVue = new Vue({
     },
     computed: {
         currentPath: {
-            get: function() { var curPath = this.currentPathList; return this.basePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
-                (this.extraPathList && this.extraPathList.length > 0 ? '/' + this.extraPathList.join('/') : ''); },
+            get: function() { var curPath = this.currentPathList; var extraPath = this.extraPathList;
+                return this.basePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
+                    (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : ''); },
             set: function(newPath) {
                 if (!newPath || newPath.length == 0) { this.currentPathList = []; return; }
                 if (newPath.slice(newPath.length - 1) == '/') newPath = newPath.slice(0, newPath.length - 1);
-                var basePathSize = this.basePath.split('/').length;
-                this.currentPathList = newPath.split('/').slice(basePathSize);
+                if (newPath.indexOf(this.linkBasePath) == 0) { newPath = newPath.slice(this.linkBasePath.length + 1); }
+                else if (newPath.indexOf(this.basePath) == 0) { newPath = newPath.slice(this.basePath.length + 1); }
+                this.currentPathList = newPath.split('/');
             }},
-        currentLinkPath: function() { return this.linkBasePath + '/' + this.currentPathList.join('/'); },
+        currentLinkPath: function() { var curPath = this.currentPathList; var extraPath = this.extraPathList;
+            return this.linkBasePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
+                (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : ''); },
         currentSearch: {
             get: function() { var search = ''; $.each(this.currentParameters, function (key, value) {
                 search = search + (search.length > 0 ? '&' : '') + key + '=' + value; }); return search; },
@@ -688,6 +681,17 @@ moqui.webrootVue = new Vue({
                 // set currentSearch before currentPath so that it is available when path updates
                 if (splitHref.length > 1 && splitHref[1].length > 0) { this.currentSearch = splitHref[1]; } else { this.currentSearch = ""; }
                 this.currentPath = splitHref[0];
+                // with url cleaned up through setters now get current screen url for menu
+                var screenUrl = this.currentUrl;
+                if (!screenUrl || screenUrl.length === 0) return;
+                console.info("currentUrl changing to " + screenUrl);
+                this.lastNavTime = Date.now();
+                // TODO: somehow only clear out activeContainers that are in subscreens actually reloaded? may cause issues if any but last screen have dynamic-container
+                this.activeContainers = {};
+                // update menu, which triggers update of screen/subscreen components
+                var vm = this;
+                $.ajax({ type:"GET", url:"/menuData" + screenUrl, dataType:"json", error:moqui.handleAjaxError, success: function(outerList) {
+                    if (outerList) { vm.navMenuList = outerList; /* console.info('navMenuList ' + JSON.stringify(outerList)); */ } }});
             }
         },
         currentLinkUrl: function() { var srch = this.currentSearch; return this.currentLinkPath + (srch.length > 0 ? '?' + srch : ''); },
