@@ -32,7 +32,8 @@
    - goal would be to use FTL macros to transform more detailed XML into library specific output
  */
 
-var notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
+moqui.notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
+
 // simple stub for define if it doesn't exist (ie no require.js, etc); mimic pattern of require.js define()
 if (!window.define) window.define = function(name, deps, callback) {
     if (!moqui.isString(name)) { callback = deps; deps = name; name = null; }
@@ -76,8 +77,8 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     console.error('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response text: ' + jqXHR.responseText);
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status == 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
-    else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, notifyOpts, {delay:30000, type:'danger'})); }
-    else { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, notifyOpts, {delay:30000, type:'danger'})); }
+    else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); }
+    else { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); }
 };
 // NOTE: this may eventually split to change the activeSubscreens only on currentPathList change (for screens that support it)
 //     and if ever needed some sort of data refresh if currentParameters changes
@@ -343,16 +344,16 @@ Vue.component('m-form', {
             // console.info('m-form response ' + JSON.stringify(resp));
             if (resp && resp === Object(resp)) {
                 if (resp.messages) for (var mi=0; mi < resp.messages.length; mi++) {
-                    $.notify({ message:resp.messages[mi] }, $.extend({}, notifyOpts, {type:'info'})); notified = true; }
+                    $.notify({ message:resp.messages[mi] }, $.extend({}, moqui.notifyOpts, {type:'info'})); notified = true; }
                 if (resp.errors) for (var ei=0; ei < resp.messages.length; ei++) {
-                    $.notify({ message:resp.messages[ei] }, $.extend({}, notifyOpts, {delay:60000, type:'danger'})); notified = true; }
+                    $.notify({ message:resp.messages[ei] }, $.extend({}, moqui.notifyOpts, {delay:60000, type:'danger'})); notified = true; }
                 if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.setUrl(resp.screenUrl); }
                 else if (resp.redirectUrl && resp.redirectUrl.length > 0) { window.location.href = resp.redirectUrl; }
             } else { console.warn('m-form no reponse or non-JSON response: ' + JSON.stringify(resp)) }
-            if (this.submitHideId && this.submitHideId.length > 0) { $('#' + this.submitHideId).modal('hide'); }
-            if (this.submitReloadId && this.submitReloadId.length > 0) { this.$root.reloadContainer(this.submitReloadId); }
+            var hideId = this.submitHideId; if (hideId && hideId.length > 0) { $('#' + hideId).modal('hide'); }
+            var reloadId = this.submitReloadId; if (reloadId && reloadId.length > 0) { this.$root.reloadContainer(reloadId); }
             var msg = this.submitMessage && this.submitMessage.length > 0 ? this.submitMessage : (notified ? null : "Form data saved");
-            if (msg) $.notify({ message:msg }, $.extend({}, notifyOpts, {type:'success'}));
+            if (msg) $.notify({ message:msg }, $.extend({}, moqui.notifyOpts, {type:'success'}));
         }
     },
     mounted: function() {
@@ -576,14 +577,14 @@ moqui.webrootVue = new Vue({
             this.activeSubscreens.push(saComp);
         },
         reloadSubscreens: function() {
-            var fullPathList = this.currentPathList;
-            if (fullPathList.length == 0 && this.activeSubscreens.length > 0) { this.activeSubscreens[0].loadActive(); this.activeSubscreens.splice(1); return; }
-            for (var i=0; i<this.activeSubscreens.length; i++) {
+            var fullPathList = this.currentPathList; var activeSubscreens = this.activeSubscreens;
+            if (fullPathList.length == 0 && activeSubscreens.length > 0) { activeSubscreens.splice(1); activeSubscreens[0].loadActive(); return; }
+            for (var i=0; i<activeSubscreens.length; i++) {
                 if (i >= fullPathList.length) break;
                 // always try loading the active subscreen and see if actually loaded
-                var loaded = this.activeSubscreens[i].loadActive();
+                var loaded = activeSubscreens[i].loadActive();
                 // clear out remaining activeSubscreens, after first changed loads its placeholders will register and load
-                if (loaded) this.activeSubscreens.splice(i+1);
+                if (loaded) activeSubscreens.splice(i+1);
             }
         },
         // all container components added with this must have reload() and load(url) methods
@@ -634,10 +635,11 @@ moqui.webrootVue = new Vue({
                 }
                 if (titleParms.length > 0) newTitle = newTitle + " (" + titleParms + ")";
             }
-            for (var hi=0; hi<this.navHistoryList.length;) {
-                if (this.navHistoryList[hi].pathWithParams == curUrl) { this.navHistoryList.splice(hi,1); } else { hi++; } }
-            this.navHistoryList.unshift({ title:newTitle, pathWithParams:curUrl, image:cur.image, imageType:cur.imageType });
-            while (this.navHistoryList.length > 25) { this.navHistoryList.pop(); }
+            var navHistoryList = this.navHistoryList;
+            for (var hi=0; hi<navHistoryList.length;) {
+                if (navHistoryList[hi].pathWithParams == curUrl) { navHistoryList.splice(hi,1); } else { hi++; } }
+            navHistoryList.unshift({ title:newTitle, pathWithParams:curUrl, image:cur.image, imageType:cur.imageType });
+            while (navHistoryList.length > 25) { navHistoryList.pop(); }
             document.title = newTitle;
         }},
         currentPathList: function(newList) {
