@@ -49,10 +49,8 @@ along with this software (see the LICENSE.md file). If not, see
         // Sortable Hierarchical List
         html_scripts.add('/js/jquery-sortable-lists/jquery-sortable-lists.min.js')
 
-        // Workarounds for library issues (select2 jquery validator integration, select2 Bootstrap Modal fix, extensions, etc)
-        html_scripts.add('/js/LibraryWorkarounds.js')
-        // Moqui Notification Client
-        html_scripts.add('/js/NotificationClient.js')
+        // Moqui Library (3rd party lib workarounds, NotificationClient, etc)
+        html_scripts.add('/js/MoquiLib.js')
 
         // Vue instance, in footer so runs after page loaded
         footer_scripts.add('/js/WebrootVue.js')

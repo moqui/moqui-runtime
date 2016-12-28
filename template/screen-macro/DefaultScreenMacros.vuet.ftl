@@ -861,7 +861,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         $("#${quickSavedFindId}").select2({ placeholder:'${ec.getL10n().localize("Saved Finds")}' });
                         $("#${quickSavedFindId}").on('select2:select', function(evt) {
                             var dataAction = $(evt.params.data.element).attr("data-action");
-                            if (dataAction) webrootVue.goto(dataAction);
+                            if (dataAction) moqui.webrootVue.goto(dataAction);
                         } );
                     </m-script>
                 </#if>
@@ -1098,7 +1098,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign ownerForm = "">
         </table>
     </#if>
-    <#if hasSubColumns><m-script>makeColumnsConsistent('${formId}_table');</m-script></#if>
+    <#if hasSubColumns><m-script>moqui.makeColumnsConsistent('${formId}_table');</m-script></#if>
     <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
     <#assign skipForm = false>
 </#macro>
