@@ -163,5 +163,5 @@ task build {
     dependsOn combineVuetJs
 }
 task cleanFiles { doLast {
-    delete file(libPath)
+    delete file(libsPath)
 } }
