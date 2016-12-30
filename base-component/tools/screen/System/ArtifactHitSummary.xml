@@ -31,18 +31,19 @@ along with this software (see the LICENSE.md file). If not, see
         </default-response>
     </transition>
 
-    <actions>
-        <entity-find entity-name="moqui.server.ArtifactHitReport" list="artifactHitReportList" limit="50">
-            <search-form-inputs default-order-by="artifactType,artifactName"/></entity-find>
-    </actions>
     <widgets>
         <container>
             <!-- <link url="ArtifactHitSummaryStats.csv" text="Get as CSV"/> -->
             <!-- <link url="ArtifactHitSummaryStats.pdf" text="Get as PDF"/> -->
             <link url="ArtifactHitSummaryStats.xml" text="Get as XML"/>
         </container>
+        <!-- not yet, not fully implemented but simple test case: server-static="vuet" -->
         <form-list name="ArtifactHitSummaryList" list="artifactHitReportList" skip-form="true"
                    show-csv-button="true" show-text-button="true" show-pdf-button="true">
+            <entity-find entity-name="moqui.server.ArtifactHitReport" list="artifactHitReportList" limit="50">
+                <search-form-inputs default-order-by="artifactType,artifactName"/>
+                <select-field field-name="totalSquaredTime"/>
+            </entity-find>
             <row-actions>
                 <set field="averageTime" from="hitCount ? totalTimeMillis/hitCount : null"/>
                 <set field="stdDev" from="totalSquaredTime &amp;&amp; hitCount > 1 ? Math.sqrt((totalSquaredTime - ((totalTimeMillis*totalTimeMillis) / hitCount)).abs() / (hitCount - 1)) : null"/>

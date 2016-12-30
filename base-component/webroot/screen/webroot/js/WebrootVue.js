@@ -1,13 +1,23 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 /* TODO:
+ - add fully client rendered version of form-list when it has data prep embedded
+   - add form-list.rest-entity, rest-service (or just rest-call?), and maybe service-call/actions/etc
+   - now enabled with form-list.@server-static=vuet
+   - pagination
+     - on server return pagination response headers like find list REST calls (same headers)
+     - implement dynamic pagination header based on response headers
+     - handle search parameters in some way other than $root.currentParameters so that page loads are not triggered on paginate
+   - for display implement client side formatting based on display.@format; defaults for date/time, numbers, etc
+
+ - authorization in separate requests issue
+   - implied screen authz (user has authz for child screen for not parent, so implied for parent); see moqui-runtime issue #71
+   - inherited REST authz (REST services used in screen and user has authz for screen)
+
  - going to minimal path causes menu reload; avoid? better to cache menus and do partial requests...
 
  - use vue-aware widgets or add vue component wrappers for scripts and widgets
  - remove as many inline m-script elements as possible...
- - add fully client rendered version of form-list when it has data prep embedded
-   - current form-list.entity-find with special transition to get for data by name and current + paginate parameters
-   - add form-list.rest-entity, rest-service (or just rest-call?), and maybe service-call/actions/etc
 
  - anchor (a) only used for link if UrlInstance.isScreenUrl() is false which looks only at default-response for url-type=plain or
    type=none; if a transition has conditional or error responses of different types it won't response properly
@@ -411,6 +421,30 @@ Vue.component('form-link', {
         if (this.focusField && this.focusField.length > 0) jqEl.find('[name=' + this.focusField + ']').addClass('default-focus').focus();
     }
 });
+Vue.component('form-list-body', {
+    // rows can be a full path to a REST service or transition, a plain form name on the current screen, or a JS Array with the actual rows
+    props: { rows:{type:[String,Array],required:true}, search:{type:Object} },
+    data: function() { return { rowList:[] } },
+    template: '<tbody><tr v-for="(fields, rowIndex) in rowList"><slot :fields="fields"></slot></tr></tbody>',
+    methods: {
+        fetchRows: function() {
+            if (moqui.isArray(this.rows)) { console.warn('Tried to fetch form-list-body rows but rows prop is an array'); return; }
+            var vm = this;
+            var searchObj = this.search; if (!searchObj) { searchObj = this.$root.currentParameters; }
+            var url = this.rows; if (url.indexOf('/') == -1) { url = this.$root.currentPath + '/actions/' + url; }
+            console.info("Fetching rows with url " + url + " searchObj " + JSON.stringify(searchObj));
+            $.ajax({ type:"GET", url:url, data:searchObj, dataType:"json", error:moqui.handleAjaxError, success: function(list) {
+                if (list && moqui.isArray(list)) { vm.rowList = list; console.info("Fetched " + list.length + " rows"); } }});
+        }
+    },
+    watch: {
+        rows: function(newRows) { if (moqui.isArray(newRows)) { this.rowList = newRows; } else { this.fetchRows(); } },
+        search: function () { this.fetchRows(); }
+    },
+    mounted: function() {
+        if (moqui.isArray(this.rows)) { this.rowList = this.rows; } else { this.fetchRows(); }
+    }
+});
 
 /* ========== form field widget components ========== */
 Vue.component('drop-down', {
@@ -667,10 +701,12 @@ moqui.webrootVue = new Vue({
             get: function() { var search = ''; $.each(this.currentParameters, function (key, value) {
                 search = search + (search.length > 0 ? '&' : '') + key + '=' + value; }); return search; },
             set: function(newSearch) {
-                this.currentParameters = {}; if (!newSearch || newSearch.length == 0) { return; }
+                if (!newSearch || newSearch.length == 0) { this.currentParameters = {}; return; }
+                var newParams = {};
                 var parmList = newSearch.split("&");
                 for (var i=0; i<parmList.length; i++) {
-                    var parm = parmList[i]; var ps = parm.split("="); if (ps.length > 1) { this.currentParameters[ps[0]] = ps[1]; } }
+                    var parm = parmList[i]; var ps = parm.split("="); if (ps.length > 1) { newParams[ps[0]] = ps[1]; } }
+                this.currentParameters = newParams;
             }},
         currentUrl: {
             get: function() { var srch = this.currentSearch; return this.currentPath + (srch.length > 0 ? '?' + srch : ''); },

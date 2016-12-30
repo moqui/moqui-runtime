@@ -980,7 +980,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign isMulti = !skipForm && formNode["@multi"]! == "true">
     <#assign formListUrlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
     <#assign listName = formNode["@list"]>
-    <#assign listObject = formListInfo.getListObject(true)!>
+    <#assign isServerStatic = formInstance.isServerStatic(sri.getRenderMode())>
+    <#if isServerStatic><#assign listObject = ""><#else><#assign listObject = formListInfo.getListObject(true)!></#if>
     <#assign listHasContent = listObject?has_content>
 
     <#-- all form elements outside table element and referred to with input/etc.@form attribute for proper HTML -->
@@ -1051,10 +1052,22 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign ownerForm = "">
             </thead>
         </#if>
-            <tbody>
-            <#assign ownerForm = formId>
+        <#if !isServerStatic><tbody></#if>
+        <#assign ownerForm = formId>
     </#if>
-    <#if listHasContent><#list listObject as listEntry>
+    <#if isServerStatic>
+        <#assign fieldsJsName = "row.fields">
+        <form-list-body rows="${.node["@name"]}"><template scope="row">
+            <#list mainColInfoList as columnFieldList>
+                <td>
+                <#list columnFieldList as fieldNode>
+                    <@formListSubField fieldNode true false isMulti false/>
+                </#list>
+                </td>
+            </#list>
+        </template></form-list-body>
+        <#assign fieldsJsName = "">
+    <#else><#if listHasContent><#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
         <#t>${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
@@ -1085,7 +1098,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </tr>
         <#if !(isMulti || skipForm)><#assign ownerForm = ""></#if>
         <#t>${sri.endFormListRow()}
-    </#list></#if>
+    </#list></#if></#if>
     <#assign listEntryIndex = "">
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
     <#if !skipEnd>
@@ -1094,8 +1107,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#list formNode["field"] as fieldNode><@formListSubField fieldNode false false true true/></#list>
             </td></tr>
         </#if>
-            </tbody>
-            <#assign ownerForm = "">
+        <#if !isServerStatic></tbody></#if>
+        <#assign ownerForm = "">
         </table>
     </#if>
     <#if hasSubColumns><m-script>moqui.makeColumnsConsistent('${formId}_table');</m-script></#if>
@@ -1374,25 +1387,26 @@ a => A, d => D, y => Y
 
 <#macro display>
     <#assign dispFieldId><@fieldId .node/></#assign>
+    <#assign dispFieldName><@fieldName .node/></#assign>
     <#assign dispFieldNode = .node?parent?parent>
     <#assign dispAlign = dispFieldNode["@align"]!"left">
     <#assign dispHidden = (!.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true") && !(skipForm!false)>
     <#assign fieldValue = "">
-    <#if .node["@text"]?has_content>
-        <#assign textMap = "">
-        <#if .node["@text-map"]?has_content><#assign textMap = ec.getResource().expression(.node["@text-map"], "")!></#if>
-        <#if textMap?has_content>
-            <#assign fieldValue = ec.getResource().expand(.node["@text"], "", textMap)>
-        <#else>
-            <#assign fieldValue = ec.getResource().expand(.node["@text"], "")>
-        </#if>
-        <#if .node["@currency-unit-field"]?has_content>
-            <#assign fieldValue = ec.getL10n().formatCurrency(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))>
-        </#if>
-    <#elseif .node["@currency-unit-field"]?has_content>
-        <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+    <#if fieldsJsName?has_content>
+        <#assign fieldValue = "{{" + fieldsJsName + "." + dispFieldName + "}}">
     <#else>
-        <#assign fieldValue = sri.getFieldValueString(.node)>
+        <#if .node["@text"]?has_content>
+            <#assign textMap = "">
+            <#if .node["@text-map"]?has_content><#assign textMap = ec.getResource().expression(.node["@text-map"], "")!></#if>
+            <#if textMap?has_content><#assign fieldValue = ec.getResource().expand(.node["@text"], "", textMap)>
+                <#else><#assign fieldValue = ec.getResource().expand(.node["@text"], "")></#if>
+            <#if .node["@currency-unit-field"]?has_content>
+                <#assign fieldValue = ec.getL10n().formatCurrency(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))></#if>
+        <#elseif .node["@currency-unit-field"]?has_content>
+            <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+        <#else>
+            <#assign fieldValue = sri.getFieldValueString(.node)>
+        </#if>
     </#if>
     <#t><span class="${sri.getFieldValueClass(dispFieldNode)}<#if .node["@currency-unit-field"]?has_content> currency</#if><#if dispAlign == "center"> text-center<#elseif dispAlign == "right"> text-right</#if>">
     <#t><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if>
@@ -1400,7 +1414,7 @@ a => A, d => D, y => Y
     <#t><#if dispHidden>
         <#-- use getFieldValuePlainString() and not getFieldValueString() so we don't do timezone conversions, etc -->
         <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
-        <input type="hidden" id="${dispFieldId}" name="<@fieldName .node/>" value="${sri.getFieldValuePlainString(dispFieldNode, "")?html}"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
+        <input type="hidden" id="${dispFieldId}" name="${dispFieldName}" <#if fieldsJsName?has_content>:value="${fieldsJsName}.${dispFieldName}"<#else>value="${sri.getFieldValuePlainString(dispFieldNode, "")?html}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
     </#if>
     <#if .node["@dynamic-transition"]?has_content>
         <#assign defUrlInfo = sri.makeUrlByType(.node["@dynamic-transition"], "transition", .node, "false")>
