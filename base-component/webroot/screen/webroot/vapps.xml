@@ -31,7 +31,7 @@ along with this software (see the LICENSE.md file). If not, see
         // Vue instance, in footer so runs after page loaded
         footer_scripts.add('/js/WebrootVue.js')
 
-        /* ========== Prod Mode ==========
+        /* ========== Production Mode ==========
         footer_scripts.add('/js/CombinedVuet.min.js')
         */
     ]]></script></pre-actions>
