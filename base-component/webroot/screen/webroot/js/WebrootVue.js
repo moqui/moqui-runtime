@@ -5,7 +5,6 @@
    - add form-list.rest-entity, rest-service (or just rest-call?), and maybe service-call/actions/etc
    - now enabled with form-list.@server-static=vuet
    - pagination
-     - on server return pagination response headers like find list REST calls (same headers)
      - implement dynamic pagination header based on response headers
      - handle search parameters in some way other than $root.currentParameters so that page loads are not triggered on paginate
    - for display implement client side formatting based on display.@format; defaults for date/time, numbers, etc
@@ -421,11 +420,32 @@ Vue.component('form-link', {
         if (this.focusField && this.focusField.length > 0) jqEl.find('[name=' + this.focusField + ']').addClass('default-focus').focus();
     }
 });
-Vue.component('form-list-body', {
+
+Vue.component('form-list', {
     // rows can be a full path to a REST service or transition, a plain form name on the current screen, or a JS Array with the actual rows
-    props: { rows:{type:[String,Array],required:true}, search:{type:Object} },
-    data: function() { return { rowList:[] } },
-    template: '<tbody><tr v-for="(fields, rowIndex) in rowList"><slot :fields="fields"></slot></tr></tbody>',
+    props: { name:{type:String,required:true}, id:String, rows:{type:[String,Array],required:true}, search:{type:Object},
+            action:String, multi:Boolean, skipForm:Boolean, skipHeader:Boolean, headerForm:Boolean, headerDialog:Boolean },
+    data: function() { return { rowList:[], paginate:null, searchObj:null } },
+    // slots (props): headerForm (search), header (search), pagination (paginate), rowForm (fields), row (fields)
+    template:
+    '<div>' +
+        '<template v-if="!multi && !skipForm">' +
+            '<m-form v-for="(fields, rowIndex) in rowList" :name="idVal+\'_\'+rowIndex" :id="idVal+\'_\'+rowIndex" :action="action">' +
+                '<slot name="rowForm" :fields="fields"></slot></m-form></template>' +
+        '<m-form v-if="multi && !skipForm" :name="idVal" :id="idVal" :action="action">' +
+            '<input type="hidden" name="moquiFormName" :value="name"><input type="hidden" name="_isMulti" value="true">' +
+            '<template v-for="(fields, rowIndex) in rowList"><slot name="rowForm" :fields="fields"></slot></template></m-form>' +
+        '<form-link v-if="!skipHeader && headerForm && !headerDialog" :name="idVal+\'_header\'" :id="idVal+\'_header\'" :action="$root.currentLinkPath">' +
+            '<input v-if="searchObj && searchObj.orderByField" type="hidden" name="orderByField" :value="searchObj.orderByField">' +
+            '<slot name="headerForm"  :search="searchObj"></slot></form-link>' +
+        '<table class="table table-striped table-hover table-condensed" :id="idVal+\'_table\'">' +
+            '<thead><slot name="pagination" :paginate="paginate"></slot><slot name="header" :search="searchObj"></slot></thead>' +
+            '<tbody><tr v-for="(fields, rowIndex) in rowList"><slot name="row" :fields="fields"></slot></tr></tbody>' +
+        '</table>' +
+    '</div>',
+    computed: {
+        idVal: function() { if (this.id && this.id.length > 0) { return this.id; } else { return this.name; } }
+    },
     methods: {
         fetchRows: function() {
             if (moqui.isArray(this.rows)) { console.warn('Tried to fetch form-list-body rows but rows prop is an array'); return; }
@@ -433,8 +453,21 @@ Vue.component('form-list-body', {
             var searchObj = this.search; if (!searchObj) { searchObj = this.$root.currentParameters; }
             var url = this.rows; if (url.indexOf('/') == -1) { url = this.$root.currentPath + '/actions/' + url; }
             console.info("Fetching rows with url " + url + " searchObj " + JSON.stringify(searchObj));
-            $.ajax({ type:"GET", url:url, data:searchObj, dataType:"json", error:moqui.handleAjaxError, success: function(list) {
-                if (list && moqui.isArray(list)) { vm.rowList = list; console.info("Fetched " + list.length + " rows"); } }});
+            $.ajax({ type:"GET", url:url, data:searchObj, dataType:"json", headers:{Accept:'application/json'},
+                     error:moqui.handleAjaxError, success: function(list, status, jqXHR) {
+                if (list && moqui.isArray(list)) {
+                    var getHeader = jqXHR.getResponseHeader;
+                    var count = Number(getHeader("X-Total-Count"));
+                    if (count && !isNaN(count)) {
+                        vm.paginate = { count:Number(count), pageIndex:Number(getHeader("X-Page-Index")),
+                            pageSize:Number(getHeader("X-Page-Size")), pageMaxIndex:Number(getHeader("X-Page-Max-Index")),
+                            pageRangeLow:Number(getHeader("X-Page-Range-Low")), pageRangeHigh:Number(getHeader("X-Page-Range-High")) };
+                    }
+
+                    vm.rowList = list;
+                    console.info("Fetched " + list.length + " rows, paginate: " + JSON.stringify(vm.paginate));
+                }
+            }});
         }
     },
     watch: {
@@ -442,6 +475,7 @@ Vue.component('form-list-body', {
         search: function () { this.fetchRows(); }
     },
     mounted: function() {
+        if (this.search) this.searchObj = this.search;
         if (moqui.isArray(this.rows)) { this.rowList = this.rows; } else { this.fetchRows(); }
     }
 });
@@ -461,7 +495,9 @@ Vue.component('drop-down', {
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
                 var doValue = $('#' + dependsOnMap[doParm]).val(); if (!doValue) { hasAllParms = false; break; } reqData[doParm] = doValue; }}
             if (!hasAllParms) { this.curData = null; return; }
-            var vm = this; $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json", error:moqui.handleAjaxError, success: function(list) { if (list) {
+            var vm = this;
+            $.ajax({ type:"GET", url:this.optionsUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
+                     error:moqui.handleAjaxError, success: function(list) { if (list) {
                 var newData = []; if (vm.allowEmpty) newData.push({ id:'', text:'' });
                 var labelField = vm.labelField; if (!labelField) labelField = "label";
                 var valueField = vm.valueField; if (!valueField) valueField = "value";

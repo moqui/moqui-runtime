@@ -38,7 +38,7 @@ along with this software (see the LICENSE.md file). If not, see
             <link url="ArtifactHitSummaryStats.xml" text="Get as XML"/>
         </container>
         <!-- not yet, not fully implemented but simple test case: server-static="vuet" -->
-        <form-list name="ArtifactHitSummaryList" list="artifactHitReportList" skip-form="true"
+        <form-list name="ArtifactHitSummaryList" list="artifactHitReportList" skip-form="true" server-static="vuet"
                    show-csv-button="true" show-text-button="true" show-pdf-button="true">
             <entity-find entity-name="moqui.server.ArtifactHitReport" list="artifactHitReportList" limit="50">
                 <search-form-inputs default-order-by="artifactType,artifactName"/>

@@ -831,15 +831,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </div>
     </#if>
 </#macro>
-<#macro paginationHeader formListInfo formId isHeaderDialog>
+<#macro paginationHeader formListInfo formId isHeaderDialog isServerStatic>
     <#assign formNode = formListInfo.getFormNode()>
     <#assign mainColInfoList = formListInfo.getMainColInfo()>
     <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
-    <#assign isPaginated = !(formNode["@paginate"]! == "false") && context[listName + "Count"]?? && (context[listName + "Count"]! > 0) &&
-            (!formNode["@paginate-always-show"]?has_content || formNode["@paginate-always-show"]! == "true" || (context[listName + "PageMaxIndex"] > 0))>
+    <#assign isPaginated = isServerStatic || (!(formNode["@paginate"]! == "false") && context[listName + "Count"]?? && (context[listName + "Count"]! > 0) &&
+            (!formNode["@paginate-always-show"]?has_content || formNode["@paginate-always-show"]! == "true" || (context[listName + "PageMaxIndex"] > 0)))>
     <#if (isHeaderDialog || isSavedFinds || isSelectColumns || isPaginated) && hideNav! != "true">
         <tr class="form-list-nav-row"><th colspan="${numColumns}">
         <nav class="form-list-nav">
@@ -869,7 +869,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}_button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
             <#if isSelectColumns><button id="${selectColumnsDialogId}_button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.getL10n().localize("Columns")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("Columns")}</button></#if>
 
-            <#if isPaginated>
+            <#if isPaginated><#if isServerStatic>
+                <#-- TODO -->
+            <#else>
                 <#assign curPageIndex = context[listName + "PageIndex"]>
                 <#assign curPageMaxIndex = context[listName + "PageMaxIndex"]>
                 <#assign prevPageIndexMin = curPageIndex - 3><#if (prevPageIndexMin < 0)><#assign prevPageIndexMin = 0></#if>
@@ -939,7 +941,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <m-link href="${allLinkUrl.pathWithParams()}" class="btn btn-default">Show All</m-link>
                     </#if>
                 </#if>
-            </#if>
+            </#if></#if>
 
             <#if formNode["@show-csv-button"]! == "true">
                 <#assign csvLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("renderMode", "csv")
@@ -969,7 +971,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign hasSubColumns = subColInfoList?has_content>
     <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
-    <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
+    <#assign formName = ec.getResource().expandNoL10n(formNode["@name"], "")>
+    <#assign formId>${formName}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#assign headerFormId = formId + "_header">
     <#assign skipStart = (formNode["@skip-start"]! == "true")>
     <#assign skipEnd = (formNode["@skip-end"]! == "true")>
@@ -981,7 +984,58 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign formListUrlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
     <#assign listName = formNode["@list"]>
     <#assign isServerStatic = formInstance.isServerStatic(sri.getRenderMode())>
-    <#if isServerStatic><#assign listObject = ""><#else><#assign listObject = formListInfo.getListObject(true)!></#if>
+
+<#if isServerStatic><#-- client rendered, static -->
+    <#if !skipHeader><@paginationHeaderModals formListInfo formId isHeaderDialog/></#if>
+    <form-list name="${formName}" id="${formId}" rows="${formName}" action="${formListUrlInfo.path}" :multi="${isMulti?c}"
+               :skip-form="${skipForm?c}" :skip-header="${skipHeader?c}" :header-form="${needHeaderForm?c}" :header-dialog="${isHeaderDialog?c}">
+        <template slot="headerForm" scope="header">
+            <#assign fieldsJsName = "header.search">
+            <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
+            <#list hiddenFieldList as hiddenField><#if hiddenField["header-field"]?has_content><#recurse hiddenField["header-field"][0]/></#if></#list>
+            <#assign fieldsJsName = "">
+        </template>
+        <template slot="header" scope="header">
+            <#assign fieldsJsName = "header.search"><#assign ownerForm = headerFormId>
+            <tr><#list mainColInfoList as columnFieldList>
+                <th><#list columnFieldList as fieldNode>
+                    <div><@formListHeaderField fieldNode isHeaderDialog/></div>
+                </#list></th>
+            </#list></tr>
+            <#if hasSubColumns>
+                <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed"><thead>
+                    <#list subColInfoList as subColFieldList><th>
+                        <#list subColFieldList as fieldNode>
+                            <div><@formListHeaderField fieldNode isHeaderDialog/></div>
+                        </#list>
+                    </th></#list>
+                </thead></table></div></td></tr>
+            </#if>
+            <#assign fieldsJsName = ""><#assign ownerForm = "">
+        </template>
+        <template slot="pagination" scope="pagination">
+            <#assign fieldsJsName = "pagination.paginate">
+            <@paginationHeader formListInfo formId isHeaderDialog true/>
+            <#assign fieldsJsName = "">
+        </template>
+        <template slot="rowForm" scope="row">
+            <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
+            <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
+            <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
+            <#assign fieldsJsName = ""><#assign ownerForm = "">
+        </template>
+        <template slot="row" scope="row">
+            <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
+            <#list mainColInfoList as columnFieldList>
+                <td><#list columnFieldList as fieldNode>
+                    <@formListSubField fieldNode true false isMulti false/>
+                </#list></td>
+            </#list>
+            <#assign fieldsJsName = ""><#assign ownerForm = "">
+        </template>
+    </form-list>
+<#else><#-- server rendered, non-static -->
+    <#assign listObject = formListInfo.getListObject(true)!>
     <#assign listHasContent = listObject?has_content>
 
     <#-- all form elements outside table element and referred to with input/etc.@form attribute for proper HTML -->
@@ -1007,7 +1061,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
         <#if isMulti>
         <m-form name="${formId}" id="${formId}" action="${formListUrlInfo.path}">
-            <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
+            <input type="hidden" name="moquiFormName" value="${formName}">
             <input type="hidden" name="_isMulti" value="true">
             <#if listHasContent><#list listObject as listEntry>
                 <#assign listEntryIndex = listEntry_index>
@@ -1025,21 +1079,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <table class="table table-striped table-hover table-condensed" id="${formId}_table">
         <#if !skipHeader>
             <thead>
-                <@paginationHeader formListInfo formId isHeaderDialog/>
+                <@paginationHeader formListInfo formId isHeaderDialog false/>
                 <#assign ownerForm = headerFormId>
-                <tr>
-                <#list mainColInfoList as columnFieldList>
-                    <#-- TODO: how to handle column style? <th<#if fieldListColumn["@style"]?has_content> class="${fieldListColumn["@style"]}"</#if>> -->
-                    <th>
-                    <#list columnFieldList as fieldNode>
-                        <#-- <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") ||
-                                ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))> -->
+                <tr><#list mainColInfoList as columnFieldList>
+                    <th><#list columnFieldList as fieldNode>
                         <div><@formListHeaderField fieldNode isHeaderDialog/></div>
-                    </#list>
-                    </th>
-                </#list>
-                </tr>
+                    </#list></th>
+                </#list></tr>
                 <#if hasSubColumns>
                     <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed"><thead>
                         <#list subColInfoList as subColFieldList><th>
@@ -1055,19 +1101,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if !isServerStatic><tbody></#if>
         <#assign ownerForm = formId>
     </#if>
-    <#if isServerStatic>
-        <#assign fieldsJsName = "row.fields">
-        <form-list-body rows="${.node["@name"]}"><template scope="row">
-            <#list mainColInfoList as columnFieldList>
-                <td>
-                <#list columnFieldList as fieldNode>
-                    <@formListSubField fieldNode true false isMulti false/>
-                </#list>
-                </td>
-            </#list>
-        </template></form-list-body>
-        <#assign fieldsJsName = "">
-    <#else><#if listHasContent><#list listObject as listEntry>
+    <#if listHasContent><#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
         <#t>${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
@@ -1098,7 +1132,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </tr>
         <#if !(isMulti || skipForm)><#assign ownerForm = ""></#if>
         <#t>${sri.endFormListRow()}
-    </#list></#if></#if>
+    </#list></#if>
     <#assign listEntryIndex = "">
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
     <#if !skipEnd>
@@ -1112,7 +1146,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </table>
     </#if>
     <#if hasSubColumns><m-script>moqui.makeColumnsConsistent('${formId}_table');</m-script></#if>
-    <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
+</#if>
+    <#if sri.doBoundaryComments()><!-- END   form-list[@name=${formName}] --></#if>
     <#assign skipForm = false>
 </#macro>
 <#macro formListHeaderField fieldNode isHeaderDialog>
