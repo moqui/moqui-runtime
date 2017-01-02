@@ -49,6 +49,8 @@ if (!window.define) window.define = function(name, deps, callback) {
     if (!moqui.isArray(deps)) { callback = deps; deps = null; }
     if (moqui.isFunction(callback)) { return callback(); } else { return callback }
 };
+// map locale to a locale that exists in moment-with-locales.js
+moqui.localeMap = { 'zh':'zh-cn' };
 moqui.objToSearch = function(obj) {
     var search = '';
     $.each(obj, function (key, value) { search = search + (search.length > 0 ? '&' : '') + key + '=' + value; });
@@ -554,6 +556,31 @@ Vue.component('form-list', {
 });
 
 /* ========== form field widget components ========== */
+Vue.component('date-time', {
+    props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'},
+        size:String, format:String, tooltip:String, form:String },
+    template:
+    '<input v-if="type==\'time\'" type="text" class="form-control" :pattern="timePattern" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
+    '<div v-else class="input-group date" id="${tlId}">' +
+        '<input type="text" class="form-control" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
+        '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>' +
+    '</div>',
+    computed: {
+        formatVal: function() {
+            var format = this.format; if (format && format.length > 0) { return format; }
+            return this.type == 'time' ? 'HH:mm' : (this.type == 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm');
+        },
+        sizeVal: function() {
+            var size = this.size; if (size && size.length > 0) { return size; }
+            return this.type == 'time' ? '9' : (this.type == 'date' ? '10' : '16');
+        },
+        timePattern: function() { return '^(?:(?:([01]?\\d|2[0-3]):)?([0-5]?\\d):)?([0-5]?\\d)$'; }
+    },
+    mounted: function() {
+        if (this.type != "time") { $(this.$el).datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true,
+            defaultDate:moment(this.value,this.formatVal), format:this.formatVal, stepping:5, locale:this.$root.locale}); }
+    }
+});
 Vue.component('drop-down', {
     props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String,
         optionsUrl:String, optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object },
@@ -701,7 +728,7 @@ moqui.webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{},
         navMenuList:[], navHistoryList:[], navPlugins:[], lastNavTime:Date.now(), loading:0, activeContainers:{},
-        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", notificationClient:null },
+        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null },
     methods: {
         setUrl: function(url) {
             // make sure any open modals are closed before setting currentUrl
@@ -848,6 +875,7 @@ moqui.webrootVue = new Vue({
         this.appHost = $("#confAppHost").val(); this.appRootPath = $("#confAppRootPath").val();
         this.basePath = $("#confBasePath").val(); this.linkBasePath = $("#confLinkBasePath").val();
         this.userId = $("#confUserId").val();
+        this.locale = $("#confLocale").val(); if (moqui.localeMap[this.locale]) this.locale = moqui.localeMap[this.locale];
         var vm = this; $('.confNavPluginUrl').each(function(idx, el) { vm.addNavPlugin($(el).val()); });
         this.notificationClient = new moqui.NotificationClient("ws://" + this.appHost + this.appRootPath + "/notws");
     },
