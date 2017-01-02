@@ -49,6 +49,11 @@ if (!window.define) window.define = function(name, deps, callback) {
     if (!moqui.isArray(deps)) { callback = deps; deps = null; }
     if (moqui.isFunction(callback)) { return callback(); } else { return callback }
 };
+moqui.objToSearch = function(obj) {
+    var search = '';
+    $.each(obj, function (key, value) { search = search + (search.length > 0 ? '&' : '') + key + '=' + value; });
+    return search;
+};
 
 /* ========== script and stylesheet handling methods ========== */
 moqui.loadScript = function(src) {
@@ -424,9 +429,16 @@ Vue.component('form-link', {
 Vue.component('form-list', {
     // rows can be a full path to a REST service or transition, a plain form name on the current screen, or a JS Array with the actual rows
     props: { name:{type:String,required:true}, id:String, rows:{type:[String,Array],required:true}, search:{type:Object},
-            action:String, multi:Boolean, skipForm:Boolean, skipHeader:Boolean, headerForm:Boolean, headerDialog:Boolean },
+            action:String, multi:Boolean, skipForm:Boolean, skipHeader:Boolean, headerForm:Boolean, headerDialog:Boolean,
+            savedFinds:Boolean, selectColumns:Boolean, allButton:Boolean, csvButton:Boolean, textButton:Boolean, pdfButton:Boolean,
+            columns:[String,Number] },
     data: function() { return { rowList:[], paginate:null, searchObj:null } },
-    // slots (props): headerForm (search), header (search), pagination (paginate), rowForm (fields), row (fields)
+    // slots (props): headerForm (search), header (search), nav (), rowForm (fields), row (fields)
+    // TODO: QuickSavedFind drop-down
+    // TODO: go to page # inline form
+    // TODO: change find options form to update searchObj and run fetchRows instead of changing main page and reloading
+    // TODO: update window url on paginate and other searchObj update?
+    // TODO: review for actual static (no server side rendering, cachable)
     template:
     '<div>' +
         '<template v-if="!multi && !skipForm">' +
@@ -439,12 +451,52 @@ Vue.component('form-list', {
             '<input v-if="searchObj && searchObj.orderByField" type="hidden" name="orderByField" :value="searchObj.orderByField">' +
             '<slot name="headerForm"  :search="searchObj"></slot></form-link>' +
         '<table class="table table-striped table-hover table-condensed" :id="idVal+\'_table\'">' +
-            '<thead><slot name="pagination" :paginate="paginate"></slot><slot name="header" :search="searchObj"></slot></thead>' +
+            '<thead>' +
+                '<tr class="form-list-nav-row"><th :colspan="columns ? columns : \'100\'"><nav class="form-list-nav">' +
+                    '<button v-if="savedFinds || headerDialog" :id="idVal+\'_hdialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_hdialog\'" data-original-title="Find Options" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Find Options</button>' +
+                    '<button v-if="selectColumns" :id="idVal+\'_SelColsDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_SelColsDialog\'" data-original-title="Columns" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Columns</button>' +
+                    '<ul v-if="paginate" class="pagination">' +
+                        '<template v-if="paginate.pageIndex > 0">' +
+                            '<li><a href="#" @click.prevent="setPageIndex(0)"><i class="glyphicon glyphicon-fast-backward"></i></a></li>' +
+                            '<li><a href="#" @click.prevent="setPageIndex(paginate.pageIndex-1)"><i class="glyphicon glyphicon-backward"></i></a></li>' +
+                        '</template>' +
+                        '<template v-else><li><span><i class="glyphicon glyphicon-fast-backward"></i></span></li><li><span><i class="glyphicon glyphicon-backward"></i></span></li></template>' +
+                        '<li v-for="prevIndex in prevArray"><a href="#" @click.prevent="setPageIndex(prevIndex)">{{prevIndex+1}}</a></li>' +
+                        '<li><span>Page {{paginate.pageIndex+1}} of {{paginate.pageMaxIndex+1}} ({{paginate.pageRangeLow}} - {{paginate.pageRangeHigh}} of {{paginate.count}})</span></li>' +
+                        '<li v-for="nextIndex in nextArray"><a href="#" @click.prevent="setPageIndex(nextIndex)">{{nextIndex+1}}</a></li>' +
+                        '<template v-if="paginate.pageIndex < paginate.pageMaxIndex">' +
+                            '<li><a href="#" @click.prevent="setPageIndex(paginate.pageIndex+1)"><i class="glyphicon glyphicon-forward"></i></a></li>' +
+                            '<li><a href="#" @click.prevent="setPageIndex(paginate.pageMaxIndex)"><i class="glyphicon glyphicon-fast-forward"></i></a></li>' +
+                        '</template>' +
+                        '<template v-else><li><span><i class="glyphicon glyphicon-forward"></i></span></li><li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li></template>' +
+                    '</ul>' +
+                    '<a v-if="csvButton" :href="csvUrl" class="btn btn-default">CSV</a>' +
+                    '<button v-if="textButton" :id="idVal+\'_TextDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_TextDialog\'" data-original-title="Text" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Text</button>' +
+                    '<button v-if="pdfButton" :id="idVal+\'_PdfDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_PdfDialog\'" data-original-title="PDF" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> PDF</button>' +
+                    '<slot name="nav"></slot>' +
+                '</nav></th></tr>' +
+                '<slot name="header" :search="searchObj"></slot>' +
+            '</thead>' +
             '<tbody><tr v-for="(fields, rowIndex) in rowList"><slot name="row" :fields="fields"></slot></tr></tbody>' +
         '</table>' +
     '</div>',
     computed: {
-        idVal: function() { if (this.id && this.id.length > 0) { return this.id; } else { return this.name; } }
+        idVal: function() { if (this.id && this.id.length > 0) { return this.id; } else { return this.name; } },
+        prevArray: function() {
+            var pag = this.paginate; var arr = []; if (!pag || pag.pageIndex < 1) return arr;
+            var pageIndex = pag.pageIndex; var indexMin = pageIndex - 3; if (indexMin < 0) { indexMin = 0; } var indexMax = pageIndex - 1;
+            while (indexMin <= indexMax) { arr.push(indexMin++); } return arr;
+        },
+        nextArray: function() {
+            var pag = this.paginate; var arr = []; if (!pag || pag.pageIndex >= pag.pageMaxIndex) return arr;
+            var pageIndex = pag.pageIndex; var pageMaxIndex = pag.pageMaxIndex;
+            var indexMin = pageIndex + 1; var indexMax = pageIndex + 3; if (indexMax > pageMaxIndex) { indexMax = pageMaxIndex; }
+            while (indexMin <= indexMax) { arr.push(indexMin++); } return arr;
+        },
+        csvUrl: function() {
+            return this.$root.currentPath + '?' + moqui.objToSearch($.extend({}, this.searchObj,
+                    { renderMode:'csv', pageNoLimit:'true', lastStandalone:'true', saveFilename:(this.name + '.csv') }));
+        }
     },
     methods: {
         fetchRows: function() {
@@ -468,6 +520,10 @@ Vue.component('form-list', {
                     console.info("Fetched " + list.length + " rows, paginate: " + JSON.stringify(vm.paginate));
                 }
             }});
+        },
+        setPageIndex: function(newIndex) {
+            if (!this.searchObj) { this.searchObj = { pageIndex:newIndex }} else { this.searchObj.pageIndex = newIndex; }
+            this.fetchRows();
         }
     },
     watch: {
@@ -475,7 +531,7 @@ Vue.component('form-list', {
         search: function () { this.fetchRows(); }
     },
     mounted: function() {
-        if (this.search) this.searchObj = this.search;
+        if (this.search) { this.searchObj = this.search; } else { this.searchObj = this.$root.currentParameters; }
         if (moqui.isArray(this.rows)) { this.rowList = this.rows; } else { this.fetchRows(); }
     }
 });
@@ -734,8 +790,7 @@ moqui.webrootVue = new Vue({
             return this.linkBasePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
                 (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : ''); },
         currentSearch: {
-            get: function() { var search = ''; $.each(this.currentParameters, function (key, value) {
-                search = search + (search.length > 0 ? '&' : '') + key + '=' + value; }); return search; },
+            get: function() { return moqui.objToSearch(this.currentParameters); },
             set: function(newSearch) {
                 if (!newSearch || newSearch.length == 0) { this.currentParameters = {}; return; }
                 var newParams = {};

@@ -831,14 +831,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </div>
     </#if>
 </#macro>
-<#macro paginationHeader formListInfo formId isHeaderDialog isServerStatic>
+<#macro paginationHeader formListInfo formId isHeaderDialog>
     <#assign formNode = formListInfo.getFormNode()>
     <#assign mainColInfoList = formListInfo.getMainColInfo()>
     <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
-    <#assign isPaginated = isServerStatic || (!(formNode["@paginate"]! == "false") && context[listName + "Count"]?? && (context[listName + "Count"]! > 0) &&
+    <#assign isPaginated = (!(formNode["@paginate"]! == "false") && context[listName + "Count"]?? && (context[listName + "Count"]! > 0) &&
             (!formNode["@paginate-always-show"]?has_content || formNode["@paginate-always-show"]! == "true" || (context[listName + "PageMaxIndex"] > 0)))>
     <#if (isHeaderDialog || isSavedFinds || isSelectColumns || isPaginated) && hideNav! != "true">
         <tr class="form-list-nav-row"><th colspan="${numColumns}">
@@ -869,9 +869,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}_button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
             <#if isSelectColumns><button id="${selectColumnsDialogId}_button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.getL10n().localize("Columns")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("Columns")}</button></#if>
 
-            <#if isPaginated><#if isServerStatic>
-                <#-- TODO -->
-            <#else>
+            <#if isPaginated>
                 <#assign curPageIndex = context[listName + "PageIndex"]>
                 <#assign curPageMaxIndex = context[listName + "PageMaxIndex"]>
                 <#assign prevPageIndexMin = curPageIndex - 3><#if (prevPageIndexMin < 0)><#assign prevPageIndexMin = 0></#if>
@@ -941,7 +939,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <m-link href="${allLinkUrl.pathWithParams()}" class="btn btn-default">Show All</m-link>
                     </#if>
                 </#if>
-            </#if></#if>
+            </#if>
 
             <#if formNode["@show-csv-button"]! == "true">
                 <#assign csvLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("renderMode", "csv")
@@ -987,8 +985,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
 <#if isServerStatic><#-- client rendered, static -->
     <#if !skipHeader><@paginationHeaderModals formListInfo formId isHeaderDialog/></#if>
-    <form-list name="${formName}" id="${formId}" rows="${formName}" action="${formListUrlInfo.path}" :multi="${isMulti?c}"
-               :skip-form="${skipForm?c}" :skip-header="${skipHeader?c}" :header-form="${needHeaderForm?c}" :header-dialog="${isHeaderDialog?c}">
+    <form-list name="${formName}" id="${formId}" rows="${formName}" action="${formListUrlInfo.path}" :multi="${isMulti?c}"<#rt>
+            <#t> :skip-form="${skipForm?c}" :skip-header="${skipHeader?c}" :header-form="${needHeaderForm?c}"
+            <#t> :header-dialog="${isHeaderDialog?c}" :saved-finds="${(formNode["@saved-finds"]! == "true")?c}"
+            <#t> :select-columns="${(formNode["@select-columns"]! == "true")?c}" :all-button="${(formNode["@show-all-button"]! == "true")?c}"
+            <#t> :csv-button="${(formNode["@show-csv-button"]! == "true")?c}" :text-button="${(formNode["@show-text-button"]! == "true")?c}"
+            <#lt> :pdf-button="${(formNode["@show-pdf-button"]! == "true")?c}" columns="${numColumns}">
         <template slot="headerForm" scope="header">
             <#assign fieldsJsName = "header.search">
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
@@ -1013,11 +1015,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#if>
             <#assign fieldsJsName = ""><#assign ownerForm = "">
         </template>
-        <template slot="pagination" scope="pagination">
-            <#assign fieldsJsName = "pagination.paginate">
-            <@paginationHeader formListInfo formId isHeaderDialog true/>
-            <#assign fieldsJsName = "">
-        </template>
+        <#-- for adding more to form-list nav bar <template slot="nav"></template> -->
         <template slot="rowForm" scope="row">
             <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
@@ -1079,7 +1077,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <table class="table table-striped table-hover table-condensed" id="${formId}_table">
         <#if !skipHeader>
             <thead>
-                <@paginationHeader formListInfo formId isHeaderDialog false/>
+                <@paginationHeader formListInfo formId isHeaderDialog/>
                 <#assign ownerForm = headerFormId>
                 <tr><#list mainColInfoList as columnFieldList>
                     <th><#list columnFieldList as fieldNode>
