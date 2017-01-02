@@ -435,7 +435,6 @@ Vue.component('form-list', {
     data: function() { return { rowList:[], paginate:null, searchObj:null } },
     // slots (props): headerForm (search), header (search), nav (), rowForm (fields), row (fields)
     // TODO: QuickSavedFind drop-down
-    // TODO: go to page # inline form
     // TODO: change find options form to update searchObj and run fetchRows instead of changing main page and reloading
     // TODO: update window url on paginate and other searchObj update?
     // TODO: review for actual static (no server side rendering, cachable)
@@ -452,7 +451,7 @@ Vue.component('form-list', {
             '<slot name="headerForm"  :search="searchObj"></slot></form-link>' +
         '<table class="table table-striped table-hover table-condensed" :id="idVal+\'_table\'">' +
             '<thead>' +
-                '<tr class="form-list-nav-row"><th :colspan="columns ? columns : \'100\'"><nav class="form-list-nav">' +
+                '<tr class="form-list-nav-row"><th :colspan="columns?columns:\'100\'"><nav class="form-list-nav">' +
                     '<button v-if="savedFinds || headerDialog" :id="idVal+\'_hdialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_hdialog\'" data-original-title="Find Options" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Find Options</button>' +
                     '<button v-if="selectColumns" :id="idVal+\'_SelColsDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_SelColsDialog\'" data-original-title="Columns" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Columns</button>' +
                     '<ul v-if="paginate" class="pagination">' +
@@ -470,6 +469,13 @@ Vue.component('form-list', {
                         '</template>' +
                         '<template v-else><li><span><i class="glyphicon glyphicon-forward"></i></span></li><li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li></template>' +
                     '</ul>' +
+                    '<form v-if="paginate && paginate.pageMaxIndex > 4" @submit.prevent="goPage" class="form-inline" :id="idVal+\'_GoPage\'">' +
+                        '<div class="form-group">' +
+                            '<label class="sr-only" :for="idVal+\'_GoPage_pageIndex\'">Page Number</label>' +
+                            '<input type="text" class="form-control" size="6" name="pageIndex" :id="idVal+\'_GoPage_pageIndex\'" placeholder="Page #">' +
+                        '</div>' +
+                        '<button type="submit" class="btn btn-default">Go</button>' +
+                    '</form>' +
                     '<a v-if="csvButton" :href="csvUrl" class="btn btn-default">CSV</a>' +
                     '<button v-if="textButton" :id="idVal+\'_TextDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_TextDialog\'" data-original-title="Text" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Text</button>' +
                     '<button v-if="pdfButton" :id="idVal+\'_PdfDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_PdfDialog\'" data-original-title="PDF" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> PDF</button>' +
@@ -524,6 +530,17 @@ Vue.component('form-list', {
         setPageIndex: function(newIndex) {
             if (!this.searchObj) { this.searchObj = { pageIndex:newIndex }} else { this.searchObj.pageIndex = newIndex; }
             this.fetchRows();
+        },
+        goPage: function() {
+            var jqEl = $('#' + this.idVal + '_GoPage_pageIndex');
+            var newIndex = jqEl.val() - 1;
+            if (newIndex < 0 || newIndex > this.paginate.pageMaxIndex) {
+                jqEl.parents('.form-group').removeClass('has-success').addClass('has-error');
+            } else {
+                jqEl.parents('.form-group').removeClass('has-error').addClass('has-success');
+                this.setPageIndex(newIndex);
+                jqEl.val('');
+            }
         }
     },
     watch: {
