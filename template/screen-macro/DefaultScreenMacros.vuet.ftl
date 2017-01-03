@@ -672,49 +672,41 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign selectColumnsDialogId = formId + "_SelColsDialog">
         <#assign selectColumnsSortableId = formId + "_SelColsSortable">
         <#assign fieldsNotInColumns = formListInfo.getFieldsNotReferencedInFormListColumn()>
-        <div id="${selectColumnsDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
-            <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">${ec.getL10n().localize("Column Fields")}</h4>
-                </div>
-                <div class="modal-body">
-                    <p>Drag fields to the desired column or do not display</p>
-                    <ul id="${selectColumnsSortableId}">
-                        <li id="hidden"><div>Do Not Display</div>
-                            <#if fieldsNotInColumns?has_content>
-                            <ul>
+        <container-dialog id="${selectColumnsDialogId}" title="${ec.getL10n().localize("Column Fields")}">
+            <p>Drag fields to the desired column or do not display</p>
+            <ul id="${selectColumnsSortableId}">
+                <li id="hidden"><div>Do Not Display</div>
+                    <#if fieldsNotInColumns?has_content>
+                        <ul>
                             <#list fieldsNotInColumns as fieldNode>
                                 <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
                                 <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
                             </#list>
-                            </ul>
-                            </#if>
-                        </li>
-                        <#list allColInfoList as columnFieldList>
-                            <li id="column_${columnFieldList_index}"><div>Column ${columnFieldList_index + 1}</div><ul>
-                            <#list columnFieldList as fieldNode>
-                                <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
-                                <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
-                            </#list>
-                            </ul></li>
+                        </ul>
+                    </#if>
+                </li>
+                <#list allColInfoList as columnFieldList>
+                    <li id="column_${columnFieldList_index}"><div>Column ${columnFieldList_index + 1}</div><ul>
+                        <#list columnFieldList as fieldNode>
+                            <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
+                            <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
                         </#list>
-                        <#if allColInfoList?size < 10><#list allColInfoList?size..9 as ind>
-                            <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
-                        </#list></#if>
-                    </ul>
-                    <m-form class="form-inline" id="${formId}_SelColsForm" action="${sri.buildUrl("formSelectColumns").path}">
-                        <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
-                        <input type="hidden" id="${formId}_SelColsForm_columnsTree" name="columnsTree" value="">
-                        <#if currentFindUrlParms?has_content><#list currentFindUrlParms.keySet() as parmName>
-                            <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
-                        </#list></#if>
-                        <input type="submit" name="SaveColumns" value="${ec.getL10n().localize("Save Columns")}" class="btn btn-primary btn-sm"/>
-                        <input type="submit" name="ResetColumns" value="${ec.getL10n().localize("Reset to Default")}" class="btn btn-primary btn-sm"/>
-                    </m-form>
-                </div>
-            </div></div>
-        </div>
+                    </ul></li>
+                </#list>
+                <#if allColInfoList?size < 10><#list allColInfoList?size..9 as ind>
+                    <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
+                </#list></#if>
+            </ul>
+            <m-form class="form-inline" id="${formId}_SelColsForm" action="${sri.buildUrl("formSelectColumns").path}">
+                <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
+                <input type="hidden" id="${formId}_SelColsForm_columnsTree" name="columnsTree" value="">
+                <#if currentFindUrlParms?has_content><#list currentFindUrlParms.keySet() as parmName>
+                    <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
+                </#list></#if>
+                <input type="submit" name="SaveColumns" value="${ec.getL10n().localize("Save Columns")}" class="btn btn-primary btn-sm"/>
+                <input type="submit" name="ResetColumns" value="${ec.getL10n().localize("Reset to Default")}" class="btn btn-primary btn-sm"/>
+            </m-form>
+        </container-dialog>
         <m-script>$('#${selectColumnsDialogId}').on('shown.bs.modal', function() {
             $("#${selectColumnsSortableId}").sortableLists({
                 isAllowed: function(currEl, hint, target) {
@@ -742,93 +734,77 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign showTextDialogId = formId + "_TextDialog">
         <#assign textLinkUrl = sri.getScreenUrlInstance()>
         <#assign textLinkUrlParms = textLinkUrl.getParameterMap()>
-        <div id="${showTextDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
-            <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">${ec.getL10n().localize("Export Fixed-Width Plain Text")}</h4>
-                </div>
-                <div class="modal-body">
-                    <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
-                    <form id="${formId}_Text" method="post" action="${textLinkUrl.getUrl()}">
-                        <input type="hidden" name="renderMode" value="text">
-                        <input type="hidden" name="pageNoLimit" value="true">
-                        <input type="hidden" name="lastStandalone" value="true">
-                        <#list textLinkUrlParms.keySet() as parmName>
-                            <input type="hidden" name="${parmName}" value="${textLinkUrlParms.get(parmName)!?html}"></#list>
-                        <fieldset class="form-horizontal">
-                            <div class="form-group">
-                                <label class="control-label col-sm-3" for="${formId}_Text_lineCharacters">${ec.getL10n().localize("Line Characters")}</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" size="4" name="lineCharacters" id="${formId}_Text_lineCharacters" value="132">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label col-sm-3" for="${formId}_Text_lineWrap">${ec.getL10n().localize("Line Wrap?")}</label>
-                                <div class="col-sm-9">
-                                    <input type="checkbox" class="form-control" name="lineWrap" id="${formId}_Text_lineWrap" value="true">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label col-sm-3" for="${formId}_Text_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Text_saveFilename" value="${formNode["@name"] + ".txt"}">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-default">${ec.getL10n().localize("Export Text")}</button>
-                        </fieldset>
-                    </form>
-                </div>
-            </div></div>
-        </div>
+        <container-dialog id="${showTextDialogId}" title="${ec.getL10n().localize("Export Fixed-Width Plain Text")}">
+            <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
+            <form id="${formId}_Text" method="post" action="${textLinkUrl.getUrl()}">
+                <input type="hidden" name="renderMode" value="text">
+                <input type="hidden" name="pageNoLimit" value="true">
+                <input type="hidden" name="lastStandalone" value="true">
+                <#list textLinkUrlParms.keySet() as parmName>
+                    <input type="hidden" name="${parmName}" value="${textLinkUrlParms.get(parmName)!?html}"></#list>
+                <fieldset class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label col-sm-3" for="${formId}_Text_lineCharacters">${ec.getL10n().localize("Line Characters")}</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" size="4" name="lineCharacters" id="${formId}_Text_lineCharacters" value="132">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-3" for="${formId}_Text_lineWrap">${ec.getL10n().localize("Line Wrap?")}</label>
+                        <div class="col-sm-9">
+                            <input type="checkbox" class="form-control" name="lineWrap" id="${formId}_Text_lineWrap" value="true">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-3" for="${formId}_Text_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Text_saveFilename" value="${formNode["@name"] + ".txt"}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-default">${ec.getL10n().localize("Export Text")}</button>
+                </fieldset>
+            </form>
+        </container-dialog>
     </#if>
     <#if formNode["@show-pdf-button"]! == "true">
         <#assign showPdfDialogId = formId + "_PdfDialog">
         <#assign pdfLinkUrl = sri.getScreenUrlInstance()>
         <#assign pdfLinkUrlParms = pdfLinkUrl.getParameterMap()>
-        <div id="${showPdfDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
-            <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">${ec.getL10n().localize("Generate PDF")}</h4>
-                </div>
-                <div class="modal-body">
-                    <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
-                    <form id="${formId}_Pdf" method="post" action="${ec.web.getWebappRootUrl(false, null)}/fop${pdfLinkUrl.getPath()}">
-                        <input type="hidden" name="pageNoLimit" value="true">
-                        <#list pdfLinkUrlParms.keySet() as parmName>
-                            <input type="hidden" name="${parmName}" value="${pdfLinkUrlParms.get(parmName)!?html}"></#list>
-                        <fieldset class="form-horizontal">
-                            <div class="form-group">
-                                <label class="control-label col-sm-3" for="${formId}_Pdf_layoutMaster">${ec.getL10n().localize("Page Layout")}</label>
-                                <div class="col-sm-9">
-                                    <select name="layoutMaster"  id="${formId}_Pdf_layoutMaster" class="form-control">
-                                        <option value="letter-landscape">US Letter - Landscape (11x8.5)</option>
-                                        <option value="letter-portrait">US Letter - Portrait (8.5x11)</option>
-                                        <option value="legal-landscape">US Legal - Landscape (14x8.5)</option>
-                                        <option value="legal-portrait">US Legal - Portrait (8.5x14)</option>
-                                        <option value="tabloid-landscape">US Tabloid - Landscape (17x11)</option>
-                                        <option value="tabloid-portrait">US Tabloid - Portrait (11x17)</option>
-                                        <option value="a4-landscape">A4 - Landscape (297x210)</option>
-                                        <option value="a4-portrait">A4 - Portrait (210x297)</option>
-                                        <option value="a3-landscape">A3 - Landscape (420x297)</option>
-                                        <option value="a3-portrait">A3 - Portrait (297x420)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label col-sm-3" for="${formId}_Pdf_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Pdf_saveFilename" value="${formNode["@name"] + ".pdf"}">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-default">${ec.getL10n().localize("Generate PDF")}</button>
-                        </fieldset>
-                    </form>
-                    <m-script>$("#${formId}_Pdf_layoutMaster").select2({ });</m-script>
-                </div>
-            </div></div>
-        </div>
+        <container-dialog id="${showPdfDialogId}" title="${ec.getL10n().localize("Generate PDF")}">
+            <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
+            <form id="${formId}_Pdf" method="post" action="${ec.web.getWebappRootUrl(false, null)}/fop${pdfLinkUrl.getPath()}">
+                <input type="hidden" name="pageNoLimit" value="true">
+                <#list pdfLinkUrlParms.keySet() as parmName>
+                    <input type="hidden" name="${parmName}" value="${pdfLinkUrlParms.get(parmName)!?html}"></#list>
+                <fieldset class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label col-sm-3" for="${formId}_Pdf_layoutMaster">${ec.getL10n().localize("Page Layout")}</label>
+                        <div class="col-sm-9">
+                            <select name="layoutMaster"  id="${formId}_Pdf_layoutMaster" class="form-control">
+                                <option value="letter-landscape">US Letter - Landscape (11x8.5)</option>
+                                <option value="letter-portrait">US Letter - Portrait (8.5x11)</option>
+                                <option value="legal-landscape">US Legal - Landscape (14x8.5)</option>
+                                <option value="legal-portrait">US Legal - Portrait (8.5x14)</option>
+                                <option value="tabloid-landscape">US Tabloid - Landscape (17x11)</option>
+                                <option value="tabloid-portrait">US Tabloid - Portrait (11x17)</option>
+                                <option value="a4-landscape">A4 - Landscape (297x210)</option>
+                                <option value="a4-portrait">A4 - Portrait (210x297)</option>
+                                <option value="a3-landscape">A3 - Landscape (420x297)</option>
+                                <option value="a3-portrait">A3 - Portrait (297x420)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-3" for="${formId}_Pdf_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Pdf_saveFilename" value="${formNode["@name"] + ".pdf"}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-default">${ec.getL10n().localize("Generate PDF")}</button>
+                </fieldset>
+            </form>
+            <m-script>$("#${formId}_Pdf_layoutMaster").select2({ });</m-script>
+        </container-dialog>
     </#if>
 </#macro>
 <#macro paginationHeader formListInfo formId isHeaderDialog>
