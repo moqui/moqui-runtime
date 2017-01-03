@@ -523,7 +523,6 @@ Vue.component('form-list', {
                             pageSize:Number(getHeader("X-Page-Size")), pageMaxIndex:Number(getHeader("X-Page-Max-Index")),
                             pageRangeLow:Number(getHeader("X-Page-Range-Low")), pageRangeHigh:Number(getHeader("X-Page-Range-High")) };
                     }
-
                     vm.rowList = list;
                     console.info("Fetched " + list.length + " rows, paginate: " + JSON.stringify(vm.paginate));
                 }
@@ -566,14 +565,10 @@ Vue.component('date-time', {
         '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>' +
     '</div>',
     computed: {
-        formatVal: function() {
-            var format = this.format; if (format && format.length > 0) { return format; }
-            return this.type == 'time' ? 'HH:mm' : (this.type == 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm');
-        },
-        sizeVal: function() {
-            var size = this.size; if (size && size.length > 0) { return size; }
-            return this.type == 'time' ? '9' : (this.type == 'date' ? '10' : '16');
-        },
+        formatVal: function() { var format = this.format; if (format && format.length > 0) { return format; }
+            return this.type == 'time' ? 'HH:mm' : (this.type == 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm'); },
+        sizeVal: function() { var size = this.size; if (size && size.length > 0) { return size; }
+            return this.type == 'time' ? '9' : (this.type == 'date' ? '10' : '16'); },
         timePattern: function() { return '^(?:(?:([01]?\\d|2[0-3]):)?([0-5]?\\d):)?([0-5]?\\d)$'; }
     },
     mounted: function() {
@@ -589,11 +584,8 @@ moqui.datePeriods = [{id:'day',text:'Day'},{id:'7d',text:'7 Days'},{id:'30d',tex
 moqui.emptyOpt = {id:'',text:'\u00a0'};
 Vue.component('date-period', {
     props: { name:{type:String,required:true}, allowEmpty:Boolean, offset:String, period:String, form:String },
-    template:
-    '<div class="date-period">' +
-        '<select ref="poffset" :name="name+\'_poffset\'" :form="form"></select>' +
-        '<select ref="period" :name="name+\'_period\'" :form="form"></select>' +
-    '</div>',
+    template: '<div class="date-period"><select ref="poffset" :name="name+\'_poffset\'" :form="form"></select>' +
+        '<select ref="period" :name="name+\'_period\'" :form="form"></select></div>',
     mounted: function() {
         var pofsEl = $(this.$refs.poffset); var perEl = $(this.$refs.period);
         var offsets = moqui.dateOffsets.slice(); var periods = moqui.datePeriods.slice();
@@ -862,7 +854,15 @@ moqui.webrootVue = new Vue({
                 var newParams = {};
                 var parmList = newSearch.split("&");
                 for (var i=0; i<parmList.length; i++) {
-                    var parm = parmList[i]; var ps = parm.split("="); if (ps.length > 1) { newParams[ps[0]] = ps[1]; } }
+                    var parm = parmList[i]; var ps = parm.split("=");
+                    if (ps.length > 1) {
+                        var key = ps[0]; var value = ps[1]; var exVal = newParams[key];
+                        if (exVal) {
+                            if (moqui.isArray(exVal)) { exVal.push(value); }
+                            else { newParams[key] = [exVal, value]; }
+                        } else { newParams[key] = value; }
+                    }
+                }
                 this.currentParameters = newParams;
             }},
         currentUrl: {
