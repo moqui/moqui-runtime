@@ -12,6 +12,7 @@
  * <http://creativecommons.org/publicdomain/zero/1.0/>.
  */
 
+import java.nio.charset.StandardCharsets
 plugins {
     id "com.eriwen.gradle.js" version "2.14.1"
 }
@@ -137,6 +138,7 @@ vuetJs.add(webrootPath + '/js/WebrootVue.min.js')
 task minifyMoquiLib(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     source = file("${webrootPath}/js/MoquiLib.js")
     dest = file("${webrootPath}/js/MoquiLib.min.js")
+    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
 }
 task combineBaseJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dependsOn downloadFiles
@@ -144,9 +146,21 @@ task combineBaseJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     source = baseJs
     dest = file("${webrootPath}/js/CombinedBase.min.js")
 }
+// moment.js and many others have lots of comments, etc that make it very large so re-minify
+task minifyCombinedBase(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
+    dependsOn combineBaseJs
+    source = file("${webrootPath}/js/CombinedBase.min.js")
+    dest = file("${webrootPath}/js/CombinedBaseMin.min.js")
+    closure {
+        warningLevel = 'QUIET'
+        compilerOptions.setOutputCharset(StandardCharsets.UTF_8)
+    }
+}
+
 task minifyWebrootVue(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     source = file("${webrootPath}/js/WebrootVue.js")
     dest = file("${webrootPath}/js/WebrootVue.min.js")
+    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
 }
 task combineVuetJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dependsOn downloadFiles
@@ -159,6 +173,7 @@ task clean { doLast { delete fileTree(dir: "${webrootPath}/js", include: '*.min.
 task build {
     dependsOn downloadFiles
     dependsOn combineBaseJs
+    dependsOn minifyCombinedBase
     dependsOn combineVuetJs
 }
 task cleanFiles { doLast {
