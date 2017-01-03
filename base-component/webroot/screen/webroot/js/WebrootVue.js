@@ -610,7 +610,7 @@ Vue.component('drop-down', {
                 var doValue = $('#' + dependsOnMap[doParm]).val(); if (!doValue) { hasAllParms = false; break; } reqData[doParm] = doValue; }}
             if (!hasAllParms) { this.curData = null; return; }
             var vm = this;
-            $.ajax({ type:"GET", url:this.optionsUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
+            $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
                      error:moqui.handleAjaxError, success: function(list) { if (list) {
                 var newData = []; if (vm.allowEmpty) newData.push({ id:'', text:'\u00a0' });
                 var labelField = vm.labelField; if (!labelField) { labelField = "label"; }
