@@ -582,11 +582,32 @@ Vue.component('date-time', {
             defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:this.formatVal, stepping:5, locale:this.$root.locale}); }
     }
 });
+moqui.dateOffsets = [{id:'0',text:'This'},{id:'-1',text:'Last'},{id:'-2',text:'-2'},{id:'-3',text:'-3'},{id:'-4',text:'-4'},{id:'-5',text:'-5'},
+    {id:'1',text:'Next'},{id:'2',text:'2'},{id:'3',text:'3'},{id:'4',text:'4'},{id:'5',text:'5'}];
+moqui.datePeriods = [{id:'day',text:'Day'},{id:'7d',text:'7 Days'},{id:'30d',text:'30 Days'},{id:'week',text:'Week'},
+    {id:'month',text:'Month'},{id:'year',text:'Year'}];
+moqui.emptyOpt = {id:'',text:'\u00a0'};
+Vue.component('date-period', {
+    props: { name:{type:String,required:true}, allowEmpty:Boolean, offset:String, period:String, form:String },
+    template:
+    '<div class="date-period">' +
+        '<select ref="poffset" :name="name+\'_poffset\'" :form="form"></select>' +
+        '<select ref="period" :name="name+\'_period\'" :form="form"></select>' +
+    '</div>',
+    mounted: function() {
+        var pofsEl = $(this.$refs.poffset); var perEl = $(this.$refs.period);
+        var offsets = moqui.dateOffsets.slice(); var periods = moqui.datePeriods.slice();
+        if (this.allowEmpty) { offsets.unshift(moqui.emptyOpt); periods.unshift(moqui.emptyOpt); }
+        pofsEl.select2({ data:offsets }); perEl.select2({ data:periods });
+        var offset = this.offset; if (offset && offset.length) { pofsEl.val(offset).trigger('change'); }
+        var period = this.period; if (period && period.length) { perEl.val(period).trigger('change'); }
+    }
+});
 Vue.component('drop-down', {
     props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String,
-        optionsUrl:String, optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object },
+        optionsUrl:String, optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object, form:String },
     data: function() { return { curData: null, s2Opts: null } },
-    template: '<select><slot></slot></select>',
+    template: '<select :form="form"><slot></slot></select>',
     methods: {
         populateFromUrl: function() {
             if (!this.optionsUrl || this.optionsUrl.length === 0) return;
@@ -599,10 +620,10 @@ Vue.component('drop-down', {
             var vm = this;
             $.ajax({ type:"GET", url:this.optionsUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
                      error:moqui.handleAjaxError, success: function(list) { if (list) {
-                var newData = []; if (vm.allowEmpty) newData.push({ id:'', text:'' });
-                var labelField = vm.labelField; if (!labelField) labelField = "label";
-                var valueField = vm.valueField; if (!valueField) valueField = "value";
-                $.each(list, function(idx, curObj) { newData.push({ id: curObj[valueField], text: curObj[labelField] }) });
+                var newData = []; if (vm.allowEmpty) newData.push({ id:'', text:'\u00a0' });
+                var labelField = vm.labelField; if (!labelField) { labelField = "label"; }
+                var valueField = vm.valueField; if (!valueField) { valueField = "value"; }
+                $.each(list, function(idx, curObj) { newData.push({ id:curObj[valueField], text:curObj[labelField] }) });
                 vm.curData = newData;
             }}});
         }
