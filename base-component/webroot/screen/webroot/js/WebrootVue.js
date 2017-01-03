@@ -577,8 +577,9 @@ Vue.component('date-time', {
         timePattern: function() { return '^(?:(?:([01]?\\d|2[0-3]):)?([0-5]?\\d):)?([0-5]?\\d)$'; }
     },
     mounted: function() {
+        var value = this.value;
         if (this.type != "time") { $(this.$el).datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true,
-            defaultDate:moment(this.value,this.formatVal), format:this.formatVal, stepping:5, locale:this.$root.locale}); }
+            defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:this.formatVal, stepping:5, locale:this.$root.locale}); }
     }
 });
 Vue.component('drop-down', {
