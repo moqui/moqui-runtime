@@ -368,8 +368,13 @@ Vue.component('m-form', {
             } else { console.warn('m-form no reponse or non-JSON response: ' + JSON.stringify(resp)) }
             var hideId = this.submitHideId; if (hideId && hideId.length > 0) { $('#' + hideId).modal('hide'); }
             var reloadId = this.submitReloadId; if (reloadId && reloadId.length > 0) { this.$root.reloadContainer(reloadId); }
-            var msg = this.submitMessage && this.submitMessage.length > 0 ? this.submitMessage : (notified ? null : "Form data saved");
-            if (msg) $.notify({ message:msg }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+            var subMsg = this.submitMessage;
+            if (subMsg && subMsg.length) {
+                var responseText = resp;
+                $.notify({ message:eval('"' + subMsg + '"') }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+            } else if (!notified) {
+                $.notify({ message:"Form data saved" }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+            }
         }
     },
     mounted: function() {
