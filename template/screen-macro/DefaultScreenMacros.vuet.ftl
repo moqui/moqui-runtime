@@ -672,49 +672,41 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign selectColumnsDialogId = formId + "_SelColsDialog">
         <#assign selectColumnsSortableId = formId + "_SelColsSortable">
         <#assign fieldsNotInColumns = formListInfo.getFieldsNotReferencedInFormListColumn()>
-        <div id="${selectColumnsDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
-            <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">${ec.getL10n().localize("Column Fields")}</h4>
-                </div>
-                <div class="modal-body">
-                    <p>Drag fields to the desired column or do not display</p>
-                    <ul id="${selectColumnsSortableId}">
-                        <li id="hidden"><div>Do Not Display</div>
-                            <#if fieldsNotInColumns?has_content>
-                            <ul>
+        <container-dialog id="${selectColumnsDialogId}" title="${ec.getL10n().localize("Column Fields")}">
+            <p>Drag fields to the desired column or do not display</p>
+            <ul id="${selectColumnsSortableId}">
+                <li id="hidden"><div>Do Not Display</div>
+                    <#if fieldsNotInColumns?has_content>
+                        <ul>
                             <#list fieldsNotInColumns as fieldNode>
                                 <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
                                 <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
                             </#list>
-                            </ul>
-                            </#if>
-                        </li>
-                        <#list allColInfoList as columnFieldList>
-                            <li id="column_${columnFieldList_index}"><div>Column ${columnFieldList_index + 1}</div><ul>
-                            <#list columnFieldList as fieldNode>
-                                <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
-                                <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
-                            </#list>
-                            </ul></li>
+                        </ul>
+                    </#if>
+                </li>
+                <#list allColInfoList as columnFieldList>
+                    <li id="column_${columnFieldList_index}"><div>Column ${columnFieldList_index + 1}</div><ul>
+                        <#list columnFieldList as fieldNode>
+                            <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
+                            <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
                         </#list>
-                        <#if allColInfoList?size < 10><#list allColInfoList?size..9 as ind>
-                            <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
-                        </#list></#if>
-                    </ul>
-                    <m-form class="form-inline" id="${formId}_SelColsForm" action="${sri.buildUrl("formSelectColumns").path}">
-                        <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
-                        <input type="hidden" id="${formId}_SelColsForm_columnsTree" name="columnsTree" value="">
-                        <#if currentFindUrlParms?has_content><#list currentFindUrlParms.keySet() as parmName>
-                            <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
-                        </#list></#if>
-                        <input type="submit" name="SaveColumns" value="${ec.getL10n().localize("Save Columns")}" class="btn btn-primary btn-sm"/>
-                        <input type="submit" name="ResetColumns" value="${ec.getL10n().localize("Reset to Default")}" class="btn btn-primary btn-sm"/>
-                    </m-form>
-                </div>
-            </div></div>
-        </div>
+                    </ul></li>
+                </#list>
+                <#if allColInfoList?size < 10><#list allColInfoList?size..9 as ind>
+                    <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
+                </#list></#if>
+            </ul>
+            <m-form class="form-inline" id="${formId}_SelColsForm" action="${sri.buildUrl("formSelectColumns").path}">
+                <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
+                <input type="hidden" id="${formId}_SelColsForm_columnsTree" name="columnsTree" value="">
+                <#if currentFindUrlParms?has_content><#list currentFindUrlParms.keySet() as parmName>
+                    <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
+                </#list></#if>
+                <input type="submit" name="SaveColumns" value="${ec.getL10n().localize("Save Columns")}" class="btn btn-primary btn-sm"/>
+                <input type="submit" name="ResetColumns" value="${ec.getL10n().localize("Reset to Default")}" class="btn btn-primary btn-sm"/>
+            </m-form>
+        </container-dialog>
         <m-script>$('#${selectColumnsDialogId}').on('shown.bs.modal', function() {
             $("#${selectColumnsSortableId}").sortableLists({
                 isAllowed: function(currEl, hint, target) {
@@ -742,93 +734,77 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign showTextDialogId = formId + "_TextDialog">
         <#assign textLinkUrl = sri.getScreenUrlInstance()>
         <#assign textLinkUrlParms = textLinkUrl.getParameterMap()>
-        <div id="${showTextDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
-            <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">${ec.getL10n().localize("Export Fixed-Width Plain Text")}</h4>
-                </div>
-                <div class="modal-body">
-                    <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
-                    <form id="${formId}_Text" method="post" action="${textLinkUrl.getUrl()}">
-                        <input type="hidden" name="renderMode" value="text">
-                        <input type="hidden" name="pageNoLimit" value="true">
-                        <input type="hidden" name="lastStandalone" value="true">
-                        <#list textLinkUrlParms.keySet() as parmName>
-                            <input type="hidden" name="${parmName}" value="${textLinkUrlParms.get(parmName)!?html}"></#list>
-                        <fieldset class="form-horizontal">
-                            <div class="form-group">
-                                <label class="control-label col-sm-3" for="${formId}_Text_lineCharacters">${ec.getL10n().localize("Line Characters")}</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" size="4" name="lineCharacters" id="${formId}_Text_lineCharacters" value="132">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label col-sm-3" for="${formId}_Text_lineWrap">${ec.getL10n().localize("Line Wrap?")}</label>
-                                <div class="col-sm-9">
-                                    <input type="checkbox" class="form-control" name="lineWrap" id="${formId}_Text_lineWrap" value="true">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label col-sm-3" for="${formId}_Text_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Text_saveFilename" value="${formNode["@name"] + ".txt"}">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-default">${ec.getL10n().localize("Export Text")}</button>
-                        </fieldset>
-                    </form>
-                </div>
-            </div></div>
-        </div>
+        <container-dialog id="${showTextDialogId}" title="${ec.getL10n().localize("Export Fixed-Width Plain Text")}">
+            <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
+            <form id="${formId}_Text" method="post" action="${textLinkUrl.getUrl()}">
+                <input type="hidden" name="renderMode" value="text">
+                <input type="hidden" name="pageNoLimit" value="true">
+                <input type="hidden" name="lastStandalone" value="true">
+                <#list textLinkUrlParms.keySet() as parmName>
+                    <input type="hidden" name="${parmName}" value="${textLinkUrlParms.get(parmName)!?html}"></#list>
+                <fieldset class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label col-sm-3" for="${formId}_Text_lineCharacters">${ec.getL10n().localize("Line Characters")}</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" size="4" name="lineCharacters" id="${formId}_Text_lineCharacters" value="132">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-3" for="${formId}_Text_lineWrap">${ec.getL10n().localize("Line Wrap?")}</label>
+                        <div class="col-sm-9">
+                            <input type="checkbox" class="form-control" name="lineWrap" id="${formId}_Text_lineWrap" value="true">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-3" for="${formId}_Text_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Text_saveFilename" value="${formNode["@name"] + ".txt"}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-default">${ec.getL10n().localize("Export Text")}</button>
+                </fieldset>
+            </form>
+        </container-dialog>
     </#if>
     <#if formNode["@show-pdf-button"]! == "true">
         <#assign showPdfDialogId = formId + "_PdfDialog">
         <#assign pdfLinkUrl = sri.getScreenUrlInstance()>
         <#assign pdfLinkUrlParms = pdfLinkUrl.getParameterMap()>
-        <div id="${showPdfDialogId}" class="modal" aria-hidden="true" style="display: none;" tabindex="-1">
-            <div class="modal-dialog" style="width: 600px;"><div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">${ec.getL10n().localize("Generate PDF")}</h4>
-                </div>
-                <div class="modal-body">
-                    <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
-                    <form id="${formId}_Pdf" method="post" action="${ec.web.getWebappRootUrl(false, null)}/fop${pdfLinkUrl.getPath()}">
-                        <input type="hidden" name="pageNoLimit" value="true">
-                        <#list pdfLinkUrlParms.keySet() as parmName>
-                            <input type="hidden" name="${parmName}" value="${pdfLinkUrlParms.get(parmName)!?html}"></#list>
-                        <fieldset class="form-horizontal">
-                            <div class="form-group">
-                                <label class="control-label col-sm-3" for="${formId}_Pdf_layoutMaster">${ec.getL10n().localize("Page Layout")}</label>
-                                <div class="col-sm-9">
-                                    <select name="layoutMaster"  id="${formId}_Pdf_layoutMaster" class="form-control">
-                                        <option value="letter-landscape">US Letter - Landscape (11x8.5)</option>
-                                        <option value="letter-portrait">US Letter - Portrait (8.5x11)</option>
-                                        <option value="legal-landscape">US Legal - Landscape (14x8.5)</option>
-                                        <option value="legal-portrait">US Legal - Portrait (8.5x14)</option>
-                                        <option value="tabloid-landscape">US Tabloid - Landscape (17x11)</option>
-                                        <option value="tabloid-portrait">US Tabloid - Portrait (11x17)</option>
-                                        <option value="a4-landscape">A4 - Landscape (297x210)</option>
-                                        <option value="a4-portrait">A4 - Portrait (210x297)</option>
-                                        <option value="a3-landscape">A3 - Landscape (420x297)</option>
-                                        <option value="a3-portrait">A3 - Portrait (297x420)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label col-sm-3" for="${formId}_Pdf_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Pdf_saveFilename" value="${formNode["@name"] + ".pdf"}">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-default">${ec.getL10n().localize("Generate PDF")}</button>
-                        </fieldset>
-                    </form>
-                    <m-script>$("#${formId}_Pdf_layoutMaster").select2({ });</m-script>
-                </div>
-            </div></div>
-        </div>
+        <container-dialog id="${showPdfDialogId}" title="${ec.getL10n().localize("Generate PDF")}">
+            <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
+            <form id="${formId}_Pdf" method="post" action="${ec.web.getWebappRootUrl(false, null)}/fop${pdfLinkUrl.getPath()}">
+                <input type="hidden" name="pageNoLimit" value="true">
+                <#list pdfLinkUrlParms.keySet() as parmName>
+                    <input type="hidden" name="${parmName}" value="${pdfLinkUrlParms.get(parmName)!?html}"></#list>
+                <fieldset class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label col-sm-3" for="${formId}_Pdf_layoutMaster">${ec.getL10n().localize("Page Layout")}</label>
+                        <div class="col-sm-9">
+                            <select name="layoutMaster"  id="${formId}_Pdf_layoutMaster" class="form-control">
+                                <option value="letter-landscape">US Letter - Landscape (11x8.5)</option>
+                                <option value="letter-portrait">US Letter - Portrait (8.5x11)</option>
+                                <option value="legal-landscape">US Legal - Landscape (14x8.5)</option>
+                                <option value="legal-portrait">US Legal - Portrait (8.5x14)</option>
+                                <option value="tabloid-landscape">US Tabloid - Landscape (17x11)</option>
+                                <option value="tabloid-portrait">US Tabloid - Portrait (11x17)</option>
+                                <option value="a4-landscape">A4 - Landscape (297x210)</option>
+                                <option value="a4-portrait">A4 - Portrait (210x297)</option>
+                                <option value="a3-landscape">A3 - Landscape (420x297)</option>
+                                <option value="a3-portrait">A3 - Portrait (297x420)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-3" for="${formId}_Pdf_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Pdf_saveFilename" value="${formNode["@name"] + ".pdf"}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-default">${ec.getL10n().localize("Generate PDF")}</button>
+                </fieldset>
+            </form>
+            <m-script>$("#${formId}_Pdf_layoutMaster").select2({ });</m-script>
+        </container-dialog>
     </#if>
 </#macro>
 <#macro paginationHeader formListInfo formId isHeaderDialog>
@@ -838,8 +814,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
-    <#assign isPaginated = !(formNode["@paginate"]! == "false") && context[listName + "Count"]?? && (context[listName + "Count"]! > 0) &&
-            (!formNode["@paginate-always-show"]?has_content || formNode["@paginate-always-show"]! == "true" || (context[listName + "PageMaxIndex"] > 0))>
+    <#assign isPaginated = (!(formNode["@paginate"]! == "false") && context[listName + "Count"]?? && (context[listName + "Count"]! > 0) &&
+            (!formNode["@paginate-always-show"]?has_content || formNode["@paginate-always-show"]! == "true" || (context[listName + "PageMaxIndex"] > 0)))>
     <#if (isHeaderDialog || isSavedFinds || isSelectColumns || isPaginated) && hideNav! != "true">
         <tr class="form-list-nav-row"><th colspan="${numColumns}">
         <nav class="form-list-nav">
@@ -861,7 +837,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         $("#${quickSavedFindId}").select2({ placeholder:'${ec.getL10n().localize("Saved Finds")}' });
                         $("#${quickSavedFindId}").on('select2:select', function(evt) {
                             var dataAction = $(evt.params.data.element).attr("data-action");
-                            if (dataAction) webrootVue.goto(dataAction);
+                            if (dataAction) moqui.webrootVue.goto(dataAction);
                         } );
                     </m-script>
                 </#if>
@@ -969,7 +945,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign hasSubColumns = subColInfoList?has_content>
     <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
-    <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
+    <#assign formName = ec.getResource().expandNoL10n(formNode["@name"], "")>
+    <#assign formId>${formName}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#assign headerFormId = formId + "_header">
     <#assign skipStart = (formNode["@skip-start"]! == "true")>
     <#assign skipEnd = (formNode["@skip-end"]! == "true")>
@@ -980,6 +957,58 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign isMulti = !skipForm && formNode["@multi"]! == "true">
     <#assign formListUrlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
     <#assign listName = formNode["@list"]>
+    <#assign isServerStatic = formInstance.isServerStatic(sri.getRenderMode())>
+
+<#if isServerStatic><#-- client rendered, static -->
+    <#if !skipHeader><@paginationHeaderModals formListInfo formId isHeaderDialog/></#if>
+    <form-list name="${formName}" id="${formId}" rows="${formName}" action="${formListUrlInfo.path}" :multi="${isMulti?c}"<#rt>
+            <#t> :skip-form="${skipForm?c}" :skip-header="${skipHeader?c}" :header-form="${needHeaderForm?c}"
+            <#t> :header-dialog="${isHeaderDialog?c}" :saved-finds="${(formNode["@saved-finds"]! == "true")?c}"
+            <#t> :select-columns="${(formNode["@select-columns"]! == "true")?c}" :all-button="${(formNode["@show-all-button"]! == "true")?c}"
+            <#t> :csv-button="${(formNode["@show-csv-button"]! == "true")?c}" :text-button="${(formNode["@show-text-button"]! == "true")?c}"
+            <#lt> :pdf-button="${(formNode["@show-pdf-button"]! == "true")?c}" columns="${numColumns}">
+        <template slot="headerForm" scope="header">
+            <#assign fieldsJsName = "header.search">
+            <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
+            <#list hiddenFieldList as hiddenField><#if hiddenField["header-field"]?has_content><#recurse hiddenField["header-field"][0]/></#if></#list>
+            <#assign fieldsJsName = "">
+        </template>
+        <template slot="header" scope="header">
+            <#assign fieldsJsName = "header.search"><#assign ownerForm = headerFormId>
+            <tr><#list mainColInfoList as columnFieldList>
+                <th><#list columnFieldList as fieldNode>
+                    <div><@formListHeaderField fieldNode isHeaderDialog/></div>
+                </#list></th>
+            </#list></tr>
+            <#if hasSubColumns>
+                <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed"><thead>
+                    <#list subColInfoList as subColFieldList><th>
+                        <#list subColFieldList as fieldNode>
+                            <div><@formListHeaderField fieldNode isHeaderDialog/></div>
+                        </#list>
+                    </th></#list>
+                </thead></table></div></td></tr>
+            </#if>
+            <#assign fieldsJsName = ""><#assign ownerForm = "">
+        </template>
+        <#-- for adding more to form-list nav bar <template slot="nav"></template> -->
+        <template slot="rowForm" scope="row">
+            <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
+            <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
+            <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
+            <#assign fieldsJsName = ""><#assign ownerForm = "">
+        </template>
+        <template slot="row" scope="row">
+            <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
+            <#list mainColInfoList as columnFieldList>
+                <td><#list columnFieldList as fieldNode>
+                    <@formListSubField fieldNode true false isMulti false/>
+                </#list></td>
+            </#list>
+            <#assign fieldsJsName = ""><#assign ownerForm = "">
+        </template>
+    </form-list>
+<#else><#-- server rendered, non-static -->
     <#assign listObject = formListInfo.getListObject(true)!>
     <#assign listHasContent = listObject?has_content>
 
@@ -1006,7 +1035,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
         <#if isMulti>
         <m-form name="${formId}" id="${formId}" action="${formListUrlInfo.path}">
-            <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
+            <input type="hidden" name="moquiFormName" value="${formName}">
             <input type="hidden" name="_isMulti" value="true">
             <#if listHasContent><#list listObject as listEntry>
                 <#assign listEntryIndex = listEntry_index>
@@ -1026,19 +1055,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <thead>
                 <@paginationHeader formListInfo formId isHeaderDialog/>
                 <#assign ownerForm = headerFormId>
-                <tr>
-                <#list mainColInfoList as columnFieldList>
-                    <#-- TODO: how to handle column style? <th<#if fieldListColumn["@style"]?has_content> class="${fieldListColumn["@style"]}"</#if>> -->
-                    <th>
-                    <#list columnFieldList as fieldNode>
-                        <#-- <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") ||
-                                ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                (fieldNode?children[0]["hidden"]?has_content || fieldNode?children[0]["ignored"]?has_content)))> -->
+                <tr><#list mainColInfoList as columnFieldList>
+                    <th><#list columnFieldList as fieldNode>
                         <div><@formListHeaderField fieldNode isHeaderDialog/></div>
-                    </#list>
-                    </th>
-                </#list>
-                </tr>
+                    </#list></th>
+                </#list></tr>
                 <#if hasSubColumns>
                     <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed"><thead>
                         <#list subColInfoList as subColFieldList><th>
@@ -1051,8 +1072,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign ownerForm = "">
             </thead>
         </#if>
-            <tbody>
-            <#assign ownerForm = formId>
+        <#if !isServerStatic><tbody></#if>
+        <#assign ownerForm = formId>
     </#if>
     <#if listHasContent><#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
@@ -1094,12 +1115,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#list formNode["field"] as fieldNode><@formListSubField fieldNode false false true true/></#list>
             </td></tr>
         </#if>
-            </tbody>
-            <#assign ownerForm = "">
+        <#if !isServerStatic></tbody></#if>
+        <#assign ownerForm = "">
         </table>
     </#if>
-    <#if hasSubColumns><m-script>makeColumnsConsistent('${formId}_table');</m-script></#if>
-    <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
+    <#if hasSubColumns><m-script>moqui.makeColumnsConsistent('${formId}_table');</m-script></#if>
+</#if>
+    <#if sri.doBoundaryComments()><!-- END   form-list[@name=${formName}] --></#if>
     <#assign skipForm = false>
 </#macro>
 <#macro formListHeaderField fieldNode isHeaderDialog>
@@ -1242,75 +1264,29 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#elseif .node["@type"]! == "date"><#assign size=10><#assign maxlength=10><#assign defaultFormat="yyyy-MM-dd">
     <#else><#assign size=16><#assign maxlength=23><#assign defaultFormat="yyyy-MM-dd HH:mm">
     </#if>
-    <#assign datepickerFormat><@getBootstrapDateFormat .node["@format"]!defaultFormat/></#assign>
     <#assign curFieldName><@fieldName .node/></#assign>
     <#assign fieldValueFrom = ec.getL10n().format(ec.getContext().get(curFieldName + "_from")!?default(.node["@default-value-from"]!""), defaultFormat)>
     <#assign fieldValueThru = ec.getL10n().format(ec.getContext().get(curFieldName + "_thru")!?default(.node["@default-value-thru"]!""), defaultFormat)>
-    <#assign tlId><@fieldId .node/></#assign>
     <span class="form-date-find">
       <span>${ec.getL10n().localize("From")}&nbsp;</span>
-    <#if .node["@type"]! != "time">
-        <div class="input-group date" id="${tlId}_from">
-            <input type="text" class="form-control" name="${curFieldName}_from" value="${fieldValueFrom?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-        </div>
-        <m-script>$('#${tlId}_from').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValueFrom?html}' && moment('${fieldValueFrom?html}','${datepickerFormat}'), format:'${datepickerFormat}', stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}"});</m-script>
-    <#else>
-        <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"
-               name="${curFieldName}_from" value="${fieldValueFrom?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-    </#if>
+      <date-time id="<@fieldId .node/>_from" name="${curFieldName}_from" value="${fieldValueFrom?html}" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
+        <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
+        <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>/>
     </span>
     <span class="form-date-find">
       <span>${ec.getL10n().localize("Thru")}&nbsp;</span>
-    <#if .node["@type"]! != "time">
-        <div class="input-group date" id="${tlId}_thru">
-            <input type="text" class="form-control" name="${curFieldName}_thru" value="${fieldValueThru?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-        </div>
-        <m-script>$('#${tlId}_thru').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate:'${fieldValueThru?html}' && moment('${fieldValueThru?html}','${datepickerFormat}'), format:'${datepickerFormat}', stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}"});</m-script>
-    <#else>
-        <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"
-               name="${curFieldName}_thru" value="${fieldValueThru?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-    </#if>
+      <date-time id="<@fieldId .node/>_thru" name="${curFieldName}_thru" value="${fieldValueThru?html}" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
+          <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
+          <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>/>
     </span>
 </#macro>
 
 <#macro "date-period">
-    <#assign tlId><@fieldId .node/></#assign>
-    <#assign curFieldName><@fieldName .node/></#assign>
+    <#assign tlId><@fieldId .node/></#assign><#assign curFieldName><@fieldName .node/></#assign>
     <#assign fvOffset = ec.getContext().get(curFieldName + "_poffset")!>
     <#assign fvPeriod = ec.getContext().get(curFieldName + "_period")!?lower_case>
     <#assign allowEmpty = .node["@allow-empty"]!"true">
-    <div class="date-period">
-        <select name="${curFieldName}_poffset" id="${tlId}_poffset"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-            <#if (allowEmpty! != "false")>
-                <option value="">&nbsp;</option>
-            </#if>
-            <option value="0"<#if fvOffset == "0"> selected="selected"</#if>>${ec.getL10n().localize("This")}</option>
-            <option value="-1"<#if fvOffset == "-1"> selected="selected"</#if>>${ec.getL10n().localize("Last")}</option>
-            <option value="-2"<#if fvOffset == "-2"> selected="selected"</#if>>-2</option>
-            <option value="-3"<#if fvOffset == "-3"> selected="selected"</#if>>-3</option>
-            <option value="-4"<#if fvOffset == "-4"> selected="selected"</#if>>-4</option>
-            <option value="-5"<#if fvOffset == "-5"> selected="selected"</#if>>-5</option>
-            <option value="1"<#if fvOffset == "1"> selected="selected"</#if>>${ec.getL10n().localize("Next")}</option>
-            <option value="2"<#if fvOffset == "2"> selected="selected"</#if>>+2</option>
-            <option value="3"<#if fvOffset == "3"> selected="selected"</#if>>+3</option>
-            <option value="4"<#if fvOffset == "4"> selected="selected"</#if>>+4</option>
-            <option value="5"<#if fvOffset == "5"> selected="selected"</#if>>+5</option>
-        </select>
-        <select name="${curFieldName}_period" id="${tlId}_period"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-            <#if (allowEmpty! != "false")>
-            <option value="">&nbsp;</option>
-            </#if>
-            <option value="day" <#if fvPeriod == "day"> selected="selected"</#if>>${ec.getL10n().localize("Day")}</option>
-            <option value="7d" <#if fvPeriod == "7d"> selected="selected"</#if>>7 ${ec.getL10n().localize("Days")}</option>
-            <option value="30d" <#if fvPeriod == "30d"> selected="selected"</#if>>30 ${ec.getL10n().localize("Days")}</option>
-            <option value="week" <#if fvPeriod == "week"> selected="selected"</#if>>${ec.getL10n().localize("Week")}</option>
-            <option value="month" <#if fvPeriod == "month"> selected="selected"</#if>>${ec.getL10n().localize("Month")}</option>
-            <option value="year" <#if fvPeriod == "year"> selected="selected"</#if>>${ec.getL10n().localize("Year")}</option>
-        </select>
-        <m-script>$("#${tlId}_poffset").select2({ }); $("#${tlId}_period").select2({ });</m-script>
-    </div>
+    <date-period name="${curFieldName}" id="${tlId}" :allow-empty="${allowEmpty}" offset="${fvOffset}" period="${fvPeriod}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>/>
 </#macro>
 
 <#--
@@ -1340,7 +1316,7 @@ yyyy	YYYY	    full numeric representation of a year, 4 digits
 Summary of changes needed:
 a => A, d => D, y => Y
 -->
-<#macro getBootstrapDateFormat dateFormat>${dateFormat?replace("a","A")?replace("d","D")?replace("y","Y")}</#macro>
+<#macro getMomentDateFormat dateFormat>${dateFormat?replace("a","A")?replace("d","D")?replace("y","Y")}</#macro>
 
 <#macro "date-time">
     <#assign javaFormat = .node["@format"]!>
@@ -1349,58 +1325,42 @@ a => A, d => D, y => Y
         <#elseif .node["@type"]! == "date"><#assign javaFormat="yyyy-MM-dd">
         <#else><#assign javaFormat="yyyy-MM-dd HH:mm"></#if>
     </#if>
-    <#assign datepickerFormat><@getBootstrapDateFormat javaFormat/></#assign>
     <#assign fieldValue = sri.getFieldValueString(.node?parent?parent, .node["@default-value"]!"", javaFormat)>
-
-    <#assign tlId><@fieldId .node/></#assign>
-
-    <#if .node["@type"]! == "time"><#assign size=9><#assign maxlength=13>
-        <#elseif .node["@type"]! == "date"><#assign size=10><#assign maxlength=10>
-        <#else><#assign size=16><#assign maxlength=23></#if>
-    <#assign size = .node["@size"]!size>
-    <#assign maxlength = .node["@max-length"]!maxlength>
-
-    <#if .node["@type"]! != "time">
-        <div class="input-group date" id="${tlId}">
-            <input type="text" class="form-control" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-            <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
-        </div>
-        <m-script>$('#${tlId}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate: '${fieldValue?html}' && moment('${fieldValue?html}','${datepickerFormat}'), format:'${datepickerFormat}', stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}"});</m-script>
-    <#else>
-        <#-- datetimepicker does not support time only, even with plain HH:mm format; use a regex to validate time format -->
-        <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-    </#if>
+    <date-time id="<@fieldId .node/>" name="<@fieldName .node/>" value="${fieldValue?html}" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
+        <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
+        <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>/>
 </#macro>
 
 <#macro display>
     <#assign dispFieldId><@fieldId .node/></#assign>
+    <#assign dispFieldName><@fieldName .node/></#assign>
     <#assign dispFieldNode = .node?parent?parent>
     <#assign dispAlign = dispFieldNode["@align"]!"left">
     <#assign dispHidden = (!.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true") && !(skipForm!false)>
     <#assign fieldValue = "">
-    <#if .node["@text"]?has_content>
-        <#assign textMap = "">
-        <#if .node["@text-map"]?has_content><#assign textMap = ec.getResource().expression(.node["@text-map"], "")!></#if>
-        <#if textMap?has_content>
-            <#assign fieldValue = ec.getResource().expand(.node["@text"], "", textMap)>
-        <#else>
-            <#assign fieldValue = ec.getResource().expand(.node["@text"], "")>
-        </#if>
-        <#if .node["@currency-unit-field"]?has_content>
-            <#assign fieldValue = ec.getL10n().formatCurrency(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))>
-        </#if>
-    <#elseif .node["@currency-unit-field"]?has_content>
-        <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+    <#if fieldsJsName?has_content>
+        <#assign fieldValue = "{{" + fieldsJsName + "." + dispFieldName + "}}">
     <#else>
-        <#assign fieldValue = sri.getFieldValueString(.node)>
+        <#if .node["@text"]?has_content>
+            <#assign textMap = "">
+            <#if .node["@text-map"]?has_content><#assign textMap = ec.getResource().expression(.node["@text-map"], "")!></#if>
+            <#if textMap?has_content><#assign fieldValue = ec.getResource().expand(.node["@text"], "", textMap)>
+                <#else><#assign fieldValue = ec.getResource().expand(.node["@text"], "")></#if>
+            <#if .node["@currency-unit-field"]?has_content>
+                <#assign fieldValue = ec.getL10n().formatCurrency(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))></#if>
+        <#elseif .node["@currency-unit-field"]?has_content>
+            <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+        <#else>
+            <#assign fieldValue = sri.getFieldValueString(.node)>
+        </#if>
     </#if>
-    <#t><span id="${dispFieldId}_display" class="${sri.getFieldValueClass(dispFieldNode)}<#if .node["@currency-unit-field"]?has_content> currency</#if><#if dispAlign == "center"> text-center<#elseif dispAlign == "right"> text-right</#if>">
+    <#t><span class="${sri.getFieldValueClass(dispFieldNode)}<#if .node["@currency-unit-field"]?has_content> currency</#if><#if dispAlign == "center"> text-center<#elseif dispAlign == "right"> text-right</#if>">
     <#t><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if>
     <#t></span>
     <#t><#if dispHidden>
         <#-- use getFieldValuePlainString() and not getFieldValueString() so we don't do timezone conversions, etc -->
         <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
-        <input type="hidden" id="${dispFieldId}" name="<@fieldName .node/>" value="${sri.getFieldValuePlainString(dispFieldNode, "")?html}"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
+        <input type="hidden" id="${dispFieldId}" name="${dispFieldName}" <#if fieldsJsName?has_content>:value="${fieldsJsName}.${dispFieldName}"<#else>value="${sri.getFieldValuePlainString(dispFieldNode, "")?html}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
     </#if>
     <#if .node["@dynamic-transition"]?has_content>
         <#assign defUrlInfo = sri.makeUrlByType(.node["@dynamic-transition"], "transition", .node, "false")>
@@ -1425,9 +1385,10 @@ a => A, d => D, y => Y
 </#macro>
 <#macro "display-entity">
     <#assign fieldValue = sri.getFieldEntityValue(.node)!/>
-    <#t><span id="<@fieldId .node/>_display"><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue!"&nbsp;"}<#else>${(fieldValue!" ")?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></span>
+    <#assign dispHidden = (!.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true") && !(skipForm!false)>
+    <#t><span><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue!"&nbsp;"}<#else>${(fieldValue!" ")?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></span>
     <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
-    <#t><#if !.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true"><input type="hidden" id="<@fieldId .node/>" name="<@fieldName .node/>" value="${sri.getFieldValuePlainString(.node?parent?parent, "")?html}"<#if ownerForm?has_content> form="${ownerForm}"</#if>></#if>
+    <#t><#if dispHidden><input type="hidden" id="<@fieldId .node/>" name="<@fieldName .node/>" value="${sri.getFieldValuePlainString(.node?parent?parent, "")?html}"<#if ownerForm?has_content> form="${ownerForm}"</#if>></#if>
 </#macro>
 
 <#macro "drop-down">
@@ -1464,7 +1425,7 @@ a => A, d => D, y => Y
             <#t><#else>
                 <#t><#if allowMultiple> :value="[<#list currentValueList as curVal><#if curVal?has_content>'${curVal}',</#if></#list>]"<#else> value="${currentValue!}"</#if>
                 :options="[<#if currentValue?has_content && !allowMultiple && !optionsHasCurrent>{id:'${currentValue}',text:'<#if currentDescription?has_content>${currentDescription}<#else>${currentValue}</#if>'},</#if><#rt>
-                    <#t><#if allowEmpty || !(options?has_content)>{id:'',text:' '},</#if><#list (options.keySet())! as key>{id:'${key}',text:'${options.get(key)?js_string}'}<#sep>,</#list>]"
+                    <#t><#if allowEmpty || !(options?has_content)>{id:'',text:'\u00a0'},</#if><#list (options.keySet())! as key>{id:'${key}',text:'${options.get(key)?js_string}'}<#sep>,</#list>]"
             <#t></#if>>
             <#-- support <#if .node["@current"]! == "first-in-list"> again? -->
     </drop-down>
