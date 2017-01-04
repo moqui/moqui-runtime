@@ -76,7 +76,7 @@ var moqui = {
         this.displayNotify = function(jsonObj, webSocket) {
             if (!webSocket.clientObj.displayEnable) return; // console.log(jsonObj);
             if (jsonObj.title && jsonObj.showAlert == true) {
-                $.notify(new NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), new NotifySettings(jsonObj.type)); }
+                $.notify(new moqui.NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), new moqui.NotifySettings(jsonObj.type)); }
         };
         this.registerListener = function(topic, callback) {
             if (!this.webSocket) this.initWebSocket();

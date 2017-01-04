@@ -803,7 +803,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <button type="submit" class="btn btn-default">${ec.getL10n().localize("Generate PDF")}</button>
                 </fieldset>
             </form>
-            <m-script>$("#${formId}_Pdf_layoutMaster").select2({ });</m-script>
         </container-dialog>
     </#if>
 </#macro>
