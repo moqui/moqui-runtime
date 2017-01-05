@@ -370,7 +370,7 @@ Vue.component('m-form', {
             var reloadId = this.submitReloadId; if (reloadId && reloadId.length > 0) { this.$root.reloadContainer(reloadId); }
             var subMsg = this.submitMessage;
             if (subMsg && subMsg.length) {
-                var responseText = resp;
+                var responseText = resp; // this is set for backward compatibility in case message relies on responseText as in old JS
                 $.notify({ message:eval('"' + subMsg + '"') }, $.extend({}, moqui.notifyOpts, {type:'success'}));
             } else if (!notified) {
                 $.notify({ message:"Form data saved" }, $.extend({}, moqui.notifyOpts, {type:'success'}));
