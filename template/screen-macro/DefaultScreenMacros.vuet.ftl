@@ -1515,8 +1515,8 @@ a => A, d => D, y => Y
                 <#t><#if .node["@ac-min-length"]?has_content> :min-length="${.node["@ac-min-length"]}"</#if>
                 <#t> :depends-on="{<#list depNodeList as depNode><#local depNodeField = depNode["@field"]>'${depNode["@parameter"]!depNodeField}':'<@fieldIdByName depNodeField/>'<#sep>, </#list>}"
                 <#t> :ac-parameters="{<#list acUrlParameterMap?keys as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>'${parameterKey}':'${acUrlParameterMap.get(parameterKey)}', </#if></#list>}"
+                <#t><#if .node["@ac-delay"]?has_content> :delay="${.node["@ac-delay"]}"</#if>
                 <#t><#if .node["@ac-initial-text"]?has_content> :skip-initial="true"</#if>/>
-        <#-- TODO delay? <#if .node["@ac-delay"]?has_content>delay: ${.node["@ac-delay"]},</#if> -->
     <#else>
         <#assign tlAlign = tlFieldNode["@align"]!"left">
         <#t><input id="${tlId}" <#--v-model="fields.${name}"--> type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>"
