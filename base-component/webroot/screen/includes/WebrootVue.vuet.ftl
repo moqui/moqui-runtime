@@ -22,7 +22,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign navbarCompList = sri.getThemeValues("STRT_HEADER_NAVBAR_COMP")>
     <#list navbarCompList! as navbarCompUrl><input type="hidden" class="confNavPluginUrl" value="${navbarCompUrl}"></#list>
     <#if hideNav! != 'true'>
-    <div id="top"><nav class="navbar navbar-inverse navbar-fixed-top"><#-- navbar-static-top --><div class="container-fluid">
+    <div id="top"><nav class="navbar navbar-inverse"><#--  navbar-fixed-top navbar-static-top --><div class="container-fluid">
         <#-- Brand and toggle get grouped for better mobile display -->
         <header class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">

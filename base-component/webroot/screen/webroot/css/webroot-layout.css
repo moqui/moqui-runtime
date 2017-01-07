@@ -16,7 +16,8 @@
 /* ========================== body, etc ========================== */
 
 html, body { height: 100%; }
-body { padding-top: 51px; } /* this is the initial load setting, will get set dynamically for navbar-fixed-top */
+/* body { padding-top: 51px; } /* this is the initial load setting, will get set dynamically for navbar-fixed-top */
+#top .navbar { margin-bottom: 0; border-radius: 0; }
 #apps-root { height: 100%; }
 /* #top, #content>.inner, #footer are the main page structure elements */
 #content { overflow: visible; background: transparent; min-height: 100%; }

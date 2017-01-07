@@ -1,4 +1,4 @@
-<nav class="navbar navbar-inverse navbar-fixed-top"><#-- navbar-static-top -->
+<nav class="navbar navbar-inverse"><#-- navbar-fixed-top navbar-static-top -->
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
     <header class="navbar-header">
