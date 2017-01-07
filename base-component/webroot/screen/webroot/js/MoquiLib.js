@@ -6,6 +6,7 @@ var moqui = {
     isNumber: function(obj) { return typeof obj === 'number'; },
     isArray: function(obj) { return Object.prototype.toString.call(obj) === '[object Array]'; },
     isFunction: function(obj) { return Object.prototype.toString.call(obj) === '[object Function]'; },
+    isPlainObject: function(obj) { return obj != null && typeof obj == 'object' && Object.prototype.toString.call(obj) === '[object Object]'; },
 
     // function to set columns across multiple tables to the same width
     makeColumnsConsistent: function(outerId) {

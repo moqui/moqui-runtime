@@ -41,8 +41,6 @@
    - goal would be to use FTL macros to transform more detailed XML into library specific output
  */
 
-moqui.notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
-
 // simple stub for define if it doesn't exist (ie no require.js, etc); mimic pattern of require.js define()
 if (!window.define) window.define = function(name, deps, callback) {
     if (!moqui.isString(name)) { callback = deps; deps = name; name = null; }
@@ -86,16 +84,41 @@ moqui.retryInlineScript = function(src, count) {
     }
 };
 
-/* ========== component loading methods ========== */
-moqui.componentCache = new moqui.LruMap(50);
-
+/* ========== notify and error handling ========== */
+moqui.notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
+moqui.notifyMessages = function(messages, errors) {
+    var notified = false;
+    if (messages) {
+        if (moqui.isArray(messages)) {
+            for (var mi=0; mi < messages.length; mi++) {
+                $.notify({message:messages[mi]}, $.extend({}, moqui.notifyOpts, {type: 'info'})); notified = true; }
+        } else { $.notify({message:messages}, $.extend({}, moqui.notifyOpts, {type: 'info'})); notified = true; }
+    }
+    if (errors) {
+        if (moqui.isArray(errors)) {
+            for (var ei=0; ei < errors.length; ei++) {
+                $.notify({message:errors[ei]}, $.extend({}, moqui.notifyOpts, {delay:60000, type:'danger'})); notified = true; }
+        } else { $.notify({message:errors}, $.extend({}, moqui.notifyOpts, {delay:60000, type:'danger'})); notified = true; }
+    }
+    return notified;
+};
 moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
-    console.error('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response text: ' + jqXHR.responseText);
+    var resp = jqXHR.responseText;
+    var respObj = JSON.parse(resp);
+    console.error('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response: ' + resp);
+    // console.error('respObj: ' + JSON.stringify(respObj));
+    var notified = false;
+    if (respObj && moqui.isPlainObject(respObj)) { notified = moqui.notifyMessages(respObj.messages, respObj.errors); }
+
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status == 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
     else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); }
-    else { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); }
+    else if (!notified) { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); }
 };
+
+/* ========== component loading methods ========== */
+moqui.componentCache = new moqui.LruMap(50);
+
 // NOTE: this may eventually split to change the activeSubscreens only on currentPathList change (for screens that support it)
 //     and if ever needed some sort of data refresh if currentParameters changes
 moqui.loadComponent = function(urlInfo, callback, divId) {
@@ -149,7 +172,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
                 if (isServerStatic) { moqui.componentCache.put(path, compObj); }
                 callback(compObj);
             }
-        } else if (resp === Object(resp)) {
+        } else if (moqui.isPlainObject(resp)) {
             if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.setUrl(resp.screenUrl); }
             else if (resp.redirectUrl && resp.redirectUrl.length > 0) { window.location.replace(resp.redirectUrl); }
         } else { callback(moqui.NotFound); }
@@ -358,11 +381,8 @@ Vue.component('m-form', {
         handleResponse: function(resp) {
             var notified = false;
             // console.info('m-form response ' + JSON.stringify(resp));
-            if (resp && resp === Object(resp)) {
-                if (resp.messages) for (var mi=0; mi < resp.messages.length; mi++) {
-                    $.notify({ message:resp.messages[mi] }, $.extend({}, moqui.notifyOpts, {type:'info'})); notified = true; }
-                if (resp.errors) for (var ei=0; ei < resp.messages.length; ei++) {
-                    $.notify({ message:resp.messages[ei] }, $.extend({}, moqui.notifyOpts, {delay:60000, type:'danger'})); notified = true; }
+            if (resp && moqui.isPlainObject(resp)) {
+                notified = moqui.notifyMessages(resp.messages, resp.errors);
                 if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.setUrl(resp.screenUrl); }
                 else if (resp.redirectUrl && resp.redirectUrl.length > 0) { window.location.href = resp.redirectUrl; }
             } else { console.warn('m-form no reponse or non-JSON response: ' + JSON.stringify(resp)) }
