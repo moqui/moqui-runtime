@@ -85,7 +85,7 @@ moqui.retryInlineScript = function(src, count) {
 };
 
 /* ========== notify and error handling ========== */
-moqui.notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
+moqui.notifyOpts = { delay:6000, offset:{x:20,y:70}, z_index:1100, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
 moqui.notifyMessages = function(messages, errors) {
     var notified = false;
     if (messages) {
@@ -105,7 +105,7 @@ moqui.notifyMessages = function(messages, errors) {
 moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     var resp = jqXHR.responseText;
     var respObj = JSON.parse(resp);
-    console.error('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response: ' + resp);
+    console.warn('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response: ' + resp);
     // console.error('respObj: ' + JSON.stringify(respObj));
     var notified = false;
     if (respObj && moqui.isPlainObject(respObj)) { notified = moqui.notifyMessages(respObj.messages, respObj.errors); }
