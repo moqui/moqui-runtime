@@ -1283,7 +1283,8 @@ a => A, d => D, y => Y
     <#assign dispHidden = (!.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true") && !(skipForm!false)>
     <#assign fieldValue = "">
     <#if fieldsJsName?has_content>
-        <#assign fieldValue = "{{" + fieldsJsName + "." + dispFieldName + "}}">
+        <#assign format = .node["@format"]!>
+        <#assign fieldValue>{{row.moqui.format(${fieldsJsName}.${dispFieldName}<#if format?has_content>, "${format}"</#if>)}}</#assign>
     <#else>
         <#if .node["@text"]?has_content>
             <#assign textMap = "">

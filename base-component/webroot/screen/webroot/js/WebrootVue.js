@@ -57,6 +57,54 @@ moqui.objToSearch = function(obj) {
     $.each(obj, function (key, value) { search = search + (search.length > 0 ? '&' : '') + key + '=' + value; });
     return search;
 };
+moqui.searchToObj = function(search) {
+    if (!search || search.length == 0) { return {}; }
+    var newParams = {};
+    var parmList = search.split("&");
+    for (var i=0; i<parmList.length; i++) {
+        var parm = parmList[i]; var ps = parm.split("=");
+        if (ps.length > 1) {
+            var key = ps[0]; var value = ps[1]; var exVal = newParams[key];
+            if (exVal) { if (moqui.isArray(exVal)) { exVal.push(value); } else { newParams[key] = [exVal, value]; } }
+            else { newParams[key] = value; }
+        }
+    }
+    return newParams;
+};
+moqui.format = function(value, format, type) {
+    // console.log('format ' + value + ' with ' + format + ' of type ' + type);
+    // number formatting: http://numeraljs.com/ https://github.com/andrewgp/jsNumberFormatter http://www.asual.com/jquery/format/
+    if (format && format.length) { format = format.replace(/a/,'A').replace(/d/,'D').replace(/y/,'Y'); } // change java date/time format to moment
+    if (type && type.length) {
+        type = type.toLowerCase();
+        if (type === "date") {
+            if (!format || format.length == 0) format = "YYYY-MM-DD";
+            return moment(value).format(format);
+        } else if (type === "time") {
+            if (!format || format.length == 0) format = "HH:mm:ss";
+            return moment(value).format(format);
+        } else if (type === "timestamp") {
+            if (!format || format.length == 0) format = "YYYY-MM-DD HH:mm";
+            return moment(value).format(format);
+        } else if (type === "bigdecimal" || type === "long" || type === "integer" || type === "double" || type === "float") {
+            return value; // TODO format numbers
+        } else {
+            console.warn('format type unknown: ' + type);
+        }
+    }
+    if (moqui.isNumber(value)) {
+        return value; // TODO format numbers
+    } else {
+        // is it a number or any sort of date/time that moment supports? if anything else return as-is
+        var momentVal = moment(value);
+        if (momentVal.isValid()) {
+            if (!format || format.length == 0) format = "YYYY-MM-DD HH:mm";
+            return momentVal.format(format);
+        }
+        // TODO
+        return value;
+    }
+};
 
 /* ========== script and stylesheet handling methods ========== */
 moqui.loadScript = function(src) {
@@ -518,7 +566,7 @@ Vue.component('form-list', {
             action:String, multi:Boolean, skipForm:Boolean, skipHeader:Boolean, headerForm:Boolean, headerDialog:Boolean,
             savedFinds:Boolean, selectColumns:Boolean, allButton:Boolean, csvButton:Boolean, textButton:Boolean, pdfButton:Boolean,
             columns:[String,Number] },
-    data: function() { return { rowList:[], paginate:null, searchObj:null } },
+    data: function() { return { rowList:[], paginate:null, searchObj:null, moqui:moqui } },
     // slots (props): headerForm (search), header (search), nav (), rowForm (fields), row (fields)
     // TODO: QuickSavedFind drop-down
     // TODO: change find options form to update searchObj and run fetchRows instead of changing main page and reloading
@@ -547,7 +595,7 @@ Vue.component('form-list', {
                 '<slot name="nav"></slot>' +
             '</nav></th></tr>' +
             '<slot name="header" :search="searchObj"></slot>' +
-        '</thead><tbody><tr v-for="(fields, rowIndex) in rowList"><slot name="row" :fields="fields"></slot></tr>' +
+        '</thead><tbody><tr v-for="(fields, rowIndex) in rowList"><slot name="row" :fields="fields" :row-index="rowIndex" :moqui="moqui"></slot></tr>' +
         '</tbody></table>' +
     '</div>',
     computed: {
@@ -899,22 +947,8 @@ moqui.webrootVue = new Vue({
                 (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : ''); },
         currentSearch: {
             get: function() { return moqui.objToSearch(this.currentParameters); },
-            set: function(newSearch) {
-                if (!newSearch || newSearch.length == 0) { this.currentParameters = {}; return; }
-                var newParams = {};
-                var parmList = newSearch.split("&");
-                for (var i=0; i<parmList.length; i++) {
-                    var parm = parmList[i]; var ps = parm.split("=");
-                    if (ps.length > 1) {
-                        var key = ps[0]; var value = ps[1]; var exVal = newParams[key];
-                        if (exVal) {
-                            if (moqui.isArray(exVal)) { exVal.push(value); }
-                            else { newParams[key] = [exVal, value]; }
-                        } else { newParams[key] = value; }
-                    }
-                }
-                this.currentParameters = newParams;
-            }},
+            set: function(newSearch) { this.currentParameters = moqui.searchToObj(newSearch); }
+        },
         currentUrl: {
             get: function() { var srch = this.currentSearch; return this.currentPath + (srch.length > 0 ? '?' + srch : ''); },
             set: function(href) {
