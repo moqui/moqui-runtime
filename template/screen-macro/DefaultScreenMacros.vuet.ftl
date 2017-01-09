@@ -836,7 +836,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         $("#${quickSavedFindId}").select2({ placeholder:'${ec.getL10n().localize("Saved Finds")}' });
                         $("#${quickSavedFindId}").on('select2:select', function(evt) {
                             var dataAction = $(evt.params.data.element).attr("data-action");
-                            if (dataAction) moqui.webrootVue.goto(dataAction);
+                            if (dataAction) moqui.webrootVue.setUrl(dataAction);
                         } );
                     </m-script>
                 </#if>
