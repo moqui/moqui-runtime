@@ -12,6 +12,9 @@
  - authorization in separate requests issue
    - implied screen authz (user has authz for child screen for not parent, so implied for parent); see moqui-runtime issue #71
    - inherited REST authz (REST services used in screen and user has authz for screen)
+ - client side localization using $root.locale string
+   - some sort of moqui.l10n object with entries for each locale, then entries for each string
+   - get translations on the fly from the server and cache locally?
 
  - going to minimal path causes menu reload; avoid? better to cache menus and do partial requests...
 
@@ -454,6 +457,70 @@ Vue.component('form-link', {
     }
 });
 
+Vue.component('form-paginate', {
+    props: { paginate:Object, formList:Object },
+    template:
+    '<ul v-if="paginate" class="pagination">' +
+        '<template v-if="paginate.pageIndex > 0">' +
+            '<li><a href="#" @click.prevent="setIndex(0)"><i class="glyphicon glyphicon-fast-backward"></i></a></li>' +
+            '<li><a href="#" @click.prevent="setIndex(paginate.pageIndex-1)"><i class="glyphicon glyphicon-backward"></i></a></li>' +
+        '</template>' +
+        '<template v-else><li><span><i class="glyphicon glyphicon-fast-backward"></i></span></li><li><span><i class="glyphicon glyphicon-backward"></i></span></li></template>' +
+        '<li v-for="prevIndex in prevArray"><a href="#" @click.prevent="setIndex(prevIndex)">{{prevIndex+1}}</a></li>' +
+        '<li><span>Page {{paginate.pageIndex+1}} of {{paginate.pageMaxIndex+1}} ({{paginate.pageRangeLow}} - {{paginate.pageRangeHigh}} of {{paginate.count}})</span></li>' +
+        '<li v-for="nextIndex in nextArray"><a href="#" @click.prevent="setIndex(nextIndex)">{{nextIndex+1}}</a></li>' +
+        '<template v-if="paginate.pageIndex < paginate.pageMaxIndex">' +
+            '<li><a href="#" @click.prevent="setIndex(paginate.pageIndex+1)"><i class="glyphicon glyphicon-forward"></i></a></li>' +
+            '<li><a href="#" @click.prevent="setIndex(paginate.pageMaxIndex)"><i class="glyphicon glyphicon-fast-forward"></i></a></li>' +
+        '</template>' +
+        '<template v-else><li><span><i class="glyphicon glyphicon-forward"></i></span></li><li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li></template>' +
+    '</ul>',
+    computed: {
+        prevArray: function() {
+            var pag = this.paginate; var arr = []; if (!pag || pag.pageIndex < 1) return arr;
+            var pageIndex = pag.pageIndex; var indexMin = pageIndex - 3; if (indexMin < 0) { indexMin = 0; } var indexMax = pageIndex - 1;
+            while (indexMin <= indexMax) { arr.push(indexMin++); } return arr;
+        },
+        nextArray: function() {
+            var pag = this.paginate; var arr = []; if (!pag || pag.pageIndex >= pag.pageMaxIndex) return arr;
+            var pageIndex = pag.pageIndex; var pageMaxIndex = pag.pageMaxIndex;
+            var indexMin = pageIndex + 1; var indexMax = pageIndex + 3; if (indexMax > pageMaxIndex) { indexMax = pageMaxIndex; }
+            while (indexMin <= indexMax) { arr.push(indexMin++); } return arr;
+        }
+    },
+    methods: {
+        setIndex: function(newIndex) {
+            if (this.formList) { this.formList.setPageIndex(newIndex); }
+            else { this.$root.currentParameters = $.extend({}, this.$root.currentParameters, {pageIndex:newIndex}); this.$root.reloadSubscreens(); }
+        }
+    }
+});
+Vue.component('form-go-page', {
+    props: { idVal:{type:String,required:true}, maxIndex:Number, formList:Object },
+    template:
+    '<form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage" class="form-inline" :id="idVal+\'_GoPage\'">' +
+        '<div class="form-group">' +
+            '<label class="sr-only" :for="idVal+\'_GoPage_pageIndex\'">Page Number</label>' +
+            '<input type="text" class="form-control" size="6" name="pageIndex" :id="idVal+\'_GoPage_pageIndex\'" placeholder="Page #">' +
+        '</div>' +
+        '<button type="submit" class="btn btn-default">Go</button>' +
+    '</form>',
+    methods: {
+        goPage: function() {
+            var formList = this.formList;
+            var jqEl = $('#' + this.idVal + '_GoPage_pageIndex');
+            var newIndex = jqEl.val() - 1;
+            if (newIndex < 0 || (formList && newIndex > formList.paginate.pageMaxIndex) || (this.maxIndex && newIndex > this.maxIndex)) {
+                jqEl.parents('.form-group').removeClass('has-success').addClass('has-error');
+            } else {
+                jqEl.parents('.form-group').removeClass('has-error').addClass('has-success');
+                if (formList) { formList.setPageIndex(newIndex); }
+                else { this.$root.currentParameters = $.extend({}, this.$root.currentParameters, {pageIndex:newIndex}); this.$root.reloadSubscreens(); }
+                jqEl.val('');
+            }
+        }
+    }
+});
 Vue.component('form-list', {
     // rows can be a full path to a REST service or transition, a plain form name on the current screen, or a JS Array with the actual rows
     props: { name:{type:String,required:true}, id:String, rows:{type:[String,Array],required:true}, search:{type:Object},
@@ -482,28 +549,8 @@ Vue.component('form-list', {
                 '<tr class="form-list-nav-row"><th :colspan="columns?columns:\'100\'"><nav class="form-list-nav">' +
                     '<button v-if="savedFinds || headerDialog" :id="idVal+\'_hdialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_hdialog\'" data-original-title="Find Options" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Find Options</button>' +
                     '<button v-if="selectColumns" :id="idVal+\'_SelColsDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_SelColsDialog\'" data-original-title="Columns" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Columns</button>' +
-                    '<ul v-if="paginate" class="pagination">' +
-                        '<template v-if="paginate.pageIndex > 0">' +
-                            '<li><a href="#" @click.prevent="setPageIndex(0)"><i class="glyphicon glyphicon-fast-backward"></i></a></li>' +
-                            '<li><a href="#" @click.prevent="setPageIndex(paginate.pageIndex-1)"><i class="glyphicon glyphicon-backward"></i></a></li>' +
-                        '</template>' +
-                        '<template v-else><li><span><i class="glyphicon glyphicon-fast-backward"></i></span></li><li><span><i class="glyphicon glyphicon-backward"></i></span></li></template>' +
-                        '<li v-for="prevIndex in prevArray"><a href="#" @click.prevent="setPageIndex(prevIndex)">{{prevIndex+1}}</a></li>' +
-                        '<li><span>Page {{paginate.pageIndex+1}} of {{paginate.pageMaxIndex+1}} ({{paginate.pageRangeLow}} - {{paginate.pageRangeHigh}} of {{paginate.count}})</span></li>' +
-                        '<li v-for="nextIndex in nextArray"><a href="#" @click.prevent="setPageIndex(nextIndex)">{{nextIndex+1}}</a></li>' +
-                        '<template v-if="paginate.pageIndex < paginate.pageMaxIndex">' +
-                            '<li><a href="#" @click.prevent="setPageIndex(paginate.pageIndex+1)"><i class="glyphicon glyphicon-forward"></i></a></li>' +
-                            '<li><a href="#" @click.prevent="setPageIndex(paginate.pageMaxIndex)"><i class="glyphicon glyphicon-fast-forward"></i></a></li>' +
-                        '</template>' +
-                        '<template v-else><li><span><i class="glyphicon glyphicon-forward"></i></span></li><li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li></template>' +
-                    '</ul>' +
-                    '<form v-if="paginate && paginate.pageMaxIndex > 4" @submit.prevent="goPage" class="form-inline" :id="idVal+\'_GoPage\'">' +
-                        '<div class="form-group">' +
-                            '<label class="sr-only" :for="idVal+\'_GoPage_pageIndex\'">Page Number</label>' +
-                            '<input type="text" class="form-control" size="6" name="pageIndex" :id="idVal+\'_GoPage_pageIndex\'" placeholder="Page #">' +
-                        '</div>' +
-                        '<button type="submit" class="btn btn-default">Go</button>' +
-                    '</form>' +
+                    '<form-paginate :paginate="paginate" :form-list="this"></form-paginate>' +
+                    '<form-go-page :id-val="idVal" :form-list="this"></form-go-page>' +
                     '<a v-if="csvButton" :href="csvUrl" class="btn btn-default">CSV</a>' +
                     '<button v-if="textButton" :id="idVal+\'_TextDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_TextDialog\'" data-original-title="Text" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Text</button>' +
                     '<button v-if="pdfButton" :id="idVal+\'_PdfDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_PdfDialog\'" data-original-title="PDF" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> PDF</button>' +
@@ -516,17 +563,6 @@ Vue.component('form-list', {
     '</div>',
     computed: {
         idVal: function() { if (this.id && this.id.length > 0) { return this.id; } else { return this.name; } },
-        prevArray: function() {
-            var pag = this.paginate; var arr = []; if (!pag || pag.pageIndex < 1) return arr;
-            var pageIndex = pag.pageIndex; var indexMin = pageIndex - 3; if (indexMin < 0) { indexMin = 0; } var indexMax = pageIndex - 1;
-            while (indexMin <= indexMax) { arr.push(indexMin++); } return arr;
-        },
-        nextArray: function() {
-            var pag = this.paginate; var arr = []; if (!pag || pag.pageIndex >= pag.pageMaxIndex) return arr;
-            var pageIndex = pag.pageIndex; var pageMaxIndex = pag.pageMaxIndex;
-            var indexMin = pageIndex + 1; var indexMax = pageIndex + 3; if (indexMax > pageMaxIndex) { indexMax = pageMaxIndex; }
-            while (indexMin <= indexMax) { arr.push(indexMin++); } return arr;
-        },
         csvUrl: function() {
             return this.$root.currentPath + '?' + moqui.objToSearch($.extend({}, this.searchObj,
                     { renderMode:'csv', pageNoLimit:'true', lastStandalone:'true', saveFilename:(this.name + '.csv') }));
@@ -557,17 +593,6 @@ Vue.component('form-list', {
         setPageIndex: function(newIndex) {
             if (!this.searchObj) { this.searchObj = { pageIndex:newIndex }} else { this.searchObj.pageIndex = newIndex; }
             this.fetchRows();
-        },
-        goPage: function() {
-            var jqEl = $('#' + this.idVal + '_GoPage_pageIndex');
-            var newIndex = jqEl.val() - 1;
-            if (newIndex < 0 || newIndex > this.paginate.pageMaxIndex) {
-                jqEl.parents('.form-group').removeClass('has-success').addClass('has-error');
-            } else {
-                jqEl.parents('.form-group').removeClass('has-error').addClass('has-success');
-                this.setPageIndex(newIndex);
-                jqEl.val('');
-            }
         }
     },
     watch: {
@@ -781,8 +806,8 @@ moqui.webrootVue = new Vue({
             // make sure any open modals are closed before setting currentUrl
             $('.modal.in').modal('hide');
             if (url.indexOf(this.basePath) == 0) url = url.replace(this.basePath, this.linkBasePath);
-            // console.log('setting url ' + url + ', cur ' + this.currentLinkUrl);
-            if (this.currentLinkUrl == url) { this.reloadSubscreens(); /* console.log('reloading, same url ' + url); */ }
+            // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
+            if (this.currentLinkUrl == url) { this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */ }
             else { this.currentUrl = url; window.history.pushState(null, this.ScreenTitle, url); }
         },
         addSubscreen: function(saComp) {
@@ -794,6 +819,7 @@ moqui.webrootVue = new Vue({
             this.activeSubscreens.push(saComp);
         },
         reloadSubscreens: function() {
+            // console.info('reloadSubscreens currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
             var fullPathList = this.currentPathList; var activeSubscreens = this.activeSubscreens;
             if (fullPathList.length == 0 && activeSubscreens.length > 0) { activeSubscreens.splice(1); activeSubscreens[0].loadActive(); return; }
             for (var i=0; i<activeSubscreens.length; i++) {

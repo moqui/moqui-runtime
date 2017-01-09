@@ -845,66 +845,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if isSelectColumns><button id="${selectColumnsDialogId}_button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.getL10n().localize("Columns")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("Columns")}</button></#if>
 
             <#if isPaginated>
-                <#assign curPageIndex = context[listName + "PageIndex"]>
                 <#assign curPageMaxIndex = context[listName + "PageMaxIndex"]>
-                <#assign prevPageIndexMin = curPageIndex - 3><#if (prevPageIndexMin < 0)><#assign prevPageIndexMin = 0></#if>
-                <#assign prevPageIndexMax = curPageIndex - 1><#assign nextPageIndexMin = curPageIndex + 1>
-                <#assign nextPageIndexMax = curPageIndex + 3><#if (nextPageIndexMax > curPageMaxIndex)><#assign nextPageIndexMax = curPageMaxIndex></#if>
-                <ul class="pagination">
-                <#if (curPageIndex > 0)>
-                    <#assign firstUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", 0)>
-                    <#assign previousUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", (curPageIndex - 1))>
-                    <li><m-link href="${firstUrlInfo.pathWithParams}"><i class="glyphicon glyphicon-fast-backward"></i></m-link></li>
-                    <li><m-link href="${previousUrlInfo.pathWithParams}"><i class="glyphicon glyphicon-backward"></i></m-link></li>
-                <#else>
-                    <li><span><i class="glyphicon glyphicon-fast-backward"></i></span></li>
-                    <li><span><i class="glyphicon glyphicon-backward"></i></span></li>
-                </#if>
-
-                <#if (prevPageIndexMax >= 0)><#list prevPageIndexMin..prevPageIndexMax as pageLinkIndex>
-                    <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
-                    <li><m-link href="${pageLinkUrlInfo.pathWithParams}">${pageLinkIndex + 1}</m-link></li>
-                </#list></#if>
-                <#assign paginationTemplate = ec.getL10n().localize("PaginationTemplate")?interpret>
-                <li><m-link href="${sri.getScreenUrlInstance().pathWithParams}"><@paginationTemplate /></m-link></li>
-
-                <#if (nextPageIndexMin <= curPageMaxIndex)><#list nextPageIndexMin..nextPageIndexMax as pageLinkIndex>
-                    <#assign pageLinkUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", pageLinkIndex)>
-                    <li><m-link href="${pageLinkUrlInfo.pathWithParams}">${pageLinkIndex + 1}</m-link></li>
-                </#list></#if>
-
-                <#if (curPageIndex < curPageMaxIndex)>
-                    <#assign lastUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", curPageMaxIndex)>
-                    <#assign nextUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", curPageIndex + 1)>
-                    <li><m-link href="${nextUrlInfo.pathWithParams}"><i class="glyphicon glyphicon-forward"></i></m-link></li>
-                    <li><m-link href="${lastUrlInfo.pathWithParams}"><i class="glyphicon glyphicon-fast-forward"></i></m-link></li>
-                <#else>
-                    <li><span><i class="glyphicon glyphicon-forward"></i></span></li>
-                    <li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li>
-                </#if>
-                </ul>
-                <#if (curPageMaxIndex > 4)>
-                    <#assign goPageUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("lastStandalone")>
-                    <#assign goPageUrlParms = goPageUrl.getParameterMap()>
-                    <form-link class="form-inline" id="${formId}_GoPage" action="${goPageUrl.path}" :no-validate="true">
-                        <#list goPageUrlParms.keySet() as parmName>
-                            <input type="hidden" name="${parmName}" value="${goPageUrlParms.get(parmName)!?html}"></#list>
-                        <div class="form-group">
-                            <label class="sr-only" for="${formId}_GoPage_pageIndex">Page Number</label>
-                            <input type="text" class="form-control" size="6" name="pageIndex" id="${formId}_GoPage_pageIndex" placeholder="${ec.getL10n().localize("Page #")}">
-                        </div>
-                        <button type="submit" class="btn btn-default">${ec.getL10n().localize("Go##Page")}</button>
-                    </form-link>
-                    <m-script>
-                        $("#${formId}_GoPage").validate({ errorClass: 'help-block', errorElement: 'span',
-                            rules: { pageIndex: { required:true, min:1, max:${(curPageMaxIndex + 1)?c} } },
-                            highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
-                            unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); },
-                            <#-- show 1-based index to user but server expects 0-based index -->
-                            submitHandler: function(form) { $("#${formId}_GoPage_pageIndex").val($("#${formId}_GoPage_pageIndex").val() - 1); form.submit(); }
-                        });
-                    </m-script>
-                </#if>
+                <form-paginate :paginate="{ count:${context[listName + "Count"]?c}, pageIndex:${context[listName + "PageIndex"]?c},<#rt>
+                    <#t> pageSize:${context[listName + "PageSize"]?c}, pageMaxIndex:${context[listName + "PageMaxIndex"]?c},
+                    <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></form-paginate>
+                <#if (curPageMaxIndex > 4)><form-go-page id-val="${formId}" :max-index="${curPageMaxIndex}"></form-go-page></#if>
                 <#if formNode["@show-all-button"]! == "true" && (context[listName + 'Count'] < 500)>
                     <#if context["pageNoLimit"]?has_content>
                         <#assign allLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageNoLimit")>
