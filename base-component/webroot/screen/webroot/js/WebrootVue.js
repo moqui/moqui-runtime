@@ -463,16 +463,14 @@ Vue.component('form-paginate', {
     '<ul v-if="paginate" class="pagination">' +
         '<template v-if="paginate.pageIndex > 0">' +
             '<li><a href="#" @click.prevent="setIndex(0)"><i class="glyphicon glyphicon-fast-backward"></i></a></li>' +
-            '<li><a href="#" @click.prevent="setIndex(paginate.pageIndex-1)"><i class="glyphicon glyphicon-backward"></i></a></li>' +
-        '</template>' +
+            '<li><a href="#" @click.prevent="setIndex(paginate.pageIndex-1)"><i class="glyphicon glyphicon-backward"></i></a></li></template>' +
         '<template v-else><li><span><i class="glyphicon glyphicon-fast-backward"></i></span></li><li><span><i class="glyphicon glyphicon-backward"></i></span></li></template>' +
         '<li v-for="prevIndex in prevArray"><a href="#" @click.prevent="setIndex(prevIndex)">{{prevIndex+1}}</a></li>' +
         '<li><span>Page {{paginate.pageIndex+1}} of {{paginate.pageMaxIndex+1}} ({{paginate.pageRangeLow}} - {{paginate.pageRangeHigh}} of {{paginate.count}})</span></li>' +
         '<li v-for="nextIndex in nextArray"><a href="#" @click.prevent="setIndex(nextIndex)">{{nextIndex+1}}</a></li>' +
         '<template v-if="paginate.pageIndex < paginate.pageMaxIndex">' +
             '<li><a href="#" @click.prevent="setIndex(paginate.pageIndex+1)"><i class="glyphicon glyphicon-forward"></i></a></li>' +
-            '<li><a href="#" @click.prevent="setIndex(paginate.pageMaxIndex)"><i class="glyphicon glyphicon-fast-forward"></i></a></li>' +
-        '</template>' +
+            '<li><a href="#" @click.prevent="setIndex(paginate.pageMaxIndex)"><i class="glyphicon glyphicon-fast-forward"></i></a></li></template>' +
         '<template v-else><li><span><i class="glyphicon glyphicon-forward"></i></span></li><li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li></template>' +
     '</ul>',
     computed: {
@@ -488,12 +486,10 @@ Vue.component('form-paginate', {
             while (indexMin <= indexMax) { arr.push(indexMin++); } return arr;
         }
     },
-    methods: {
-        setIndex: function(newIndex) {
-            if (this.formList) { this.formList.setPageIndex(newIndex); }
-            else { this.$root.currentParameters = $.extend({}, this.$root.currentParameters, {pageIndex:newIndex}); this.$root.reloadSubscreens(); }
-        }
-    }
+    methods: { setIndex: function(newIndex) {
+        if (this.formList) { this.formList.setPageIndex(newIndex); }
+        else { this.$root.currentParameters = $.extend({}, this.$root.currentParameters, {pageIndex:newIndex}); this.$root.reloadSubscreens(); }
+    }}
 });
 Vue.component('form-go-page', {
     props: { idVal:{type:String,required:true}, maxIndex:Number, formList:Object },
@@ -502,24 +498,21 @@ Vue.component('form-go-page', {
         '<div class="form-group">' +
             '<label class="sr-only" :for="idVal+\'_GoPage_pageIndex\'">Page Number</label>' +
             '<input type="text" class="form-control" size="6" name="pageIndex" :id="idVal+\'_GoPage_pageIndex\'" placeholder="Page #">' +
-        '</div>' +
-        '<button type="submit" class="btn btn-default">Go</button>' +
+        '</div><button type="submit" class="btn btn-default">Go</button>' +
     '</form>',
-    methods: {
-        goPage: function() {
-            var formList = this.formList;
-            var jqEl = $('#' + this.idVal + '_GoPage_pageIndex');
-            var newIndex = jqEl.val() - 1;
-            if (newIndex < 0 || (formList && newIndex > formList.paginate.pageMaxIndex) || (this.maxIndex && newIndex > this.maxIndex)) {
-                jqEl.parents('.form-group').removeClass('has-success').addClass('has-error');
-            } else {
-                jqEl.parents('.form-group').removeClass('has-error').addClass('has-success');
-                if (formList) { formList.setPageIndex(newIndex); }
-                else { this.$root.currentParameters = $.extend({}, this.$root.currentParameters, {pageIndex:newIndex}); this.$root.reloadSubscreens(); }
-                jqEl.val('');
-            }
+    methods: { goPage: function() {
+        var formList = this.formList;
+        var jqEl = $('#' + this.idVal + '_GoPage_pageIndex');
+        var newIndex = jqEl.val() - 1;
+        if (newIndex < 0 || (formList && newIndex > formList.paginate.pageMaxIndex) || (this.maxIndex && newIndex > this.maxIndex)) {
+            jqEl.parents('.form-group').addClass('has-error');
+        } else {
+            jqEl.parents('.form-group').removeClass('has-error');
+            if (formList) { formList.setPageIndex(newIndex); }
+            else { this.$root.currentParameters = $.extend({}, this.$root.currentParameters, {pageIndex:newIndex}); this.$root.reloadSubscreens(); }
+            jqEl.val('');
         }
-    }
+    }}
 });
 Vue.component('form-list', {
     // rows can be a full path to a REST service or transition, a plain form name on the current screen, or a JS Array with the actual rows
@@ -544,29 +537,25 @@ Vue.component('form-list', {
         '<form-link v-if="!skipHeader && headerForm && !headerDialog" :name="idVal+\'_header\'" :id="idVal+\'_header\'" :action="$root.currentLinkPath">' +
             '<input v-if="searchObj && searchObj.orderByField" type="hidden" name="orderByField" :value="searchObj.orderByField">' +
             '<slot name="headerForm"  :search="searchObj"></slot></form-link>' +
-        '<table class="table table-striped table-hover table-condensed" :id="idVal+\'_table\'">' +
-            '<thead>' +
-                '<tr class="form-list-nav-row"><th :colspan="columns?columns:\'100\'"><nav class="form-list-nav">' +
-                    '<button v-if="savedFinds || headerDialog" :id="idVal+\'_hdialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_hdialog\'" data-original-title="Find Options" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Find Options</button>' +
-                    '<button v-if="selectColumns" :id="idVal+\'_SelColsDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_SelColsDialog\'" data-original-title="Columns" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Columns</button>' +
-                    '<form-paginate :paginate="paginate" :form-list="this"></form-paginate>' +
-                    '<form-go-page :id-val="idVal" :form-list="this"></form-go-page>' +
-                    '<a v-if="csvButton" :href="csvUrl" class="btn btn-default">CSV</a>' +
-                    '<button v-if="textButton" :id="idVal+\'_TextDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_TextDialog\'" data-original-title="Text" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Text</button>' +
-                    '<button v-if="pdfButton" :id="idVal+\'_PdfDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_PdfDialog\'" data-original-title="PDF" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> PDF</button>' +
-                    '<slot name="nav"></slot>' +
-                '</nav></th></tr>' +
-                '<slot name="header" :search="searchObj"></slot>' +
-            '</thead>' +
-            '<tbody><tr v-for="(fields, rowIndex) in rowList"><slot name="row" :fields="fields"></slot></tr></tbody>' +
-        '</table>' +
+        '<table class="table table-striped table-hover table-condensed" :id="idVal+\'_table\'"><thead>' +
+            '<tr class="form-list-nav-row"><th :colspan="columns?columns:\'100\'"><nav class="form-list-nav">' +
+                '<button v-if="savedFinds || headerDialog" :id="idVal+\'_hdialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_hdialog\'" data-original-title="Find Options" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Find Options</button>' +
+                '<button v-if="selectColumns" :id="idVal+\'_SelColsDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_SelColsDialog\'" data-original-title="Columns" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Columns</button>' +
+                '<form-paginate :paginate="paginate" :form-list="this"></form-paginate>' +
+                '<form-go-page :id-val="idVal" :form-list="this"></form-go-page>' +
+                '<a v-if="csvButton" :href="csvUrl" class="btn btn-default">CSV</a>' +
+                '<button v-if="textButton" :id="idVal+\'_TextDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_TextDialog\'" data-original-title="Text" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Text</button>' +
+                '<button v-if="pdfButton" :id="idVal+\'_PdfDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_PdfDialog\'" data-original-title="PDF" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> PDF</button>' +
+                '<slot name="nav"></slot>' +
+            '</nav></th></tr>' +
+            '<slot name="header" :search="searchObj"></slot>' +
+        '</thead><tbody><tr v-for="(fields, rowIndex) in rowList"><slot name="row" :fields="fields"></slot></tr>' +
+        '</tbody></table>' +
     '</div>',
     computed: {
         idVal: function() { if (this.id && this.id.length > 0) { return this.id; } else { return this.name; } },
-        csvUrl: function() {
-            return this.$root.currentPath + '?' + moqui.objToSearch($.extend({}, this.searchObj,
-                    { renderMode:'csv', pageNoLimit:'true', lastStandalone:'true', saveFilename:(this.name + '.csv') }));
-        }
+        csvUrl: function() { return this.$root.currentPath + '?' + moqui.objToSearch($.extend({}, this.searchObj,
+                { renderMode:'csv', pageNoLimit:'true', lastStandalone:'true', saveFilename:(this.name + '.csv') })); }
     },
     methods: {
         fetchRows: function() {
