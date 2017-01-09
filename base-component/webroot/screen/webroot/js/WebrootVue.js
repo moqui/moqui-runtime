@@ -487,8 +487,7 @@ Vue.component('form-paginate', {
         }
     },
     methods: { setIndex: function(newIndex) {
-        if (this.formList) { this.formList.setPageIndex(newIndex); }
-        else { this.$root.currentParameters = $.extend({}, this.$root.currentParameters, {pageIndex:newIndex}); this.$root.reloadSubscreens(); }
+        if (this.formList) { this.formList.setPageIndex(newIndex); } else { this.$root.setParameters({pageIndex:newIndex}); }
     }}
 });
 Vue.component('form-go-page', {
@@ -508,8 +507,7 @@ Vue.component('form-go-page', {
             jqEl.parents('.form-group').addClass('has-error');
         } else {
             jqEl.parents('.form-group').removeClass('has-error');
-            if (formList) { formList.setPageIndex(newIndex); }
-            else { this.$root.currentParameters = $.extend({}, this.$root.currentParameters, {pageIndex:newIndex}); this.$root.reloadSubscreens(); }
+            if (formList) { formList.setPageIndex(newIndex); } else { this.$root.setParameters({pageIndex:newIndex}); }
             jqEl.val('');
         }
     }}
@@ -798,6 +796,10 @@ moqui.webrootVue = new Vue({
             // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
             if (this.currentLinkUrl == url) { this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */ }
             else { this.currentUrl = url; window.history.pushState(null, this.ScreenTitle, url); }
+        },
+        setParameters: function(parmObj) {
+            if (parmObj) { this.$root.currentParameters = $.extend({}, this.$root.currentParameters, parmObj); }
+            this.$root.reloadSubscreens();
         },
         addSubscreen: function(saComp) {
             var pathIdx = this.activeSubscreens.length;
