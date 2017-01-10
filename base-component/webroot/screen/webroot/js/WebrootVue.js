@@ -238,10 +238,11 @@ moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div 
 /* ========== inline components ========== */
 Vue.component('m-link', {
     props: { href:{type:String,required:true}, loadId:String },
-    template: '<a :href="linkHref" @click.prevent="go(false)" @click.ctrl.prevent="go(true)" @click.meta.prevent="go(true)"><slot></slot></a>',
-    methods: { go: function(newWindow) {
+    template: '<a :href="linkHref" @click.prevent="go"><slot></slot></a>',
+    methods: { go: function(event) {
+        if (event.button != 0) { return; }
         if (this.loadId && this.loadId.length > 0) { this.$root.loadContainer(this.loadId, this.href); }
-        else { if (newWindow) { window.open(this.href, "_blank"); } else { this.$root.setUrl(this.href); } }
+        else { if (event.ctrlKey || event.metaKey) { window.open(this.linkHref, "_blank"); } else { this.$root.setUrl(this.linkHref); } }
     }},
     computed: { linkHref: function () { return this.href.indexOf(this.$root.basePath) == 0 ? this.href.replace(this.$root.basePath, this.$root.linkBasePath) : this.href; } }
 });
