@@ -701,6 +701,7 @@ Vue.component('drop-down', {
             var vm = this;
             $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
                      error:moqui.handleAjaxError, success: function(list) { if (list) {
+                // funny case where select2 specifies no option.@value if empty so &nbsp; ends up passed with form submit; now filtered on server for \u00a0 only and set to null
                 var newData = []; if (vm.allowEmpty) newData.push({ id:'', text:'\u00a0' });
                 var labelField = vm.labelField; if (!labelField) { labelField = "label"; }
                 var valueField = vm.valueField; if (!valueField) { valueField = "value"; }
@@ -727,9 +728,12 @@ Vue.component('drop-down', {
     },
     computed: { curVal: { get: function() { return $(this.$el).select2().val(); },
         set: function(value) { $(this.$el).val(value).trigger('change'); } } },
-    watch: { value: function(value) { this.curVal = value; }, options: function(options) { this.curData = options; },
-        curData: function(options) { this.s2Opts.data = options; $(this.$el).select2(this.s2Opts); } },
-    destroyed: function() { $(this.$el).off().select2('destroy') }
+    watch: {
+        value: function(value) { this.curVal = value; },
+        options: function(options) { this.curData = options; },
+        curData: function(options) { var jqEl = $(this.$el); jqEl.select2('destroy'); jqEl.empty(); this.s2Opts.data = options; jqEl.select2(this.s2Opts); }
+    },
+    destroyed: function() { $(this.$el).off().select2('destroy'); }
 });
 Vue.component('text-autocomplete', {
     props: { id:{type:String,required:true}, name:{type:String,required:true}, value:String, valueText:String,

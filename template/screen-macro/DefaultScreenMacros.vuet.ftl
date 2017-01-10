@@ -228,11 +228,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign confirmationMessage = ec.getResource().expand(linkNode["@confirmation"]!, "")/>
         <#if sri.isAnchorLink(linkNode, urlInstance)>
             <#assign linkNoParam = linkNode["@url-noparam"]! == "true">
-            <#if urlInstance.isScreenUrl()>
-                <#assign linkElement = "m-link">
+            <#if urlInstance.isScreenUrl()><#assign linkElement = "m-link">
                 <#if linkNoParam><#assign urlText = urlInstance.path/><#else><#assign urlText = urlInstance.pathWithParams/></#if>
-            <#else>
-                <#assign linkElement = "a">
+            <#else><#assign linkElement = "a">
                 <#if linkNoParam><#assign urlText = urlInstance.url/><#else><#assign urlText = urlInstance.urlWithParams/></#if>
             </#if>
             <${linkElement} href="${urlText}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#rt>
@@ -350,8 +348,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if ownerForm?has_content><#assign skipStart = true><#assign skipEnd = true></#if>
     <#assign urlInstance = sri.makeUrlByType(formNode["@transition"], "transition", null, "true")>
     <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
-    <#if urlInstance.getTargetTransition()?has_content><#assign formSingleType = "m-form"><#else><#assign formSingleType = "form-link"></#if>
-    <#-- TODO: remove form-single.@background-submit attribute in XSD, now all are -->
+    <#if urlInstance.isScreenUrl()>
+        <#if urlInstance.getTargetTransition()?has_content><#assign formSingleType = "m-form"><#else><#assign formSingleType = "form-link"></#if>
+    <#else><#assign formSingleType = "form"></#if>
     <#if !skipStart>
     <${formSingleType} name="${formId}" id="${formId}" action="${urlInstance.path}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
             <#t><#if formNode["@background-message"]?has_content> submit-message="${formNode["@background-message"]?html}"</#if>
@@ -999,11 +998,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <thead>
                 <@paginationHeader formListInfo formId isHeaderDialog/>
                 <#assign ownerForm = headerFormId>
-                <tr><#list mainColInfoList as columnFieldList>
-                    <th><#list columnFieldList as fieldNode>
+                <tr>
+                    <#list mainColInfoList as columnFieldList><th><#list columnFieldList as fieldNode>
                         <div><@formListHeaderField fieldNode isHeaderDialog/></div>
-                    </#list></th>
-                </#list></tr>
+                    </#list></th></#list>
+                </tr>
                 <#if hasSubColumns>
                     <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed"><thead>
                         <#list subColInfoList as subColFieldList><th>
