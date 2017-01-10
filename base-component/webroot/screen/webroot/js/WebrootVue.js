@@ -238,7 +238,7 @@ moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div 
 /* ========== inline components ========== */
 Vue.component('m-link', {
     props: { href:{type:String,required:true}, loadId:String },
-    template: '<a :href="linkHref" @click.prevent="go" @click.ctrl.prevent="go(true)" @click.meta.prevent="go(true)"><slot></slot></a>',
+    template: '<a :href="linkHref" @click.prevent="go(false)" @click.ctrl.prevent="go(true)" @click.meta.prevent="go(true)"><slot></slot></a>',
     methods: { go: function(newWindow) {
         if (this.loadId && this.loadId.length > 0) { this.$root.loadContainer(this.loadId, this.href); }
         else { if (newWindow) { window.open(this.href, "_blank"); } else { this.$root.setUrl(this.href); } }
