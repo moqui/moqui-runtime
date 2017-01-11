@@ -71,6 +71,7 @@ moqui.searchToObj = function(search) {
     }
     return newParams;
 };
+moqui.decodeHtml = function(html) { var txt = document.createElement("textarea"); txt.innerHTML = html; return txt.value; };
 moqui.format = function(value, format, type) {
     // console.log('format ' + value + ' with ' + format + ' of type ' + type);
     // number formatting: http://numeraljs.com/ https://github.com/andrewgp/jsNumberFormatter http://www.asual.com/jquery/format/
@@ -220,7 +221,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
             } else {
                 var templateText = resp.replace(/<script/g, '<m-script').replace(/<\/script>/g, '</m-script>').replace(/<link/g, '<m-stylesheet');
                 console.info("loaded HTML template from " + url + (divId ? " id " + divId : "") /*+ ": " + templateText*/);
-                var compObj = { template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' };
+                var compObj = { template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + moqui.decodeHtml(templateText) + '</div>' };
                 if (isServerStatic) { moqui.componentCache.put(path, compObj); }
                 callback(compObj);
             }
