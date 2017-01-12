@@ -70,7 +70,10 @@ along with this software (see the LICENSE.md file). If not, see
                     </section>
                 </widgets>
             </section-iterate>
-            <render-mode><text type="html"><![CDATA[<a href="/vapps">Try the new dynamic interface (beta)</a>]]></text></render-mode>
+            <render-mode>
+                <text type="html"><![CDATA[<a href="/vapps">Try the new dynamic interface (beta)</a>]]></text>
+                <text type="vuet"><![CDATA[<div>You are using the new dynamic interface (beta)</div><a href="/apps">Switch back to the standard interface</a>]]></text>
+            </render-mode>
         </container>
     </widgets>
 </screen>
