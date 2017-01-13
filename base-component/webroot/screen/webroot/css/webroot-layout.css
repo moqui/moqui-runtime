@@ -15,14 +15,14 @@
 
 /* ========================== body, etc ========================== */
 
-html, body { height: 100%; }
-body { padding-top: 51px; } /* this is the initial load setting, will get set dynamically for navbar-fixed-top */
-#apps-root { height: 100%; }
+html, body, #apps-root { height: 100%; }
+/* body { padding-top: 51px; } /* this is the initial load setting, will get set dynamically for navbar-fixed-top */
+#top .navbar { margin-bottom: 0; border-radius: 0; }
 /* #top, #content>.inner, #footer are the main page structure elements */
-#content { overflow: visible; background: transparent; min-height: 100%; }
+#content { overflow: visible; background: transparent; min-height: calc(100% - 50px); }
 /* inner contains a bootstrap container-fluid div which has 16px left/right padding */
 .inner { overflow: visible; background: transparent; border: 0; padding: 16px 0 58px 0; /* padding bottom is footer height (48) plus 10px */ }
-#footer { width: 100%; position: relative; height: 48px; margin: -48px auto 0 auto; /* negative value of footer height */ }
+#footer { width: 100%; position: relative; height: 50px; margin: -50px auto 0 auto; /* negative value of footer height */ }
 #footer p { padding: 0.2em 0 0 0; font-size: 0.9em; margin: 0; text-align: center; }
 
 #apps-footer-content { margin-top: 4px; text-align: center; }
@@ -111,7 +111,7 @@ span.shaded-area { display: inline-block; white-space: normal; }
 .input-group .input-group-addon, .input-group .input-group-btn { display: inline; line-height: 34px; padding: 8px 12px; }
 
 /* Similar styles to Bootstrap .form-control-static, applied more specifically and without explicit class */
-.form-group > div > p, .form-group > div > span:not(.select2-container):not(.form-text-find):not(.input-group-addon):not(.twitter-typeahead), .form-group > div > a:not(.btn) {
+.form-group > div > p, .form-group > div > span.text-inline, .form-group > div > a:not(.btn) {
     display: inline-block; min-height: 34px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 0; }
 .form-header-field > button.btn, .form-group > div > a.btn { margin-top: 2px !important; }
 
@@ -122,8 +122,8 @@ span.shaded-area { display: inline-block; white-space: normal; }
 /* Bootstrap by default has a 20px height for this, for 30px height shift up 5px */
 .navbar-brand>img { height: 30px; margin-top: -5px; }
 /* Bootstrap has no margin for a.navbar-btn so add them; note margin-right in bootstrap is -15px because of other styles, so for a margin of 10px set to -5px */
-.navbar-right.btn, .navbar-right.dropdown { margin-right: 0px; margin-left: 4px; }
-.navbar-right.btn-group { margin-right: 0px; margin-left: 0px; }
+.navbar-right.btn, .navbar-right.dropdown { margin-right: 0; margin-left: 4px; }
+.navbar-right.btn-group { margin-right: 0; margin-left: 0; }
 
 nav.form-list-nav .pagination { margin: 6px 6px 0 6px; }
 nav.form-list-nav>form.form-inline { display: inline-block; margin: 2px 6px 0 0; float: left; }
@@ -132,7 +132,7 @@ nav.form-list-nav>span.select2-container { float: left; margin: 6px 0 6px 0; min
 
 /* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */
 .panel .panel-heading { position: relative; }
-.panel .panel-heading .panel-toolbar { position: absolute; top: 0px; right: 0px; }
+.panel .panel-heading .panel-toolbar { position: absolute; top: 0; right: 0; }
 .panel .panel-toolbar .label { display: inline-block; margin: 4px 4px 4px 0; }
 .panel .panel-heading>h5, .panel .panel-heading>span { display: inline-block; margin-top: 0; margin-bottom: 0; font-size: 16px; color: inherit; }
 .panel, .panel .panel-body { background: transparent; }

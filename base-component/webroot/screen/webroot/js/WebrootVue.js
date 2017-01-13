@@ -12,6 +12,9 @@
  - authorization in separate requests issue
    - implied screen authz (user has authz for child screen for not parent, so implied for parent); see moqui-runtime issue #71
    - inherited REST authz (REST services used in screen and user has authz for screen)
+ - client side localization using $root.locale string
+   - some sort of moqui.l10n object with entries for each locale, then entries for each string
+   - get translations on the fly from the server and cache locally?
 
  - going to minimal path causes menu reload; avoid? better to cache menus and do partial requests...
 
@@ -41,8 +44,6 @@
    - goal would be to use FTL macros to transform more detailed XML into library specific output
  */
 
-moqui.notifyOpts = { delay:6000, offset:{x:20,y:70}, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
-
 // simple stub for define if it doesn't exist (ie no require.js, etc); mimic pattern of require.js define()
 if (!window.define) window.define = function(name, deps, callback) {
     if (!moqui.isString(name)) { callback = deps; deps = name; name = null; }
@@ -55,6 +56,55 @@ moqui.objToSearch = function(obj) {
     var search = '';
     $.each(obj, function (key, value) { search = search + (search.length > 0 ? '&' : '') + key + '=' + value; });
     return search;
+};
+moqui.searchToObj = function(search) {
+    if (!search || search.length == 0) { return {}; }
+    var newParams = {};
+    var parmList = search.split("&");
+    for (var i=0; i<parmList.length; i++) {
+        var parm = parmList[i]; var ps = parm.split("=");
+        if (ps.length > 1) {
+            var key = ps[0]; var value = ps[1]; var exVal = newParams[key];
+            if (exVal) { if (moqui.isArray(exVal)) { exVal.push(value); } else { newParams[key] = [exVal, value]; } }
+            else { newParams[key] = value; }
+        }
+    }
+    return newParams;
+};
+moqui.decodeHtml = function(html) { var txt = document.createElement("textarea"); txt.innerHTML = html; return txt.value; };
+moqui.format = function(value, format, type) {
+    // console.log('format ' + value + ' with ' + format + ' of type ' + type);
+    // number formatting: http://numeraljs.com/ https://github.com/andrewgp/jsNumberFormatter http://www.asual.com/jquery/format/
+    if (format && format.length) { format = format.replace(/a/,'A').replace(/d/,'D').replace(/y/,'Y'); } // change java date/time format to moment
+    if (type && type.length) {
+        type = type.toLowerCase();
+        if (type === "date") {
+            if (!format || format.length == 0) format = "YYYY-MM-DD";
+            return moment(value).format(format);
+        } else if (type === "time") {
+            if (!format || format.length == 0) format = "HH:mm:ss";
+            return moment(value).format(format);
+        } else if (type === "timestamp") {
+            if (!format || format.length == 0) format = "YYYY-MM-DD HH:mm";
+            return moment(value).format(format);
+        } else if (type === "bigdecimal" || type === "long" || type === "integer" || type === "double" || type === "float") {
+            return value; // TODO format numbers
+        } else {
+            console.warn('format type unknown: ' + type);
+        }
+    }
+    if (moqui.isNumber(value)) {
+        return value; // TODO format numbers
+    } else {
+        // is it a number or any sort of date/time that moment supports? if anything else return as-is
+        var momentVal = moment(value);
+        if (momentVal.isValid()) {
+            if (!format || format.length == 0) format = "YYYY-MM-DD HH:mm";
+            return momentVal.format(format);
+        }
+        // TODO
+        return value;
+    }
 };
 
 /* ========== script and stylesheet handling methods ========== */
@@ -86,16 +136,42 @@ moqui.retryInlineScript = function(src, count) {
     }
 };
 
-/* ========== component loading methods ========== */
-moqui.componentCache = new moqui.LruMap(50);
-
+/* ========== notify and error handling ========== */
+moqui.notifyOpts = { delay:6000, offset:{x:20,y:70}, z_index:1100, type:'success', animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
+moqui.notifyMessages = function(messages, errors) {
+    var notified = false;
+    if (messages) {
+        if (moqui.isArray(messages)) {
+            for (var mi=0; mi < messages.length; mi++) {
+                $.notify({message:messages[mi]}, $.extend({}, moqui.notifyOpts, {type: 'info'})); notified = true; }
+        } else { $.notify({message:messages}, $.extend({}, moqui.notifyOpts, {type: 'info'})); notified = true; }
+    }
+    if (errors) {
+        if (moqui.isArray(errors)) {
+            for (var ei=0; ei < errors.length; ei++) {
+                $.notify({message:errors[ei]}, $.extend({}, moqui.notifyOpts, {delay:60000, type:'danger'})); notified = true; }
+        } else { $.notify({message:errors}, $.extend({}, moqui.notifyOpts, {delay:60000, type:'danger'})); notified = true; }
+    }
+    return notified;
+};
 moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
-    console.error('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown + '; response text: ' + jqXHR.responseText);
+    var resp = jqXHR.responseText;
+    var respObj;
+    try { respObj = JSON.parse(resp); } catch (e) { /* ignore error, don't always expect it to be JSON */ }
+    console.warn('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown /*+ '; response: ' + resp*/);
+    // console.error('respObj: ' + JSON.stringify(respObj));
+    var notified = false;
+    if (respObj && moqui.isPlainObject(respObj)) { notified = moqui.notifyMessages(respObj.messages, respObj.errors); }
+
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status == 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
     else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); }
-    else { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); }
+    else if (!notified) { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); }
 };
+
+/* ========== component loading methods ========== */
+moqui.componentCache = new moqui.LruMap(50);
+
 // NOTE: this may eventually split to change the activeSubscreens only on currentPathList change (for screens that support it)
 //     and if ever needed some sort of data refresh if currentParameters changes
 moqui.loadComponent = function(urlInfo, callback, divId) {
@@ -145,11 +221,11 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
             } else {
                 var templateText = resp.replace(/<script/g, '<m-script').replace(/<\/script>/g, '</m-script>').replace(/<link/g, '<m-stylesheet');
                 console.info("loaded HTML template from " + url + (divId ? " id " + divId : "") /*+ ": " + templateText*/);
-                var compObj = { template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' };
+                var compObj = { template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + moqui.decodeHtml(templateText) + '</div>' };
                 if (isServerStatic) { moqui.componentCache.put(path, compObj); }
                 callback(compObj);
             }
-        } else if (resp === Object(resp)) {
+        } else if (moqui.isPlainObject(resp)) {
             if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.setUrl(resp.screenUrl); }
             else if (resp.redirectUrl && resp.redirectUrl.length > 0) { window.location.replace(resp.redirectUrl); }
         } else { callback(moqui.NotFound); }
@@ -164,8 +240,11 @@ moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div 
 Vue.component('m-link', {
     props: { href:{type:String,required:true}, loadId:String },
     template: '<a :href="linkHref" @click.prevent="go"><slot></slot></a>',
-    methods: { go: function() { if (this.loadId && this.loadId.length > 0) { this.$root.loadContainer(this.loadId, this.href); }
-        else { this.$root.setUrl(this.href); } }},
+    methods: { go: function(event) {
+        if (event.button != 0) { return; }
+        if (this.loadId && this.loadId.length > 0) { this.$root.loadContainer(this.loadId, this.href); }
+        else { if (event.ctrlKey || event.metaKey) { window.open(this.linkHref, "_blank"); } else { this.$root.setUrl(this.linkHref); } }
+    }},
     computed: { linkHref: function () { return this.href.indexOf(this.$root.basePath) == 0 ? this.href.replace(this.$root.basePath, this.$root.linkBasePath) : this.href; } }
 });
 Vue.component('m-script', {
@@ -358,18 +437,20 @@ Vue.component('m-form', {
         handleResponse: function(resp) {
             var notified = false;
             // console.info('m-form response ' + JSON.stringify(resp));
-            if (resp && resp === Object(resp)) {
-                if (resp.messages) for (var mi=0; mi < resp.messages.length; mi++) {
-                    $.notify({ message:resp.messages[mi] }, $.extend({}, moqui.notifyOpts, {type:'info'})); notified = true; }
-                if (resp.errors) for (var ei=0; ei < resp.messages.length; ei++) {
-                    $.notify({ message:resp.messages[ei] }, $.extend({}, moqui.notifyOpts, {delay:60000, type:'danger'})); notified = true; }
+            if (resp && moqui.isPlainObject(resp)) {
+                notified = moqui.notifyMessages(resp.messages, resp.errors);
                 if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.setUrl(resp.screenUrl); }
                 else if (resp.redirectUrl && resp.redirectUrl.length > 0) { window.location.href = resp.redirectUrl; }
             } else { console.warn('m-form no reponse or non-JSON response: ' + JSON.stringify(resp)) }
             var hideId = this.submitHideId; if (hideId && hideId.length > 0) { $('#' + hideId).modal('hide'); }
             var reloadId = this.submitReloadId; if (reloadId && reloadId.length > 0) { this.$root.reloadContainer(reloadId); }
-            var msg = this.submitMessage && this.submitMessage.length > 0 ? this.submitMessage : (notified ? null : "Form data saved");
-            if (msg) $.notify({ message:msg }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+            var subMsg = this.submitMessage;
+            if (subMsg && subMsg.length) {
+                var responseText = resp; // this is set for backward compatibility in case message relies on responseText as in old JS
+                $.notify({ message:eval('"' + subMsg + '"') }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+            } else if (!notified) {
+                $.notify({ message:"Form data saved" }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+            }
         }
     },
     mounted: function() {
@@ -428,13 +509,68 @@ Vue.component('form-link', {
     }
 });
 
+Vue.component('form-paginate', {
+    props: { paginate:Object, formList:Object },
+    template:
+    '<ul v-if="paginate" class="pagination">' +
+        '<template v-if="paginate.pageIndex > 0">' +
+            '<li><a href="#" @click.prevent="setIndex(0)"><i class="glyphicon glyphicon-fast-backward"></i></a></li>' +
+            '<li><a href="#" @click.prevent="setIndex(paginate.pageIndex-1)"><i class="glyphicon glyphicon-backward"></i></a></li></template>' +
+        '<template v-else><li><span><i class="glyphicon glyphicon-fast-backward"></i></span></li><li><span><i class="glyphicon glyphicon-backward"></i></span></li></template>' +
+        '<li v-for="prevIndex in prevArray"><a href="#" @click.prevent="setIndex(prevIndex)">{{prevIndex+1}}</a></li>' +
+        '<li><span>Page {{paginate.pageIndex+1}} of {{paginate.pageMaxIndex+1}} ({{paginate.pageRangeLow}} - {{paginate.pageRangeHigh}} of {{paginate.count}})</span></li>' +
+        '<li v-for="nextIndex in nextArray"><a href="#" @click.prevent="setIndex(nextIndex)">{{nextIndex+1}}</a></li>' +
+        '<template v-if="paginate.pageIndex < paginate.pageMaxIndex">' +
+            '<li><a href="#" @click.prevent="setIndex(paginate.pageIndex+1)"><i class="glyphicon glyphicon-forward"></i></a></li>' +
+            '<li><a href="#" @click.prevent="setIndex(paginate.pageMaxIndex)"><i class="glyphicon glyphicon-fast-forward"></i></a></li></template>' +
+        '<template v-else><li><span><i class="glyphicon glyphicon-forward"></i></span></li><li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li></template>' +
+    '</ul>',
+    computed: {
+        prevArray: function() {
+            var pag = this.paginate; var arr = []; if (!pag || pag.pageIndex < 1) return arr;
+            var pageIndex = pag.pageIndex; var indexMin = pageIndex - 3; if (indexMin < 0) { indexMin = 0; } var indexMax = pageIndex - 1;
+            while (indexMin <= indexMax) { arr.push(indexMin++); } return arr;
+        },
+        nextArray: function() {
+            var pag = this.paginate; var arr = []; if (!pag || pag.pageIndex >= pag.pageMaxIndex) return arr;
+            var pageIndex = pag.pageIndex; var pageMaxIndex = pag.pageMaxIndex;
+            var indexMin = pageIndex + 1; var indexMax = pageIndex + 3; if (indexMax > pageMaxIndex) { indexMax = pageMaxIndex; }
+            while (indexMin <= indexMax) { arr.push(indexMin++); } return arr;
+        }
+    },
+    methods: { setIndex: function(newIndex) {
+        if (this.formList) { this.formList.setPageIndex(newIndex); } else { this.$root.setParameters({pageIndex:newIndex}); }
+    }}
+});
+Vue.component('form-go-page', {
+    props: { idVal:{type:String,required:true}, maxIndex:Number, formList:Object },
+    template:
+    '<form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage" class="form-inline" :id="idVal+\'_GoPage\'">' +
+        '<div class="form-group">' +
+            '<label class="sr-only" :for="idVal+\'_GoPage_pageIndex\'">Page Number</label>' +
+            '<input type="text" class="form-control" size="6" name="pageIndex" :id="idVal+\'_GoPage_pageIndex\'" placeholder="Page #">' +
+        '</div><button type="submit" class="btn btn-default">Go</button>' +
+    '</form>',
+    methods: { goPage: function() {
+        var formList = this.formList;
+        var jqEl = $('#' + this.idVal + '_GoPage_pageIndex');
+        var newIndex = jqEl.val() - 1;
+        if (newIndex < 0 || (formList && newIndex > formList.paginate.pageMaxIndex) || (this.maxIndex && newIndex > this.maxIndex)) {
+            jqEl.parents('.form-group').addClass('has-error');
+        } else {
+            jqEl.parents('.form-group').removeClass('has-error');
+            if (formList) { formList.setPageIndex(newIndex); } else { this.$root.setParameters({pageIndex:newIndex}); }
+            jqEl.val('');
+        }
+    }}
+});
 Vue.component('form-list', {
     // rows can be a full path to a REST service or transition, a plain form name on the current screen, or a JS Array with the actual rows
     props: { name:{type:String,required:true}, id:String, rows:{type:[String,Array],required:true}, search:{type:Object},
             action:String, multi:Boolean, skipForm:Boolean, skipHeader:Boolean, headerForm:Boolean, headerDialog:Boolean,
             savedFinds:Boolean, selectColumns:Boolean, allButton:Boolean, csvButton:Boolean, textButton:Boolean, pdfButton:Boolean,
             columns:[String,Number] },
-    data: function() { return { rowList:[], paginate:null, searchObj:null } },
+    data: function() { return { rowList:[], paginate:null, searchObj:null, moqui:moqui } },
     // slots (props): headerForm (search), header (search), nav (), rowForm (fields), row (fields)
     // TODO: QuickSavedFind drop-down
     // TODO: change find options form to update searchObj and run fetchRows instead of changing main page and reloading
@@ -451,60 +587,25 @@ Vue.component('form-list', {
         '<form-link v-if="!skipHeader && headerForm && !headerDialog" :name="idVal+\'_header\'" :id="idVal+\'_header\'" :action="$root.currentLinkPath">' +
             '<input v-if="searchObj && searchObj.orderByField" type="hidden" name="orderByField" :value="searchObj.orderByField">' +
             '<slot name="headerForm"  :search="searchObj"></slot></form-link>' +
-        '<table class="table table-striped table-hover table-condensed" :id="idVal+\'_table\'">' +
-            '<thead>' +
-                '<tr class="form-list-nav-row"><th :colspan="columns?columns:\'100\'"><nav class="form-list-nav">' +
-                    '<button v-if="savedFinds || headerDialog" :id="idVal+\'_hdialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_hdialog\'" data-original-title="Find Options" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Find Options</button>' +
-                    '<button v-if="selectColumns" :id="idVal+\'_SelColsDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_SelColsDialog\'" data-original-title="Columns" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Columns</button>' +
-                    '<ul v-if="paginate" class="pagination">' +
-                        '<template v-if="paginate.pageIndex > 0">' +
-                            '<li><a href="#" @click.prevent="setPageIndex(0)"><i class="glyphicon glyphicon-fast-backward"></i></a></li>' +
-                            '<li><a href="#" @click.prevent="setPageIndex(paginate.pageIndex-1)"><i class="glyphicon glyphicon-backward"></i></a></li>' +
-                        '</template>' +
-                        '<template v-else><li><span><i class="glyphicon glyphicon-fast-backward"></i></span></li><li><span><i class="glyphicon glyphicon-backward"></i></span></li></template>' +
-                        '<li v-for="prevIndex in prevArray"><a href="#" @click.prevent="setPageIndex(prevIndex)">{{prevIndex+1}}</a></li>' +
-                        '<li><span>Page {{paginate.pageIndex+1}} of {{paginate.pageMaxIndex+1}} ({{paginate.pageRangeLow}} - {{paginate.pageRangeHigh}} of {{paginate.count}})</span></li>' +
-                        '<li v-for="nextIndex in nextArray"><a href="#" @click.prevent="setPageIndex(nextIndex)">{{nextIndex+1}}</a></li>' +
-                        '<template v-if="paginate.pageIndex < paginate.pageMaxIndex">' +
-                            '<li><a href="#" @click.prevent="setPageIndex(paginate.pageIndex+1)"><i class="glyphicon glyphicon-forward"></i></a></li>' +
-                            '<li><a href="#" @click.prevent="setPageIndex(paginate.pageMaxIndex)"><i class="glyphicon glyphicon-fast-forward"></i></a></li>' +
-                        '</template>' +
-                        '<template v-else><li><span><i class="glyphicon glyphicon-forward"></i></span></li><li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li></template>' +
-                    '</ul>' +
-                    '<form v-if="paginate && paginate.pageMaxIndex > 4" @submit.prevent="goPage" class="form-inline" :id="idVal+\'_GoPage\'">' +
-                        '<div class="form-group">' +
-                            '<label class="sr-only" :for="idVal+\'_GoPage_pageIndex\'">Page Number</label>' +
-                            '<input type="text" class="form-control" size="6" name="pageIndex" :id="idVal+\'_GoPage_pageIndex\'" placeholder="Page #">' +
-                        '</div>' +
-                        '<button type="submit" class="btn btn-default">Go</button>' +
-                    '</form>' +
-                    '<a v-if="csvButton" :href="csvUrl" class="btn btn-default">CSV</a>' +
-                    '<button v-if="textButton" :id="idVal+\'_TextDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_TextDialog\'" data-original-title="Text" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Text</button>' +
-                    '<button v-if="pdfButton" :id="idVal+\'_PdfDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_PdfDialog\'" data-original-title="PDF" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> PDF</button>' +
-                    '<slot name="nav"></slot>' +
-                '</nav></th></tr>' +
-                '<slot name="header" :search="searchObj"></slot>' +
-            '</thead>' +
-            '<tbody><tr v-for="(fields, rowIndex) in rowList"><slot name="row" :fields="fields"></slot></tr></tbody>' +
-        '</table>' +
+        '<table class="table table-striped table-hover table-condensed" :id="idVal+\'_table\'"><thead>' +
+            '<tr class="form-list-nav-row"><th :colspan="columns?columns:\'100\'"><nav class="form-list-nav">' +
+                '<button v-if="savedFinds || headerDialog" :id="idVal+\'_hdialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_hdialog\'" data-original-title="Find Options" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Find Options</button>' +
+                '<button v-if="selectColumns" :id="idVal+\'_SelColsDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_SelColsDialog\'" data-original-title="Columns" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Columns</button>' +
+                '<form-paginate :paginate="paginate" :form-list="this"></form-paginate>' +
+                '<form-go-page :id-val="idVal" :form-list="this"></form-go-page>' +
+                '<a v-if="csvButton" :href="csvUrl" class="btn btn-default">CSV</a>' +
+                '<button v-if="textButton" :id="idVal+\'_TextDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_TextDialog\'" data-original-title="Text" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Text</button>' +
+                '<button v-if="pdfButton" :id="idVal+\'_PdfDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_PdfDialog\'" data-original-title="PDF" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> PDF</button>' +
+                '<slot name="nav"></slot>' +
+            '</nav></th></tr>' +
+            '<slot name="header" :search="searchObj"></slot>' +
+        '</thead><tbody><tr v-for="(fields, rowIndex) in rowList"><slot name="row" :fields="fields" :row-index="rowIndex" :moqui="moqui"></slot></tr>' +
+        '</tbody></table>' +
     '</div>',
     computed: {
         idVal: function() { if (this.id && this.id.length > 0) { return this.id; } else { return this.name; } },
-        prevArray: function() {
-            var pag = this.paginate; var arr = []; if (!pag || pag.pageIndex < 1) return arr;
-            var pageIndex = pag.pageIndex; var indexMin = pageIndex - 3; if (indexMin < 0) { indexMin = 0; } var indexMax = pageIndex - 1;
-            while (indexMin <= indexMax) { arr.push(indexMin++); } return arr;
-        },
-        nextArray: function() {
-            var pag = this.paginate; var arr = []; if (!pag || pag.pageIndex >= pag.pageMaxIndex) return arr;
-            var pageIndex = pag.pageIndex; var pageMaxIndex = pag.pageMaxIndex;
-            var indexMin = pageIndex + 1; var indexMax = pageIndex + 3; if (indexMax > pageMaxIndex) { indexMax = pageMaxIndex; }
-            while (indexMin <= indexMax) { arr.push(indexMin++); } return arr;
-        },
-        csvUrl: function() {
-            return this.$root.currentPath + '?' + moqui.objToSearch($.extend({}, this.searchObj,
-                    { renderMode:'csv', pageNoLimit:'true', lastStandalone:'true', saveFilename:(this.name + '.csv') }));
-        }
+        csvUrl: function() { return this.$root.currentPath + '?' + moqui.objToSearch($.extend({}, this.searchObj,
+                { renderMode:'csv', pageNoLimit:'true', lastStandalone:'true', saveFilename:(this.name + '.csv') })); }
     },
     methods: {
         fetchRows: function() {
@@ -531,17 +632,6 @@ Vue.component('form-list', {
         setPageIndex: function(newIndex) {
             if (!this.searchObj) { this.searchObj = { pageIndex:newIndex }} else { this.searchObj.pageIndex = newIndex; }
             this.fetchRows();
-        },
-        goPage: function() {
-            var jqEl = $('#' + this.idVal + '_GoPage_pageIndex');
-            var newIndex = jqEl.val() - 1;
-            if (newIndex < 0 || newIndex > this.paginate.pageMaxIndex) {
-                jqEl.parents('.form-group').removeClass('has-success').addClass('has-error');
-            } else {
-                jqEl.parents('.form-group').removeClass('has-error').addClass('has-success');
-                this.setPageIndex(newIndex);
-                jqEl.val('');
-            }
         }
     },
     watch: {
@@ -612,6 +702,7 @@ Vue.component('drop-down', {
             var vm = this;
             $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
                      error:moqui.handleAjaxError, success: function(list) { if (list) {
+                // funny case where select2 specifies no option.@value if empty so &nbsp; ends up passed with form submit; now filtered on server for \u00a0 only and set to null
                 var newData = []; if (vm.allowEmpty) newData.push({ id:'', text:'\u00a0' });
                 var labelField = vm.labelField; if (!labelField) { labelField = "label"; }
                 var valueField = vm.valueField; if (!valueField) { valueField = "value"; }
@@ -638,15 +729,20 @@ Vue.component('drop-down', {
     },
     computed: { curVal: { get: function() { return $(this.$el).select2().val(); },
         set: function(value) { $(this.$el).val(value).trigger('change'); } } },
-    watch: { value: function(value) { this.curVal = value; }, options: function(options) { this.curData = options; },
-        curData: function(options) { this.s2Opts.data = options; $(this.$el).select2(this.s2Opts); } },
-    destroyed: function() { $(this.$el).off().select2('destroy') }
+    watch: {
+        value: function(value) { this.curVal = value; },
+        options: function(options) { this.curData = options; },
+        curData: function(options) { var jqEl = $(this.$el); jqEl.select2('destroy'); jqEl.empty(); this.s2Opts.data = options; jqEl.select2(this.s2Opts); }
+    },
+    destroyed: function() { $(this.$el).off().select2('destroy'); }
 });
 Vue.component('text-autocomplete', {
     props: { id:{type:String,required:true}, name:{type:String,required:true}, value:String, valueText:String,
         type:String, size:String, maxlength:String, disabled:Boolean, validationClasses:String, dataVvValidation:String,
-        required:Boolean, pattern:String, tooltip:String, form:String,
-        url:{type:String,required:true}, dependsOn:Object, acParameters:Object, minLength:Number, showValue:Boolean, useActual:Boolean, skipInitial:Boolean },
+        required:Boolean, pattern:String, tooltip:String, form:String, delay:{type:Number,'default':300},
+        url:{type:String,required:true}, dependsOn:Object, acParameters:Object, minLength:Number, showValue:Boolean,
+        useActual:Boolean, skipInitial:Boolean },
+    data: function () { return { delayTimeout:null } },
     template:
     '<span><input ref="acinput" :id="acId" :name="acName" :type="type" :value="valueText" :size="size" :maxlength="maxlength" :disabled="disabled"' +
         ' :class="allClasses" :data-vv-validation="validationClasses" :required="required" :pattern="pattern"' +
@@ -658,19 +754,24 @@ Vue.component('text-autocomplete', {
         allClasses: function() { return 'form-control typeahead' + (this.validationClasses ? ' ' + this.validationClasses : ''); },
         showId: function() { return this.id + '_show'; }, tooltipToggle: function() { return this.tooltip && this.tooltip.length > 0 ? 'tooltip' : null; }
     },
+    methods: { fetchResults: function(query, syncResults, asyncResults) {
+        if (this.delayTimeout) { clearTimeout(this.delayTimeout); }
+        var vm = this;
+        this.delayTimeout = setTimeout(function() {
+            var dependsOnMap = vm.dependsOn; var parmMap = vm.acParameters;
+            var reqData = { term: query, moquiSessionToken: vm.$root.moquiSessionToken };
+            for (var parmName in parmMap) { if (parmMap.hasOwnProperty(parmName)) reqData[parmName] = parmMap[parmName]; }
+            for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
+                var doValue = $('#' + dependsOnMap[doParm]).val(); if (doValue) reqData[doParm] = doValue; }}
+            $.ajax({ url: vm.url, type:"POST", dataType:"json", data:reqData, error:moqui.handleAjaxError, success: function(data) {
+                asyncResults($.map(data, function(item) { return { label:item.label, value:item.value } })); }});
+        }, this.delay);
+    }},
     mounted: function() {
         var vm = this; var acJqEl = $(this.$refs.acinput); var hidJqEl = $(this.$refs.hidden);
         var showJqEl = this.$refs.show ? $(this.$refs.show) : null;
-        acJqEl.typeahead({ minLength:(this.minLength ? this.minLength : 1), highlight:true, hint:false }, { limit:20,
-            source: function(query, syncResults, asyncResults) {
-                var dependsOnMap = vm.dependsOn; var parmMap = vm.acParameters;
-                var reqData = { term: query, moquiSessionToken: vm.$root.moquiSessionToken };
-                for (var parmName in parmMap) { if (parmMap.hasOwnProperty(parmName)) reqData[parmName] = parmMap[parmName]; }
-                for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
-                    var doValue = $('#' + dependsOnMap[doParm]).val(); if (doValue) reqData[doParm] = doValue; }}
-                $.ajax({ url: vm.url, type:"POST", dataType:"json", data:reqData, error:moqui.handleAjaxError, success: function(data) {
-                    asyncResults($.map(data, function(item) { return { label:item.label, value:item.value } })); }});
-            }, display: function(item) { return item.label; }
+        acJqEl.typeahead({ minLength:(this.minLength ? this.minLength : 2), highlight:true, hint:false }, { limit:99,
+            source: this.fetchResults, display: function(item) { return item.label; }
         });
         acJqEl.bind('typeahead:select', function(event, item) {
             if (item) { this.value = item.value; hidJqEl.val(item.value); hidJqEl.trigger("change"); acJqEl.val(item.label);
@@ -748,9 +849,13 @@ moqui.webrootVue = new Vue({
             // make sure any open modals are closed before setting currentUrl
             $('.modal.in').modal('hide');
             if (url.indexOf(this.basePath) == 0) url = url.replace(this.basePath, this.linkBasePath);
-            // console.log('setting url ' + url + ', cur ' + this.currentLinkUrl);
-            if (this.currentLinkUrl == url) { this.reloadSubscreens(); /* console.log('reloading, same url ' + url); */ }
+            // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
+            if (this.currentLinkUrl == url) { this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */ }
             else { this.currentUrl = url; window.history.pushState(null, this.ScreenTitle, url); }
+        },
+        setParameters: function(parmObj) {
+            if (parmObj) { this.$root.currentParameters = $.extend({}, this.$root.currentParameters, parmObj); }
+            this.$root.reloadSubscreens();
         },
         addSubscreen: function(saComp) {
             var pathIdx = this.activeSubscreens.length;
@@ -761,6 +866,7 @@ moqui.webrootVue = new Vue({
             this.activeSubscreens.push(saComp);
         },
         reloadSubscreens: function() {
+            // console.info('reloadSubscreens currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
             var fullPathList = this.currentPathList; var activeSubscreens = this.activeSubscreens;
             if (fullPathList.length == 0 && activeSubscreens.length > 0) { activeSubscreens.splice(1); activeSubscreens[0].loadActive(); return; }
             for (var i=0; i<activeSubscreens.length; i++) {
@@ -849,22 +955,8 @@ moqui.webrootVue = new Vue({
                 (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : ''); },
         currentSearch: {
             get: function() { return moqui.objToSearch(this.currentParameters); },
-            set: function(newSearch) {
-                if (!newSearch || newSearch.length == 0) { this.currentParameters = {}; return; }
-                var newParams = {};
-                var parmList = newSearch.split("&");
-                for (var i=0; i<parmList.length; i++) {
-                    var parm = parmList[i]; var ps = parm.split("=");
-                    if (ps.length > 1) {
-                        var key = ps[0]; var value = ps[1]; var exVal = newParams[key];
-                        if (exVal) {
-                            if (moqui.isArray(exVal)) { exVal.push(value); }
-                            else { newParams[key] = [exVal, value]; }
-                        } else { newParams[key] = value; }
-                    }
-                }
-                this.currentParameters = newParams;
-            }},
+            set: function(newSearch) { this.currentParameters = moqui.searchToObj(newSearch); }
+        },
         currentUrl: {
             get: function() { var srch = this.currentSearch; return this.currentPath + (srch.length > 0 ? '?' + srch : ''); },
             set: function(href) {

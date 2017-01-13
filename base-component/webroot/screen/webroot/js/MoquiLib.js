@@ -6,6 +6,7 @@ var moqui = {
     isNumber: function(obj) { return typeof obj === 'number'; },
     isArray: function(obj) { return Object.prototype.toString.call(obj) === '[object Array]'; },
     isFunction: function(obj) { return Object.prototype.toString.call(obj) === '[object Function]'; },
+    isPlainObject: function(obj) { return obj != null && typeof obj == 'object' && Object.prototype.toString.call(obj) === '[object Object]'; },
 
     // function to set columns across multiple tables to the same width
     makeColumnsConsistent: function(outerId) {
@@ -76,7 +77,7 @@ var moqui = {
         this.displayNotify = function(jsonObj, webSocket) {
             if (!webSocket.clientObj.displayEnable) return; // console.log(jsonObj);
             if (jsonObj.title && jsonObj.showAlert == true) {
-                $.notify(new NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), new NotifySettings(jsonObj.type)); }
+                $.notify(new moqui.NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), new moqui.NotifySettings(jsonObj.type)); }
         };
         this.registerListener = function(topic, callback) {
             if (!this.webSocket) this.initWebSocket();
