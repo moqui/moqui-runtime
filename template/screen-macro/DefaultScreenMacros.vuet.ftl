@@ -1283,7 +1283,7 @@ a => A, d => D, y => Y
     <#assign fieldValue = "">
     <#if fieldsJsName?has_content>
         <#assign format = .node["@format"]!>
-        <#assign fieldValue>{{row.moqui.format(${fieldsJsName}.${dispFieldName}<#if format?has_content>, "${format}"</#if>)}}</#assign>
+        <#assign fieldValue>{{${fieldsJsName}.${dispFieldName} | format<#if format?has_content>("${format}")</#if>}}</#assign>
     <#else>
         <#if .node["@text"]?has_content>
             <#assign textMap = "">
@@ -1465,7 +1465,7 @@ a => A, d => D, y => Y
     <#else>
         <#assign tlAlign = tlFieldNode["@align"]!"left">
         <#t><input id="${tlId}" <#--v-model="fields.${name}"--> type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>"
-            <#t> name="${name}" value="${fieldValue?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
+            <#t> name="${name}" :value="'${fieldValue?html}'|decodeHtml" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
             <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if>
             <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
             <#t><#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if>
