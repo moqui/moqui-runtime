@@ -49,7 +49,7 @@ along with this software (see the LICENSE.md file). If not, see
     ]]></script></pre-actions>
 
     <widgets>
-        <render-mode><text type="html"><![CDATA[<script>var notificationClient = new moqui.NotificationClient("ws://${ec.web.getHostName(true)}${ec.web.servletContext.contextPath}/notws");</script>]]></text></render-mode>
+        <render-mode><text type="html"><![CDATA[<script>var notificationClient = new moqui.NotificationClient((location.protocol === 'https:' ? 'wss' : 'ws') + "://${ec.web.getHostName(true)}${ec.web.servletContext.contextPath}/notws");</script>]]></text></render-mode>
 
         <section name="TopNavSection" condition="hideNav != 'true'"><widgets>
             <container id="top">

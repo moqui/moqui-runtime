@@ -995,7 +995,7 @@ moqui.webrootVue = new Vue({
         this.userId = $("#confUserId").val();
         this.locale = $("#confLocale").val(); if (moqui.localeMap[this.locale]) this.locale = moqui.localeMap[this.locale];
         var vm = this; $('.confNavPluginUrl').each(function(idx, el) { vm.addNavPlugin($(el).val()); });
-        this.notificationClient = new moqui.NotificationClient("ws://" + this.appHost + this.appRootPath + "/notws");
+        this.notificationClient = new moqui.NotificationClient((location.protocol === 'https:' ? 'wss://' : 'ws://') + this.appHost + this.appRootPath + "/notws");
     },
     mounted: function() {
         $('.navbar [data-toggle="tooltip"]').tooltip();
