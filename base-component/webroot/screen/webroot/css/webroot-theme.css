@@ -126,6 +126,9 @@ form.editable-form button { background: white; color: #333; border: 1px solid; b
 .tt-suggestion:hover { cursor: pointer; color: #fff; background-color: #0097cf; }
 .tt-suggestion.tt-cursor { color: #fff; background-color: #0097cf; }
 
+.compare del { background-color:#f2dede; text-decoration:none; }
+.compare ins { background-color:#dff0d8; text-decoration:none; }
+
 /* ======================= Screen-specific ======================= */
 
 .bg-light.Login { background: url("../images/pattern/cream_pixels.png") repeat #444; }
