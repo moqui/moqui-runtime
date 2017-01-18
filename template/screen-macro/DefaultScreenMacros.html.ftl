@@ -1936,7 +1936,7 @@ a => A, d => D, y => Y
                     $.ajax({ type:"POST", url:"${defUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
                             <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = defUrlParameterMap.remove(depNodeField)!>, "${depNode["@parameter"]!depNodeField}": $("#<@fieldIdByName depNodeField/>").val()</#list>
                             <#t><#list defUrlParameterMap?keys as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
-                            <#t>}, dataType:"text", success:function(defaultText) { if (defaultText) { $('#${tlId}').val(defaultText); } } });
+                            <#t>}, dataType:"text", success:function(defaultText) { if (defaultText) { $('#${id}').val(defaultText); } } });
                 }
                 <#list depNodeList as depNode>
                 $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${id}(); });
