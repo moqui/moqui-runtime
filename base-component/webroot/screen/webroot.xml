@@ -32,7 +32,7 @@ along with this software (see the LICENSE.md file). If not, see
             try {
                 List menuDataList = sri.getMenuData(sri.screenUrlInfo.extraPathNameList)
                 if (menuDataList != null) ec.web.sendJsonResponse(menuDataList)
-            } catch (Exception e) { }
+            } catch (Exception e) { logger.warn("Error in menuData for ${sri.screenUrlInfo.extraPathNameList}", e) }
         ]]></script></actions>
         <default-response type="none"/>
     </transition>
