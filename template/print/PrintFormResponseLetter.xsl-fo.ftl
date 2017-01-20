@@ -61,9 +61,15 @@ along with this software (see the LICENSE.md file). If not, see
                 <fo:page-sequence master-reference="letter-portrait" font-size="${formResponseInfo.dbForm.printFontSize!"9pt"}" font-family="${formResponseInfo.dbForm.printFontFamily!"Courier, monospace"}">
                     <fo:flow flow-name="xsl-region-body">
             </#if>
-            <fo:block-container width="8.5in" height="${formResponseInfo.dbForm.printContainerHeight!"11in"}">
-                <@formResponse formResponseInfo/>
-            </fo:block-container>
+            <#if formResponseInfo.dbForm.printContainerWidth?has_content>
+                <fo:inline-container width="${formResponseInfo.dbForm.printContainerWidth}" height="${formResponseInfo.dbForm.printContainerHeight!"11in"}">
+                    <@formResponse formResponseInfo/>
+                </fo:inline-container>
+            <#else>
+                <fo:block-container width="8.5in" height="${formResponseInfo.dbForm.printContainerHeight!"11in"}">
+                    <@formResponse formResponseInfo/>
+                </fo:block-container>
+            </#if>
             <#if useNewPage>
                     </fo:flow>
                 </fo:page-sequence>
