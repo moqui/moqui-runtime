@@ -421,21 +421,18 @@ Vue.component('m-form', {
         submitForm: function submitForm() {
             var jqEl = $(this.$el);
             if (this.noValidate || jqEl.valid()) {
-                var allParms = $.extend({ moquiSessionToken:this.$root.moquiSessionToken }, this.fields);
+                var formData = new FormData(this.$el);
+                formData.append('moquiSessionToken', this.$root.moquiSessionToken);
+                $.each(this.fields, function (key, value) { formData.append(key, value); });
+
                 var $btn = $(document.activeElement);
                 if ($btn.length && jqEl.has($btn) && $btn.is('button[type="submit"], input[type="submit"], input[type="image"]') && $btn.is('[name]')) {
-                    allParms[$btn.attr('name')] = $btn.val(); }
+                    formData.append($btn.attr('name'), $btn.val()); }
 
-                var parmList = jqEl.serializeArray();
-                for (var i=0; i<parmList.length; i++) {
-                    var parm = parmList[i];
-                    var cur = allParms[parm.name];
-                    if (cur) { if (moqui.isArray(cur)) { cur.push(parm.value); } else { allParms[parm.name] = [cur, parm.value]; } }
-                    else { allParms[parm.name] = parm.value; }
-                }
-                // console.info('m-form parameters ' + JSON.stringify(allParms));
-                $.ajax({ type:this.method, url:this.action, data:allParms, headers:{Accept:'application/json'},
-                    error:moqui.handleAjaxError, success:this.handleResponse });
+                // console.info('m-form parameters ' + JSON.stringify(formData));
+                // for (var key of formData.keys()) { console.log('m-form key ' + key + ' val ' + JSON.stringify(formData.get(key))); }
+                $.ajax({ type:this.method, url:this.action, data:formData, contentType:false, processData:false,
+                    headers:{Accept:'application/json'}, error:moqui.handleAjaxError, success:this.handleResponse });
             }
         },
         handleResponse: function(resp) {
@@ -445,7 +442,7 @@ Vue.component('m-form', {
                 notified = moqui.notifyMessages(resp.messages, resp.errors);
                 if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.setUrl(resp.screenUrl); }
                 else if (resp.redirectUrl && resp.redirectUrl.length > 0) { window.location.href = resp.redirectUrl; }
-            } else { console.warn('m-form no reponse or non-JSON response: ' + JSON.stringify(resp)) }
+            } else { console.warn('m-form no response or non-JSON response: ' + JSON.stringify(resp)) }
             var hideId = this.submitHideId; if (hideId && hideId.length > 0) { $('#' + hideId).modal('hide'); }
             var reloadId = this.submitReloadId; if (reloadId && reloadId.length > 0) { this.$root.reloadContainer(reloadId); }
             var subMsg = this.submitMessage;
