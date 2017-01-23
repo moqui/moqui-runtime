@@ -134,7 +134,7 @@ nav.form-list-nav>span.select2-container { float: left; margin: 6px 0 6px 0; min
 .panel .panel-heading { position: relative; }
 .panel .panel-heading .panel-toolbar { position: absolute; top: 0; right: 0; }
 .panel .panel-toolbar .label { display: inline-block; margin: 4px 4px 4px 0; }
-.panel .panel-heading>h5, .panel .panel-heading>span { display: inline-block; margin-top: 0; margin-bottom: 0; font-size: 16px; color: inherit; }
+.panel .panel-heading>h5, .panel .panel-heading>span { display: inline-block; margin-top: 0; margin-bottom: 0; font-size: 16px; }
 .panel, .panel .panel-body { background: transparent; }
 .panel-body>table.table { margin: -15px; width: calc(100% + 30px); max-width: none; }
 
