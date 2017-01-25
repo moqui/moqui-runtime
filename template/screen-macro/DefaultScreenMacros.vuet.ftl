@@ -855,7 +855,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <m-link href="${allLinkUrl.pathWithParams}" class="btn btn-default">Paginate</m-link>
                     <#else>
                         <#assign allLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageNoLimit", "true")>
-                        <m-link href="${allLinkUrl.pathWithParams()}" class="btn btn-default">Show All</m-link>
+                        <m-link href="${allLinkUrl.pathWithParams}" class="btn btn-default">Show All</m-link>
                     </#if>
                 </#if>
             </#if>
