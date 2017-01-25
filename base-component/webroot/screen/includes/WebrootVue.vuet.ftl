@@ -41,7 +41,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <li v-for="(navMenuItem, menuIndex) in navMenuList" class="dropdown">
                     <template v-if="menuIndex < (navMenuList.length - 1)">
                         <m-link v-if="navMenuItem.hasTabMenu" :href="navMenuItem.path">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></m-link>
-                        <template v-else-if="navMenuItem.subscreens && navMenuItem.subscreens.length > 0">
+                        <template v-else-if="navMenuItem.subscreens && navMenuItem.subscreens.length > 1">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></a>
                             <ul class="dropdown-menu">
                                 <li v-for="subscreen in navMenuItem.subscreens" :class="{active:subscreen.active}">
