@@ -1752,19 +1752,22 @@ a => A, d => D, y => Y
         <#assign doUrlParameterMap = doUrlInfo.getParameterMap()>
         <script>
             function populate_${id}() {
+                <#if doNode["@depends-optional"]! != "true">
                 var hasAllParms = true;
                 <#list depNodeList as depNode>if (!$('#<@fieldIdByName depNode["@field"]/>').val()) { hasAllParms = false; } </#list>
                 if (!hasAllParms) { $("#${id}").select2("destroy"); $('#${id}').html(""); $("#${id}").select2({ }); <#-- alert("not has all parms"); --> return; }
+                </#if>
                 $.ajax({ type:"POST", url:"${doUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
                         <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = doUrlParameterMap.remove(depNodeField)!>, "${depNode["@parameter"]!depNodeField}": $("#<@fieldIdByName depNodeField/>").val()</#list>
                         <#t><#list doUrlParameterMap?keys as parameterKey><#if doUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${doUrlParameterMap.get(parameterKey)}"</#if></#list>
                         <#t>}, dataType:"json" }).done(
                     function(list) {
                         if (list) {
-                            $("#${id}").select2("destroy");
-                            $('#${id}').html("");<#-- clear out the drop-down -->
+                            var jqEl = $("#${id}");
+                            jqEl.select2("destroy");
+                            jqEl.html("");<#-- clear out the drop-down -->
                             <#if allowEmpty! == "true">
-                            $('#${id}').append('<option value="">&nbsp;</option>');
+                            jqEl.append('<option value="">&nbsp;</option>');
                             </#if>
                             <#if allowMultiple && currentValueList?has_content>var currentValues = [<#list currentValueList as curVal>"${curVal}"<#sep>, </#list>];</#if>
                             $.each(list, function(key, value) {
@@ -1774,12 +1777,13 @@ a => A, d => D, y => Y
                                 <#else>
                                 if (optionValue == "${currentValue}") {
                                 </#if>
-                                    $('#${id}').append("<option selected='selected' value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");
+                                    jqEl.append("<option selected='selected' value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");
                                 } else {
-                                    $('#${id}').append("<option value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");
+                                    jqEl.append("<option value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");
                                 }
                             });
                             $("#${id}").select2({ });
+                            setTimeout(function() { jqEl.trigger('change'); }, 50);
                         }
                     }
                 );
