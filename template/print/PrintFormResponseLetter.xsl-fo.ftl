@@ -18,12 +18,12 @@ along with this software (see the LICENSE.md file). If not, see
         org.moqui.impl.ScreenServices.get#FormResponse service
 -->
 
-<#macro formResponse formResponseInfo>
+<#macro formResponse formResponseInfo fieldsPage>
     <#assign dbForm = formResponseInfo.dbForm>
     <#assign dbFormFieldList = formResponseInfo.dbFormFieldList>
     <#assign responseMap = formResponseInfo.responseMap>
 
-    <#list dbFormFieldList as dbFormField>
+    <#list dbFormFieldList as dbFormField><#if !dbFormField.printPageNumber?has_content || dbFormField.printPageNumber == fieldsPage>
         <#assign responseValue = responseMap[dbFormField.fieldName]!"">
         <#if responseValue?contains("\n")><#assign responseValue><#list responseValue?split("\n") as responseValuePart>
             <fo:block>${responseValuePart}</fo:block>
@@ -31,7 +31,7 @@ along with this software (see the LICENSE.md file). If not, see
         <fo:block-container absolute-position="absolute"<#if dbFormField.printTop?has_content> top="${dbFormField.printTop}"</#if><#if dbFormField.printLeft?has_content> left="${dbFormField.printLeft}"</#if><#if dbFormField.printBottom?has_content> bottom="${dbFormField.printBottom}"</#if><#if dbFormField.printRight?has_content> right="${dbFormField.printRight}"</#if><#if dbFormField.printWidth?has_content> width="${dbFormField.printWidth}"</#if><#if dbFormField.printHeight?has_content> height="${dbFormField.printHeight}"</#if>>
             <fo:block<#if dbFormField.printTextAlign?has_content> text-align="${dbFormField.printTextAlign}"</#if><#if dbFormField.printVerticalAlign?has_content> vertical-align="${dbFormField.printVerticalAlign}"</#if><#if dbFormField.printFontSize?has_content> font-size="${dbFormField.printFontSize}"</#if><#if dbFormField.printFontFamily?has_content> font-family="${dbFormField.printFontFamily}"</#if>>${responseValue}</fo:block>
         </fo:block-container>
-    </#list>
+    </#if></#list>
 
     <#-- TODO handle file/image field types
     <#if paymentInfo.paymentSignaturePrimaryLocation?has_content>
@@ -52,30 +52,34 @@ along with this software (see the LICENSE.md file). If not, see
     <#list formResponseInfoList as formResponseInfo>
         <#assign printRepeatCount = formResponseInfo.dbForm.printRepeatCount!1>
         <#assign useNewPage = formResponseInfo.dbForm.printRepeatNewPage!"N" == "Y">
-        <#if !useNewPage>
-            <fo:page-sequence master-reference="letter-portrait" font-size="${formResponseInfo.dbForm.printFontSize!"9pt"}" font-family="${formResponseInfo.dbForm.printFontFamily!"Courier, monospace"}">
-                <fo:flow flow-name="xsl-region-body">
-        </#if>
-        <#list 1..printRepeatCount as x>
-            <#if useNewPage>
-                <fo:page-sequence master-reference="letter-portrait" font-size="${formResponseInfo.dbForm.printFontSize!"9pt"}" font-family="${formResponseInfo.dbForm.printFontFamily!"Courier, monospace"}">
-                    <fo:flow flow-name="xsl-region-body">
-            </#if>
-            <fo:block-container width="8.5in" height="${formResponseInfo.dbForm.printContainerHeight!"11in"}">
-                <@formResponse formResponseInfo/>
-            </fo:block-container>
-            <#if useNewPage>
+        <fo:page-sequence master-reference="letter-portrait" font-size="${formResponseInfo.dbForm.printFontSize!"9pt"}" font-family="${formResponseInfo.dbForm.printFontFamily!"Courier, monospace"}">
+            <fo:flow flow-name="xsl-region-body">
+        <#list 1..printRepeatCount as repeatNum>
+            <#list 1..formResponseInfo.dbFormFieldPages as fieldsPage>
+                <#if formResponseInfo.dbForm.printContainerWidth?has_content>
+                    <fo:inline-container width="${formResponseInfo.dbForm.printContainerWidth}" height="${formResponseInfo.dbForm.printContainerHeight!"11in"}">
+                        <@formResponse formResponseInfo fieldsPage/>
+                    </fo:inline-container>
+                <#else>
+                    <fo:block-container width="8.5in" height="${formResponseInfo.dbForm.printContainerHeight!"11in"}">
+                        <@formResponse formResponseInfo fieldsPage/>
+                    </fo:block-container>
+                </#if>
+                <#if fieldsPage_has_next>
                     </fo:flow>
                 </fo:page-sequence>
-            </#if>
-        </#list>
-        <#--
-        <fo:block-container absolute-position="absolute" top="0" left="0" width="8.5in" height="${formResponseInfo.dbForm.printContainerHeight!"11in"}">
-        </fo:block-container>
-        -->
-        <#if !useNewPage>
+                <fo:page-sequence master-reference="letter-portrait" font-size="${formResponseInfo.dbForm.printFontSize!"9pt"}" font-family="${formResponseInfo.dbForm.printFontFamily!"Courier, monospace"}">
+                    <fo:flow flow-name="xsl-region-body">
+                </#if>
+            </#list>
+            <#if useNewPage>
                 </fo:flow>
             </fo:page-sequence>
-        </#if>
+            <fo:page-sequence master-reference="letter-portrait" font-size="${formResponseInfo.dbForm.printFontSize!"9pt"}" font-family="${formResponseInfo.dbForm.printFontFamily!"Courier, monospace"}">
+                <fo:flow flow-name="xsl-region-body">
+            </#if>
+        </#list>
+            </fo:flow>
+        </fo:page-sequence>
     </#list>
 </fo:root>
