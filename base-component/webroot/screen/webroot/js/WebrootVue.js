@@ -687,8 +687,8 @@ Vue.component('date-period', {
     }
 });
 Vue.component('drop-down', {
-    props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String,
-        optionsUrl:String, optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object, form:String },
+    props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String, optionsUrl:String,
+        optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object, dependsOptional:Boolean, form:String },
     data: function() { return { curData: null, s2Opts: null } },
     template: '<select :form="form"><slot></slot></select>',
     methods: {
@@ -699,7 +699,7 @@ Vue.component('drop-down', {
             for (var parmName in parmMap) { if (parmMap.hasOwnProperty(parmName)) reqData[parmName] = parmMap[parmName]; }
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
                 var doValue = $('#' + dependsOnMap[doParm]).val(); if (!doValue) { hasAllParms = false; break; } reqData[doParm] = doValue; }}
-            if (!hasAllParms) { this.curData = null; return; }
+            if (!hasAllParms && !this.dependsOptional) { this.curData = null; return; }
             var vm = this;
             $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
                      error:moqui.handleAjaxError, success: function(list) { if (list) {
@@ -718,8 +718,8 @@ Vue.component('drop-down', {
         if (this.multiple == "multiple") { opts.multiple = true; }
         if (this.options && this.options.length > 0) { opts.data = this.options; }
         this.s2Opts = opts; var jqEl = $(this.$el);
-        jqEl.select2(opts).on('change', function () { vm.$emit('input', this.value); })
-            .on('select2:select', function () { jqEl.select2('open').select2('close'); });
+        jqEl.select2(opts).on('select2:select', function () { jqEl.select2('open').select2('close'); });
+        // needed? caused some issues: .on('change', function () { vm.$emit('input', vm.curVal); })
         if (this.value && this.value.length > 0) { this.curVal = this.value; }
         if (this.optionsUrl && this.optionsUrl.length > 0) {
             var dependsOnMap = this.dependsOn;
@@ -733,7 +733,11 @@ Vue.component('drop-down', {
     watch: {
         value: function(value) { this.curVal = value; },
         options: function(options) { this.curData = options; },
-        curData: function(options) { var jqEl = $(this.$el); jqEl.select2('destroy'); jqEl.empty(); this.s2Opts.data = options; jqEl.select2(this.s2Opts); }
+        curData: function(options) {
+            var jqEl = $(this.$el); jqEl.select2('destroy'); jqEl.empty();
+            this.s2Opts.data = options; jqEl.select2(this.s2Opts);
+            setTimeout(function() { jqEl.trigger('change'); }, 50);
+        }
     },
     destroyed: function() { $(this.$el).off().select2('destroy'); }
 });

@@ -121,12 +121,15 @@ ${sri.renderSection(.node["@name"])}
 </#macro>
 
 <#macro "container-dialog">
-    <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
-    <#assign cdDivId><@nodeId .node/></#assign>
-    <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
-    <container-dialog id="${cdDivId}" width="${.node["@width"]!"760"}" title="${buttonText}"<#if _openDialog! == cdDivId> :openDialog="true"</#if>>
-        <#recurse>
-    </container-dialog>
+    <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
+    <#if conditionResult>
+        <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
+        <#assign cdDivId><@nodeId .node/></#assign>
+        <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+        <container-dialog id="${cdDivId}" width="${.node["@width"]!"760"}" title="${buttonText}"<#if _openDialog! == cdDivId> :openDialog="true"</#if>>
+            <#recurse>
+        </container-dialog>
+    </#if>
 </#macro>
 <#macro "dynamic-container">
     <#assign dcDivId><@nodeId .node/></#assign>
@@ -134,14 +137,17 @@ ${sri.renderSection(.node["@name"])}
     <dynamic-container id="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().pathWithParams}"></dynamic-container>
 </#macro>
 <#macro "dynamic-dialog">
-    <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
-    <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
-    <#assign ddDivId><@nodeId .node/></#assign>
-    <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
-    <#assign afterFormText>
-    <dynamic-dialog id="${ddDivId}" url="${urlInstance.urlWithParams}" width="${.node["@width"]!"760"}" title="${buttonText}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></dynamic-dialog>
-    </#assign>
-    <#t>${sri.appendToAfterScreenWriter(afterFormText)}
+    <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
+    <#if conditionResult>
+        <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
+        <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
+        <#assign ddDivId><@nodeId .node/></#assign>
+        <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+        <#assign afterFormText>
+        <dynamic-dialog id="${ddDivId}" url="${urlInstance.urlWithParams}" width="${.node["@width"]!"760"}" title="${buttonText}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></dynamic-dialog>
+        </#assign>
+        <#t>${sri.appendToAfterScreenWriter(afterFormText)}
+    </#if>
 </#macro>
 
 <#-- ==================== Includes ==================== -->
@@ -1363,14 +1369,14 @@ a => A, d => D, y => Y
             <#t><#if allowMultiple> multiple="multiple"</#if><#if allowEmpty> :allow-empty="true"</#if><#if .node["@combo-box"]! == "true"> :combo="true"</#if>
             <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
             <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if .node["@size"]?has_content> size="${.node["@size"]}"</#if>
-            <#if isDynamicOptions> options-url="${doUrlInfo.url}" value-field="${doNode["@value-field"]!"value"}" label-field="${doNode["@label-field"]!"label"}"
+            <#if isDynamicOptions> options-url="${doUrlInfo.url}" value-field="${doNode["@value-field"]!"value"}" label-field="${doNode["@label-field"]!"label"}"<#if doNode["@depends-optional"]! == "true"> :depends-optional="true"</#if>
                 <#t> :depends-on="{<#list depNodeList as depNode><#local depNodeField = depNode["@field"]>'${depNode["@parameter"]!depNodeField}':'<@fieldIdByName depNodeField/>'<#sep>, </#list>}"
                 <#t> :options-parameters="{<#list doUrlParameterMap?keys as parameterKey><#if doUrlParameterMap.get(parameterKey)?has_content>'${parameterKey}':'${doUrlParameterMap.get(parameterKey)}', </#if></#list>}"
             <#t><#else>
                 <#t><#if allowMultiple> :value="[<#list currentValueList as curVal><#if curVal?has_content>'${curVal}',</#if></#list>]"<#else> value="${currentValue!}"</#if>
                 :options="[<#if currentValue?has_content && !allowMultiple && !optionsHasCurrent>{id:'${currentValue}',text:'<#if currentDescription?has_content>${currentDescription}<#else>${currentValue}</#if>'},</#if><#rt>
                     <#t><#if allowEmpty || !(options?has_content)>{id:'',text:'\u00a0'},</#if><#list (options.keySet())! as key>{id:'<#if key?has_content>${key}<#else>\u00a0</#if>',text:'${options.get(key)?js_string}'}<#sep>,</#list>]"
-            <#t></#if>>
+            <#lt></#if>>
             <#-- support <#if .node["@current"]! == "first-in-list"> again? -->
     </drop-down>
     <#-- <span>[${currentValue}]; <#list currentValueList as curValue>[${curValue!''}], </#list></span> -->
