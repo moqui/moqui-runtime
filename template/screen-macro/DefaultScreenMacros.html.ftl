@@ -282,7 +282,8 @@ ${sri.renderSection(.node["@name"])}
         </div>
         <script>$('#${cdDivId}').on('shown.bs.modal', function() {
             $("#${cdDivId} select").select2({ });
-            $("#${cdDivId} .default-focus").focus();
+            var defFocus = $("#${cdDivId} .default-focus");
+            if (defFocus.length) { defFocus.focus(); } else { $("#${cdDivId} form :input:visible:first").focus(); }
         });</script>
     </#if>
 </#macro>
@@ -321,9 +322,14 @@ ${sri.renderSection(.node["@name"])}
             </div>
         </div>
         <script>
-            $("#${ddDivId}").on("show.bs.modal", function (e) { $("#${ddDivId}-body").load('${urlInstance.urlWithParams}'); });
+            $("#${ddDivId}").on("show.bs.modal", function (e) {
+                $("#${ddDivId}-body").load('${urlInstance.urlWithParams}', function() {
+                    $("#${ddDivId} select").select2({ });
+                    var defFocus = $("#${ddDivId} .default-focus");
+                    if (defFocus.length) { defFocus.focus(); } else { $("#${ddDivId} form :input:visible:first").focus(); }
+                });
+            });
             $("#${ddDivId}").on("hidden.bs.modal", function (e) { $("#${ddDivId}-body").empty(); $("#${ddDivId}-body").append('<img src="/images/wait_anim_16x16.gif" alt="Loading...">'); });
-            $('#${ddDivId}').on('shown.bs.modal', function() {$("#${ddDivId} select").select2({ });});
             <#if _openDialog! == ddDivId>$('#${ddDivId}').modal('show');</#if>
         </script>
         </#assign>

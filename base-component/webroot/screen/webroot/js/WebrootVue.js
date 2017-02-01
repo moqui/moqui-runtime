@@ -302,7 +302,10 @@ Vue.component('container-dialog', {
         var jqEl = $(this.$el); var vm = this;
         jqEl.on("hidden.bs.modal", function() { vm.isHidden = true; });
         jqEl.on("shown.bs.modal", function() { vm.isHidden = false;
-                jqEl.find(":not(.noselect2)>select:not(.noselect2)").select2({ }); jqEl.find(".default-focus").focus(); });
+            jqEl.find(":not(.noselect2)>select:not(.noselect2)").select2({ });
+            var defFocus = jqEl.find(".default-focus");
+            if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
+        });
         if (this.openDialog) { jqEl.modal('show'); }
     }
 });
@@ -334,14 +337,25 @@ Vue.component('dynamic-dialog', {
         reload: function() { if (!this.isHidden) { var jqEl = $(this.$el); jqEl.modal('hide'); jqEl.modal('show'); }},
         load: function(url) { this.curUrl = url; }, hide: function() { $(this.$el).modal('hide'); }
     },
-    watch: { curUrl: function (newUrl) { if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
-        var vm = this; moqui.loadComponent(newUrl, function(comp) { vm.curComponent = comp; }, this.id); }},
+    watch: { curUrl: function (newUrl) {
+        if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
+        var vm = this;
+        moqui.loadComponent(newUrl, function(comp) {
+            comp.mounted = function() {
+                var jqEl = $(vm.$el);
+                jqEl.find(":not(.noselect2)>select:not(.noselect2)").select2({ });
+                var defFocus = jqEl.find(".default-focus");
+                console.log(defFocus);
+                if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
+            };
+            vm.curComponent = comp;
+        }, this.id);
+    }},
     mounted: function() {
         this.$root.addContainer(this.id, this); var jqEl = $(this.$el); var vm = this;
         jqEl.on("show.bs.modal", function() { vm.curUrl = vm.url; });
         jqEl.on("hidden.bs.modal", function() { vm.isHidden = true; vm.curUrl = ""; });
-        jqEl.on("shown.bs.modal", function() { vm.isHidden = false;
-                jqEl.find(":not(.noselect2)>select:not(.noselect2)").select2({ }); jqEl.find(".default-focus").focus(); });
+        jqEl.on("shown.bs.modal", function() { vm.isHidden = false; });
         if (this.openDialog) { jqEl.modal('show'); }
     }
 });
@@ -462,7 +476,7 @@ Vue.component('m-form', {
             unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
         });
         jqEl.find('[data-toggle="tooltip"]').tooltip();
-        if (this.focusField && this.focusField.length > 0) jqEl.find('[name=' + this.focusField + ']').addClass('default-focus').focus();
+        if (this.focusField && this.focusField.length > 0) jqEl.find('[name^="' + this.focusField + '"]').addClass('default-focus').focus();
     }
 });
 Vue.component('form-link', {
