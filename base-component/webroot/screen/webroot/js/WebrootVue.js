@@ -719,10 +719,14 @@ Vue.component('drop-down', {
             $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
                      error:moqui.handleAjaxError, success: function(list) { if (list) {
                 // funny case where select2 specifies no option.@value if empty so &nbsp; ends up passed with form submit; now filtered on server for \u00a0 only and set to null
-                var newData = []; if (vm.allowEmpty) newData.push({ id:'', text:'\u00a0' });
+                var newData = []; if (vm.allowEmpty) newData.push({ id:'\u00a0', text:'\u00a0' });
                 var labelField = vm.labelField; if (!labelField) { labelField = "label"; }
                 var valueField = vm.valueField; if (!valueField) { valueField = "value"; }
-                $.each(list, function(idx, curObj) { newData.push({ id:curObj[valueField], text:curObj[labelField] }) });
+                $.each(list, function(idx, curObj) {
+                    var idVal = curObj[valueField];
+                    if (!idVal) idVal = '\u00a0';
+                    newData.push({ id:idVal, text:curObj[labelField] })
+                });
                 vm.curData = newData;
             }}});
         }
