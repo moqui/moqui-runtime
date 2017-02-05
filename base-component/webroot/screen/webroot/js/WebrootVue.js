@@ -139,7 +139,7 @@ moqui.retryInlineScript = function(src, count) {
 };
 
 /* ========== notify and error handling ========== */
-moqui.notifyOpts = { delay:6000, offset:{x:20,y:70}, placement:{from:'bottom',align:'right'}, z_index:1100, type:'success',
+moqui.notifyOpts = { delay:6000, offset:{x:20,y:70}, placement:{from:'top',align:'right'}, z_index:1100, type:'success',
     animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
 moqui.notifyMessages = function(messages, errors) {
     var notified = false;
