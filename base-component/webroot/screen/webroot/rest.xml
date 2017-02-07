@@ -31,7 +31,11 @@ along with this software (see the LICENSE.md file). If not, see
 
     An example request:
 
-    curl -X GET -u john.doe:moqui http://localhost:8080/rest/api_key
+    curl -X GET -H "Accept: text/plain" -u john.doe:moqui http://localhost:8080/rest/api_key
+
+    To see an error response (401) for the wrong password:
+
+    curl -X GET -H "Accept: text/plain" -u john.doe:foo -i http://localhost:8080/rest/api_key
 
     Put the value from that request in the "api_key" header for authc on other requests.
 
