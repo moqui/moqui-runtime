@@ -19,7 +19,7 @@ along with this software (see the LICENSE.md file). If not, see
     <parameter name="serviceName"/>
     <parameter name="doingRun"/>
 
-    <transition name="run">
+    <transition name="run" begin-transaction="false">
         <actions>
             <script>
                 org.moqui.context.ExecutionContext ec = context.ec
