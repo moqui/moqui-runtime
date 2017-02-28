@@ -571,7 +571,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
     </#if>
-        <fieldset class="form-horizontal"><#-- was form-single-outer -->
+        <fieldset class="form-horizontal"<#if urlInstance.disableLink> disabled="disabled"</#if>>
         <#if formNode["field-layout"]?has_content>
             <#recurse formNode["field-layout"][0]/>
         <#else>
