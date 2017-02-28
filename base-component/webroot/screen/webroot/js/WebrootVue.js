@@ -442,7 +442,7 @@ Vue.component('m-form', {
                 if ($btn.length && jqEl.has($btn) && $btn.is('button[type="submit"], input[type="submit"], input[type="image"]')) {
                     if ($btn.is('[name]')) { btnName = $btn.attr('name'); btnValue = $btn.val(); }
                     $btn.prop('disabled', true);
-                    // TODO: perhaps auto enable button after timeout or form data change?
+                    setTimeout(function() { $btn.prop('disabled', false); }, 3000);
                 }
                 var formData = new FormData(this.$el);
                 formData.append('moquiSessionToken', this.$root.moquiSessionToken);
@@ -498,7 +498,7 @@ Vue.component('form-link', {
                 if ($btn.length && jqEl.has($btn) && $btn.is('button[type="submit"], input[type="submit"], input[type="image"]')) {
                     if ($btn.is('[name]')) { btnName = $btn.attr('name'); btnValue = $btn.val(); }
                     $btn.prop('disabled', true);
-                    // TODO: perhaps auto enable button after timeout or form data change?
+                    setTimeout(function() { $btn.prop('disabled', false); }, 3000);
                 }
                 var otherParms = this.fields;
                 var parmStr = "";
