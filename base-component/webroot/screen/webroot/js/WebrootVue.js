@@ -480,7 +480,7 @@ Vue.component('m-form', {
             highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
             unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
         });
-        jqEl.find('[data-toggle="tooltip"]').tooltip();
+        jqEl.find('[data-toggle="tooltip"]').tooltip({placement:'auto top'});
         if (this.focusField && this.focusField.length > 0) jqEl.find('[name^="' + this.focusField + '"]').addClass('default-focus').focus();
     }
 });
@@ -540,7 +540,7 @@ Vue.component('form-link', {
             highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
             unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
         });
-        jqEl.find('[data-toggle="tooltip"]').tooltip();
+        jqEl.find('[data-toggle="tooltip"]').tooltip({placement:'auto top'});
         if (this.focusField && this.focusField.length > 0) jqEl.find('[name=' + this.focusField + ']').addClass('default-focus').focus();
     }
 });
@@ -1038,7 +1038,7 @@ moqui.webrootVue = new Vue({
         this.notificationClient = new moqui.NotificationClient((location.protocol === 'https:' ? 'wss://' : 'ws://') + this.appHost + this.appRootPath + "/notws");
     },
     mounted: function() {
-        $('.navbar [data-toggle="tooltip"]').tooltip();
+        $('.navbar [data-toggle="tooltip"]').tooltip({ placement:'bottom', trigger:'hover' });
         $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
         // load the current screen
         this.currentUrl = window.location.pathname + window.location.search;
