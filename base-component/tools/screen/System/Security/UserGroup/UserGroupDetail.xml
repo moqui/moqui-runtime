@@ -61,147 +61,132 @@ along with this software (see the LICENSE.md file). If not, see
             <econdition field-name="userGroupId"/><order-by field-name="artifactGroupId"/></entity-find>
     </actions>
     <widgets>
-        <container-row>
-            <row-col lg="5">
-                <form-single name="UserGroupForm" map="userGroup" transition="updateUserGroup">
-                    <field name="userGroupId"><default-field><display/></default-field></field>
-                    <field name="description"><default-field><text-line size="40"/></default-field></field>
+        <container-row><row-col lg="5">
+            <form-single name="UserGroupForm" map="userGroup" transition="updateUserGroup">
+                <field name="userGroupId"><default-field><display/></default-field></field>
+                <field name="description"><default-field><text-line size="40"/></default-field></field>
+                <field name="groupTypeEnumId"><default-field title="Group Type">
+                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                        <set field="enumTypeId" value="UserGroupType"/><set field="allowEmpty" value="true"/></widget-template-include>
+                </default-field></field>
 
+                <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+            </form-single>
+            <container-box><box-header><label text="Preferences" type="h5"/></box-header><box-toolbar>
+                <container-dialog id="AddPreferenceDialog" button-text="Add Preference">
+                    <form-single name="CreateUserGroupPreference" transition="createUserGroupPreference">
+                        <field name="userGroupId"><default-field><hidden/></default-field></field>
+                        <field name="preferenceKey"><default-field><text-line size="30"/></default-field></field>
+                        <field name="preferenceValue"><default-field><text-line size="60"/></default-field></field>
+                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+            </box-toolbar><box-body>
+                <form-list name="UserGroupPreferenceList" list="ugPrefList" transition="updateUserGroupPreference">
+                    <field name="userGroupId"><default-field><hidden/></default-field></field>
+                    <field name="preferenceKey"><default-field title="Key"><display/></default-field></field>
+                    <field name="preferenceValue"><default-field title="Value"><text-line size="30"/></default-field></field>
                     <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                </form-list>
+            </box-body></container-box>
+        </row-col><row-col lg="7">
+            <container-box><box-header><label text="Permissions" type="h5"/></box-header><box-toolbar>
+                <container-dialog id="AddAdHocPermissionDialog" button-text="Apply Ad-hoc Permission">
+                    <form-single name="CreateAdHocUserGroupPermission" transition="createUserGroupPermission">
+                        <field name="userGroupId"><default-field><hidden/></default-field></field>
+                        <field name="userPermissionId"><default-field title="Permission"><text-line size="30"/></default-field></field>
+                        <field name="fromDate" from="ec.user.nowTimestamp"><default-field><date-time/></default-field></field>
+                        <field name="thruDate"><default-field><date-time/></default-field></field>
+                        <field name="submitButton"><default-field title="Apply"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+                <container-dialog id="AddExistingPermissionDialog" button-text="Apply Existing Permission">
+                    <form-single name="CreateExistingUserGroupPermission" transition="createUserGroupPermission">
+                        <field name="userGroupId"><default-field><hidden/></default-field></field>
+                        <field name="userPermissionId"><default-field title="Permission">
+                            <drop-down>
+                                <entity-options key="${userPermissionId}" text="${userPermissionId} - ${description}">
+                                    <entity-find entity-name="moqui.security.UserPermission">
+                                        <order-by field-name="userPermissionId"/></entity-find>
+                                </entity-options>
+                            </drop-down>
+                        </default-field></field>
+                        <field name="fromDate" from="ec.user.nowTimestamp"><default-field><date-time/></default-field></field>
+                        <field name="thruDate"><default-field><date-time/></default-field></field>
+                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+                <container-dialog id="AddUserPermissionDialog" button-text="New Permission">
+                    <form-single name="CreateUserPermission" transition="createUserPermission">
+                        <field name="userGroupId"><default-field><hidden/></default-field></field>
+                        <field name="userPermissionId"><default-field title="Permission ID"><text-line size="30"/></default-field></field>
+                        <field name="description"><default-field><text-line size="60"/></default-field></field>
+                        <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+            </box-toolbar><box-body>
+                <form-list name="UserGroupPermissionList" list="ugPermList" transition="updateUserGroupPermission">
+                    <row-actions><entity-find-one entity-name="moqui.security.UserPermission" value-field="userPermission"/></row-actions>
+                    <field name="userGroupId"><default-field><hidden/></default-field></field>
+                    <field name="userPermissionId"><default-field title="Permission ID">
+                        <display text="${userPermissionId} - ${userPermission?.description ?: '(ad-hoc)'}"/></default-field></field>
+                    <field name="fromDate"><default-field><display/></default-field></field>
+                    <field name="thruDate"><default-field><date-time/></default-field></field>
+                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                </form-list>
+            </box-body></container-box>
+        </row-col></container-row>
+
+        <container-box><box-header><label text="Authorizations" type="h5"/></box-header><box-toolbar>
+            <container-dialog id="AddAuthzDialog" button-text="Add Authorization">
+                <form-single name="CreateArtifactAuthz" transition="createArtifactAuthz"
+                        extends="component://tools/screen/System/Security/ArtifactGroup/ArtifactGroupDetail.xml#CreateArtifactAuthz">
+                    <field name="userGroupId"><default-field><hidden/></default-field></field>
+                    <field name="artifactGroupId"><default-field title="Artifact Group">
+                        <drop-down>
+                            <entity-options key="${artifactGroupId}" text="${description} [${artifactGroupId}]">
+                                <entity-find entity-name="moqui.security.ArtifactGroup">
+                                    <order-by field-name="description"/></entity-find>
+                            </entity-options>
+                        </drop-down>
+                    </default-field></field>
                 </form-single>
-                <container-box>
-                    <box-header><label text="Preferences" type="h5"/></box-header>
-                    <box-toolbar>
-                        <container-dialog id="AddPreferenceDialog" button-text="Add Preference">
-                            <form-single name="CreateUserGroupPreference" transition="createUserGroupPreference">
-                                <field name="userGroupId"><default-field><hidden/></default-field></field>
-                                <field name="preferenceKey"><default-field><text-line size="30"/></default-field></field>
-                                <field name="preferenceValue"><default-field><text-line size="60"/></default-field></field>
-                                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
-                            </form-single>
-                        </container-dialog>
-                    </box-toolbar>
-                    <box-body>
-                        <form-list name="UserGroupPreferenceList" list="ugPrefList" transition="updateUserGroupPreference">
-                            <field name="userGroupId"><default-field><hidden/></default-field></field>
-                            <field name="preferenceKey"><default-field title="Key"><display/></default-field></field>
-                            <field name="preferenceValue"><default-field title="Value"><text-line size="30"/></default-field></field>
-                            <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
-                        </form-list>
-                    </box-body>
-                </container-box>
-            </row-col>
-            <row-col lg="7">
-                <container-box>
-                    <box-header><label text="Permissions" type="h5"/></box-header>
-                    <box-toolbar>
-                        <container-dialog id="AddAdHocPermissionDialog" button-text="Apply Ad-hoc Permission">
-                            <form-single name="CreateAdHocUserGroupPermission" transition="createUserGroupPermission">
-                                <field name="userGroupId"><default-field><hidden/></default-field></field>
-                                <field name="userPermissionId"><default-field title="Permission"><text-line size="30"/></default-field></field>
-                                <field name="fromDate" from="ec.user.nowTimestamp"><default-field><date-time/></default-field></field>
-                                <field name="thruDate"><default-field><date-time/></default-field></field>
-                                <field name="submitButton"><default-field title="Apply"><submit/></default-field></field>
-                            </form-single>
-                        </container-dialog>
-                        <container-dialog id="AddExistingPermissionDialog" button-text="Apply Existing Permission">
-                            <form-single name="CreateExistingUserGroupPermission" transition="createUserGroupPermission">
-                                <field name="userGroupId"><default-field><hidden/></default-field></field>
-                                <field name="userPermissionId"><default-field title="Permission">
-                                    <drop-down>
-                                        <entity-options key="${userPermissionId}" text="${userPermissionId} - ${description}">
-                                            <entity-find entity-name="moqui.security.UserPermission">
-                                                <order-by field-name="userPermissionId"/></entity-find>
-                                        </entity-options>
-                                    </drop-down>
-                                </default-field></field>
-                                <field name="fromDate" from="ec.user.nowTimestamp"><default-field><date-time/></default-field></field>
-                                <field name="thruDate"><default-field><date-time/></default-field></field>
-                                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
-                            </form-single>
-                        </container-dialog>
-                        <container-dialog id="AddUserPermissionDialog" button-text="New Permission">
-                            <form-single name="CreateUserPermission" transition="createUserPermission">
-                                <field name="userGroupId"><default-field><hidden/></default-field></field>
-                                <field name="userPermissionId"><default-field title="Permission ID"><text-line size="30"/></default-field></field>
-                                <field name="description"><default-field><text-line size="60"/></default-field></field>
-                                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
-                            </form-single>
-                        </container-dialog>
-                    </box-toolbar>
-                    <box-body>
-                        <form-list name="UserGroupPermissionList" list="ugPermList" transition="updateUserGroupPermission">
-                            <row-actions><entity-find-one entity-name="moqui.security.UserPermission" value-field="userPermission"/></row-actions>
-                            <field name="userGroupId"><default-field><hidden/></default-field></field>
-                            <field name="userPermissionId"><default-field title="Permission ID">
-                                <display text="${userPermissionId} - ${userPermission?.description ?: '(ad-hoc)'}"/></default-field></field>
-                            <field name="fromDate"><default-field><display/></default-field></field>
-                            <field name="thruDate"><default-field><date-time/></default-field></field>
-                            <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
-                        </form-list>
-                    </box-body>
-                </container-box>
-            </row-col>
-        </container-row>
+            </container-dialog>
+        </box-toolbar><box-body>
+            <form-list name="ArtifactAuthzList" list="authzList" transition="updateArtifactAuthz"
+                    extends="component://tools/screen/System/Security/ArtifactGroup/ArtifactGroupDetail.xml#ArtifactAuthzList">
+                <field name="userGroupId"><default-field><hidden/></default-field></field>
+                <field name="artifactGroupId"><default-field title="Artifact Group">
+                    <display-entity entity-name="moqui.security.ArtifactGroup" text="${description ?: ''} - "/>
+                    <link url="artifactGroupDetail" text="${artifactGroupId}" link-type="anchor"/>
+                </default-field></field>
+            </form-list>
+        </box-body></container-box>
 
-        <container-box>
-            <box-header><label text="Authorizations" type="h5"/></box-header>
-            <box-toolbar>
-                <container-dialog id="AddAuthzDialog" button-text="Add Authorization">
-                    <form-single name="CreateArtifactAuthz" transition="createArtifactAuthz"
-                            extends="component://tools/screen/System/Security/ArtifactGroup/ArtifactGroupDetail.xml#CreateArtifactAuthz">
-                        <field name="userGroupId"><default-field><hidden/></default-field></field>
-                        <field name="artifactGroupId"><default-field title="Artifact Group">
-                            <drop-down>
-                                <entity-options key="${artifactGroupId}" text="${description} [${artifactGroupId}]">
-                                    <entity-find entity-name="moqui.security.ArtifactGroup">
-                                        <order-by field-name="description"/></entity-find>
-                                </entity-options>
-                            </drop-down>
-                        </default-field></field>
-                    </form-single>
-                </container-dialog>
-            </box-toolbar>
-            <box-body>
-                <form-list name="ArtifactAuthzList" list="authzList" transition="updateArtifactAuthz"
-                        extends="component://tools/screen/System/Security/ArtifactGroup/ArtifactGroupDetail.xml#ArtifactAuthzList">
+        <container-box><box-header><label text="Tarpits (Use Velocity Limits)" type="h5"/></box-header><box-toolbar>
+            <container-dialog id="AddTarpitDialog" button-text="Add Tarpit">
+                <form-single name="CreateArtifactTarpit" transition="createArtifactTarpit"
+                        extends="component://tools/screen/System/Security/ArtifactGroup/ArtifactGroupDetail.xml#CreateArtifactTarpit">
                     <field name="userGroupId"><default-field><hidden/></default-field></field>
                     <field name="artifactGroupId"><default-field title="Artifact Group">
-                        <display-entity entity-name="moqui.security.ArtifactGroup" text="${description ?: ''} - "/>
-                        <link url="artifactGroupDetail" text="${artifactGroupId}" link-type="anchor"/>
+                        <drop-down>
+                            <entity-options key="${artifactGroupId}" text="${description} [${artifactGroupId}]">
+                                <entity-find entity-name="moqui.security.ArtifactGroup">
+                                    <order-by field-name="description"/></entity-find>
+                            </entity-options>
+                        </drop-down>
                     </default-field></field>
-                </form-list>
-            </box-body>
-        </container-box>
-
-        <container-box>
-            <box-header><label text="Tarpits (Use Velocity Limits)" type="h5"/></box-header>
-            <box-toolbar>
-                <container-dialog id="AddTarpitDialog" button-text="Add Tarpit">
-                    <form-single name="CreateArtifactTarpit" transition="createArtifactTarpit"
-                            extends="component://tools/screen/System/Security/ArtifactGroup/ArtifactGroupDetail.xml#CreateArtifactTarpit">
-                        <field name="userGroupId"><default-field><hidden/></default-field></field>
-                        <field name="artifactGroupId"><default-field title="Artifact Group">
-                            <drop-down>
-                                <entity-options key="${artifactGroupId}" text="${description} [${artifactGroupId}]">
-                                    <entity-find entity-name="moqui.security.ArtifactGroup">
-                                        <order-by field-name="description"/></entity-find>
-                                </entity-options>
-                            </drop-down>
-                        </default-field></field>
-                    </form-single>
-                </container-dialog>
-            </box-toolbar>
-            <box-body>
-                <form-list name="ArtifactTarpitList" list="tarpitList" transition="updateArtifactTarpit"
-                        extends="component://tools/screen/System/Security/ArtifactGroup/ArtifactGroupDetail.xml#ArtifactTarpitList">
-                    <field name="userGroupId"><default-field><hidden/></default-field></field>
-                    <field name="artifactGroupId"><default-field title="Artifact Group">
-                        <display-entity entity-name="moqui.security.ArtifactGroup" text="${description ?: ''} - "/>
-                        <link url="artifactGroupDetail" text="${artifactGroupId}" link-type="anchor"/>
-                    </default-field></field>
-                </form-list>
-            </box-body>
-        </container-box>
+                </form-single>
+            </container-dialog>
+        </box-toolbar><box-body>
+            <form-list name="ArtifactTarpitList" list="tarpitList" transition="updateArtifactTarpit"
+                    extends="component://tools/screen/System/Security/ArtifactGroup/ArtifactGroupDetail.xml#ArtifactTarpitList">
+                <field name="userGroupId"><default-field><hidden/></default-field></field>
+                <field name="artifactGroupId"><default-field title="Artifact Group">
+                    <display-entity entity-name="moqui.security.ArtifactGroup" text="${description ?: ''} - "/>
+                    <link url="artifactGroupDetail" text="${artifactGroupId}" link-type="anchor"/>
+                </default-field></field>
+            </form-list>
+        </box-body></container-box>
     </widgets>
 </screen>

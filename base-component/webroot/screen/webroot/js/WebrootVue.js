@@ -442,7 +442,7 @@ Vue.component('m-form', {
                 if ($btn.length && jqEl.has($btn) && $btn.is('button[type="submit"], input[type="submit"], input[type="image"]')) {
                     if ($btn.is('[name]')) { btnName = $btn.attr('name'); btnValue = $btn.val(); }
                     $btn.prop('disabled', true);
-                    // TODO: perhaps auto enable button after timeout or form data change?
+                    setTimeout(function() { $btn.prop('disabled', false); }, 3000);
                 }
                 var formData = new FormData(this.$el);
                 formData.append('moquiSessionToken', this.$root.moquiSessionToken);
@@ -480,7 +480,7 @@ Vue.component('m-form', {
             highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
             unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
         });
-        jqEl.find('[data-toggle="tooltip"]').tooltip();
+        jqEl.find('[data-toggle="tooltip"]').tooltip({placement:'auto top'});
         if (this.focusField && this.focusField.length > 0) jqEl.find('[name^="' + this.focusField + '"]').addClass('default-focus').focus();
     }
 });
@@ -498,7 +498,7 @@ Vue.component('form-link', {
                 if ($btn.length && jqEl.has($btn) && $btn.is('button[type="submit"], input[type="submit"], input[type="image"]')) {
                     if ($btn.is('[name]')) { btnName = $btn.attr('name'); btnValue = $btn.val(); }
                     $btn.prop('disabled', true);
-                    // TODO: perhaps auto enable button after timeout or form data change?
+                    setTimeout(function() { $btn.prop('disabled', false); }, 3000);
                 }
                 var otherParms = this.fields;
                 var parmStr = "";
@@ -540,7 +540,7 @@ Vue.component('form-link', {
             highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
             unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
         });
-        jqEl.find('[data-toggle="tooltip"]').tooltip();
+        jqEl.find('[data-toggle="tooltip"]').tooltip({placement:'auto top'});
         if (this.focusField && this.focusField.length > 0) jqEl.find('[name=' + this.focusField + ']').addClass('default-focus').focus();
     }
 });
@@ -1038,7 +1038,7 @@ moqui.webrootVue = new Vue({
         this.notificationClient = new moqui.NotificationClient((location.protocol === 'https:' ? 'wss://' : 'ws://') + this.appHost + this.appRootPath + "/notws");
     },
     mounted: function() {
-        $('.navbar [data-toggle="tooltip"]').tooltip();
+        $('.navbar [data-toggle="tooltip"]').tooltip({ placement:'bottom', trigger:'hover' });
         $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
         // load the current screen
         this.currentUrl = window.location.pathname + window.location.search;
