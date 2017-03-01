@@ -16,7 +16,7 @@
     <!-- for load test don't store login history -->
     <user-facade><login history-store="false"/></user-facade>
 
-    <entity-facade crypt-pass="MoquiDefaultPassword:CHANGEME" query-stats="true">
+    <entity-facade query-stats="true">
         <!-- add datasource elements here to configure databases -->
     </entity-facade>
 </moqui-conf>
