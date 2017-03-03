@@ -38,6 +38,17 @@ along with this software (see the LICENSE.md file). If not, see
             </entity-options>
         </drop-down>
     </widget-template>
+    <widget-template name="enumGroupDropDown">
+        <drop-down allow-empty="${allowEmpty ?: 'false'}" no-current-selected-key="${noCurrentSelectedKey?:''}"
+                style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}">
+            <entity-options key="${enumId}" text="${description}">
+                <entity-find entity-name="moqui.basic.EnumAndGroup">
+                    <econdition field-name="enumGroupEnumId"/>
+                    <order-by field-name="sequenceNum,description"/>
+                </entity-find>
+            </entity-options>
+        </drop-down>
+    </widget-template>
 
     <widget-template name="statusDropDown">
         <drop-down allow-empty="${allowEmpty ?: 'false'}" no-current-selected-key="${noCurrentSelectedKey?:''}"
