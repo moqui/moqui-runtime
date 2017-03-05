@@ -5,6 +5,12 @@
 
 Moqui Runtime 2.0.1 is a patch level new feature and bug fix release, in parallel with the release of Moqui Framework.
 
+This release includes a beta (not yet final) version of a new vuet render mode for applications that uses a Vue JS based single-page 
+application shell and supports hybrid client/server HTML rendering. The Vue shell (router, etc) is accessible on /vapps while the 
+server rendered HTML is still on /apps. The benefit is a significantly better user experience with existing XML Screens and a
+foundation for fully client-rendered screens for dynamic in-browser interactivity. Even with hybrid client/server rendering using
+XML Screens page loads are faster and there is less load on the server, along with better error handling and some improved widgets. 
+
 ### New Features
 
 - Updated various JS libraries
