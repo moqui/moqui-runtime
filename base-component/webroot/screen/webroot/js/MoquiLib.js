@@ -8,6 +8,20 @@ var moqui = {
     isFunction: function(obj) { return Object.prototype.toString.call(obj) === '[object Function]'; },
     isPlainObject: function(obj) { return obj != null && typeof obj == 'object' && Object.prototype.toString.call(obj) === '[object Object]'; },
 
+    // return a function that delay the execution
+    debounce: function(func, wait) {
+        var timeout, result;
+        return function() {
+            var context = this, args = arguments, later;
+            later = function() {
+                timeout = null;
+                result = func.apply(context, args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+            return result;
+        };
+    },
     // function to set columns across multiple tables to the same width
     makeColumnsConsistent: function(outerId) {
         var tableArr = $('#' + outerId + ' table');
