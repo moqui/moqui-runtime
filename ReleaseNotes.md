@@ -17,7 +17,8 @@ XML Screens page loads are faster and there is less load on the server, along wi
 - Changed accordion in form-single to use Bootstrap instead of jQuery UI
 - Changed text-line autocomplete to use Twitter Typeahead instead of jQuery UI
 - Removed jQuery UI and theme, saves nearly 300KB in JS/CSS/etc files
-- JS/CSS/etc libraries in webroot/lib have been removed and are now downloaded on build into webroot/libs 
+- JS/CSS/etc libraries in webroot/lib have been removed and are now downloaded on build into webroot/libs
+- Added drop-down and modal to navbar to show ScreenDocument configured documentation 
 
 ## Release 2.0.0 - 24 Nov 2016
 
