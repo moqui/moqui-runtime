@@ -933,6 +933,10 @@ moqui.webrootVue = new Vue({
             var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
             $.ajax({ type:'POST', url:'/apps/setPreference', error:moqui.handleAjaxError,
                 data:{ moquiSessionToken: this.moquiSessionToken, preferenceKey:'OUTER_STYLE', preferenceValue:currentStyle } });
+        },
+        showScreenDocDialog: function(docIndex) {
+            $("#screen-document-dialog").modal("show");
+            $("#screen-document-dialog-body").load(this.currentPath + '/screenDoc?docIndex=' + docIndex);
         }
     },
     watch: {
@@ -1044,6 +1048,8 @@ moqui.webrootVue = new Vue({
         this.currentUrl = window.location.pathname + window.location.search;
         // init the NotificationClient and register 'displayNotify' as the default listener
         this.notificationClient.registerListener("ALL");
+
+        $("#screen-document-dialog").on("hidden.bs.modal", function () { var jqEl = $("#screen-document-dialog-body"); jqEl.empty(); jqEl.append('<div class="spinner"><div>Loading…</div></div>'); });
     }
 });
 window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.location.pathname + window.location.search); });

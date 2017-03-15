@@ -1,3 +1,4 @@
+<#assign screenDocList = sri.getScreenUrlInfo().getTargetScreen().getScreenDocumentInfoList()>
 <nav class="navbar navbar-inverse"><#-- navbar-fixed-top navbar-static-top -->
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
@@ -25,6 +26,16 @@
         <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="Logout ${(ec.getUser().getUserAccount().userFullName)!}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right">
             <i class="glyphicon glyphicon-off"></i>
         </a>
+        <#-- screen documentation/help -->
+        <#if screenDocList?has_content>
+            <div id="document-menu" class="nav navbar-right dropdown">
+                <a id="document-menu-link" href="#" class="dropdown-toggle btn btn-info btn-sm navbar-btn" data-toggle="dropdown" title="Documentation">
+                    <i class="glyphicon glyphicon-question-sign"></i></a>
+                <ul class="dropdown-menu"><#list screenDocList as screenDoc>
+                    <li><a href="#" onclick="showScreenDocDialog('${screenDoc.index}')">${screenDoc.title}</a></li>
+                </#list></ul>
+            </div>
+        </#if>
         <#-- dark/light switch -->
         <a href="#" onclick="switchDarkLight();" data-toggle="tooltip" data-original-title="Switch Dark/Light" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right">
             <i class="glyphicon glyphicon-adjust"></i>
@@ -57,17 +68,45 @@
                 </a></li>
             </#list></ul>
         </div>
-        <#-- dark/light switch JS method -->
-        <script>
-            $('.navbar [data-toggle="tooltip"]').tooltip({ placement:'bottom', trigger:'hover' });
-            $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
-            function switchDarkLight() {
-                $("body").toggleClass("bg-dark");
-                $("body").toggleClass("bg-light");
-                var currentStyle = $("body").hasClass("bg-dark") ? "bg-dark" : "bg-light";
-                $.ajax({ type:'POST', url:'${sri.buildUrl("/apps/setPreference").url}', data:{ 'moquiSessionToken': '${ec.web.sessionToken}','preferenceKey': 'OUTER_STYLE', 'preferenceValue': currentStyle }, dataType:'json' });
-            }
-        </script>
     </div>
   </div>
 </nav>
+
+<script>
+    $('.navbar [data-toggle="tooltip"]').tooltip({ placement:'bottom', trigger:'hover' });
+    $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+    $('#document-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+    function switchDarkLight() {
+        $("body").toggleClass("bg-dark");
+        $("body").toggleClass("bg-light");
+        var currentStyle = $("body").hasClass("bg-dark") ? "bg-dark" : "bg-light";
+        $.ajax({ type:'POST', url:'${sri.buildUrl("/apps/setPreference").url}', data:{ 'moquiSessionToken': '${ec.web.sessionToken}','preferenceKey': 'OUTER_STYLE', 'preferenceValue': currentStyle }, dataType:'json' });
+    }
+</script>
+
+<#if screenDocList?has_content>
+    <#assign screenDocDialogText>
+    <div id="screen-document-dialog" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">${ec.l10n.localize("Documentation")}</h4>
+                </div>
+                <div class="modal-body" id="screen-document-dialog-body">
+                    <img src="/images/wait_anim_16x16.gif" alt="Loading...">
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-primary" data-dismiss="modal">${ec.l10n.localize("Close")}</button></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function showScreenDocDialog(docIndex) {
+            $("#screen-document-dialog").modal("show");
+            $("#screen-document-dialog-body").load('${sri.buildUrlFromTarget("screenDoc").url}?docIndex=' + docIndex);
+        }
+        $("#screen-document-dialog").on("hidden.bs.modal", function () { var jqEl = $("#screen-document-dialog-body"); jqEl.empty(); jqEl.append('<img src="/images/wait_anim_16x16.gif" alt="Loading...">'); });
+    </script>
+    </#assign>
+    <#t>${sri.appendToAfterScreenWriter(screenDocDialogText)}
+</#if>
