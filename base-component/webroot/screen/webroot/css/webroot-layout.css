@@ -152,7 +152,7 @@ nav.form-list-nav>span.select2-container { float: left; margin: 6px 0 6px 0; min
 
 input[type=radio], input[type=checkbox] { height: auto; }
 
-.select2-container { display: inline-block; min-width: 60px; margin-top: -2px; }
+.select2-container { display: inline-block; min-width: 60px; max-width: 100%; margin-top: -2px; }
 .date-period .select2-container--bootstrap { display: inline-block; }
 
 a.jstree-anchor { white-space: normal; }
