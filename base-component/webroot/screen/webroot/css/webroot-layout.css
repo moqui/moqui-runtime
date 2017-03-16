@@ -211,6 +211,9 @@ body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
     body, .inner, .container-fluid { background: white none !important; }
     /* don't show URL for links as bootstrap does by default, makes a mess */
     a[href]:after { content: ""; }
+    body { font-size: 10px; }
+    /* condense more for printing (bootstrap default 5px), note still has border between rows */
+    .table-condensed>tbody>tr>td { padding-top: 0; padding-bottom: 0; }
 
     button, a.btn { display: none !important; }
     .form-order-by, .form-list-nav-row { display: none; }
