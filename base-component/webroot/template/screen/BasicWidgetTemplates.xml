@@ -22,6 +22,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <entity-find entity-name="moqui.basic.Enumeration">
                     <econdition field-name="enumTypeId"/>
                     <econdition field-name="parentEnumId" operator="in" ignore-if-empty="true"/>
+                    <econdition field-name="description" operator="like" ignore-if-empty="true"/>
                     <order-by field-name="sequenceNum,description"/>
                 </entity-find>
             </entity-options>
