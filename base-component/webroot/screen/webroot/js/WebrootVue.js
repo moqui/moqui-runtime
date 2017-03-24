@@ -777,7 +777,17 @@ Vue.component('drop-down', {
             var saveVal = jqEl.select2().val(); if (saveVal && saveVal.length) this.lastVal = saveVal;
             jqEl.select2('destroy'); jqEl.empty();
             this.s2Opts.data = options; jqEl.select2(this.s2Opts);
-            setTimeout(function() { var setVal = vm.lastVal; if (!setVal) { setVal = vm.value; } jqEl.val(setVal).trigger('change'); }, 50);
+            setTimeout(function() {
+                var setVal = vm.lastVal; if (!setVal) { setVal = vm.value; }
+                if (setVal) {
+                    var isInList = false;
+                    var setValIsArray = moqui.isArray(setVal);
+                    $.each(options, function(idx, curObj) {
+                        if (setValIsArray ? $.inArray(curObj.id, setVal) : curObj.id === setVal) isInList = true; });
+                    if (isInList) jqEl.val(setVal);
+                }
+                jqEl.trigger('change');
+            }, 50);
         }
     },
     destroyed: function() { $(this.$el).off().select2('destroy'); }
