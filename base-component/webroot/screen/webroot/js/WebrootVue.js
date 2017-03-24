@@ -345,7 +345,7 @@ Vue.component('dynamic-dialog', {
                 var jqEl = $(vm.$el);
                 jqEl.find(":not(.noselect2)>select:not(.noselect2)").select2({ });
                 var defFocus = jqEl.find(".default-focus");
-                console.log(defFocus);
+                // console.log(defFocus);
                 if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
             };
             vm.curComponent = comp;
@@ -724,7 +724,7 @@ Vue.component('date-period', {
 Vue.component('drop-down', {
     props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String, optionsUrl:String,
         optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object, dependsOptional:Boolean, form:String },
-    data: function() { return { curData: null, s2Opts: null } },
+    data: function() { return { curData:null, s2Opts:null, lastVal:null } },
     template: '<select :form="form"><slot></slot></select>',
     methods: {
         populateFromUrl: function() {
@@ -743,8 +743,7 @@ Vue.component('drop-down', {
                 var labelField = vm.labelField; if (!labelField) { labelField = "label"; }
                 var valueField = vm.valueField; if (!valueField) { valueField = "value"; }
                 $.each(list, function(idx, curObj) {
-                    var idVal = curObj[valueField];
-                    if (!idVal) idVal = '\u00a0';
+                    var idVal = curObj[valueField]; if (!idVal) idVal = '\u00a0';
                     newData.push({ id:idVal, text:curObj[labelField] })
                 });
                 vm.curData = newData;
@@ -759,7 +758,7 @@ Vue.component('drop-down', {
         this.s2Opts = opts; var jqEl = $(this.$el);
         jqEl.select2(opts).on('select2:select', function () { jqEl.select2('open').select2('close'); });
         // needed? caused some issues: .on('change', function () { vm.$emit('input', vm.curVal); })
-        if (this.value && this.value.length > 0) { this.curVal = this.value; }
+        if (this.value && this.value.length) { this.curVal = this.value; }
         if (this.optionsUrl && this.optionsUrl.length > 0) {
             var dependsOnMap = this.dependsOn;
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
@@ -768,14 +767,17 @@ Vue.component('drop-down', {
         }
     },
     computed: { curVal: { get: function() { return $(this.$el).select2().val(); },
-        set: function(value) { $(this.$el).val(value).trigger('change'); } } },
+        set: function(value) { $(this.$el).val(value).trigger('change'); /* console.log('set ' + $(this.$el).attr('name') + ' to ' + this.curVal); */ } } },
     watch: {
         value: function(value) { this.curVal = value; },
         options: function(options) { this.curData = options; },
         curData: function(options) {
-            var jqEl = $(this.$el); jqEl.select2('destroy'); jqEl.empty();
+            var jqEl = $(this.$el); var vm = this;
+            // save the lastVal if there is one to remember what was selected even if new options don't have it, just in case options change again
+            var saveVal = jqEl.select2().val(); if (saveVal && saveVal.length) this.lastVal = saveVal;
+            jqEl.select2('destroy'); jqEl.empty();
             this.s2Opts.data = options; jqEl.select2(this.s2Opts);
-            setTimeout(function() { jqEl.trigger('change'); }, 50);
+            setTimeout(function() { var setVal = vm.lastVal; if (!setVal) { setVal = vm.value; } jqEl.val(setVal).trigger('change'); }, 50);
         }
     },
     destroyed: function() { $(this.$el).off().select2('destroy'); }
