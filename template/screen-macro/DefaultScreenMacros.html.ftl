@@ -803,7 +803,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").url>
                     <#assign descLabel = ec.getL10n().localize("Description")>
                     <#if activeFormListFind?has_content>
-                        <h5>Active Saved Find: ${activeFormListFind.description?html}</h5>
+                        <h5>${ec.getL10n().localize("Active Saved Find:")} ${activeFormListFind.description?html}</h5>
                     </#if>
                     <#if currentFindUrlParms?has_content>
                         <div><form class="form-inline" id="${formId}_NewFind" method="post" action="${formSaveFindUrl}">
@@ -931,9 +931,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <h4 class="modal-title">${ec.getL10n().localize("Column Fields")}</h4>
                 </div>
                 <div class="modal-body">
-                    <p>Drag fields to the desired column or do not display</p>
+                    <p>${ec.getL10n().localize("Drag fields to the desired column or do not display")}</p>
                     <ul id="${selectColumnsSortableId}">
-                        <li id="hidden"><div>Do Not Display</div>
+                        <li id="hidden"><div>${ec.getL10n().localize("Do Not Display")}</div>
                             <#if fieldsNotInColumns?has_content>
                             <ul>
                             <#list fieldsNotInColumns as fieldNode>
@@ -944,7 +944,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             </#if>
                         </li>
                         <#list allColInfoList as columnFieldList>
-                            <li id="column_${columnFieldList_index}"><div>Column ${columnFieldList_index + 1}</div><ul>
+                            <li id="column_${columnFieldList_index}"><div>${ec.getL10n().localize("Column")} ${columnFieldList_index + 1}</div><ul>
                             <#list columnFieldList as fieldNode>
                                 <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
                                 <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
@@ -952,7 +952,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             </ul></li>
                         </#list>
                         <#if allColInfoList?size < 10><#list allColInfoList?size..9 as ind>
-                            <li id="column_${ind}"><div>Column ${ind + 1}</div></li>
+                            <li id="column_${ind}"><div>${ec.getL10n().localize("Column")} ${ind + 1}</div></li>
                         </#list></#if>
                     </ul>
                     <form class="form-inline" id="${formId}_SelColsForm" method="post" action="${sri.buildUrl("formSelectColumns").url}">
