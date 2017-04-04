@@ -23,7 +23,7 @@ along with this software (see the LICENSE.md file). If not, see
         // jQuery, Bootstrap, Twitter TypeAhead, Form Validation (jquery-validation), Date/Time (Moment, bootstrap-datetimepicker),
         //      Drop-down (Select2, Selectivity), Notify/Growl (Bootstrap Notify), Inline Editable, Sortable Hierarchical List
         // Moqui Library (3rd party lib workarounds, NotificationClient, etc)
-        html_scripts.add('/js/CombinedBaseMin.min.js')
+        html_scripts.add('/js/CombinedBase.min.js')
 
         /* ========== Dev Mode ========== */
         // Vue JS
