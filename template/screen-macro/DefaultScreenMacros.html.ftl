@@ -1744,7 +1744,7 @@ a => A, d => D, y => Y
             <option value="">&nbsp;</option>
         </#if>
     </#if>
-    <#if !isDynamicOptions>
+    <#if options?has_content>
         <#list (options.keySet())! as key>
             <#if allowMultiple && currentValueList?has_content><#assign isSelected = currentValueList?seq_contains(key)>
                 <#else><#assign isSelected = currentValue?has_content && currentValue == key></#if>
