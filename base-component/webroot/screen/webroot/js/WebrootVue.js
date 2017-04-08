@@ -146,14 +146,14 @@ moqui.notifyMessages = function(messages, errors) {
     if (messages) {
         if (moqui.isArray(messages)) {
             for (var mi=0; mi < messages.length; mi++) {
-                $.notify({message:messages[mi]}, $.extend({}, moqui.notifyOpts, {type: 'info'})); notified = true; }
-        } else { $.notify({message:messages}, $.extend({}, moqui.notifyOpts, {type: 'info'})); notified = true; }
+                $.notify({message:messages[mi]}, $.extend({}, moqui.notifyOpts, {type: 'info'})); moqui.webrootVue.addNotify(messages[mi], 'info'); notified = true; }
+        } else { $.notify({message:messages}, $.extend({}, moqui.notifyOpts, {type: 'info'})); moqui.webrootVue.addNotify(messages, 'info'); notified = true; }
     }
     if (errors) {
         if (moqui.isArray(errors)) {
             for (var ei=0; ei < errors.length; ei++) {
-                $.notify({message:errors[ei]}, $.extend({}, moqui.notifyOpts, {delay:60000, type:'danger'})); notified = true; }
-        } else { $.notify({message:errors}, $.extend({}, moqui.notifyOpts, {delay:60000, type:'danger'})); notified = true; }
+                $.notify({message:errors[ei]}, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); moqui.webrootVue.addNotify(errors[ei], 'danger'); notified = true; }
+        } else { $.notify({message:errors}, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); moqui.webrootVue.addNotify(errors, 'danger'); notified = true; }
     }
     return notified;
 };
@@ -168,8 +168,10 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
 
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status == 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
-    else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); }
-    else if (!notified) { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); }
+    else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'}));
+        moqui.webrootVue.addNotify('Could not connect to server', 'danger');}
+    else if (!notified) { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'}));
+        moqui.webrootVue.addNotify('Error: ' + errorThrown + ' (' + textStatus + ')', 'danger'); }
 };
 
 /* ========== component loading methods ========== */
@@ -468,7 +470,9 @@ Vue.component('m-form', {
             var subMsg = this.submitMessage;
             if (subMsg && subMsg.length) {
                 var responseText = resp; // this is set for backward compatibility in case message relies on responseText as in old JS
-                $.notify({ message:eval('"' + subMsg + '"') }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+                var message = eval('"' + subMsg + '"');
+                $.notify({ message:message }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+                moqui.webrootVue.addNotify(message, 'success');
             } else if (!notified) {
                 $.notify({ message:"Form data saved" }, $.extend({}, moqui.notifyOpts, {type:'success'}));
             }
@@ -898,7 +902,7 @@ Vue.component('subscreens-active', {
 moqui.webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{},
-        navMenuList:[], navHistoryList:[], navPlugins:[], lastNavTime:Date.now(), loading:0, activeContainers:{},
+        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[], lastNavTime:Date.now(), loading:0, activeContainers:{},
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null },
     methods: {
         setUrl: function(url) {
@@ -940,6 +944,16 @@ moqui.webrootVue = new Vue({
         loadContainer: function(contId, url) { var contComp = this.activeContainers[contId];
             if (contComp) { contComp.load(url); } else { console.error("Container with ID " + contId + " not found, not loading url " + url); }},
         addNavPlugin: function(url) { var vm = this; moqui.loadComponent(url, function(comp) { vm.navPlugins.push(comp); }) },
+        addNotify: function(message, type) {
+            var histList = this.notifyHistoryList.slice(0);
+            var nowDate = new Date();
+            var nh = nowDate.getHours(); if (nh < 10) nh = '0' + nh;
+            var nm = nowDate.getMinutes(); if (nm < 10) nm = '0' + nm;
+            var ns = nowDate.getSeconds(); if (ns < 10) ns = '0' + ns;
+            histList.unshift({message:message, type:type, time:(nh + ':' + nm + ':' + ns)});
+            while (histList.length > 15) { histList.pop(); }
+            this.notifyHistoryList = histList;
+        },
         switchDarkLight: function() {
             var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
             var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
@@ -1056,6 +1070,7 @@ moqui.webrootVue = new Vue({
     mounted: function() {
         $('.navbar [data-toggle="tooltip"]').tooltip({ placement:'bottom', trigger:'hover' });
         $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        $('#notify-history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
         // load the current screen
         this.currentUrl = window.location.pathname + window.location.search;
         // init the NotificationClient and register 'displayNotify' as the default listener

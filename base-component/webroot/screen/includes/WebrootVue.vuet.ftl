@@ -61,19 +61,6 @@ along with this software (see the LICENSE.md file). If not, see
             <template v-if="navMenuList.length > 0"><m-link class="navbar-text" :href="navMenuList[navMenuList.length - 1].pathWithParams">{{navMenuList[navMenuList.length - 1].title}}</m-link></template>
             <#-- logout button -->
             <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="Logout ${(ec.user.userAccount.userFullName)!''}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-off"></i></a>
-            <#-- screen documentation/help -->
-            <div v-if="navMenuList.length > 0 && navMenuList[navMenuList.length - 1].screenDocList.length" id="document-menu" class="nav navbar-right dropdown">
-                <a id="document-menu-link" href="#" class="dropdown-toggle btn btn-info btn-sm navbar-btn" data-toggle="dropdown" title="Documentation">
-                    <i class="glyphicon glyphicon-question-sign"></i></a>
-                <ul class="dropdown-menu">
-                    <li v-for="screenDoc in navMenuList[navMenuList.length - 1].screenDocList">
-                        <a href="#" @click.prevent="showScreenDocDialog(screenDoc.index)">{{screenDoc.title}}</a></li>
-                </ul>
-            </div>
-            <#-- dark/light switch -->
-            <a href="#" @click.prevent="switchDarkLight()" data-toggle="tooltip" data-original-title="Switch Dark/Light" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-adjust"></i></a>
-
-            <template v-for="navPlugin in navPlugins"><component :is="navPlugin"></component></template>
             <#-- screen history menu -->
             <#-- get initial history from server? <#assign screenHistoryList = ec.web.getScreenHistory()><#list screenHistoryList as screenHistory><#if (screenHistory_index >= 25)><#break></#if>{url:pathWithParams, name:title}</#list> -->
             <div id="history-menu" class="nav navbar-right dropdown">
@@ -89,6 +76,31 @@ along with this software (see the LICENSE.md file). If not, see
                         {{histItem.title}}</m-link></li>
                 </ul>
             </div>
+            <#-- notify history -->
+            <div id="notify-history-menu" class="nav navbar-right dropdown">
+                <a id="notify-history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="Notifications">
+                    <i class="glyphicon glyphicon-exclamation-sign"></i></a>
+                <ul class="dropdown-menu">
+                    <li v-for="histItem in notifyHistoryList">
+                        <div :class="'alert alert-' + histItem.type" role="alert"><strong>{{histItem.time}}</strong> {{histItem.message}}</div>
+                    </li>
+                </ul>
+            </div>
+            <#-- screen documentation/help -->
+            <div v-if="navMenuList.length > 0 && navMenuList[navMenuList.length - 1].screenDocList.length" id="document-menu" class="nav navbar-right dropdown">
+                <a id="document-menu-link" href="#" class="dropdown-toggle btn btn-info btn-sm navbar-btn" data-toggle="dropdown" title="Documentation">
+                    <i class="glyphicon glyphicon-question-sign"></i></a>
+                <ul class="dropdown-menu">
+                    <li v-for="screenDoc in navMenuList[navMenuList.length - 1].screenDocList">
+                        <a href="#" @click.prevent="showScreenDocDialog(screenDoc.index)">{{screenDoc.title}}</a></li>
+                </ul>
+            </div>
+            <#-- dark/light switch -->
+            <a href="#" @click.prevent="switchDarkLight()" data-toggle="tooltip" data-original-title="Switch Dark/Light" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-adjust"></i></a>
+
+            <#-- nav plugins -->
+            <template v-for="navPlugin in navPlugins"><component :is="navPlugin"></component></template>
+            <#-- spinner, usually hidden -->
             <div class="navbar-right" style="padding:8px;" :class="{ hidden: loading < 1 }"><div class="spinner small"><div>Loading…</div></div></div>
         </div>
     </div></nav></div>

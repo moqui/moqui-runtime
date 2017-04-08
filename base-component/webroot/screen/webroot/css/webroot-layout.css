@@ -27,6 +27,10 @@ html, body, #apps-root { height: 100%; }
 
 #apps-footer-content { margin-top: 4px; text-align: center; }
 
+#notify-history-menu ul { min-width: 500px; }
+#notify-history-menu li { padding: 8px; }
+#notify-history-menu li div { margin-bottom: 0; }
+
 /* ====================== headings, general ====================== */
 
 div.message { border: 1px solid #DDDDDF; }
