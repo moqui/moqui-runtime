@@ -146,14 +146,14 @@ moqui.notifyMessages = function(messages, errors) {
     if (messages) {
         if (moqui.isArray(messages)) {
             for (var mi=0; mi < messages.length; mi++) {
-                $.notify({message:messages[mi]}, $.extend({}, moqui.notifyOpts, {type: 'info'})); notified = true; }
-        } else { $.notify({message:messages}, $.extend({}, moqui.notifyOpts, {type: 'info'})); notified = true; }
+                $.notify({message:messages[mi]}, $.extend({}, moqui.notifyOpts, {type: 'info'})); moqui.webrootVue.addNotify(messages[mi], 'info'); notified = true; }
+        } else { $.notify({message:messages}, $.extend({}, moqui.notifyOpts, {type: 'info'})); moqui.webrootVue.addNotify(messages, 'info'); notified = true; }
     }
     if (errors) {
         if (moqui.isArray(errors)) {
             for (var ei=0; ei < errors.length; ei++) {
-                $.notify({message:errors[ei]}, $.extend({}, moqui.notifyOpts, {delay:60000, type:'danger'})); notified = true; }
-        } else { $.notify({message:errors}, $.extend({}, moqui.notifyOpts, {delay:60000, type:'danger'})); notified = true; }
+                $.notify({message:errors[ei]}, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); moqui.webrootVue.addNotify(errors[ei], 'danger'); notified = true; }
+        } else { $.notify({message:errors}, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); moqui.webrootVue.addNotify(errors, 'danger'); notified = true; }
     }
     return notified;
 };
@@ -168,8 +168,10 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
 
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status == 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
-    else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); }
-    else if (!notified) { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); }
+    else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'}));
+        moqui.webrootVue.addNotify('Could not connect to server', 'danger');}
+    else if (!notified) { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'}));
+        moqui.webrootVue.addNotify('Error: ' + errorThrown + ' (' + textStatus + ')', 'danger'); }
 };
 
 /* ========== component loading methods ========== */
@@ -302,7 +304,7 @@ Vue.component('container-dialog', {
         var jqEl = $(this.$el); var vm = this;
         jqEl.on("hidden.bs.modal", function() { vm.isHidden = true; });
         jqEl.on("shown.bs.modal", function() { vm.isHidden = false;
-            jqEl.find(":not(.noselect2)>select:not(.noselect2)").select2({ });
+            jqEl.find(":not(.noResetSelect2)>select:not(.noResetSelect2)").select2({ });
             var defFocus = jqEl.find(".default-focus");
             if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
         });
@@ -343,7 +345,7 @@ Vue.component('dynamic-dialog', {
         moqui.loadComponent(newUrl, function(comp) {
             comp.mounted = function() {
                 var jqEl = $(vm.$el);
-                jqEl.find(":not(.noselect2)>select:not(.noselect2)").select2({ });
+                jqEl.find(":not(.noResetSelect2)>select:not(.noResetSelect2)").select2({ });
                 var defFocus = jqEl.find(".default-focus");
                 // console.log(defFocus);
                 if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
@@ -468,7 +470,9 @@ Vue.component('m-form', {
             var subMsg = this.submitMessage;
             if (subMsg && subMsg.length) {
                 var responseText = resp; // this is set for backward compatibility in case message relies on responseText as in old JS
-                $.notify({ message:eval('"' + subMsg + '"') }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+                var message = eval('"' + subMsg + '"');
+                $.notify({ message:message }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+                moqui.webrootVue.addNotify(message, 'success');
             } else if (!notified) {
                 $.notify({ message:"Form data saved" }, $.extend({}, moqui.notifyOpts, {type:'success'}));
             }
@@ -723,47 +727,86 @@ Vue.component('date-period', {
 });
 Vue.component('drop-down', {
     props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String, optionsUrl:String,
+        serverSearch:{type:Boolean,'default':false}, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
         optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object, dependsOptional:Boolean, form:String },
     data: function() { return { curData:null, s2Opts:null, lastVal:null } },
     template: '<select :form="form"><slot></slot></select>',
     methods: {
-        populateFromUrl: function() {
-            if (!this.optionsUrl || this.optionsUrl.length === 0) return;
-            var hasAllParms = true; var dependsOnMap = this.dependsOn; var parmMap = this.optionsParameters;
+        processOptionList: function(list, page) {
+            var newData = [];
+            // funny case where select2 specifies no option.@value if empty so &nbsp; ends up passed with form submit; now filtered on server for \u00a0 only and set to null
+            if (this.allowEmpty && (!page || page <= 1)) newData.push({ id:'\u00a0', text:'\u00a0' });
+            var labelField = this.labelField; if (!labelField) { labelField = "label"; }
+            var valueField = this.valueField; if (!valueField) { valueField = "value"; }
+            $.each(list, function(idx, curObj) {
+                var idVal = curObj[valueField]; if (!idVal) idVal = '\u00a0';
+                newData.push({ id:idVal, text:curObj[labelField] })
+            });
+            return newData;
+        },
+        serverData: function(params) {
+            var hasAllParms = true;
+            var dependsOnMap = this.dependsOn; var parmMap = this.optionsParameters;
             var reqData = { moquiSessionToken: this.$root.moquiSessionToken };
             for (var parmName in parmMap) { if (parmMap.hasOwnProperty(parmName)) reqData[parmName] = parmMap[parmName]; }
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
-                var doValue = $('#' + dependsOnMap[doParm]).val(); if (!doValue) { hasAllParms = false; break; } reqData[doParm] = doValue; }}
-            if (!hasAllParms && !this.dependsOptional) { this.curData = null; return; }
+                var doValue = $('#' + dependsOnMap[doParm]).val(); if (!doValue) { hasAllParms = false; } reqData[doParm] = doValue; }}
+            if (params) { reqData.term = params.term || ''; reqData.pageIndex = (params.page || 1) - 1; }
+            else if (this.serverSearch) { reqData.term = ''; reqData.pageIndex = 0; }
+            reqData.hasAllParms = hasAllParms;
+            return reqData;
+        },
+        processResponse: function(data, params) {
+            if (moqui.isArray(data)) {
+                return { results:this.processOptionList(data) };
+            } else {
+                params.page = params.page || 1; // NOTE: 1 based index, is 0 based on server side
+                var pageSize = data.pageSize || 20;
+                return { results: this.processOptionList(data.options, params.page),
+                    pagination: { more: (data.count ? (params.page * pageSize) < data.count : false) } };
+            }
+        },
+        populateFromUrl: function(params) {
+            if (!this.optionsUrl || this.optionsUrl.length === 0) return;
+            var reqData = this.serverData(params);
+            if (!reqData.hasAllParms && !this.dependsOptional) { this.curData = null; return; }
             var vm = this;
             $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
-                     error:moqui.handleAjaxError, success: function(list) { if (list) {
-                // funny case where select2 specifies no option.@value if empty so &nbsp; ends up passed with form submit; now filtered on server for \u00a0 only and set to null
-                var newData = []; if (vm.allowEmpty) newData.push({ id:'\u00a0', text:'\u00a0' });
-                var labelField = vm.labelField; if (!labelField) { labelField = "label"; }
-                var valueField = vm.valueField; if (!valueField) { valueField = "value"; }
-                $.each(list, function(idx, curObj) {
-                    var idVal = curObj[valueField]; if (!idVal) idVal = '\u00a0';
-                    newData.push({ id:idVal, text:curObj[labelField] })
-                });
-                vm.curData = newData;
-            }}});
+                error:moqui.handleAjaxError, success: function(data) {
+                    var list = moqui.isArray(data) ? data : data.options;
+                    if (list) { vm.curData = vm.processOptionList(list); }
+                }});
         }
     },
     mounted: function() {
-        var vm = this; var opts = { minimumResultsForSearch:15 };
+        var jqEl = $(this.$el);
+        var vm = this; var opts = { minimumResultsForSearch:10 };
         if (this.combo) { opts.tags = true; opts.tokenSeparators = [',',' ']; }
-        if (this.multiple == "multiple") { opts.multiple = true; }
+        if (this.multiple === "multiple") { opts.multiple = true; }
         if (this.options && this.options.length > 0) { opts.data = this.options; }
-        this.s2Opts = opts; var jqEl = $(this.$el);
+        if (this.serverSearch) {
+            if (!this.optionsUrl) console.error("drop-down in form " + this.form + " has no options-url but has server-search=true");
+            opts.ajax = { url:this.optionsUrl, type:"POST", dataType:"json", delay:this.serverDelay, cache:true,
+                data:this.serverData, processResults:this.processResponse };
+            opts.minimumInputLength = this.serverMinLength;
+            opts.minimumResultsForSearch = 0;
+            // handle width differently because with no options will go to min-width, for table cells/etc use reasonable min-width
+            opts.width = "100%";
+            jqEl.css("min-width", "200px");
+            jqEl.addClass("noResetSelect2"); // so doesn't get reset on container dialog load
+        }
+        this.s2Opts = opts;
         jqEl.select2(opts).on('select2:select', function () { jqEl.select2('open').select2('close'); });
         // needed? caused some issues: .on('change', function () { vm.$emit('input', vm.curVal); })
-        if (this.value && this.value.length) { this.curVal = this.value; }
+        var initValue = this.value;
+        if (initValue && initValue.length) { this.curVal = initValue; }
         if (this.optionsUrl && this.optionsUrl.length > 0) {
             var dependsOnMap = this.dependsOn;
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
-                $('#' + dependsOnMap[doParm]).on('change', function() { vm.populateFromUrl(); }); }}
-            this.populateFromUrl();
+                $('#' + dependsOnMap[doParm]).on('change', function() { vm.populateFromUrl({term:initValue}); }); }}
+            // do initial populate if not a serverSearch or for serverSearch if we have an initial value do the search so we don't display the ID
+            if (!this.serverSearch) { this.populateFromUrl(); }
+            else if (initValue && initValue.length && moqui.isString(initValue)) { this.populateFromUrl({term:initValue}); }
         }
     },
     computed: { curVal: { get: function() { return $(this.$el).select2().val(); },
@@ -796,8 +839,8 @@ Vue.component('text-autocomplete', {
     props: { id:{type:String,required:true}, name:{type:String,required:true}, value:String, valueText:String,
         type:String, size:String, maxlength:String, disabled:Boolean, validationClasses:String, dataVvValidation:String,
         required:Boolean, pattern:String, tooltip:String, form:String, delay:{type:Number,'default':300},
-        url:{type:String,required:true}, dependsOn:Object, acParameters:Object, minLength:Number, showValue:Boolean,
-        useActual:Boolean, skipInitial:Boolean },
+        url:{type:String,required:true}, dependsOn:Object, acParameters:Object, minLength:{type:Number,'default':1},
+        showValue:Boolean, useActual:Boolean, skipInitial:Boolean },
     data: function () { return { delayTimeout:null } },
     template:
     '<span><input ref="acinput" :id="acId" :name="acName" :type="type" :value="valueText" :size="size" :maxlength="maxlength" :disabled="disabled"' +
@@ -826,8 +869,8 @@ Vue.component('text-autocomplete', {
     mounted: function() {
         var vm = this; var acJqEl = $(this.$refs.acinput); var hidJqEl = $(this.$refs.hidden);
         var showJqEl = this.$refs.show ? $(this.$refs.show) : null;
-        acJqEl.typeahead({ minLength:(this.minLength ? this.minLength : 2), highlight:true, hint:false }, { limit:99,
-            source: this.fetchResults, display: function(item) { return item.label; }
+        acJqEl.typeahead({ minLength:this.minLength, highlight:true, hint:false },
+            { limit:99, source: this.fetchResults, display: function(item) { return item.label; }
         });
         acJqEl.bind('typeahead:select', function(event, item) {
             if (item) { this.value = item.value; hidJqEl.val(item.value); hidJqEl.trigger("change"); acJqEl.val(item.label);
@@ -898,7 +941,7 @@ Vue.component('subscreens-active', {
 moqui.webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{},
-        navMenuList:[], navHistoryList:[], navPlugins:[], lastNavTime:Date.now(), loading:0, activeContainers:{},
+        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[], lastNavTime:Date.now(), loading:0, activeContainers:{},
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null },
     methods: {
         setUrl: function(url) {
@@ -940,6 +983,16 @@ moqui.webrootVue = new Vue({
         loadContainer: function(contId, url) { var contComp = this.activeContainers[contId];
             if (contComp) { contComp.load(url); } else { console.error("Container with ID " + contId + " not found, not loading url " + url); }},
         addNavPlugin: function(url) { var vm = this; moqui.loadComponent(url, function(comp) { vm.navPlugins.push(comp); }) },
+        addNotify: function(message, type) {
+            var histList = this.notifyHistoryList.slice(0);
+            var nowDate = new Date();
+            var nh = nowDate.getHours(); if (nh < 10) nh = '0' + nh;
+            var nm = nowDate.getMinutes(); if (nm < 10) nm = '0' + nm;
+            var ns = nowDate.getSeconds(); if (ns < 10) ns = '0' + ns;
+            histList.unshift({message:message, type:type, time:(nh + ':' + nm + ':' + ns)});
+            while (histList.length > 15) { histList.pop(); }
+            this.notifyHistoryList = histList;
+        },
         switchDarkLight: function() {
             var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
             var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
@@ -1056,6 +1109,7 @@ moqui.webrootVue = new Vue({
     mounted: function() {
         $('.navbar [data-toggle="tooltip"]').tooltip({ placement:'bottom', trigger:'hover' });
         $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        $('#notify-history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
         // load the current screen
         this.currentUrl = window.location.pathname + window.location.search;
         // init the NotificationClient and register 'displayNotify' as the default listener

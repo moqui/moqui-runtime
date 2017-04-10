@@ -27,12 +27,16 @@ html, body, #apps-root { height: 100%; }
 
 #apps-footer-content { margin-top: 4px; text-align: center; }
 
+#notify-history-menu ul { min-width: 500px; }
+#notify-history-menu li { padding: 8px; }
+#notify-history-menu li div { margin-bottom: 0; }
+
 /* ====================== headings, general ====================== */
 
 div.message { border: 1px solid #DDDDDF; }
 div.error span { color: red; }
 
-strong { font-weight: bold; }
+strong, .text-strong { font-weight: bold; }
 tt, pre, pre code { font-family: "Courier New", Courier, monospace; }
 p, pre { white-space: pre-line; word-wrap: normal; word-break: normal; }
 .bg-dark pre { background-color: #3a3a3a; color: #EEE; border-color: #222; }

@@ -27,10 +27,14 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/></transition>
     <transition name="updateUserGroupPermission"><service-call name="update#moqui.security.UserGroupPermission"/>
         <default-response url="."/></transition>
+    <transition name="deleteUserGroupPermission"><service-call name="delete#moqui.security.UserGroupPermission"/>
+        <default-response url="."/></transition>
 
     <transition name="createUserGroupPreference"><service-call name="create#moqui.security.UserGroupPreference"/>
         <default-response url="."/></transition>
     <transition name="updateUserGroupPreference"><service-call name="update#moqui.security.UserGroupPreference"/>
+        <default-response url="."/></transition>
+    <transition name="deleteUserGroupPreference"><service-call name="delete#moqui.security.UserGroupPreference"/>
         <default-response url="."/></transition>
 
     <transition name="artifactGroupDetail"><default-response url="../../ArtifactGroup/ArtifactGroupDetail"/></transition>
@@ -61,7 +65,7 @@ along with this software (see the LICENSE.md file). If not, see
             <econdition field-name="userGroupId"/><order-by field-name="artifactGroupId"/></entity-find>
     </actions>
     <widgets>
-        <container-row><row-col lg="5">
+        <container-row><row-col lg="6">
             <form-single name="UserGroupForm" map="userGroup" transition="updateUserGroup">
                 <field name="userGroupId"><default-field><display/></default-field></field>
                 <field name="description"><default-field><text-line size="40"/></default-field></field>
@@ -72,24 +76,7 @@ along with this software (see the LICENSE.md file). If not, see
 
                 <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
             </form-single>
-            <container-box><box-header><label text="Preferences" type="h5"/></box-header><box-toolbar>
-                <container-dialog id="AddPreferenceDialog" button-text="Add Preference">
-                    <form-single name="CreateUserGroupPreference" transition="createUserGroupPreference">
-                        <field name="userGroupId"><default-field><hidden/></default-field></field>
-                        <field name="preferenceKey"><default-field><text-line size="30"/></default-field></field>
-                        <field name="preferenceValue"><default-field><text-line size="60"/></default-field></field>
-                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
-                    </form-single>
-                </container-dialog>
-            </box-toolbar><box-body>
-                <form-list name="UserGroupPreferenceList" list="ugPrefList" transition="updateUserGroupPreference">
-                    <field name="userGroupId"><default-field><hidden/></default-field></field>
-                    <field name="preferenceKey"><default-field title="Key"><display/></default-field></field>
-                    <field name="preferenceValue"><default-field title="Value"><text-line size="30"/></default-field></field>
-                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
-                </form-list>
-            </box-body></container-box>
-        </row-col><row-col lg="7">
+
             <container-box><box-header><label text="Permissions" type="h5"/></box-header><box-toolbar>
                 <container-dialog id="AddAdHocPermissionDialog" button-text="Apply Ad-hoc Permission">
                     <form-single name="CreateAdHocUserGroupPermission" transition="createUserGroupPermission">
@@ -133,6 +120,44 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="fromDate"><default-field><display/></default-field></field>
                     <field name="thruDate"><default-field><date-time/></default-field></field>
                     <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                    <field name="deleteButton"><default-field title="">
+                        <link url="deleteUserGroupPermission" text=" " icon="glyphicon glyphicon-trash" confirmation="Really remove?"/></default-field></field>
+                </form-list>
+            </box-body></container-box>
+        </row-col><row-col lg="6">
+            <container-box><box-header><label text="Preferences" type="h5"/></box-header><box-toolbar>
+                <container-dialog id="AddPreferenceDialog" button-text="Add Existing Preference">
+                    <form-single name="CreateUserPreference" transition="createUserGroupPreference">
+                        <field name="userGroupId"><default-field><hidden/></default-field></field>
+                        <field name="preferenceKey"><default-field>
+                            <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                                <set field="enumTypeId" value="UserPreferenceKey"/></widget-template-include>
+                        </default-field></field>
+                        <field name="preferenceValue"><default-field><text-line size="60"/></default-field></field>
+                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+                <container-dialog id="AddCustomPreferenceDialog" button-text="Add Ad-hoc Preference">
+                    <form-single name="CreateCustomUserGroupPreference" transition="createUserGroupPreference">
+                        <field name="userGroupId"><default-field><hidden/></default-field></field>
+                        <field name="preferenceKey"><default-field><text-line size="30"/></default-field></field>
+                        <field name="preferenceValue"><default-field><text-line size="60"/></default-field></field>
+                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                    </form-single>
+                </container-dialog>
+            </box-toolbar><box-body>
+                <form-list name="UserGroupPreferenceList" list="ugPrefList" transition="updateUserGroupPreference">
+                    <row-actions>
+                        <entity-find-one entity-name="moqui.basic.Enumeration" value-field="keyEnum">
+                            <field-map field-name="enumId" from="preferenceKey"/></entity-find-one>
+                    </row-actions>
+                    <field name="userGroupId"><default-field><hidden/></default-field></field>
+                    <field name="preferenceKey"><default-field title="Key">
+                        <display text="${keyEnum ? keyEnum.description + ' ' : ''}(${preferenceKey})"/></default-field></field>
+                    <field name="preferenceValue"><default-field title="Value"><text-line size="30"/></default-field></field>
+                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                    <field name="deleteButton"><default-field title="">
+                        <link url="deleteUserGroupPreference" text=" " icon="glyphicon glyphicon-trash" confirmation="Really remove?"/></default-field></field>
                 </form-list>
             </box-body></container-box>
         </row-col></container-row>

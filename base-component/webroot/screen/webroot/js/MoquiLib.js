@@ -140,12 +140,13 @@ var moqui = {
 
 // set defaults for select2
 $.fn.select2.defaults.set("theme", "bootstrap");
-$.fn.select2.defaults.set("minimumResultsForSearch", "15");
+$.fn.select2.defaults.set("minimumResultsForSearch", "10");
 // this is a fix for Select2 search input within Bootstrap Modal
 $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 // set validator defaults that work with select2
 $.validator.setDefaults({ errorPlacement: function (error, element) {
-    if (element.parent('.input-group').length) { error.insertAfter(element.parent()); /* radio/checkbox? */ }
+    if (element.parent('.twitter-typeahead').length) { error.insertAfter(element.parent()); /* typeahead */ }
+    else if (element.parent('.input-group').length) { error.insertAfter(element.parent()); /* radio/checkbox? */ }
     else if (element.hasClass('select2-hidden-accessible')) { error.insertAfter(element.next('span')); /* select2 */ }
     else { error.insertAfter(element); /* default */ }
 }});
