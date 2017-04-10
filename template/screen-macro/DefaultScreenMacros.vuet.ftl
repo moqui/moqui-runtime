@@ -625,7 +625,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <div class="form-group">
                             <label class="control-label col-sm-2" for="${headerFormId}_orderByField">${ec.getL10n().localize("Order By")}</label>
                             <div class="col-sm-10">
-                                <select name="orderBySelect" id="${headerFormId}_orderBySelect" multiple="multiple" style="width: 100%;" class="noselect2">
+                                <select name="orderBySelect" id="${headerFormId}_orderBySelect" multiple="multiple" style="width: 100%;" class="noResetSelect2">
                                     <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content>
                                         <#assign headerFieldNode = fieldNode["header-field"][0]>
                                         <#assign showOrderBy = (headerFieldNode["@show-order-by"])!>

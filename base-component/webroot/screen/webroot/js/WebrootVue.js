@@ -304,7 +304,7 @@ Vue.component('container-dialog', {
         var jqEl = $(this.$el); var vm = this;
         jqEl.on("hidden.bs.modal", function() { vm.isHidden = true; });
         jqEl.on("shown.bs.modal", function() { vm.isHidden = false;
-            jqEl.find(":not(.noselect2)>select:not(.noselect2)").select2({ });
+            jqEl.find(":not(.noResetSelect2)>select:not(.noResetSelect2)").select2({ });
             var defFocus = jqEl.find(".default-focus");
             if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
         });
@@ -345,7 +345,7 @@ Vue.component('dynamic-dialog', {
         moqui.loadComponent(newUrl, function(comp) {
             comp.mounted = function() {
                 var jqEl = $(vm.$el);
-                jqEl.find(":not(.noselect2)>select:not(.noselect2)").select2({ });
+                jqEl.find(":not(.noResetSelect2)>select:not(.noResetSelect2)").select2({ });
                 var defFocus = jqEl.find(".default-focus");
                 // console.log(defFocus);
                 if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
@@ -786,14 +786,14 @@ Vue.component('drop-down', {
         if (this.options && this.options.length > 0) { opts.data = this.options; }
         if (this.serverSearch) {
             if (!this.optionsUrl) console.error("drop-down in form " + this.form + " has no options-url but has server-search=true");
-            opts.ajax = { url:this.optionsUrl, type:"POST", dataType:"json", delay:this.serverDelay, data:this.serverData,
-                processResults:this.processResponse, cache:true };
+            opts.ajax = { url:this.optionsUrl, type:"POST", dataType:"json", delay:this.serverDelay, cache:true,
+                data:this.serverData, processResults:this.processResponse };
             opts.minimumInputLength = this.serverMinLength;
             opts.minimumResultsForSearch = 0;
             // handle width differently because with no options will go to min-width, for table cells/etc use reasonable min-width
             opts.width = "100%";
             jqEl.css("min-width", "200px");
-            jqEl.addClass("noselect2"); // so doesn't get reset on container dialog load
+            jqEl.addClass("noResetSelect2"); // so doesn't get reset on container dialog load
         }
         this.s2Opts = opts;
         jqEl.select2(opts).on('select2:select', function () { jqEl.select2('open').select2('close'); });
@@ -803,7 +803,7 @@ Vue.component('drop-down', {
         if (this.optionsUrl && this.optionsUrl.length > 0) {
             var dependsOnMap = this.dependsOn;
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
-                $('#' + dependsOnMap[doParm]).on('change', function() { vm.populateFromUrl(); }); }}
+                $('#' + dependsOnMap[doParm]).on('change', function() { vm.populateFromUrl({term:initValue}); }); }}
             // do initial populate if not a serverSearch or for serverSearch if we have an initial value do the search so we don't display the ID
             if (!this.serverSearch) { this.populateFromUrl(); }
             else if (initValue && initValue.length && moqui.isString(initValue)) { this.populateFromUrl({term:initValue}); }
