@@ -140,7 +140,7 @@ var moqui = {
 
 // set defaults for select2
 $.fn.select2.defaults.set("theme", "bootstrap");
-$.fn.select2.defaults.set("minimumResultsForSearch", "15");
+$.fn.select2.defaults.set("minimumResultsForSearch", "10");
 // this is a fix for Select2 search input within Bootstrap Modal
 $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 // set validator defaults that work with select2
