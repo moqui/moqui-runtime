@@ -793,6 +793,7 @@ Vue.component('drop-down', {
             // handle width differently because with no options will go to min-width, for table cells/etc use reasonable min-width
             opts.width = "100%";
             jqEl.css("min-width", "200px");
+            jqEl.addClass("noselect2"); // so doesn't get reset on container dialog load
         }
         this.s2Opts = opts;
         jqEl.select2(opts).on('select2:select', function () { jqEl.select2('open').select2('close'); });
