@@ -18,7 +18,10 @@ XML Screens page loads are faster and there is less load on the server, along wi
 - Changed text-line autocomplete to use Twitter Typeahead instead of jQuery UI
 - Removed jQuery UI and theme, saves nearly 300KB in JS/CSS/etc files
 - JS/CSS/etc libraries in webroot/lib have been removed and are now downloaded on build into webroot/libs
-- Added drop-down and modal to navbar to show ScreenDocument configured documentation 
+- Added drop-down and modal to navbar to show ScreenDocument configured documentation
+- drop-down now supports dynamic-options plus other options for an initial list and async loaded dynamic list for slower responses
+- drop-down.dynamic-options now has server-search and related attributes for server-side filtering using the term in the drop down 
+  search box; supports pagination (infinite scroll) if server-side transition supports it
 
 ## Release 2.0.0 - 24 Nov 2016
 
