@@ -814,7 +814,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             </#list>
                             <div class="form-group">
                                 <label class="sr-only" for="${formId}_NewFind_description">${descLabel}</label>
-                                <input type="text" class="form-control" size="40" name="description" id="${formId}_NewFind_description" placeholder="${descLabel}">
+                                <input type="text" class="form-control" size="40" name="_findDescription" id="${formId}_NewFind_description" placeholder="${descLabel}">
                             </div>
                             <button type="submit" class="btn btn-primary btn-sm">${ec.getL10n().localize("Save New Find")}</button>
                         </form></div>
@@ -838,7 +838,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 </#list>
                                 <div class="form-group">
                                     <label class="sr-only" for="${saveFindFormId}_description">${descLabel}</label>
-                                    <input type="text" class="form-control" size="40" name="description" id="${saveFindFormId}_description" value="${formListFind.description?html}">
+                                    <input type="text" class="form-control" size="40" name="_findDescription" id="${saveFindFormId}_description" value="${formListFind.description?html}">
                                 </div>
                                 <button type="submit" name="UpdateFind" class="btn btn-primary btn-sm">${ec.getL10n().localize("Update to Current")}</button>
                                 <#if userFindInfo.isByUserId == "true"><button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');">&times;</button></#if>
@@ -951,9 +951,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             </#list>
                             </ul></li>
                         </#list>
-                        <#if allColInfoList?size < 10><#list allColInfoList?size..9 as ind>
+                        <#list allColInfoList?size..(allColInfoList?size + 2) as ind><#-- always add 3 more columns for flexibility -->
                             <li id="column_${ind}"><div>${ec.getL10n().localize("Column")} ${ind + 1}</div></li>
-                        </#list></#if>
+                        </#list>
                     </ul>
                     <form class="form-inline" id="${formId}_SelColsForm" method="post" action="${sri.buildUrl("formSelectColumns").url}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
@@ -1758,7 +1758,7 @@ a => A, d => D, y => Y
     <#if allowMultiple><input type="hidden" id="${id}_op" name="${name}_op" value="in"></#if>
     <#if isDynamicOptions>
         <#assign depNodeList = doNode["depends-on"]>
-        <#assign doUrlInfo = sri.makeUrlByType(doNode["@transition"], "transition", .node, "false")>
+        <#assign doUrlInfo = sri.makeUrlByType(doNode["@transition"], "transition", doNode, "false")>
         <#assign doUrlParameterMap = doUrlInfo.getParameterMap()>
         <script>
             var ${id}S2Opts = { <#if .node["@combo-box"]! == "true">tags:true, tokenSeparators:[',',' '],</#if>
