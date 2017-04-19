@@ -918,7 +918,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </div>
             </div></div>
         </div>
-        <script>$('#${headerFormDialogId}').on('shown.bs.modal', function() { $("#${headerFormDialogId} select:not([name^='orderBySelect'])").select2({ }); })</script>
+        <script>$('#${headerFormDialogId}').on('shown.bs.modal', function() {
+            $("#${headerFormDialogId} :not(.noResetSelect2)>select:not(.noResetSelect2)").select2({ });
+        })</script>
     </#if>
     <#if isSelectColumns>
         <#assign selectColumnsDialogId = formId + "_SelColsDialog">
