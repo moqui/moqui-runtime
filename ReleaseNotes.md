@@ -1,9 +1,9 @@
 
 # Moqui Runtime Release Notes
 
-## Release 2.0.1 - Not Yet Released
+## Release 2.1.0 - Not Yet Released
 
-Moqui Runtime 2.0.1 is a patch level new feature and bug fix release, in parallel with the release of Moqui Framework.
+Moqui Runtime 2.1.0 is a minor new feature and bug fix release, in parallel with the release of Moqui Framework.
 
 This release includes a beta (not yet final) version of a new vuet render mode for applications that uses a Vue JS based single-page 
 application shell and supports hybrid client/server HTML rendering. The Vue shell (router, etc) is accessible on /vapps while the 
