@@ -147,6 +147,7 @@ task combineBaseJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dest = file("${webrootPath}/js/CombinedBase.min.js")
 }
 // moment.js and many others have lots of comments, etc that make it very large so re-minify
+/* issues have been found in certain browsers on certain operating systems with this, see https://github.com/moqui/moqui-runtime/issues/76
 task minifyCombinedBase(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     dependsOn combineBaseJs
     source = file("${webrootPath}/js/CombinedBase.min.js")
@@ -156,6 +157,7 @@ task minifyCombinedBase(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
         compilerOptions.setOutputCharset(StandardCharsets.UTF_8)
     }
 }
+*/
 
 task minifyWebrootVue(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     source = file("${webrootPath}/js/WebrootVue.js")
