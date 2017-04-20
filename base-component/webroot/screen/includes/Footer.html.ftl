@@ -8,7 +8,7 @@ ${sri.getAfterScreenWriterText()}
 <#if scriptText?has_content>
     <script>
     ${scriptText}
-    $(window).unload(function(){}); // Does nothing but break the bfcache
+    $(window).on('unload', function(){}); // Does nothing but break the bfcache
     </script>
 </#if>
 </body>
