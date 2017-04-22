@@ -817,11 +817,11 @@ Vue.component('drop-down', {
         curData: function(options) {
             var jqEl = $(this.$el); var vm = this;
             // save the lastVal if there is one to remember what was selected even if new options don't have it, just in case options change again
-            var saveVal = jqEl.select2().val(); if (saveVal && saveVal.length) this.lastVal = saveVal;
+            var saveVal = jqEl.select2().val(); if (saveVal && saveVal.length > 1) this.lastVal = saveVal;
             jqEl.select2('destroy'); jqEl.empty();
             this.s2Opts.data = options; jqEl.select2(this.s2Opts);
             setTimeout(function() {
-                var setVal = vm.lastVal; if (!setVal) { setVal = vm.value; }
+                var setVal = vm.lastVal; if (!setVal || setVal.length < 2) { setVal = vm.value; }
                 if (setVal) {
                     var isInList = false;
                     var setValIsArray = moqui.isArray(setVal);
