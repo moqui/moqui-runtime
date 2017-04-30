@@ -1942,7 +1942,7 @@ a => A, d => D, y => Y
                     url: "${acUrlInfo.url}", type: "POST", dataType: "json", data: { term: query, moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
                         <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = acUrlParameterMap.remove(depNodeField)!>, '${depNode["@parameter"]!depNodeField}': $('#<@fieldIdByName depNodeField/>').val()</#list>
                         <#t><#list acUrlParameterMap?keys as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${acUrlParameterMap.get(parameterKey)}"</#if></#list> },
-                    success: function(data) { asyncResults($.map(data, function(item) { return { label: item.label, value: item.value } })); }
+                    success: function(data) { var list = moqui.isArray(data) ? data : data.options; asyncResults($.map(list, function(item) { return { label: item.label, value: item.value } })); }
                 }); }, <#if .node["@ac-delay"]?has_content>${.node["@ac-delay"]}<#else>300</#if>),
                 display: function(item) { return item.label; }
             });
@@ -1959,9 +1959,10 @@ a => A, d => D, y => Y
             if ($("#${id}").val()) {
                 $.ajax({ url: "${acUrlInfo.url}", type: "POST", dataType: "json", data: { term: $("#${id}").val(), moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#list acUrlParameterMap?keys as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${acUrlParameterMap.get(parameterKey)}"</#if></#list> },
                     success: function(data) {
+                        var list = moqui.isArray(data) ? data : data.options;
                         var curValue = $("#${id}").val();
-                        for (var i = 0; i < data.length; i++) { if (data[i].value == curValue) { $("#${id}_ac").val(data[i].label); <#if acShowValue>$("#${id}_value").html(data[i].label);</#if> break; } }
-                        <#-- don't do this by default if we haven't found a valid one: if (data && data[0].label) { $("#${id}_ac").val(data[0].label); <#if acShowValue>$("#${id}_value").html(data[0].label);</#if> } -->
+                        for (var i = 0; i < list.length; i++) { if (list[i].value == curValue) { $("#${id}_ac").val(list[i].label); <#if acShowValue>$("#${id}_value").html(list[i].label);</#if> break; } }
+                        <#-- don't do this by default if we haven't found a valid one: if (list && list[0].label) { $("#${id}_ac").val(list[0].label); <#if acShowValue>$("#${id}_value").html(list[0].label);</#if> } -->
                     }
                 });
             }

@@ -787,7 +787,7 @@ Vue.component('drop-down', {
         if (this.serverSearch) {
             if (!this.optionsUrl) console.error("drop-down in form " + this.form + " has no options-url but has server-search=true");
             opts.ajax = { url:this.optionsUrl, type:"POST", dataType:"json", delay:this.serverDelay, cache:true,
-                data:this.serverData, processResults:this.processResponse };
+                data:this.serverData, processResults:this.processResponse, error:moqui.handleAjaxError };
             opts.minimumInputLength = this.serverMinLength;
             opts.minimumResultsForSearch = 0;
             // handle width differently because with no options will go to min-width, for table cells/etc use reasonable min-width
@@ -863,7 +863,8 @@ Vue.component('text-autocomplete', {
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
                 var doValue = $('#' + dependsOnMap[doParm]).val(); if (doValue) reqData[doParm] = doValue; }}
             $.ajax({ url: vm.url, type:"POST", dataType:"json", data:reqData, error:moqui.handleAjaxError, success: function(data) {
-                asyncResults($.map(data, function(item) { return { label:item.label, value:item.value } })); }});
+                var list = moqui.isArray(data) ? data : data.options;
+                asyncResults($.map(list, function(item) { return { label:item.label, value:item.value } })); }});
         }, this.delay);
     }},
     mounted: function() {
@@ -888,9 +889,10 @@ Vue.component('text-autocomplete', {
             for (doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
                 var doValue = $('#' + dependsOnMap[doParm]).val(); if (doValue) reqData[doParm] = doValue; }}
             $.ajax({ url:this.url, type:"POST", dataType:"json", data:reqData, error:moqui.handleAjaxError, success: function(data) {
+                var list = moqui.isArray(data) ? data : data.options;
                 var curValue = hidJqEl.val();
-                for (var i = 0; i < data.length; i++) { if (data[i].value == curValue) {
-                    acJqEl.val(data[i].label); if (showJqEl) { showJqEl.html(data[i].label); } break; }}
+                for (var i = 0; i < list.length; i++) { if (list[i].value == curValue) {
+                    acJqEl.val(list[i].label); if (showJqEl) { showJqEl.html(list[i].label); } break; }}
             }});
         }
     }
