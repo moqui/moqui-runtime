@@ -864,6 +864,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#assign curUrlInstance = sri.getCurrentScreenUrl()>
                     <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+                        <#if formListFindId?has_content><input type="hidden" name="formListFindId" value="${formListFindId}"></#if>
                         <fieldset class="form-horizontal">
                             <#-- Always add an orderByField to select one or more columns to order by -->
                             <div class="form-group">

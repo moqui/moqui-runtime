@@ -620,6 +620,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#-- Find Parameters Form -->
                 <#assign curUrlInstance = sri.getCurrentScreenUrl()>
                 <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}">
+                    <#if formListFindId?has_content><input type="hidden" name="formListFindId" value="${formListFindId}"></#if>
                     <fieldset class="form-horizontal">
                         <#-- Always add an orderByField to select one or more columns to order by -->
                         <div class="form-group">
