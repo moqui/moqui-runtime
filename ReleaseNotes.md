@@ -14,6 +14,7 @@ XML Screens page loads are faster and there is less load on the server, along wi
 ### New Features
 
 - Updated various JS libraries
+- JS libraries are now downloaded on build if not present instead of included in the git repo; gradle cleanAll removes them
 - Changed accordion in form-single to use Bootstrap instead of jQuery UI
 - Changed text-line autocomplete to use Twitter Typeahead instead of jQuery UI
 - Removed jQuery UI and theme, saves nearly 300KB in JS/CSS/etc files
@@ -22,6 +23,7 @@ XML Screens page loads are faster and there is less load on the server, along wi
 - drop-down now supports dynamic-options plus other options for an initial list and async loaded dynamic list for slower responses
 - drop-down.dynamic-options now has server-search and related attributes for server-side filtering using the term in the drop down 
   search box; supports pagination (infinite scroll) if server-side transition supports it
+- New online documentation support using the ScreenDocument entity with a question mark icon in the header for screens with attached docs
 
 ## Release 2.0.0 - 24 Nov 2016
 
