@@ -143,6 +143,7 @@ task minifyMoquiLib(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
 task combineBaseJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dependsOn downloadFiles
     dependsOn minifyMoquiLib
+    encoding = "UTF-8"
     source = baseJs
     dest = file("${webrootPath}/js/CombinedBase.min.js")
 }
@@ -167,6 +168,7 @@ task minifyWebrootVue(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
 task combineVuetJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dependsOn downloadFiles
     dependsOn minifyWebrootVue
+    encoding = "UTF-8"
     source = vuetJs
     dest = file("${webrootPath}/js/CombinedVuet.min.js")
 }
