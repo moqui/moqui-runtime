@@ -70,6 +70,7 @@ along with this software (see the LICENSE.md file). If not, see
             <container-box><box-header><label text="Conditions" type="h5"/></box-header><box-toolbar>
                 <container-dialog id="AddConditionDialog" button-text="Add Condition">
                     <form-single name="AddCondition" transition="createDataDocumentCondition">
+                        <field name="dataDocumentId"><default-field><hidden/></default-field></field>
                         <field name="fieldNameAlias"><default-field title="Field">
                             <drop-down><entity-options key="${fieldNameAlias ?: (fieldPath.contains(':') ? fieldPath.substring(fieldPath.lastIndexOf(':')+1) : fieldPath)}">
                                 <entity-find entity-name="moqui.entity.document.DataDocumentField">
@@ -87,6 +88,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <entity-find entity-name="moqui.entity.document.DataDocumentCondition">
                         <econdition field-name="dataDocumentId"/><order-by field-name="fieldNameAlias"/></entity-find>
 
+                    <field name="dataDocumentId"><default-field><hidden/></default-field></field>
                     <field name="fieldNameAlias"><default-field title="Field"><display/></default-field></field>
                     <field name="operator"><default-field title="Operator"><drop-down><list-options list="opOptions"/></drop-down></default-field></field>
                     <field name="fieldValue"><default-field title="Value"><text-line size="20"/></default-field></field>
@@ -101,6 +103,7 @@ along with this software (see the LICENSE.md file). If not, see
             <container-box><box-header><label text="Links" type="h5"/></box-header><box-toolbar>
                 <container-dialog id="AddLinkDialog" button-text="Add Link">
                     <form-single name="AddLink" transition="createDataDocumentLink">
+                        <field name="dataDocumentId"><default-field><hidden/></default-field></field>
                         <field name="label"><default-field><text-line size="60"/></default-field></field>
                         <field name="linkUrl"><default-field title="URL"><text-line/></default-field></field>
                         <field name="urlType"><default-field title="Type"><drop-down><option key="plain"/><option key="screen"/></drop-down></default-field></field>
@@ -113,6 +116,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <entity-find entity-name="moqui.entity.document.DataDocumentLink">
                         <econdition field-name="dataDocumentId"/><order-by field-name="fieldNameAlias"/></entity-find>
 
+                    <field name="dataDocumentId"><default-field><hidden/></default-field></field>
                     <field name="label"><default-field><display/></default-field></field>
                     <field name="linkUrl"><default-field title="URL"><text-line/></default-field></field>
                     <field name="urlType"><default-field title="Type"><drop-down><option key="plain"/><option key="screen"/></drop-down></default-field></field>

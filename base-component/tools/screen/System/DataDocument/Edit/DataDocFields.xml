@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
+        default-menu-title="Fields" default-menu-index="2">
+
+    <parameter name="dataDocumentId" required="true" from="dataDocumentId ?: dataDocumentId_0"/>
+
+    <transition name="createDataDocumentField" read-only="true"><service-call name="create#moqui.entity.document.DataDocumentField"/>
+        <default-response url="."/></transition>
+    <transition name="updateDataDocumentField"><service-call name="update#moqui.entity.document.DataDocumentField"/>
+        <default-response url="."/></transition>
+    <transition name="deleteDataDocumentField"><service-call name="delete#moqui.entity.document.DataDocumentField"/>
+        <default-response url="."/></transition>
+
+    <actions>
+        <entity-find-one entity-name="moqui.entity.document.DataDocument" value-field="dataDocument"/>
+        <set field="funcOptions" from="['min', 'max', 'sum', 'avg', 'count', 'count-distinct', 'upper', 'lower']"/>
+    </actions>
+    <widgets>
+        <container-row><row-col md="4">
+            <label text="Add Fields" type="h5"/>
+            <tree name="FieldTree" open-path="${fieldPath?:''}">
+                <parameter name="dataDocumentId"/>
+                <tree-node name="FieldNode">
+                    <actions>
+                        <set field="fieldPath" from="(treeNodeId == '#' ? '' : treeNodeId + ':') + nodeList_entry"/>
+                    </actions>
+                    <link url="FieldList/createFieldDynamic" text="Add ${nodeList_entry}" id="${fieldPath}" dynamic-load-id="FieldListContainer">
+                        <parameter name="fieldPath" from="fieldPath"/></link>
+                </tree-node>
+                <tree-node name="RelationshipNode">
+                    <actions>
+                        <set field="curPath" from="(treeNodeId == '#' ? '' : treeNodeId + ':') + nodeList_entry"/>
+                    </actions>
+                    <label text="${nodeList_entry}" id="${curPath}"/>
+                    <tree-sub-node node-name="FieldNode" list="childFields">
+                        <actions>
+                            <set field="curPath" from="(treeNodeId == '#' ? '' : treeNodeId)"/>
+                            <entity-find-one entity-name="moqui.entity.document.DataDocument" value-field="dataDocument" cache="true"/>
+                            <set field="curEd" from="ec.entity.getEntityDefinition(dataDocument.primaryEntityName)"/>
+                            <iterate list="curPath.split(':')" entry="relName">
+                                <if condition="curEd == null"><break/></if>
+                                <set field="curEd" from="curEd.getRelationshipInfo(relName)?.relatedEd"/>
+                            </iterate>
+                            <set field="childFields" from="curEd?.getAllFieldNames()"/>
+                        </actions>
+                    </tree-sub-node>
+                    <!--
+                    <tree-sub-node node-name="RelationshipNode" list="childRelationships">
+                        <actions>
+                            <set field="curPath" from="(treeNodeId == '#' ? '' : treeNodeId)"/>
+                            <entity-find-one entity-name="moqui.entity.document.DataDocument" value-field="dataDocument" cache="true"/>
+                            <set field="curEd" from="ec.entity.getEntityDefinition(dataDocument.primaryEntityName)"/>
+                            <iterate list="curPath.split(':')" entry="relName">
+                                <if condition="curEd == null"><break/></if>
+                                <set field="curEd" from="curEd.getRelationshipInfo(relName)?.relatedEd"/>
+                            </iterate>
+                            <set field="childRelationships" from="curEd?.getRelationshipsInfo(false)?.collect({ it.shortAlias ?: it.relationshipName })"/>
+                        </actions>
+                    </tree-sub-node>
+                    -->
+                </tree-node>
+                <tree-sub-node node-name="FieldNode" list="topLevelFields">
+                    <actions>
+                        <entity-find-one entity-name="moqui.entity.document.DataDocument" value-field="dataDocument" cache="true"/>
+                        <set field="primaryEd" from="ec.entity.getEntityDefinition(dataDocument.primaryEntityName)"/>
+                        <set field="topLevelFields" from="primaryEd.getAllFieldNames()"/>
+                    </actions>
+                </tree-sub-node>
+                <tree-sub-node node-name="RelationshipNode" list="topLevelRelationships">
+                    <actions>
+                        <entity-find-one entity-name="moqui.entity.document.DataDocument" value-field="dataDocument" cache="true"/>
+                        <set field="primaryEd" from="ec.entity.getEntityDefinition(dataDocument.primaryEntityName)"/>
+                        <set field="topLevelRelationships" from="[]"/>
+                        <iterate list="primaryEd.getRelationshipsInfo(false)" entry="relInfo">
+                            <if condition="relInfo.isAutoReverse"><continue/></if>
+                            <script>topLevelRelationships.add(relInfo.shortAlias ?: relInfo.relationshipName)</script>
+                        </iterate>
+                    </actions>
+                </tree-sub-node>
+            </tree>
+        </row-col><row-col md="8">
+            <container-dialog id="AddFieldDialog" button-text="Add Field">
+                <form-single name="AddField" transition="createDataDocumentField">
+                    <field name="dataDocumentId"><default-field><hidden/></default-field></field>
+                    <field name="fieldPath"><default-field><text-line/></default-field></field>
+                    <field name="fieldNameAlias"><default-field title="Alias"><text-line size="20"/></default-field></field>
+                    <field name="sortable"><default-field title="Sortable">
+                        <drop-down allow-empty="true"><option key="N"/><option key="Y"/></drop-down></default-field></field>
+                    <field name="functionName"><default-field title="Function"><drop-down allow-empty="true">
+                        <list-options list="funcOptions"/></drop-down></default-field></field>
+                    <field name="sequenceNum"><default-field title="Sequence"><text-line size="2"/></default-field></field>
+                    <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                </form-single>
+            </container-dialog>
+
+            <dynamic-container id="FieldListContainer" transition="FieldList"/>
+        </row-col></container-row>
+    </widgets>
+</screen>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
+        default-menu-include="false" standalone="true">
+
+    <parameter name="dataDocumentId" required="true" from="dataDocumentId ?: dataDocumentId_0"/>
+
+    <transition name="createFieldDynamic" read-only="true"><service-call name="create#moqui.entity.document.DataDocumentField"/>
+        <default-response url="."/></transition>
+    <transition name="createDataDocumentField"><service-call name="create#moqui.entity.document.DataDocumentField"/>
+        <default-response url=".."/></transition>
+    <transition name="updateDataDocumentField"><service-call name="update#moqui.entity.document.DataDocumentField"/>
+        <default-response url=".."/></transition>
+    <transition name="deleteDataDocumentField"><service-call name="delete#moqui.entity.document.DataDocumentField"/>
+        <default-response url=".."/></transition>
+
+    <actions>
+        <set field="funcOptions" from="['min', 'max', 'sum', 'avg', 'count', 'count-distinct', 'upper', 'lower']"/>
+    </actions>
+    <widgets>
+        <form-list name="FieldList" list="conditionList" transition="updateDataDocumentField" multi="true">
+            <entity-find entity-name="moqui.entity.document.DataDocumentField">
+                <econdition field-name="dataDocumentId"/><order-by field-name="sequenceNum,fieldPath"/></entity-find>
+
+            <field name="dataDocumentId"><default-field><hidden/></default-field></field>
+            <field name="sequenceNum"><default-field title="Seq"><text-line size="2"/></default-field></field>
+            <field name="fieldPath"><default-field><display text="${fieldPath.replaceAll(':', ' : ')}"/></default-field></field>
+            <field name="fieldNameAlias"><default-field title="Alias"><text-line size="12"/></default-field></field>
+            <field name="sortable"><default-field title="Sortable">
+                <drop-down allow-empty="true"><option key="N"/><option key="Y"/></drop-down></default-field></field>
+            <field name="functionName"><default-field title="Function"><drop-down allow-empty="true">
+                <list-options list="funcOptions"/></drop-down></default-field></field>
+
+            <field name="submitButton"><default-field title="Update All"><submit/></default-field></field>
+            <field name="deleteButton"><default-field title="">
+                <link url="deleteDataDocumentField" text=" " icon="glyphicon glyphicon-trash" confirmation="Really remove?"/></default-field></field>
+        </form-list>
+    </widgets>
+</screen>
