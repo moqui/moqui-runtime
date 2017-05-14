@@ -248,11 +248,11 @@ Vue.component('m-link', {
     props: { href:{type:String,required:true}, loadId:String },
     template: '<a :href="linkHref" @click.prevent="go"><slot></slot></a>',
     methods: { go: function(event) {
-        if (event.button != 0) { return; }
+        if (event.button !== 0) { return; }
         if (this.loadId && this.loadId.length > 0) { this.$root.loadContainer(this.loadId, this.href); }
         else { if (event.ctrlKey || event.metaKey) { window.open(this.linkHref, "_blank"); } else { this.$root.setUrl(this.linkHref); } }
     }},
-    computed: { linkHref: function () { return this.href.indexOf(this.$root.basePath) == 0 ? this.href.replace(this.$root.basePath, this.$root.linkBasePath) : this.href; } }
+    computed: { linkHref: function () { return this.href.indexOf(this.$root.basePath) === 0 ? this.href.replace(this.$root.basePath, this.$root.linkBasePath) : this.href; } }
 });
 Vue.component('m-script', {
     props: { src:String, type:{type:String,'default':'text/javascript'} },
@@ -362,7 +362,7 @@ Vue.component('dynamic-dialog', {
     }
 });
 Vue.component('tree-top', {
-    template: '<ul :id="id" class="tree-list"><tree-item v-for="model in itemList" :model="model" :top="top"/></ul>',
+    template: '<ul :id="id" class="tree-list"><tree-item v-for="model in itemList" :key="model.id" :model="model" :top="top"/></ul>',
     props: { id:{type:String,required:true}, items:{type:[String,Array],required:true}, openPath:String, parameters:Object },
     data: function() { return { urlItems:null, currentPath:null, top:this }},
     computed: {
@@ -381,15 +381,18 @@ Vue.component('tree-item', {
     '<li :id="model.id">' +
         '<i v-if="isFolder" @click="toggle" class="glyphicon" :class="{\'glyphicon-chevron-right\':!open, \'glyphicon-chevron-down\':open}"></i>' +
         '<span v-else style="width:1em;display:inline-block;"></span>' +
-        ' <span @click="setSelected"><m-link :href="model.a_attr.urlText" :load-id="model.a_attr.loadId" :class="{\'text-success\':selected}">{{model.text}}</m-link></span>' +
-        '<ul v-show="open" v-if="hasChildren"><tree-item v-for="model in model.children" :model="model" :top="top"/></ul></li>',
+        ' <span @click="setSelected">' +
+            '<m-link v-if="model.a_attr" :href="model.a_attr.urlText" :load-id="model.a_attr.loadId" :class="{\'text-success\':selected}">{{model.text}}</m-link>' +
+            '<span v-if="!model.a_attr" :class="{\'text-success\':selected}">{{model.text}}</span>' +
+        '</span>' +
+        '<ul v-show="open" v-if="hasChildren"><tree-item v-for="model in model.children" :key="model.id" :model="model" :top="top"/></ul></li>',
     props: { model:Object, top:Object },
     data: function() { return { open:false }},
     computed: {
         isFolder: function() { var children = this.model.children; if (!children) { return false; }
             if (moqui.isArray(children)) { return children.length > 0 } return true; },
         hasChildren: function() { var children = this.model.children; return moqui.isArray(children) && children.length > 0; },
-        selected: function() { return this.top.currentPath == this.model.id; }
+        selected: function() { return this.top.currentPath === this.model.id; }
     },
     watch: { open: function(newVal) { if (newVal) {
         var children = this.model.children;
@@ -513,7 +516,7 @@ Vue.component('form-link', {
                 var plainKeyList = [];
                 for (var pi=0; pi<parmList.length; pi++) {
                     var parm = parmList[pi]; var key = parm.name; var value = parm.value;
-                    if (value.trim().length == 0 || key == "moquiSessionToken" || key == "moquiFormName" || key.indexOf('%5B%5D') > 0) continue;
+                    if (value.trim().length === 0 || key === "moquiSessionToken" || key === "moquiFormName" || key.indexOf('%5B%5D') > 0) continue;
                     if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0) { extraList.push(parm); }
                     else {
                         plainKeyList.push(key);
