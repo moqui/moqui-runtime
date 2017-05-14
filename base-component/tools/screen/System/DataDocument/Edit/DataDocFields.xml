@@ -57,20 +57,24 @@ along with this software (see the LICENSE.md file). If not, see
                             <set field="childFields" from="curEd?.getAllFieldNames()"/>
                         </actions>
                     </tree-sub-node>
-                    <!--
                     <tree-sub-node node-name="RelationshipNode" list="childRelationships">
                         <actions>
+                            <set field="childRelationships" from="[]"/>
                             <set field="curPath" from="(treeNodeId == '#' ? '' : treeNodeId)"/>
+                            <set field="curPathSplit" from="curPath.split(':') as List"/>
+                            <if condition="curPathSplit.size() > 10"><return/></if>
                             <entity-find-one entity-name="moqui.entity.document.DataDocument" value-field="dataDocument" cache="true"/>
                             <set field="curEd" from="ec.entity.getEntityDefinition(dataDocument.primaryEntityName)"/>
-                            <iterate list="curPath.split(':')" entry="relName">
-                                <if condition="curEd == null"><break/></if>
+                            <iterate list="curPathSplit" entry="relName">
+                                <if condition="curEd == null || !relName"><break/></if>
                                 <set field="curEd" from="curEd.getRelationshipInfo(relName)?.relatedEd"/>
                             </iterate>
-                            <set field="childRelationships" from="curEd?.getRelationshipsInfo(false)?.collect({ it.shortAlias ?: it.relationshipName })"/>
+                            <iterate list="curEd?.getRelationshipsInfo(false)" entry="relInfo">
+                                <if condition="relInfo.isAutoReverse"><continue/></if>
+                                <script>childRelationships.add(relInfo.shortAlias ?: relInfo.relationshipName)</script>
+                            </iterate>
                         </actions>
                     </tree-sub-node>
-                    -->
                 </tree-node>
                 <tree-sub-node node-name="FieldNode" list="topLevelFields">
                     <actions>
