@@ -26,11 +26,11 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <container-row><row-col md="6">
-            <container-box><box-header><label text="Usage" type="h5"/></box-header><box-body>
-                <link url="../ArtifactHitSummary" text="Artifact Hit Summary"/>
-                <link url="../ArtifactHitBins" text="Artifact Hit Bins"/>
-                <link url="../AuditLog" text="Audit Log"/>
-                <link url="../Visit" text="Visits"/>
+            <container-box><box-header><label text="Server Admin" type="h5"/></box-header><box-body>
+                <link url="../Cache" text="Cache Stats and Mgmt"/>
+                <link url="../Instance" text="Instance Mgmt"/>
+                <link url="../Print" text="Print Servers and Jobs"/>
+                <link url="../ServiceJob" text="Service Jobs"/>
             </box-body></container-box>
             <container-box><box-header><label text="Security" type="h5"/></box-header><box-body>
                 <link url="../Security/UserAccount" text="Users"/>
@@ -38,16 +38,21 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="../Security/ArtifactGroup" text="Artifact Groups"/>
                 <link url="../Security/ActiveUsers" text="Active Users"/>
             </box-body></container-box>
+            <container-box><box-header><label text="Usage" type="h5"/></box-header><box-body>
+                <link url="../ArtifactHitSummary" text="Artifact Hit Summary"/>
+                <link url="../ArtifactHitBins" text="Artifact Hit Bins"/>
+                <link url="../AuditLog" text="Audit Log"/>
+                <link url="../Visit" text="Visits"/>
+            </box-body></container-box>
         </row-col><row-col md="6">
-            <container-box><box-header><label text="Server Admin" type="h5"/></box-header><box-body>
-                <link url="../Cache" text="Cache Stats and Mgmt"/>
-                <link url="../ServiceJob" text="Service Jobs"/>
-                <link url="../Print" text="Print Servers and Jobs"/>
-                <link url="../Instance" text="Instance Mgmt"/>
+            <container-box><box-header><label text="Data Documents and Feeds" type="h5"/></box-header><box-body>
+                <link url="../DataDocument/Search" text="Search"/>
+                <link url="../DataDocument/Export" text="Export"/>
+                <link url="../DataDocument/Edit" text="Edit"/>
+                <link url="../DataDocument/Index" text="Feed Index"/>
             </box-body></container-box>
             <container-box><box-header><label text="Data Admin" type="h5"/></box-header><box-body>
                 <link url="../Localization" text="Localization"/>
-                <link url="../DataDocument" text="Data Documents"/>
                 <link url="../Resource" text="Resource Finder"/>
             </box-body></container-box>
             <container-box><box-header><label text="Integration Admin" type="h5"/></box-header><box-body>
