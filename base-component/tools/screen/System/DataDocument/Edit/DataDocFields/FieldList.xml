@@ -17,9 +17,9 @@ along with this software (see the LICENSE.md file). If not, see
 
     <parameter name="dataDocumentId" required="true" from="dataDocumentId ?: dataDocumentId_0"/>
 
-    <transition name="createFieldDynamic" read-only="true"><service-call name="create#moqui.entity.document.DataDocumentField"/>
+    <transition name="createFieldDynamic" read-only="true"><service-call name="org.moqui.impl.EntityServices.create#DataDocumentField"/>
         <default-response url="."/></transition>
-    <transition name="createDataDocumentField"><service-call name="create#moqui.entity.document.DataDocumentField"/>
+    <transition name="createDataDocumentField"><service-call name="org.moqui.impl.EntityServices.create#DataDocumentField"/>
         <default-response url=".."/></transition>
     <transition name="updateDataDocumentField"><service-call name="org.moqui.impl.EntityServices.update#DataDocumentField"/>
         <default-response url=".."/></transition>
@@ -46,7 +46,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="." text="${fieldPath.split(':').collect({ it.contains('.') ? it : org.moqui.util.StringUtilities.camelCaseToPretty(it) }).join(' : ')}"
                         link-type="anchor" parameter-map="[fieldPath:fieldPath]" style="${isDup ? 'text-danger' : ''}"/>
             </default-field></field>
-            <field name="fieldNameAlias"><default-field title="Alias"><text-line size="12"/></default-field></field>
+            <field name="fieldNameAlias" from="org.moqui.util.StringUtilities.camelCaseToPretty(fieldNameAlias)"><default-field title="Alias">
+                <text-line size="20"/></default-field></field>
             <field name="sortable"><default-field title="Sortable">
                 <drop-down allow-empty="true"><option key="N"/><option key="Y"/></drop-down></default-field></field>
             <field name="functionName"><default-field title="Function"><drop-down allow-empty="true">
