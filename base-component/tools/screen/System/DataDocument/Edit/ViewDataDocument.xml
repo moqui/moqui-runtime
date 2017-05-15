@@ -27,6 +27,7 @@ along with this software (see the LICENSE.md file). If not, see
             <search-form-inputs/></entity-find>
     </actions>
     <widgets>
+        <!-- TODO: JSON dump -->
         <form-list name="ListEntityValue" list="entityValueList" skip-form="true" dynamic="true" header-dialog="true"
                 show-csv-button="true" show-all-button="true">
             <auto-fields-entity entity-name="${entityName}" field-type="find-display"/>

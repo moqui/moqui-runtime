@@ -43,7 +43,8 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="dataDocumentId"><default-field><hidden/></default-field></field>
             <field name="sequenceNum"><default-field title="Seq"><text-line size="2"/></default-field></field>
             <field name="fieldPath"><default-field><display text=" "/>
-                <link url="." text="${fieldPath.replaceAll(':', ' : ')}" link-type="anchor" parameter-map="[fieldPath:fieldPath]" style="${isDup ? 'text-danger' : ''}"/>
+                <link url="." text="${fieldPath.split(':').collect({ it.contains('.') ? it : org.moqui.util.StringUtilities.camelCaseToPretty(it) }).join(' : ')}"
+                        link-type="anchor" parameter-map="[fieldPath:fieldPath]" style="${isDup ? 'text-danger' : ''}"/>
             </default-field></field>
             <field name="fieldNameAlias"><default-field title="Alias"><text-line size="12"/></default-field></field>
             <field name="sortable"><default-field title="Sortable">

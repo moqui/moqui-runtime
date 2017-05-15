@@ -37,14 +37,14 @@ along with this software (see the LICENSE.md file). If not, see
                     <actions>
                         <set field="fieldPath" from="(treeNodeId == '#' ? '' : treeNodeId + ':') + nodeList_entry"/>
                     </actions>
-                    <link url="FieldList/createFieldDynamic" text="Add ${nodeList_entry}" id="${fieldPath}" dynamic-load-id="FieldListContainer">
+                    <link url="FieldList/createFieldDynamic" text="+ ${org.moqui.util.StringUtilities.camelCaseToPretty(nodeList_entry)}" id="${fieldPath}" dynamic-load-id="FieldListContainer">
                         <parameter name="fieldPath" from="fieldPath"/></link>
                 </tree-node>
                 <tree-node name="RelationshipNode">
                     <actions>
                         <set field="curPath" from="(treeNodeId == '#' ? '' : treeNodeId + ':') + nodeList_entry"/>
                     </actions>
-                    <label text="${nodeList_entry}" id="${curPath}"/>
+                    <label text="${nodeList_entry.contains('.') ? nodeList_entry : org.moqui.util.StringUtilities.camelCaseToPretty(nodeList_entry)}" id="${curPath}"/>
                     <tree-sub-node node-name="FieldNode" list="childFields">
                         <actions>
                             <set field="curPath" from="(treeNodeId == '#' ? '' : treeNodeId)"/>
