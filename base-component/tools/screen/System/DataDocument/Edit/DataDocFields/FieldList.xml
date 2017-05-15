@@ -21,7 +21,7 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/></transition>
     <transition name="createDataDocumentField"><service-call name="create#moqui.entity.document.DataDocumentField"/>
         <default-response url=".."/></transition>
-    <transition name="updateDataDocumentField"><service-call name="update#moqui.entity.document.DataDocumentField"/>
+    <transition name="updateDataDocumentField"><service-call name="org.moqui.impl.EntityServices.update#DataDocumentField"/>
         <default-response url=".."/></transition>
     <transition name="deleteDataDocumentField"><service-call name="delete#moqui.entity.document.DataDocumentField"/>
         <default-response url=".."/></transition>

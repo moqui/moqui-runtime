@@ -16,7 +16,7 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-title="Export" default-menu-index="3">
 
-    <transition name="DocumentExport.json">
+    <transition name="DocumentExport.json" read-only="true">
         <actions><script><![CDATA[
             import org.moqui.context.ExecutionContext
             import org.moqui.impl.entity.EntityDataDocument
@@ -48,7 +48,7 @@ along with this software (see the LICENSE.md file). If not, see
             } else if (context.output == "dir") {
                 edd.writeDocumentsToDirectory((String) path, dataDocumentIdList, null,
                         fromUpdateStamp, thruUpdateStamp, prettyPrint)
-            } else if (context.output == "browser") {
+            } else {
                 def response = ec.web.response
                 response.setContentType("application/json")
                 response.setCharacterEncoding("UTF-8")
@@ -56,7 +56,7 @@ along with this software (see the LICENSE.md file). If not, see
                 response.getWriter().write("[\n")
                 edd.writeDocumentsToWriter(response.getWriter(), dataDocumentIdList, null,
                         fromUpdateStamp, thruUpdateStamp, prettyPrint)
-                response.getWriter().write("{}\n]\n")
+                response.getWriter().write("]\n")
                 noResponse = true
             }
         ]]></script></actions>

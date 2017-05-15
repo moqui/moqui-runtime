@@ -18,7 +18,7 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="editDataDocument"><default-response url="../EditDataDocument"/></transition>
 
     <transition name="createDataDocument"><service-call name="org.moqui.impl.EntityServices.create#DataDocument"/>
-        <default-response url="."/></transition>
+        <default-response url="../EditDataDocument"/></transition>
 
     <widgets>
         <container-dialog id="CreateDialog" button-text="Create Data Document">
