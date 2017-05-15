@@ -152,6 +152,7 @@ along with this software (see the LICENSE.md file). If not, see
                         <econdition field-name="dataDocumentId"/><order-by field-name="fieldNameAlias"/></entity-find>
 
                     <field name="dataDocumentId"><default-field><hidden/></default-field></field>
+                    <field name="conditionSeqId"><default-field><hidden/></default-field></field>
                     <field name="fieldNameAlias"><default-field title="Field"><display/></default-field></field>
                     <field name="operator"><default-field title="Operator"><drop-down><list-options list="opOptions"/></drop-down></default-field></field>
                     <field name="fieldValue"><default-field title="Value"><text-line size="20"/></default-field></field>
@@ -159,7 +160,8 @@ along with this software (see the LICENSE.md file). If not, see
 
                     <field name="submitButtom"><default-field title="Upd"><submit/></default-field></field>
                     <field name="deleteButton"><default-field title="">
-                        <link url="deleteDataDocumentCondition" text=" " icon="glyphicon glyphicon-trash" confirmation="Really remove?"/></default-field></field>
+                        <link url="deleteDataDocumentCondition" text=" " icon="glyphicon glyphicon-trash" confirmation="Really remove?">
+                            <parameter name="dataDocumentId"/><parameter name="conditionSeqId"/><parameter name="fieldNameAlias"/></link></default-field></field>
                 </form-list>
             </box-body-nopad></container-box>
         </row-col></container-row>
@@ -180,7 +182,8 @@ along with this software (see the LICENSE.md file). If not, see
                     <econdition field-name="dataDocumentId"/><order-by field-name="fieldNameAlias"/></entity-find>
 
                 <field name="dataDocumentId"><default-field><hidden/></default-field></field>
-                <field name="label"><default-field><display/></default-field></field>
+                <field name="linkSeqId"><default-field><hidden/></default-field></field>
+                <field name="label"><default-field><text-line/></default-field></field>
                 <field name="linkUrl"><default-field title="URL"><text-line/></default-field></field>
                 <field name="urlType"><default-field title="Type"><drop-down><option key="plain"/><option key="screen"/></drop-down></default-field></field>
                 <field name="condition"><default-field><text-line/></default-field></field>
