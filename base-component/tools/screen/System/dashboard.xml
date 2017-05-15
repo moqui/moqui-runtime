@@ -48,7 +48,7 @@ along with this software (see the LICENSE.md file). If not, see
             <container-box><box-header><label text="Data Documents and Feeds" type="h5"/></box-header><box-body>
                 <link url="../DataDocument/Search" text="Search"/>
                 <link url="../DataDocument/Export" text="Export"/>
-                <link url="../DataDocument/Edit" text="Edit"/>
+                <link url="../DataDocument/Edit" text="Edit and View"/>
                 <link url="../DataDocument/Index" text="Feed Index"/>
             </box-body></container-box>
             <container-box><box-header><label text="Data Admin" type="h5"/></box-header><box-body>

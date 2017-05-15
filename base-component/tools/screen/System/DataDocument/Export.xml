@@ -60,8 +60,8 @@ along with this software (see the LICENSE.md file). If not, see
                 noResponse = true
             }
         ]]></script></actions>
-        <conditional-response type="none"><condition><expression>noResponse</expression></condition></conditional-response>
-        <default-response url="."/>
+        <conditional-response url="."><condition><expression>!noResponse</expression></condition></conditional-response>
+        <default-response type="none"/>
     </transition>
 
     <widgets>

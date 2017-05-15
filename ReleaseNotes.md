@@ -24,6 +24,8 @@ XML Screens page loads are faster and there is less load on the server, along wi
 - drop-down.dynamic-options now has server-search and related attributes for server-side filtering using the term in the drop down 
   search box; supports pagination (infinite scroll) if server-side transition supports it
 - New online documentation support using the ScreenDocument entity with a question mark icon in the header for screens with attached docs
+- New DataDocument based screens to define a data doc through a web UI, view its data, etc; because fields on related entities can be
+  added an arbitrary number of hops away this is a much more flexible replacement for the Data View screens 
 
 ## Release 2.0.0 - 24 Nov 2016
 

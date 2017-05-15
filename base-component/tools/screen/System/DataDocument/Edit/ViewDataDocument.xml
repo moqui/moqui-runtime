@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
+        default-menu-title="View" default-menu-index="3">
+
+    <parameter name="dataDocumentId" required="true"/>
+
+    <actions>
+        <set field="entityName" from="'DataDocument.' + dataDocumentId"/>
+        <set field="aenDef" from="ec.entity.getEntityDefinition(entityName)"/>
+        <if condition="aenDef == null"><message error="true">Could not find Data Document ${dataDocumentId}</message><return/></if>
+
+        <entity-find entity-name="${entityName}" list="entityValueList" cache="false">
+            <search-form-inputs/></entity-find>
+    </actions>
+    <widgets>
+        <form-list name="ListEntityValue" list="entityValueList" skip-form="true" dynamic="true" header-dialog="true"
+                show-csv-button="true" show-all-button="true">
+            <field name="edit"><header-field title="Find"><submit/></header-field></field>
+            <auto-fields-entity entity-name="${entityName}" field-type="find-display"/>
+        </form-list>
+    </widgets>
+</screen>
