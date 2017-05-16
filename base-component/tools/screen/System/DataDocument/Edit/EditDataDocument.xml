@@ -31,13 +31,6 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="deleteDataFeedDocument"><service-call name="delete#moqui.entity.feed.DataFeedDocument"/>
         <default-response url="."/></transition>
 
-    <transition name="createDataDocumentCondition"><service-call name="create#moqui.entity.document.DataDocumentCondition"/>
-        <default-response url="."/></transition>
-    <transition name="updateDataDocumentCondition"><service-call name="update#moqui.entity.document.DataDocumentCondition"/>
-        <default-response url="."/></transition>
-    <transition name="deleteDataDocumentCondition"><service-call name="delete#moqui.entity.document.DataDocumentCondition"/>
-        <default-response url="."/></transition>
-
     <transition name="createDataDocumentLink"><service-call name="create#moqui.entity.document.DataDocumentLink"/>
         <default-response url="."/></transition>
     <transition name="updateDataDocumentLink"><service-call name="update#moqui.entity.document.DataDocumentLink"/>
@@ -47,8 +40,6 @@ along with this software (see the LICENSE.md file). If not, see
 
     <actions>
         <entity-find-one entity-name="moqui.entity.document.DataDocument" value-field="dataDocument"/>
-        <set field="opOptions" from="['equals', 'not-equals', 'less', 'greater', 'less-equals', 'greater-equals', 'in', 'not-in',
-            'between', 'not-between', 'like', 'not-like', 'is-null', 'is-not-null']"/>
 
         <set field="entityInfoList" from="ec.entity.getAllEntitiesInfo('entityName', null, false, true)"/>
         <if condition="excludeFilter"><set field="entityInfoList" from="entityInfoList.findAll({ !it.fullEntityName.matches(excludeFilter) })"/></if>
@@ -131,41 +122,6 @@ along with this software (see the LICENSE.md file). If not, see
                         <display-entity entity-name="moqui.entity.feed.DataFeed" text="${dataFeedId}: ${feedName?:''}"/></default-field></field>
                     <field name="deleteButton"><default-field title="">
                         <link url="deleteDataFeedDocument" text=" " icon="glyphicon glyphicon-trash" confirmation="Really remove?"/></default-field></field>
-                </form-list>
-            </box-body-nopad></container-box>
-
-            <container-box><box-header><label text="Conditions" type="h5"/></box-header><box-toolbar>
-                <container-dialog id="AddConditionDialog" button-text="Add Condition">
-                    <form-single name="AddCondition" transition="createDataDocumentCondition">
-                        <field name="dataDocumentId"><default-field><hidden/></default-field></field>
-                        <field name="fieldNameAlias"><default-field title="Field">
-                            <drop-down><entity-options key="${fieldNameAlias ?: (fieldPath.contains(':') ? fieldPath.substring(fieldPath.lastIndexOf(':')+1) : fieldPath)}">
-                                <entity-find entity-name="moqui.entity.document.DataDocumentField">
-                                    <econdition field-name="dataDocumentId"/><order-by field-name="sequenceNum,fieldNameAlias,fieldPath"/></entity-find>
-                            </entity-options></drop-down>
-                        </default-field></field>
-                        <field name="operator"><default-field title="Operator"><drop-down><list-options list="opOptions"/></drop-down></default-field></field>
-                        <field name="fieldValue"><default-field title="Value"><text-line size="40"/></default-field></field>
-                        <field name="postQuery"><default-field title="PQ"><drop-down><option key="N"/><option key="Y"/></drop-down></default-field></field>
-                        <field name="submitButton"><default-field title="Upd"><submit/></default-field></field>
-                    </form-single>
-                </container-dialog>
-            </box-toolbar><box-body-nopad>
-                <form-list name="ConditionList" list="conditionList" transition="updateDataDocumentCondition">
-                    <entity-find entity-name="moqui.entity.document.DataDocumentCondition">
-                        <econdition field-name="dataDocumentId"/><order-by field-name="fieldNameAlias"/></entity-find>
-
-                    <field name="dataDocumentId"><default-field><hidden/></default-field></field>
-                    <field name="conditionSeqId"><default-field><hidden/></default-field></field>
-                    <field name="fieldNameAlias"><default-field title="Field"><display/></default-field></field>
-                    <field name="operator"><default-field title="Operator"><drop-down><list-options list="opOptions"/></drop-down></default-field></field>
-                    <field name="fieldValue"><default-field title="Value"><text-line size="20"/></default-field></field>
-                    <field name="postQuery"><default-field title="PQ"><drop-down><option key="N"/><option key="Y"/></drop-down></default-field></field>
-
-                    <field name="submitButtom"><default-field title="Upd"><submit/></default-field></field>
-                    <field name="deleteButton"><default-field title="">
-                        <link url="deleteDataDocumentCondition" text=" " icon="glyphicon glyphicon-trash" confirmation="Really remove?">
-                            <parameter name="dataDocumentId"/><parameter name="conditionSeqId"/><parameter name="fieldNameAlias"/></link></default-field></field>
                 </form-list>
             </box-body-nopad></container-box>
         </row-col></container-row>
