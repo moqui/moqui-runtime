@@ -49,6 +49,9 @@ along with this software (see the LICENSE.md file). If not, see
         <entity-find-one entity-name="moqui.entity.document.DataDocument" value-field="dataDocument"/>
         <set field="opOptions" from="['equals', 'not-equals', 'less', 'greater', 'less-equals', 'greater-equals', 'in', 'not-in',
             'between', 'not-between', 'like', 'not-like', 'is-null', 'is-not-null']"/>
+
+        <set field="entityInfoList" from="ec.entity.getAllEntitiesInfo('entityName', null, false, true)"/>
+        <if condition="excludeFilter"><set field="entityInfoList" from="entityInfoList.findAll({ !it.fullEntityName.matches(excludeFilter) })"/></if>
     </actions>
     <widgets>
         <container-row><row-col lg="5">
@@ -66,7 +69,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="dataDocumentId"><default-field title="ID"><display/></default-field></field>
                 <field name="documentName"><default-field title="Name"><text-line size="40"/></default-field></field>
                 <field name="primaryEntityName"><default-field title="Primary Entity"><drop-down>
-                    <list-options list="ec.entity.getAllEntitiesInfo('entityName', null, false, true)" key="${fullEntityName}"
+                    <list-options list="entityInfoList" key="${fullEntityName}"
                             text="${org.moqui.util.StringUtilities.camelCaseToPretty(entityName)}"/>
                 </drop-down></default-field></field>
 
