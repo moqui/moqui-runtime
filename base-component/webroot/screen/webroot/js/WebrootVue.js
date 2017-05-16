@@ -58,7 +58,7 @@ moqui.objToSearch = function(obj) {
     return search;
 };
 moqui.searchToObj = function(search) {
-    if (!search || search.length == 0) { return {}; }
+    if (!search || search.length === 0) { return {}; }
     var newParams = {};
     var parmList = search.split("&");
     for (var i=0; i<parmList.length; i++) {
@@ -80,13 +80,13 @@ moqui.format = function(value, format, type) {
     if (type && type.length) {
         type = type.toLowerCase();
         if (type === "date") {
-            if (!format || format.length == 0) format = "YYYY-MM-DD";
+            if (!format || format.length === 0) format = "YYYY-MM-DD";
             return moment(value).format(format);
         } else if (type === "time") {
-            if (!format || format.length == 0) format = "HH:mm:ss";
+            if (!format || format.length === 0) format = "HH:mm:ss";
             return moment(value).format(format);
         } else if (type === "timestamp") {
-            if (!format || format.length == 0) format = "YYYY-MM-DD HH:mm";
+            if (!format || format.length === 0) format = "YYYY-MM-DD HH:mm";
             return moment(value).format(format);
         } else if (type === "bigdecimal" || type === "long" || type === "integer" || type === "double" || type === "float") {
             return value; // TODO format numbers
@@ -100,7 +100,7 @@ moqui.format = function(value, format, type) {
         // is it a number or any sort of date/time that moment supports? if anything else return as-is
         var momentVal = moment(value);
         if (momentVal.isValid()) {
-            if (!format || format.length == 0) format = "YYYY-MM-DD HH:mm";
+            if (!format || format.length === 0) format = "YYYY-MM-DD HH:mm";
             return momentVal.format(format);
         }
         // TODO
@@ -113,7 +113,7 @@ Vue.filter('format', moqui.format);
 moqui.loadScript = function(src) {
     // make sure the script isn't loaded
     var loaded = false;
-    $('head script').each(function(i, hscript) { if (hscript.src.indexOf(src) != -1) loaded = true; });
+    $('head script').each(function(i, hscript) { if (hscript.src.indexOf(src) !== -1) loaded = true; });
     if (loaded) return;
     // add it to the header
     var script = document.createElement('script'); script.src = src; script.async = false;
@@ -123,7 +123,7 @@ moqui.loadStylesheet = function(href, rel, type) {
     if (!rel) rel = 'stylesheet'; if (!type) type = 'text/css';
     // make sure the stylesheet isn't loaded
     var loaded = false;
-    $('head link').each(function(i, hlink) { if (hlink.href.indexOf(href) != -1) loaded = true; });
+    $('head link').each(function(i, hlink) { if (hlink.href.indexOf(href) !== -1) loaded = true; });
     if (loaded) return;
     // add it to the header
     var link = document.createElement('link'); link.href = href; link.rel = rel; link.type = type;
@@ -198,7 +198,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
     }
 
     // prep url
-    var url = path; var isJsPath = (path.slice(-3) == '.js');
+    var url = path; var isJsPath = (path.slice(-3) === '.js');
     if (!isJsPath) url += '.vuet';
     if (extraPath && extraPath.length > 0) url += ('/' + extraPath);
     if (search && search.length > 0) url += ('?' + search);
@@ -209,14 +209,14 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
         if (!resp) { callback(moqui.NotFound); }
         var isServerStatic = (jqXHR.getResponseHeader("Cache-Control").indexOf("max-age") >= 0);
         if (moqui.isString(resp) && resp.length > 0) {
-            if (isJsPath || resp.slice(0,7) == 'define(') {
+            if (isJsPath || resp.slice(0,7) === 'define(') {
                 console.info("loaded JS from " + url + (divId ? " id " + divId : ""));
                 var jsCompObj = eval(resp);
                 if (jsCompObj.template) {
                     if (isServerStatic) { moqui.componentCache.put(path, jsCompObj); }
                     callback(jsCompObj);
                 } else {
-                    var htmlUrl = (path.slice(-3) == '.js' ? path.slice(0, -3) : path) + '.vuet';
+                    var htmlUrl = (path.slice(-3) === '.js' ? path.slice(0, -3) : path) + '.vuet';
                     $.ajax({ type:"GET", url:htmlUrl, error:moqui.handleAjaxError, success: function (htmlText) {
                         jsCompObj.template = htmlText;
                         if (isServerStatic) { moqui.componentCache.put(path, jsCompObj); }
@@ -315,8 +315,8 @@ Vue.component('dynamic-container', {
     props: { id:{type:String,required:true}, url:{type:String} },
     data: function() { return { curComponent:moqui.EmptyComponent, curUrl:"" } },
     template: '<component :is="curComponent"></component>',
-    methods: { reload: function() { var saveUrl = this.curUrl; this.curUrl = ""; var vm = this; setTimeout(function() { vm.curUrl = saveUrl; }, 20); },
-        load: function(url) { this.curUrl = url; }},
+    methods: { reload: function() { var saveUrl = this.curUrl; this.curUrl = ""; var vm = this; setTimeout(function() { vm.curUrl = saveUrl; }, 100); },
+        load: function(url) { this.curUrl = ""; var vm = this; setTimeout(function() { vm.curUrl = url; }, 100); }},
     watch: { curUrl: function(newUrl) {
         if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
         var vm = this; moqui.loadComponent(newUrl, function(comp) { vm.curComponent = comp; }, this.id);
@@ -655,7 +655,7 @@ Vue.component('form-list', {
             if (moqui.isArray(this.rows)) { console.warn('Tried to fetch form-list-body rows but rows prop is an array'); return; }
             var vm = this;
             var searchObj = this.search; if (!searchObj) { searchObj = this.$root.currentParameters; }
-            var url = this.rows; if (url.indexOf('/') == -1) { url = this.$root.currentPath + '/actions/' + url; }
+            var url = this.rows; if (url.indexOf('/') === -1) { url = this.$root.currentPath + '/actions/' + url; }
             console.info("Fetching rows with url " + url + " searchObj " + JSON.stringify(searchObj));
             $.ajax({ type:"GET", url:url, data:searchObj, dataType:"json", headers:{Accept:'application/json'},
                      error:moqui.handleAjaxError, success: function(list, status, jqXHR) {
@@ -699,14 +699,14 @@ Vue.component('date-time', {
     '</div>',
     computed: {
         formatVal: function() { var format = this.format; if (format && format.length > 0) { return format; }
-            return this.type == 'time' ? 'HH:mm' : (this.type == 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm'); },
+            return this.type === 'time' ? 'HH:mm' : (this.type === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm'); },
         sizeVal: function() { var size = this.size; if (size && size.length > 0) { return size; }
-            return this.type == 'time' ? '9' : (this.type == 'date' ? '10' : '16'); },
+            return this.type === 'time' ? '9' : (this.type === 'date' ? '10' : '16'); },
         timePattern: function() { return '^(?:(?:([01]?\\d|2[0-3]):)?([0-5]?\\d):)?([0-5]?\\d)$'; }
     },
     mounted: function() {
         var value = this.value;
-        if (this.type != "time") { $(this.$el).datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true,
+        if (this.type !== "time") { $(this.$el).datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true,
             defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:this.formatVal, stepping:5, locale:this.$root.locale}); }
     }
 });
@@ -927,13 +927,13 @@ Vue.component('subscreens-active', {
     methods: { loadActive: function() {
         var vm = this; var root = vm.$root; var pathIndex = vm.pathIndex; var curPathList = root.currentPathList;
         var newPath = curPathList[pathIndex];
-        var pathChanged = (this.pathName != newPath);
+        var pathChanged = (this.pathName !== newPath);
         this.pathName = newPath;
         if (!newPath || newPath.length === 0) { this.activeComponent = moqui.EmptyComponent; return true; }
         var fullPath = root.basePath + '/' + curPathList.slice(0, pathIndex + 1).join('/');
         if (!pathChanged && moqui.componentCache.containsKey(fullPath)) { return false; } // no need to reload component
         var urlInfo = { path:fullPath };
-        if (pathIndex == (curPathList.length - 1)) {
+        if (pathIndex === (curPathList.length - 1)) {
             var extra = root.extraPathList; if (extra && extra.length > 0) { urlInfo.extraPath = extra.join('/'); } }
         var search = root.currentSearch; if (search && search.length > 0) { urlInfo.search = search; }
         console.info('subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
@@ -952,9 +952,9 @@ moqui.webrootVue = new Vue({
         setUrl: function(url) {
             // make sure any open modals are closed before setting currentUrl
             $('.modal.in').modal('hide');
-            if (url.indexOf(this.basePath) == 0) url = url.replace(this.basePath, this.linkBasePath);
+            if (url.indexOf(this.basePath) === 0) url = url.replace(this.basePath, this.linkBasePath);
             // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
-            if (this.currentLinkUrl == url) { this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */ }
+            if (this.currentLinkUrl === url) { this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */ }
             else { this.currentUrl = url; window.history.pushState(null, this.ScreenTitle, url); }
         },
         setParameters: function(parmObj) {
@@ -1029,14 +1029,14 @@ moqui.webrootVue = new Vue({
                 curUrl = curUrl.substring(0, questIdx);
                 var dpCount = 0; var titleParms = "";
                 for (var pi=0; pi<parmList.length; pi++) {
-                    var parm = parmList[pi]; if (parm.indexOf("pageIndex=") == 0) continue;
-                    if (curUrl.indexOf("?") == -1) { curUrl += "?"; } else { curUrl += "&"; }
+                    var parm = parmList[pi]; if (parm.indexOf("pageIndex=") === 0) continue;
+                    if (curUrl.indexOf("?") === -1) { curUrl += "?"; } else { curUrl += "&"; }
                     curUrl += parm;
                     if (dpCount > 1) continue; // add up to 2 parms to the title
                     var eqIdx = parm.indexOf("=");
                     if (eqIdx > 0) {
                         var key = parm.substring(0, eqIdx);
-                        if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || key == "moquiSessionToken") continue;
+                        if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || key === "moquiSessionToken") continue;
                         if (titleParms.length > 0) titleParms += ", ";
                         titleParms += parm.substring(eqIdx + 1);
                     }
@@ -1045,7 +1045,7 @@ moqui.webrootVue = new Vue({
             }
             var navHistoryList = this.navHistoryList;
             for (var hi=0; hi<navHistoryList.length;) {
-                if (navHistoryList[hi].pathWithParams == curUrl) { navHistoryList.splice(hi,1); } else { hi++; } }
+                if (navHistoryList[hi].pathWithParams === curUrl) { navHistoryList.splice(hi,1); } else { hi++; } }
             navHistoryList.unshift({ title:newTitle, pathWithParams:curUrl, image:cur.image, imageType:cur.imageType });
             while (navHistoryList.length > 25) { navHistoryList.pop(); }
             document.title = newTitle;
@@ -1062,10 +1062,10 @@ moqui.webrootVue = new Vue({
                 return this.basePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
                     (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : ''); },
             set: function(newPath) {
-                if (!newPath || newPath.length == 0) { this.currentPathList = []; return; }
-                if (newPath.slice(newPath.length - 1) == '/') newPath = newPath.slice(0, newPath.length - 1);
-                if (newPath.indexOf(this.linkBasePath) == 0) { newPath = newPath.slice(this.linkBasePath.length + 1); }
-                else if (newPath.indexOf(this.basePath) == 0) { newPath = newPath.slice(this.basePath.length + 1); }
+                if (!newPath || newPath.length === 0) { this.currentPathList = []; return; }
+                if (newPath.slice(newPath.length - 1) === '/') newPath = newPath.slice(0, newPath.length - 1);
+                if (newPath.indexOf(this.linkBasePath) === 0) { newPath = newPath.slice(this.linkBasePath.length + 1); }
+                else if (newPath.indexOf(this.basePath) === 0) { newPath = newPath.slice(this.basePath.length + 1); }
                 this.currentPathList = newPath.split('/');
             }},
         currentLinkPath: function() { var curPath = this.currentPathList; var extraPath = this.extraPathList;
@@ -1079,7 +1079,7 @@ moqui.webrootVue = new Vue({
             get: function() { var srch = this.currentSearch; return this.currentPath + (srch.length > 0 ? '?' + srch : ''); },
             set: function(href) {
                 var ssIdx = href.indexOf('//');
-                if (ssIdx >= 0) { var slIdx = href.indexOf('/', ssIdx + 1); if (slIdx == -1) { return; } href = href.slice(slIdx); }
+                if (ssIdx >= 0) { var slIdx = href.indexOf('/', ssIdx + 1); if (slIdx === -1) { return; } href = href.slice(slIdx); }
                 var splitHref = href.split("?");
                 // clear out extra path, to be set from nav menu data if needed
                 this.extraPathList = [];
