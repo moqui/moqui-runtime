@@ -132,7 +132,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="label"><default-field><text-line size="60"/></default-field></field>
                     <field name="linkUrl"><default-field title="URL"><text-line/></default-field></field>
                     <field name="urlType"><default-field title="Type"><drop-down><option key="plain"/><option key="screen"/></drop-down></default-field></field>
-                    <field name="condition"><default-field><text-line/></default-field></field>
+                    <field name="linkCondition"><default-field title="Condition"><text-line/></default-field></field>
                     <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
                 </form-single>
             </container-dialog>
@@ -146,7 +146,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="label"><default-field><text-line/></default-field></field>
                 <field name="linkUrl"><default-field title="URL"><text-line/></default-field></field>
                 <field name="urlType"><default-field title="Type"><drop-down><option key="plain"/><option key="screen"/></drop-down></default-field></field>
-                <field name="condition"><default-field><text-line/></default-field></field>
+                <field name="linkCondition"><default-field title="Condition"><text-line/></default-field></field>
 
                 <field name="submitButton"><default-field title="Upd"><submit/></default-field></field>
                 <field name="deleteButton"><default-field title="">
