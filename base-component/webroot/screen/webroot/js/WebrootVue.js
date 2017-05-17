@@ -315,8 +315,8 @@ Vue.component('dynamic-container', {
     props: { id:{type:String,required:true}, url:{type:String} },
     data: function() { return { curComponent:moqui.EmptyComponent, curUrl:"" } },
     template: '<component :is="curComponent"></component>',
-    methods: { reload: function() { var saveUrl = this.curUrl; this.curUrl = ""; var vm = this; setTimeout(function() { vm.curUrl = saveUrl; }, 100); },
-        load: function(url) { this.curUrl = ""; var vm = this; setTimeout(function() { vm.curUrl = url; }, 100); }},
+    methods: { reload: function() { var saveUrl = this.curUrl; this.curUrl = ""; var vm = this; setTimeout(function() { vm.curUrl = saveUrl; }, 20); },
+        load: function(url) { if (this.curUrl === url) { this.reload(); } else { this.curUrl = url; } }},
     watch: { curUrl: function(newUrl) {
         if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
         var vm = this; moqui.loadComponent(newUrl, function(comp) { vm.curComponent = comp; }, this.id);
@@ -972,7 +972,7 @@ moqui.webrootVue = new Vue({
         reloadSubscreens: function() {
             // console.info('reloadSubscreens currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
             var fullPathList = this.currentPathList; var activeSubscreens = this.activeSubscreens;
-            if (fullPathList.length == 0 && activeSubscreens.length > 0) { activeSubscreens.splice(1); activeSubscreens[0].loadActive(); return; }
+            if (fullPathList.length === 0 && activeSubscreens.length > 0) { activeSubscreens.splice(1); activeSubscreens[0].loadActive(); return; }
             for (var i=0; i<activeSubscreens.length; i++) {
                 if (i >= fullPathList.length) break;
                 // always try loading the active subscreen and see if actually loaded
