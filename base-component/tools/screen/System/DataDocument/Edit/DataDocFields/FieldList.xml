@@ -116,6 +116,8 @@ along with this software (see the LICENSE.md file). If not, see
                     <text-line size="20"/></default-field></field>
                 <field name="sortable"><default-field title="Sortable">
                     <drop-down allow-empty="true"><option key="N"/><option key="Y"/></drop-down></default-field></field>
+                <field name="defaultDisplay"><default-field title="Display">
+                    <drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></default-field></field>
                 <field name="functionName"><default-field title="Function"><drop-down allow-empty="true">
                     <list-options list="funcOptions"/></drop-down></default-field></field>
 
