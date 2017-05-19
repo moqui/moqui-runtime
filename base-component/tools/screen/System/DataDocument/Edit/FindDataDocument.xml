@@ -48,12 +48,13 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><link url="editDataDocument" text="${documentName}" link-type="anchor"/></default-field></field>
             <field name="primaryEntityName">
                 <header-field title="Primary Entity" show-order-by="true"><drop-down allow-empty="true">
-                    <entity-options key="${primaryEntityName}" text="${primaryEntityName}">
+                    <entity-options key="${primaryEntityName}"
+                            text="${org.moqui.util.StringUtilities.camelCaseToPretty(primaryEntityName.substring(primaryEntityName.lastIndexOf('.')+1))}">
                         <entity-find entity-name="moqui.entity.document.DataDocument" distinct="true">
                             <select-field field-name="primaryEntityName"/><order-by field-name="primaryEntityName"/></entity-find>
                     </entity-options>
                 </drop-down></header-field>
-                <default-field><display text="${org.moqui.util.StringUtilities.camelCaseToPretty(primaryEntityName?.contains('.') ? primaryEntityName.substring(primaryEntityName.lastIndexOf('.')+1) : primaryEntityName)}"/></default-field>
+                <default-field><display text="${org.moqui.util.StringUtilities.camelCaseToPretty(primaryEntityName.substring(primaryEntityName.lastIndexOf('.')+1))}"/></default-field>
             </field>
 
             <field name="findButton"><header-field><submit/></header-field></field>

@@ -48,7 +48,6 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="entityName" from="'DataDocument.' + dataDocumentId"/>
         <set field="aenDef" from="ec.entity.getEntityDefinition(entityName)"/>
         <if condition="aenDef == null"><message error="true">Could not find Data Document ${dataDocumentId}</message><return/></if>
-
     </actions>
     <widgets>
         <container-dialog id="ExportJsonDialog" button-text="Download JSON">
