@@ -20,13 +20,19 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="createDataDocument"><service-call name="org.moqui.impl.EntityServices.create#DataDocument"/>
         <default-response url="../EditDataDocument"/></transition>
 
+    <actions>
+        <!-- example: <set field="excludeFilter" value="(moqui\\.|mantle\\.).*"/> -->
+        <set field="entityInfoList" from="ec.entity.getAllEntitiesInfo('entityName', null, false, true)"/>
+        <if condition="excludeFilter"><set field="entityInfoList" from="entityInfoList.findAll({ !it.fullEntityName.matches(excludeFilter) })"/></if>
+    </actions>
     <widgets>
         <container-dialog id="CreateDialog" button-text="Create Data Document">
             <form-single name="CreateDataDocument" transition="createDataDocument">
                 <field name="dataDocumentId"><default-field title="ID"><text-line size="30"/></default-field></field>
                 <field name="documentName"><default-field title="Name"><text-line size="60"/></default-field></field>
                 <field name="primaryEntityName"><default-field title="Primary Entity"><drop-down>
-                    <list-options list="ec.entity.getAllEntitiesInfo('fullEntityName', null, false, true)" key="${fullEntityName}"/>
+                    <list-options list="entityInfoList" key="${fullEntityName}"
+                            text="${org.moqui.util.StringUtilities.camelCaseToPretty(entityName)}"/>
                 </drop-down></default-field></field>
                 <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
             </form-single>
@@ -42,12 +48,13 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><link url="editDataDocument" text="${documentName}" link-type="anchor"/></default-field></field>
             <field name="primaryEntityName">
                 <header-field title="Primary Entity" show-order-by="true"><drop-down allow-empty="true">
-                    <entity-options key="${primaryEntityName}" text="${primaryEntityName}">
+                    <entity-options key="${primaryEntityName}"
+                            text="${org.moqui.util.StringUtilities.camelCaseToPretty(primaryEntityName.substring(primaryEntityName.lastIndexOf('.')+1))}">
                         <entity-find entity-name="moqui.entity.document.DataDocument" distinct="true">
                             <select-field field-name="primaryEntityName"/><order-by field-name="primaryEntityName"/></entity-find>
                     </entity-options>
                 </drop-down></header-field>
-                <default-field><display/></default-field>
+                <default-field><display text="${org.moqui.util.StringUtilities.camelCaseToPretty(primaryEntityName.substring(primaryEntityName.lastIndexOf('.')+1))}"/></default-field>
             </field>
 
             <field name="findButton"><header-field><submit/></header-field></field>

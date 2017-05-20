@@ -54,7 +54,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <entity-find entity-name="moqui.entity.document.DataDocumentLink" list="ddLinkList" cache="true">
                     <econdition field-name="dataDocumentId" from="_type"/></entity-find>
                 <set field="linksList" from="[]"/>
-                <iterate list="ddLinkList" entry="ddLink"><if condition="!ddLink.condition || ec.resource.condition(ddLink.condition, '')">
+                <iterate list="ddLinkList" entry="ddLink"><if condition="!ddLink.linkCondition || ec.resource.condition(ddLink.linkCondition, '')">
                     <script>linksList.add(ddLink)</script></if></iterate>
             </row-actions>
             <field name="type"><default-field><display text="${dataDocument.documentName} [${_type}]"/></default-field></field>

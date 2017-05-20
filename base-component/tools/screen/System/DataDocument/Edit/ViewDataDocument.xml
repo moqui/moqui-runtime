@@ -48,9 +48,6 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="entityName" from="'DataDocument.' + dataDocumentId"/>
         <set field="aenDef" from="ec.entity.getEntityDefinition(entityName)"/>
         <if condition="aenDef == null"><message error="true">Could not find Data Document ${dataDocumentId}</message><return/></if>
-
-        <entity-find entity-name="${entityName}" list="entityValueList" cache="false">
-            <search-form-inputs/></entity-find>
     </actions>
     <widgets>
         <container-dialog id="ExportJsonDialog" button-text="Download JSON">
@@ -63,8 +60,10 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="submitButton"><default-field title="Download"><submit/></default-field></field>
             </form-single>
         </container-dialog>
-        <form-list name="ListEntityValue" list="entityValueList" skip-form="true" dynamic="true" header-dialog="true"
+        <form-list name="DataViewList" list="entityValueList" skip-form="true" dynamic="true" header-dialog="true"
                 show-csv-button="true" show-all-button="true">
+            <entity-find entity-name="${entityName}" list="entityValueList" cache="false">
+                <search-form-inputs/></entity-find>
             <field name="dataDocumentId"><header-field><hidden/></header-field></field>
             <auto-fields-entity entity-name="${entityName}" field-type="find-display"/>
             <field name="findButton"><header-field title="Find"><submit/></header-field></field>
