@@ -1007,7 +1007,8 @@ moqui.webrootVue = new Vue({
         showScreenDocDialog: function(docIndex) {
             $("#screen-document-dialog").modal("show");
             $("#screen-document-dialog-body").load(this.currentPath + '/screenDoc?docIndex=' + docIndex);
-        }
+        },
+        stopProp: function (e) { e.stopPropagation(); }
     },
     watch: {
         navMenuList: function(newList) { if (newList.length > 0) {
@@ -1112,9 +1113,11 @@ moqui.webrootVue = new Vue({
         this.notificationClient = new moqui.NotificationClient((location.protocol === 'https:' ? 'wss://' : 'ws://') + this.appHost + this.appRootPath + "/notws");
     },
     mounted: function() {
-        $('.navbar [data-toggle="tooltip"]').tooltip({ placement:'bottom', trigger:'hover' });
-        $('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
-        $('#notify-history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        var jqEl = $(this.$el);
+        jqEl.find('.navbar [data-toggle="tooltip"]').tooltip({ placement:'bottom', trigger:'hover' });
+        jqEl.find('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        jqEl.find('#notify-history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        jqEl.find('#document-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
         // load the current screen
         this.currentUrl = window.location.pathname + window.location.search;
         // init the NotificationClient and register 'displayNotify' as the default listener

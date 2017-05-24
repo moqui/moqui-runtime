@@ -80,9 +80,9 @@ along with this software (see the LICENSE.md file). If not, see
             <div id="notify-history-menu" class="nav navbar-right dropdown">
                 <a id="notify-history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="Notifications">
                     <i class="glyphicon glyphicon-exclamation-sign"></i></a>
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu" @click.prevent="stopProp">
                     <li v-for="histItem in notifyHistoryList">
-                        <div :class="'alert alert-' + histItem.type" role="alert"><strong>{{histItem.time}}</strong> {{histItem.message}}</div>
+                        <div :class="'alert alert-' + histItem.type" @click.prevent="stopProp" role="alert"><strong>{{histItem.time}}</strong> {{histItem.message}}</div>
                     </li>
                 </ul>
             </div>
