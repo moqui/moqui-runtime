@@ -1563,32 +1563,26 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign fvPeriod = ec.getContext().get(curFieldName + "_period")!?lower_case>
     <#assign allowEmpty = .node["@allow-empty"]!"true">
     <div class="date-period">
-        <select name="${curFieldName}_poffset" id="${id}_poffset"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+        <select name="${curFieldName}_poffset" id="${id}_poffset" onChange="updatePeriodOptionAvailability('${id}', this.value, <#if (allowEmpty! != "false")>true<#else>false</#if>);" <#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <#if (allowEmpty! != "false")>
                 <option value="">&nbsp;</option>
             </#if>
-            <option value="0"<#if fvOffset == "0"> selected="selected"</#if>>${ec.getL10n().localize("This")}</option>
-            <option value="-1"<#if fvOffset == "-1"> selected="selected"</#if>>${ec.getL10n().localize("Last")}</option>
-            <option value="-2"<#if fvOffset == "-2"> selected="selected"</#if>>-2</option>
-            <option value="-3"<#if fvOffset == "-3"> selected="selected"</#if>>-3</option>
-            <option value="-4"<#if fvOffset == "-4"> selected="selected"</#if>>-4</option>
-            <option value="-5"<#if fvOffset == "-5"> selected="selected"</#if>>-5</option>
+            <option value="-1"<#if fvOffset == "-1"> selected="selected"</#if>>${ec.getL10n().localize("Previous")}</option>
+            <option value="0"<#if fvOffset == "0"> selected="selected"</#if>>${ec.getL10n().localize("Current")}</option>
             <option value="1"<#if fvOffset == "1"> selected="selected"</#if>>${ec.getL10n().localize("Next")}</option>
-            <option value="2"<#if fvOffset == "2"> selected="selected"</#if>>+2</option>
-            <option value="3"<#if fvOffset == "3"> selected="selected"</#if>>+3</option>
-            <option value="4"<#if fvOffset == "4"> selected="selected"</#if>>+4</option>
-            <option value="5"<#if fvOffset == "5"> selected="selected"</#if>>+5</option>
         </select>
         <select name="${curFieldName}_period" id="${id}_period"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <#if (allowEmpty! != "false")>
-            <option value="">&nbsp;</option>
+                <option value="">&nbsp;</option>
             </#if>
             <option value="day" <#if fvPeriod == "day"> selected="selected"</#if>>${ec.getL10n().localize("Day")}</option>
-            <option value="7d" <#if fvPeriod == "7d"> selected="selected"</#if>>7 ${ec.getL10n().localize("Days")}</option>
-            <option value="30d" <#if fvPeriod == "30d"> selected="selected"</#if>>30 ${ec.getL10n().localize("Days")}</option>
             <option value="week" <#if fvPeriod == "week"> selected="selected"</#if>>${ec.getL10n().localize("Week")}</option>
             <option value="month" <#if fvPeriod == "month"> selected="selected"</#if>>${ec.getL10n().localize("Month")}</option>
             <option value="year" <#if fvPeriod == "year"> selected="selected"</#if>>${ec.getL10n().localize("Year")}</option>
+            <option value="7d" class="notForCur" <#if fvPeriod == "7d"> selected="selected"</#if>>7 ${ec.getL10n().localize("Days")}</option>
+            <option value="30d" class="notForCur" <#if fvPeriod == "30d"> selected="selected"</#if>>30 ${ec.getL10n().localize("Days")}</option>
+            <option value="60d" class="notForCur" <#if fvPeriod == "60d"> selected="selected"</#if>>60 ${ec.getL10n().localize("Days")}</option>
+            <option value="90d" class="notForCur" <#if fvPeriod == "90d"> selected="selected"</#if>>90 ${ec.getL10n().localize("Days")}</option>
         </select>
         <script>$("#${id}_poffset").select2({ }); $("#${id}_period").select2({ });</script>
     </div>
