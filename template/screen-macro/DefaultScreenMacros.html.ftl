@@ -867,7 +867,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#if formListFindId?has_content><input type="hidden" name="formListFindId" value="${formListFindId}"></#if>
                         <fieldset class="form-horizontal">
                             <div class="form-group"><div class="col-sm-2">&nbsp;</div><div class="col-sm-10">
-                                <button type="button" class="btn btn-primary btn-sm" onclick="${headerFormId}_clearForm()">Clear Options</button></div></div>
+                                <button type="button" class="btn btn-primary btn-sm" onclick="${headerFormId}_clearForm()">${ec.getL10n().localize("Clear Parameters")}</button></div></div>
 
                             <#-- Always add an orderByField to select one or more columns to order by -->
                             <div class="form-group">
