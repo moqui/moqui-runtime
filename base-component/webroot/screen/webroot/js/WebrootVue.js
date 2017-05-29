@@ -494,9 +494,9 @@ Vue.component('m-form', {
 Vue.component('form-link', {
     props: { action:{type:String,required:true}, focusField:String, noValidate:Boolean },
     data: function() { return { fields:{} }},
-    template: '<form @submit.prevent="submitForm" class="validation-engine-init"><slot></slot></form>',
+    template: '<form @submit.prevent="submitForm" class="validation-engine-init"><slot :clearForm="clearForm"></slot></form>',
     methods: {
-        submitForm: function submitForm() {
+        submitForm: function() {
             var jqEl = $(this.$el);
             if (this.noValidate || jqEl.valid()) {
                 // get button pressed value and disable ASAP to avoid double submit
@@ -539,6 +539,11 @@ Vue.component('form-link', {
                 if (url.indexOf('?') > 0) { url = url + '&' + parmStr; } else { url = url + '?' + parmStr; }
                 this.$root.setUrl(url);
             }
+        },
+        clearForm: function() {
+            var jqEl = $(this.$el);
+            jqEl.find(':radio, :checkbox').removeAttr('checked');
+            jqEl.find('textarea, :text, select').val('').trigger('change');
         }
     },
     mounted: function() {
@@ -710,15 +715,16 @@ Vue.component('date-time', {
             defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:this.formatVal, stepping:5, locale:this.$root.locale}); }
     }
 });
-moqui.dateOffsets = [{id:'0',text:'This'},{id:'-1',text:'Last'},{id:'-2',text:'-2'},{id:'-3',text:'-3'},{id:'-4',text:'-4'},{id:'-5',text:'-5'},
-    {id:'1',text:'Next'},{id:'2',text:'2'},{id:'3',text:'3'},{id:'4',text:'4'},{id:'5',text:'5'}];
-moqui.datePeriods = [{id:'day',text:'Day'},{id:'7d',text:'7 Days'},{id:'30d',text:'30 Days'},{id:'60d',text:'60 Days'},{id:'90d',text:'90 Days'},
-    {id:'week',text:'Week'}, {id:'month',text:'Month'},{id:'year',text:'Year'}];
+moqui.dateOffsets = [{id:'0',text:'This'},{id:'-1',text:'Last'},{id:'1',text:'Next'},
+    {id:'-2',text:'-2'},{id:'2',text:'+2'},{id:'-3',text:'-3'},{id:'3',text:'+3'}];
+moqui.datePeriods = [{id:'day',text:'Day'},{id:'7d',text:'7 Days'},{id:'30d',text:'30 Days'},{id:'week',text:'Week'},
+    {id:'month',text:'Month'},{id:'year',text:'Year'},{id:'7r',text:'+/-7d'},{id:'30r',text:'+/-30d'}];
 moqui.emptyOpt = {id:'',text:'\u00a0'};
 Vue.component('date-period', {
-    props: { name:{type:String,required:true}, allowEmpty:Boolean, offset:String, period:String, form:String },
-    template: '<div class="date-period"><select ref="poffset" :name="name+\'_poffset\'" :form="form"></select>' +
-        '<select ref="period" :name="name+\'_period\'" :form="form"></select></div>',
+    props: { name:{type:String,required:true}, allowEmpty:Boolean, offset:String, period:String, date:String, form:String },
+    template: '<div class="date-period"><select ref="poffset" :name="name+\'_poffset\'" :form="form"></select> ' +
+        '<select ref="period" :name="name+\'_period\'" :form="form"></select> ' +
+        '<date-time :name="name+\'_pdate\'" :form="form" type="date" :value="date"/></div>',
     mounted: function() {
         var pofsEl = $(this.$refs.poffset); var perEl = $(this.$refs.period);
         var offsets = moqui.dateOffsets.slice(); var periods = moqui.datePeriods.slice();
