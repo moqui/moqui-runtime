@@ -1570,6 +1570,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign curFieldName><@fieldName .node/></#assign>
     <#assign fvOffset = ec.getContext().get(curFieldName + "_poffset")!>
     <#assign fvPeriod = ec.getContext().get(curFieldName + "_period")!?lower_case>
+    <#assign fvDate = ec.getContext().get(curFieldName + "_pdate")!"">
     <#assign allowEmpty = .node["@allow-empty"]!"true">
     <div class="date-period">
         <select name="${curFieldName}_poffset" id="${id}_poffset"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
@@ -1578,15 +1579,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#if>
             <option value="0"<#if fvOffset == "0"> selected="selected"</#if>>${ec.getL10n().localize("This")}</option>
             <option value="-1"<#if fvOffset == "-1"> selected="selected"</#if>>${ec.getL10n().localize("Last")}</option>
-            <option value="-2"<#if fvOffset == "-2"> selected="selected"</#if>>-2</option>
-            <option value="-3"<#if fvOffset == "-3"> selected="selected"</#if>>-3</option>
-            <option value="-4"<#if fvOffset == "-4"> selected="selected"</#if>>-4</option>
-            <option value="-5"<#if fvOffset == "-5"> selected="selected"</#if>>-5</option>
             <option value="1"<#if fvOffset == "1"> selected="selected"</#if>>${ec.getL10n().localize("Next")}</option>
+            <option value="-2"<#if fvOffset == "-2"> selected="selected"</#if>>-2</option>
             <option value="2"<#if fvOffset == "2"> selected="selected"</#if>>+2</option>
+            <option value="-3"<#if fvOffset == "-3"> selected="selected"</#if>>-3</option>
             <option value="3"<#if fvOffset == "3"> selected="selected"</#if>>+3</option>
-            <option value="4"<#if fvOffset == "4"> selected="selected"</#if>>+4</option>
-            <option value="5"<#if fvOffset == "5"> selected="selected"</#if>>+5</option>
         </select>
         <select name="${curFieldName}_period" id="${id}_period"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <#if (allowEmpty! != "false")>
@@ -1598,8 +1595,17 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <option value="week" <#if fvPeriod == "week"> selected="selected"</#if>>${ec.getL10n().localize("Week")}</option>
             <option value="month" <#if fvPeriod == "month"> selected="selected"</#if>>${ec.getL10n().localize("Month")}</option>
             <option value="year" <#if fvPeriod == "year"> selected="selected"</#if>>${ec.getL10n().localize("Year")}</option>
+            <option value="7r" <#if fvPeriod == "7r"> selected="selected"</#if>>+/-7d</option>
+            <option value="30r" <#if fvPeriod == "30r"> selected="selected"</#if>>+/-30d</option>
         </select>
-        <script>$("#${id}_poffset").select2({ }); $("#${id}_period").select2({ });</script>
+        <div class="input-group date" id="${id}_pdate">
+            <input type="text" class="form-control" name="${curFieldName}_pdate" value="${fvDate?html}" size="10" maxlength="10"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
+            <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+        </div>
+        <script>
+            $("#${id}_poffset").select2({ }); $("#${id}_period").select2({ });
+            $('#${id}_pdate').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, defaultDate: '${fvDate?html}' && moment('${fvDate?html}','YYYY-MM-DD'), format:'YYYY-MM-DD', locale:"${ec.getUser().locale.toLanguageTag()}"});
+        </script>
     </div>
 </#macro>
 
