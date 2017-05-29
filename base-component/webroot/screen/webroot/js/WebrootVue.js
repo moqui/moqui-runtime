@@ -494,9 +494,9 @@ Vue.component('m-form', {
 Vue.component('form-link', {
     props: { action:{type:String,required:true}, focusField:String, noValidate:Boolean },
     data: function() { return { fields:{} }},
-    template: '<form @submit.prevent="submitForm" class="validation-engine-init"><slot></slot></form>',
+    template: '<form @submit.prevent="submitForm" class="validation-engine-init"><slot :clearForm="clearForm"></slot></form>',
     methods: {
-        submitForm: function submitForm() {
+        submitForm: function() {
             var jqEl = $(this.$el);
             if (this.noValidate || jqEl.valid()) {
                 // get button pressed value and disable ASAP to avoid double submit
@@ -539,6 +539,12 @@ Vue.component('form-link', {
                 if (url.indexOf('?') > 0) { url = url + '&' + parmStr; } else { url = url + '?' + parmStr; }
                 this.$root.setUrl(url);
             }
+        },
+        clearForm: function() {
+            var jqEl = $(this.$el);
+            console.log("clearForm");
+            jqEl.find(':radio, :checkbox').removeAttr('checked');
+            jqEl.find('textarea, :text, select').val('').trigger('change');
         }
     },
     mounted: function() {

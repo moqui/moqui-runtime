@@ -619,9 +619,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if isHeaderDialog>
                 <#-- Find Parameters Form -->
                 <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}">
+                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}"><template scope="props">
                     <#if formListFindId?has_content><input type="hidden" name="formListFindId" value="${formListFindId}"></#if>
                     <fieldset class="form-horizontal">
+                        <div class="form-group"><div class="col-sm-2">&nbsp;</div><div class="col-sm-10">
+                            <button class="btn btn-primary btn-sm" @click.prevent="props.clearForm">Clear Options</button></div></div>
+
                         <#-- Always add an orderByField to select one or more columns to order by -->
                         <div class="form-group">
                             <label class="control-label col-sm-2" for="${headerFormId}_orderByField">${ec.getL10n().localize("Order By")}</label>
@@ -670,7 +673,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             </#if>
                         </#if></#list>
                     </fieldset>
-                </form-link>
+                </template></form-link>
             </#if>
         </container-dialog>
     </#if>
