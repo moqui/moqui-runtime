@@ -715,15 +715,16 @@ Vue.component('date-time', {
             defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:this.formatVal, stepping:5, locale:this.$root.locale}); }
     }
 });
-moqui.dateOffsets = [{id:'0',text:'This'},{id:'-1',text:'Last'},{id:'-2',text:'-2'},{id:'-3',text:'-3'},{id:'-4',text:'-4'},{id:'-5',text:'-5'},
-    {id:'1',text:'Next'},{id:'2',text:'2'},{id:'3',text:'3'},{id:'4',text:'4'},{id:'5',text:'5'}];
+moqui.dateOffsets = [{id:'0',text:'This'},{id:'-1',text:'Last'},{id:'1',text:'Next'},
+    {id:'-2',text:'-2'},{id:'2',text:'+2'},{id:'-3',text:'-3'},{id:'3',text:'+3'}];
 moqui.datePeriods = [{id:'day',text:'Day'},{id:'7d',text:'7 Days'},{id:'30d',text:'30 Days'},{id:'week',text:'Week'},
     {id:'month',text:'Month'},{id:'year',text:'Year'}];
 moqui.emptyOpt = {id:'',text:'\u00a0'};
 Vue.component('date-period', {
-    props: { name:{type:String,required:true}, allowEmpty:Boolean, offset:String, period:String, form:String },
-    template: '<div class="date-period"><select ref="poffset" :name="name+\'_poffset\'" :form="form"></select>' +
-        '<select ref="period" :name="name+\'_period\'" :form="form"></select></div>',
+    props: { name:{type:String,required:true}, allowEmpty:Boolean, offset:String, period:String, date:String, form:String },
+    template: '<div class="date-period"><select ref="poffset" :name="name+\'_poffset\'" :form="form"></select> ' +
+        '<select ref="period" :name="name+\'_period\'" :form="form"></select> ' +
+        '<date-time :name="name+\'_pdate\'" :form="form" type="date" :value="date"/></div>',
     mounted: function() {
         var pofsEl = $(this.$refs.poffset); var perEl = $(this.$refs.period);
         var offsets = moqui.dateOffsets.slice(); var periods = moqui.datePeriods.slice();
