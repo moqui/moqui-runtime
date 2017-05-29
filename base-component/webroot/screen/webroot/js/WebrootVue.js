@@ -542,7 +542,6 @@ Vue.component('form-link', {
         },
         clearForm: function() {
             var jqEl = $(this.$el);
-            console.log("clearForm");
             jqEl.find(':radio, :checkbox').removeAttr('checked');
             jqEl.find('textarea, :text, select').val('').trigger('change');
         }

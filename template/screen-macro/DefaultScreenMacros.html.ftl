@@ -866,6 +866,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                         <#if formListFindId?has_content><input type="hidden" name="formListFindId" value="${formListFindId}"></#if>
                         <fieldset class="form-horizontal">
+                            <div class="form-group"><div class="col-sm-2">&nbsp;</div><div class="col-sm-10">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="${headerFormId}_clearForm()">Clear Options</button></div></div>
+
                             <#-- Always add an orderByField to select one or more columns to order by -->
                             <div class="form-group">
                                 <label class="control-label col-sm-2" for="${headerFormId}_orderByField">${ec.getL10n().localize("Order By")}</label>
@@ -884,19 +887,25 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                         </#if></#list>
                                     </select>
                                     <input type="hidden" id="${headerFormId}_orderByField" name="orderByField" value="${orderByField!""}">
-                                    <script>
-                                        $("#${headerFormId}_orderBySelect").selectivity({ positionDropdown: function(dropdownEl, selectEl) { dropdownEl.css("width", "300px"); } })[0].selectivity.filterResults = function(results) {
-                                            // Filter out asc and desc options if anyone selected.
-                                            return results.filter(function(item){return !this._data.some(function(data_item) {return data_item.id.substring(1) === item.id.substring(1);});}, this);
-                                        };
-                                        <#assign orderByJsValue = formListInfo.getOrderByActualJsString(ec.getContext().orderByField)>
-                                        <#if orderByJsValue?has_content>$("#${headerFormId}_orderBySelect").selectivity("value", ${orderByJsValue});</#if>
-                                        $("div#${headerFormId}_orderBySelect").on("change", function(evt) {
-                                            if (evt.value) $("#${headerFormId}_orderByField").val(evt.value.join(","));
-                                        });
-                                    </script>
                                 </div>
                             </div>
+                            <script>
+                                function ${headerFormId}_clearForm() {
+                                    var jqEl = $("#${headerFormId}");
+                                    jqEl.find(':radio, :checkbox').removeAttr('checked');
+                                    jqEl.find('textarea, :text, select').val('').trigger('change');
+                                    return false;
+                                }
+                                $("#${headerFormId}_orderBySelect").selectivity({ positionDropdown: function(dropdownEl, selectEl) { dropdownEl.css("width", "300px"); } })[0].selectivity.filterResults = function(results) {
+                                    // Filter out asc and desc options if anyone selected.
+                                    return results.filter(function(item){return !this._data.some(function(data_item) {return data_item.id.substring(1) === item.id.substring(1);});}, this);
+                                };
+                                    <#assign orderByJsValue = formListInfo.getOrderByActualJsString(ec.getContext().orderByField)>
+                                    <#if orderByJsValue?has_content>$("#${headerFormId}_orderBySelect").selectivity("value", ${orderByJsValue});</#if>
+                                $("div#${headerFormId}_orderBySelect").on("change", function(evt) {
+                                    if (evt.value) $("#${headerFormId}_orderByField").val(evt.value.join(","));
+                                });
+                            </script>
                             <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
                                 <#assign headerFieldNode = fieldNode["header-field"][0]>
                                 <#assign defaultFieldNode = (fieldNode["default-field"][0])!>
