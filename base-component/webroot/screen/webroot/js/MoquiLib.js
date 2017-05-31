@@ -146,6 +146,12 @@ var moqui = {
 // set defaults for select2
 $.fn.select2.defaults.set("theme", "bootstrap");
 $.fn.select2.defaults.set("minimumResultsForSearch", "10");
+$.fn.select2.defaults.set("dropdownAutoWidth", true);
+// for select2 with multiple delete item on backspace instead of changing it to text
+$.fn.select2.amd.require(['select2/selection/search'], function (Search) {
+    var oldRemoveChoice = Search.prototype.searchRemoveChoice;
+    Search.prototype.searchRemoveChoice = function () { oldRemoveChoice.apply(this, arguments); this.$search.val(''); };
+});
 // this is a fix for Select2 search input within Bootstrap Modal
 $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 // set validator defaults that work with select2

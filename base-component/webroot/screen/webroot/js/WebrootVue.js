@@ -791,21 +791,25 @@ Vue.component('drop-down', {
         var jqEl = $(this.$el);
         var vm = this; var opts = { minimumResultsForSearch:10 };
         if (this.combo) { opts.tags = true; opts.tokenSeparators = [',',' ']; }
-        if (this.multiple === "multiple") { opts.multiple = true; }
+        if (this.multiple === "multiple") {
+            opts.multiple = true; opts.closeOnSelect = false; opts.width = "100%";
+            jqEl.css("min-width", "240px"); // this gets ignored, not sure why select2 isn't passing it through
+            jqEl.addClass("noResetSelect2"); // so doesn't get reset on container dialog load
+        }
         if (this.options && this.options.length > 0) { opts.data = this.options; }
         if (this.serverSearch) {
             if (!this.optionsUrl) console.error("drop-down in form " + this.form + " has no options-url but has server-search=true");
             opts.ajax = { url:this.optionsUrl, type:"POST", dataType:"json", delay:this.serverDelay, cache:true,
                 data:this.serverData, processResults:this.processResponse, error:moqui.handleAjaxError };
-            opts.minimumInputLength = this.serverMinLength;
-            opts.minimumResultsForSearch = 0;
+            opts.minimumInputLength = this.serverMinLength; opts.minimumResultsForSearch = 0;
             // handle width differently because with no options will go to min-width, for table cells/etc use reasonable min-width
             opts.width = "100%";
             jqEl.css("min-width", "200px");
             jqEl.addClass("noResetSelect2"); // so doesn't get reset on container dialog load
         }
         this.s2Opts = opts;
-        jqEl.select2(opts).on('select2:select', function () { jqEl.select2('open').select2('close'); });
+        jqEl.select2(opts);
+        // needed? was a hack for something, but interferes with closeOnSelect:false for multiple: .on('select2:select', function () { jqEl.select2('open').select2('close'); });
         // needed? caused some issues: .on('change', function () { vm.$emit('input', vm.curVal); })
         var initValue = this.value;
         if (initValue && initValue.length) { this.curVal = initValue; }
