@@ -1748,7 +1748,7 @@ a => A, d => D, y => Y
     <#assign optionsHasCurrent = currentDescription?has_content>
     <#if !optionsHasCurrent && .node["@current-description"]?has_content>
         <#assign currentDescription = ec.getResource().expand(.node["@current-description"], "")></#if>
-    <select name="${name}" class="<#if isDynamicOptions> dynamic-options</#if><#if .node["@style"]?has_content> ${ec.getResource().expand(.node["@style"], "")}</#if><#if validationClasses?has_content> ${validationClasses}</#if><#if isServerSearch> noResetSelect2</#if>"<#if isServerSearch> style="min-width:200px;"</#if> id="${id}"<#if allowMultiple> multiple="multiple"</#if><#if .node["@size"]?has_content> size="${.node["@size"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+    <select name="${name}" class="<#if isDynamicOptions> dynamic-options</#if><#if .node["@style"]?has_content> ${ec.getResource().expand(.node["@style"], "")}</#if><#if validationClasses?has_content> ${validationClasses}</#if><#if isServerSearch || allowMultiple> noResetSelect2</#if>"<#if isServerSearch> style="min-width:200px;"</#if> id="${id}"<#if allowMultiple> multiple="multiple"</#if><#if .node["@size"]?has_content> size="${.node["@size"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
     <#if !allowMultiple>
         <#-- don't add first-in-list or empty option if allowMultiple (can deselect all to be empty, including empty option allows selection of empty which isn't the point) -->
         <#if currentValue?has_content>
@@ -1780,6 +1780,7 @@ a => A, d => D, y => Y
         <#assign doUrlParameterMap = doUrlInfo.getParameterMap()>
         <script>
             var ${id}S2Opts = { <#if .node["@combo-box"]! == "true">tags:true, tokenSeparators:[',',' '],</#if>
+                <#if allowMultiple>closeOnSelect:false,</#if>
                 <#if isServerSearch>minimumResultsForSearch:0, width:"100%", minimumInputLength:${doNode["@min-length"]!"1"},
                 ajax:{ url:"${doUrlInfo.url}", type:"POST", dataType:"json", cache:true, delay:${doNode["@delay"]!"300"},
                     data:function(params) { return { moquiSessionToken: "${(ec.getWeb().sessionToken)!}", term:(params.term || ''), pageIndex:(params.page || 1) - 1
@@ -1809,7 +1810,7 @@ a => A, d => D, y => Y
                 </#if>
             };
             $("#${id}").select2(${id}S2Opts);
-            $("#${id}").on("select2:select", function () { $("#${id}").select2("open").select2("close"); });
+            <#-- $("#${id}").on("select2:select", function () { $("#${id}").select2("open").select2("close"); }); -->
             function populate_${id}(params) {
                 <#if doNode["@depends-optional"]! != "true">
                     var hasAllParms = true;
@@ -1835,7 +1836,7 @@ a => A, d => D, y => Y
                                 <#if allowMultiple && currentValueList?has_content>
                                 if (currentValues.indexOf(optionValue) >= 0) {
                                 <#else>
-                                if (optionValue == "${currentValue}") {
+                                if (optionValue === "${currentValue}") {
                                 </#if>
                                     jqEl.append("<option selected='selected' value='" + optionValue + "'>" + value["${doNode["@label-field"]!"label"}"] + "</option>");
                                 } else {
@@ -1856,8 +1857,8 @@ a => A, d => D, y => Y
 
         </script>
     <#else>
-        <script>$("#${id}").select2({ <#if .node["@combo-box"]! == "true">tags:true, tokenSeparators:[',',' ']</#if> });
-            $("#${id}").on("select2:select", function () { $("#${id}").select2("open").select2("close"); });</script>
+        <script>$("#${id}").select2({ <#if allowMultiple>closeOnSelect:false, width:"100%", </#if><#if .node["@combo-box"]! == "true">tags:true, tokenSeparators:[',',' ']</#if> });</script>
+        <#-- is this really needed any more? $("#${id}").on("select2:select", function () { $("#${id}").select2("open").select2("close"); }); -->
     </#if>
 </#macro>
 
