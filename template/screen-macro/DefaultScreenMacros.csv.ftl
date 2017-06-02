@@ -69,7 +69,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#if textToUse??>
         <#if textToUse["@location"]?has_content>
     <#-- NOTE: this still won't encode templates that are rendered to the writer -->
-    <#if .node["@encode"] == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else/>${sri.renderText(textToUse["@location"], textToUse["@template"]!)}</#if>
+    <#if .node["@encode"]! == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else>${sri.renderText(textToUse["@location"], textToUse["@template"]!)}</#if>
         </#if>
         <#assign inlineTemplateSource = textToUse?string/>
         <#if inlineTemplateSource?has_content>
