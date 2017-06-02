@@ -152,8 +152,8 @@ moqui.notifyMessages = function(messages, errors) {
     if (errors) {
         if (moqui.isArray(errors)) {
             for (var ei=0; ei < errors.length; ei++) {
-                $.notify({message:errors[ei]}, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); moqui.webrootVue.addNotify(errors[ei], 'danger'); notified = true; }
-        } else { $.notify({message:errors}, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'})); moqui.webrootVue.addNotify(errors, 'danger'); notified = true; }
+                $.notify({message:errors[ei]}, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'})); moqui.webrootVue.addNotify(errors[ei], 'danger'); notified = true; }
+        } else { $.notify({message:errors}, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'})); moqui.webrootVue.addNotify(errors, 'danger'); notified = true; }
     }
     return notified;
 };
@@ -167,16 +167,20 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     if (respObj && moqui.isPlainObject(respObj)) { notified = moqui.notifyMessages(respObj.messages, respObj.errors); }
 
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
-    if (jqXHR.status == 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
-    else if (jqXHR.status == 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'}));
+    if (jqXHR.status === 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
+    else if (jqXHR.status === 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'}));
         moqui.webrootVue.addNotify('Could not connect to server', 'danger');}
-    else if (!notified) { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, moqui.notifyOpts, {delay:30000, type:'danger'}));
+    else if (!notified) { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'}));
         moqui.webrootVue.addNotify('Error: ' + errorThrown + ' (' + textStatus + ')', 'danger'); }
 };
 
 /* ========== component loading methods ========== */
 moqui.componentCache = new moqui.LruMap(50);
 
+moqui.handleLoadError = function (jqXHR, textStatus, errorThrown) {
+    moqui.webrootVue.loading = 0;
+    moqui.handleAjaxError(jqXHR, textStatus, errorThrown);
+};
 // NOTE: this may eventually split to change the activeSubscreens only on currentPathList change (for screens that support it)
 //     and if ever needed some sort of data refresh if currentParameters changes
 moqui.loadComponent = function(urlInfo, callback, divId) {
@@ -204,7 +208,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
     if (search && search.length > 0) url += ('?' + search);
 
     console.info("loadComponent " + url + (divId ? " id " + divId : ''));
-    $.ajax({ type:"GET", url:url, error:moqui.handleAjaxError, success: function(resp, status, jqXHR) {
+    $.ajax({ type:"GET", url:url, error:moqui.handleLoadError, success: function(resp, status, jqXHR) {
         // console.info(resp);
         if (!resp) { callback(moqui.NotFound); }
         var isServerStatic = (jqXHR.getResponseHeader("Cache-Control").indexOf("max-age") >= 0);
