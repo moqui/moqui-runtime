@@ -460,11 +460,13 @@ Vue.component('m-form', {
 
                 // console.info('m-form parameters ' + JSON.stringify(formData));
                 // for (var key of formData.keys()) { console.log('m-form key ' + key + ' val ' + JSON.stringify(formData.get(key))); }
+                this.$root.loading++;
                 $.ajax({ type:this.method, url:this.action, data:formData, contentType:false, processData:false,
-                    headers:{Accept:'application/json'}, error:moqui.handleAjaxError, success:this.handleResponse });
+                    headers:{Accept:'application/json'}, error:moqui.handleLoadError, success:this.handleResponse });
             }
         },
         handleResponse: function(resp) {
+            this.$root.loading--;
             var notified = false;
             // console.info('m-form response ' + JSON.stringify(resp));
             if (resp && moqui.isPlainObject(resp)) {
@@ -1022,7 +1024,19 @@ moqui.webrootVue = new Vue({
             $("#screen-document-dialog").modal("show");
             $("#screen-document-dialog-body").load(this.currentPath + '/screenDoc?docIndex=' + docIndex);
         },
-        stopProp: function (e) { e.stopPropagation(); }
+        stopProp: function (e) { e.stopPropagation(); },
+        getNavHref: function(navIndex) {
+            if (!navIndex) navIndex = this.navMenuList.length - 1;
+            var navMenu = this.navMenuList[navIndex];
+            if (navMenu.extraPathList && navMenu.extraPathList.length) {
+                var href = navMenu.path + '/' + navMenu.extraPathList.join('/');
+                var questionIdx = navMenu.pathWithParams.indexOf("?");
+                if (questionIdx > 0) { href += navMenu.pathWithParams.slice(questionIdx + 1); }
+                return href;
+            } else {
+                return navMenu.pathWithParams;
+            }
+        }
     },
     watch: {
         navMenuList: function(newList) { if (newList.length > 0) {
