@@ -1174,7 +1174,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#else><#t><#visit widgetNode></#if>
     </#list>
     <#t>${sri.popContext()}
-    <#if !isMultiFinalRow && !isHeaderField><#if skipCell></div><#else></td></#if></#if>
+    <#if !isMultiFinalRow && !isHeaderField><#if skipCell>&nbsp;</div><#else></td></#if></#if>
 </#macro>
 <#macro "row-actions"><#-- do nothing, these are run by the SRI --></#macro>
 
