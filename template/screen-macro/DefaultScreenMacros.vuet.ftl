@@ -1168,13 +1168,17 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#assign afterFormText><@linkFormForm linkNode linkFormId linkText linkUrlInfo/></#assign>
                     <#t>${sri.appendToAfterScreenWriter(afterFormText)}
                     <#t><@linkFormLink linkNode linkFormId linkText linkUrlInfo/>
-                </#if>
-            </#if>
+                <#else>&nbsp;</#if>
+            <#else>&nbsp;</#if>
         <#elseif widgetNode?node_name == "set"><#-- do nothing, handled above -->
-        <#else><#t><#visit widgetNode></#if>
+        <#else>
+            <#assign widgetNodeText><#visit widgetNode></#assign>
+            <#assign widgetNodeText = widgetNodeText?trim>
+            <#t><#if widgetNodeText?has_content>${widgetNodeText}<#else>&nbsp;</#if>
+        </#if>
     </#list>
     <#t>${sri.popContext()}
-    <#if !isMultiFinalRow && !isHeaderField><#if skipCell>&nbsp;</div><#else></td></#if></#if>
+    <#if !isMultiFinalRow && !isHeaderField><#if skipCell></div><#else></td></#if></#if>
 </#macro>
 <#macro "row-actions"><#-- do nothing, these are run by the SRI --></#macro>
 
