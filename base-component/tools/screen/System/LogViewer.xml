@@ -15,6 +15,8 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-title="Log Viewer" default-menu-index="20">
 
+    <transition name="userAccountDetail"><default-response url="../Security/UserAccount/UserAccountDetail"/></transition>
+
     <actions>
         <set field="esFactory" from="ec.factory.getToolFactory('ElasticSearch')"/>
         <if condition="esFactory == null"><return error="true" message="ElasticSearch is not installed, add moqui-elasticsearch to use this"/></if>
@@ -92,11 +94,14 @@ along with this software (see the LICENSE.md file). If not, see
                 <set field="levelStyle" from="'ERROR'.equals(level) ? 'text-danger' : ('WARN'.equals(level) ? 'text-warning' : ('INFO'.equals(level) ? 'text-success' : ''))"/>
             </row-actions>
             <field name="@timestamp"><default-field container-style="${levelStyle}">
-                <display text="${ec.l10n.format(new Timestamp(context.get('@timestamp')), 'yyyy-MM-dd HH:mm:ss.sss')}"/></default-field></field>
+                <display text="${ec.l10n.format(new Timestamp(context.get('@timestamp')), 'yyyy-MM-dd HH:mm:ss.sss')?.replace(' ', '&amp;nbsp;')}" encode="false"/></default-field></field>
+            <field name="thread_name"><default-field title="thread_name" container-style="${levelStyle}"><display text="${thread_name}(${thread_id}:${thread_priority})"/></default-field></field>
             <field name="level"><default-field title="level" container-style="${levelStyle}"><display/></default-field></field>
             <field name="source_host"><default-field title="source_host" container-style="${levelStyle}"><display/></default-field></field>
-            <field name="thread_name"><default-field title="thread_name" container-style="${levelStyle}"><display text="${thread_name} (${thread_id}:${thread_priority})"/></default-field></field>
             <field name="logger_name"><default-field title="logger_name" container-style="${levelStyle}"><display/></default-field></field>
+            <field name="user_id"><default-field title="user_id">
+                <link url="userAccountDetail" text="${user_id}" link-type="anchor" parameter-map="[userId:user_id]" condition="user_id"/></default-field></field>
+            <field name="visitor_id"><default-field title="visitor_id" container-style="${levelStyle}"><display/></default-field></field>
             <field name="message">
                 <conditional-field condition="message != null &amp;&amp; message.length() &gt; 300">
                     <display text="${message.substring(0, 300)}"/>
@@ -114,6 +119,7 @@ along with this software (see the LICENSE.md file). If not, see
 
             <form-list-column><field-ref name="@timestamp"/><field-ref name="thread_name"/></form-list-column>
             <form-list-column><field-ref name="level"/><field-ref name="source_host"/></form-list-column>
+            <form-list-column><field-ref name="user_id"/><field-ref name="visitor_id"/></form-list-column>
             <form-list-column><field-ref name="logger_name"/><field-ref name="message"/></form-list-column>
             <form-list-column><field-ref name="thrownView"/></form-list-column>
         </form-list>
