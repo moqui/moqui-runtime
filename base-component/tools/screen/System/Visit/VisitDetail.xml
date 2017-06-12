@@ -12,8 +12,8 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
-<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd">
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
+        default-menu-include="false">
 
     <parameter name="visitId" required="true"/>
 
@@ -46,7 +46,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <row-col xs="8"><label text="${ec.l10n.format(visit.fromDate, '')}"/></row-col></container-row>
                 <container-row><row-col xs="4" style="text-right"><label text="Thru Date" type="strong"/></row-col>
                     <row-col xs="8"><label text="${ec.l10n.format(visit.thruDate, '')}"/></row-col></container-row>
-            </row-col><row-col md="4">
+            </row-col><row-col md="3">
                 <container-row><row-col xs="4" style="text-right"><label text="User" type="strong"/></row-col>
                     <row-col xs="8"><link url="userAccountDetail" text="UsernameTemplate" text-map="userAccount" link-type="anchor"
                             parameter-map="[userId:visit.userId]" condition="visit.userId"/></row-col></container-row>
@@ -61,7 +61,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <row-col xs="8"><label text="${visit.clientHostName}"/></row-col></container-row>
                 <container-row><row-col xs="4" style="text-right"><label text="Client IP" type="strong"/></row-col>
                     <row-col xs="8"><label text="${visit.clientIpAddress}"/></row-col></container-row>
-            </row-col><row-col md="4">
+            </row-col><row-col md="5">
                 <container-row><row-col xs="4" style="text-right"><label text="Server Host" type="strong"/></row-col>
                     <row-col xs="8"><label text="${visit.serverHostName}"/></row-col></container-row>
                 <container-row><row-col xs="4" style="text-right"><label text="Server IP" type="strong"/></row-col>
@@ -95,10 +95,8 @@ along with this software (see the LICENSE.md file). If not, see
 
         <form-list name="VisitArtifactHitList" list="artifactHitList" skip-form="true">
             <field name="visitId"><header-field><hidden/></header-field></field>
-            <field name="startDateTime">
-                <header-field show-order-by="true"/>
-                <default-field><display/></default-field>
-            </field>
+            <field name="startDateTime"><header-field show-order-by="true"/>
+                <default-field><display/></default-field></field>
             <field name="userId"><default-field><display/></default-field></field>
 
             <field name="artifactType">
@@ -111,8 +109,7 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="artifactSubType"><default-field title="Sub Type"><display/></default-field></field>
 
             <field name="artifactName"><header-field show-order-by="true"/>
-                <default-field><display/></default-field>
-            </field>
+                <default-field><display/></default-field></field>
             <field name="parameterString"><default-field><display text="${parameterString?.replace(',',' , ') ?: 'N/A'}"/></default-field></field>
 
             <field name="runningTimeMillis"><header-field title="Time" show-order-by="true"/>
@@ -128,8 +125,7 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="errorMessage"><default-field title="Message"><display/></default-field></field>
 
             <field name="requestUrl"><header-field show-order-by="true"/>
-                <default-field><display/></default-field>
-            </field>
+                <default-field><display/></default-field></field>
             <field name="referrerUrl"><default-field><display text="${referrerUrl ?: 'N/A'}"/></default-field></field>
 
             <field name="serverIpAddress"><default-field><display/></default-field></field>

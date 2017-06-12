@@ -24,7 +24,7 @@ along with this software (see the LICENSE.md file). If not, see
         </entity-find>
     </actions>
     <widgets>
-        <form-list name="VisitList" list="visitList" skip-form="true">
+        <form-list name="VisitList" list="visitList" skip-form="true" header-dialog="true">
             <row-actions>
                 <entity-find-count entity-name="moqui.server.ArtifactHit" count-field="hitCount">
                     <econdition field-name="visitId"/></entity-find-count>
@@ -34,38 +34,38 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><display/></default-field>
             </field>
             <field name="visitId">
-                <header-field show-order-by="true"><text-find hide-options="true" size="6"/></header-field>
+                <header-field show-order-by="true"><text-find hide-options="true" size="12"/></header-field>
                 <default-field><link text="${visitId}" url="visitDetail" link-type="anchor"><parameter name="visitId"/></link></default-field>
             </field>
             <field name="visitorId">
-                <header-field show-order-by="true"><text-find hide-options="true" size="6"/></header-field>
+                <header-field show-order-by="true"><text-find hide-options="true" size="12"/></header-field>
                 <default-field><display/></default-field>
             </field>
             <field name="userId">
-                <header-field show-order-by="true"><text-find hide-options="true" size="6"/></header-field>
+                <header-field show-order-by="true"><text-find hide-options="true" size="12"/></header-field>
                 <default-field>
                     <display-entity entity-name="moqui.security.UserAccount" text="UsernameTemplate"/>
                     <link url="userAccountDetail" text="${userId}" link-type="anchor" condition="userId"/>
                 </default-field>
             </field>
             <field name="serverIpAddress">
-                <header-field title="Server IP"><text-find hide-options="true" size="8"/></header-field>
+                <header-field title="Server IP"><text-find hide-options="true" size="20"/></header-field>
                 <default-field><display/></default-field>
             </field>
             <field name="clientIpAddress">
-                <header-field title="Client IP" show-order-by="true"><text-find hide-options="true" size="8"/></header-field>
+                <header-field title="Client IP" show-order-by="true"><text-find hide-options="true" size="20"/></header-field>
                 <default-field><display/></default-field>
             </field>
             <field name="clientIpCountryGeoId">
-                <header-field title="Client Country" show-order-by="true"><text-find hide-options="true" size="3"/></header-field>
+                <header-field title="Client Country" show-order-by="true"><text-find hide-options="true" size="5"/></header-field>
                 <default-field><display-entity entity-name="moqui.basic.Geo" text="${geoId} - ${geoName}"/></default-field>
             </field>
             <field name="initialRequest">
-                <header-field show-order-by="true"><text-find hide-options="true" size="20"/></header-field>
+                <header-field show-order-by="true"><text-find size="30"/></header-field>
                 <default-field><display/></default-field>
             </field>
-            <field name="hitCount"><header-field><label text="Hit Count" type="p"/><submit text="Find"/></header-field>
-                <default-field><display/></default-field></field>
+            <field name="hitCount"><default-field><display/></default-field></field>
+            <field name="findButton"><header-field><submit text="Find"/></header-field></field>
 
             <form-list-column><field-ref name="visitId"/><field-ref name="fromDate"/></form-list-column>
             <form-list-column><field-ref name="visitorId"/><field-ref name="userId"/></form-list-column>
