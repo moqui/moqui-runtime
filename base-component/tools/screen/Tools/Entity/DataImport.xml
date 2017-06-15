@@ -45,6 +45,7 @@ along with this software (see the LICENSE.md file). If not, see
                 List messages = edl.check()
                 if (messages) {
                     ec.message.messages.addAll(messages)
+                    for (String msg in messages) ec.logger.info(msg)
                 } else {
                     ec.message.addMessage(ec.l10n.localize("No differences found in check"))
                 }
