@@ -94,7 +94,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <set field="levelStyle" from="'ERROR'.equals(level) ? 'text-danger' : ('WARN'.equals(level) ? 'text-warning' : ('INFO'.equals(level) ? 'text-success' : ''))"/>
             </row-actions>
             <field name="@timestamp"><default-field container-style="text-nowrap ${levelStyle}">
-                <display text="${ec.l10n.format(new Timestamp(context.get('@timestamp')), 'yyyy-MM-dd HH:mm:ss.sss')}" encode="false"/></default-field></field>
+                <display text="${ec.l10n.format(new Timestamp(context.get('@timestamp')), 'yyyy-MM-dd HH:mm:ss.SSS')}" encode="false"/></default-field></field>
             <field name="thread_name"><default-field title="thread_name" container-style="text-nowrap ${levelStyle}"><display text="${thread_name}(${thread_id}:${thread_priority})"/></default-field></field>
             <field name="level"><default-field title="level" container-style="${levelStyle}"><display/></default-field></field>
             <field name="source_host"><default-field title="source_host" container-style="text-nowrap ${levelStyle}"><display/></default-field></field>
