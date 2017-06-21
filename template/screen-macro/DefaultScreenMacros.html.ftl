@@ -264,7 +264,7 @@ ${sri.renderSection(.node["@name"])}
     <#if conditionResult>
         <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
         <#assign cdDivId><@nodeId .node/></#assign>
-        <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+        <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
         <#if _openDialog! == cdDivId><#assign afterScreenScript>$('#${cdDivId}').modal('show'); </#assign><#t>${sri.appendToScriptWriter(afterScreenScript)}</#if>
         <div id="${cdDivId}" class="modal container-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
             <div class="modal-dialog" style="width: ${.node["@width"]!"760"}px;">
@@ -305,7 +305,7 @@ ${sri.renderSection(.node["@name"])}
         <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
         <#assign ddDivId><@nodeId .node/></#assign>
 
-        <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-primary btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+        <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
         <#assign afterFormText>
         <div id="${ddDivId}" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
             <div class="modal-dialog" style="width: ${.node["@width"]!"760"}px;">
