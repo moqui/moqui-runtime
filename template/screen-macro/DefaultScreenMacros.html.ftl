@@ -201,7 +201,7 @@ ${sri.renderSection(.node["@name"])}
 
 <#macro "container-box">
     <#assign contBoxDivId><@nodeId .node/></#assign>
-    <div class="panel panel-default"<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if>>
+    <div class="panel panel-${.node["@type"]!"default"}"<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if>>
         <div class="panel-heading">
             <#recurse .node["box-header"][0]>
             <#if .node["box-toolbar"]?has_content>

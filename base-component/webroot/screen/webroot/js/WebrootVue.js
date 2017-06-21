@@ -282,12 +282,11 @@ Vue.component('m-stylesheet', {
     created: function() { moqui.loadStylesheet(this.href, this.rel, this.type); }
 });
 /* ========== layout components ========== */
-Vue.component('container-box', { template:
-    '<div class="panel panel-default">' +
-        '<div class="panel-heading">' +
-            '<slot name="header"></slot>' +
-            '<div class="panel-toolbar"><slot name="toolbar"></slot></div>' +
-        '</div>' +
+Vue.component('container-box', {
+    props: { type:{type:String,'default':'default'} },
+    template:
+    '<div :class="\'panel panel-\' + type"><div class="panel-heading"><slot name="header"></slot>' +
+            '<div class="panel-toolbar"><slot name="toolbar"></slot></div></div>' +
         '<slot></slot>' +
     '</div>'
 });
@@ -296,7 +295,7 @@ Vue.component('container-dialog', {
     props: { id:{type:String,required:true}, title:String, width:{type:String,'default':'760'}, openDialog:{type:Boolean,'default':false} },
     data: function() { return { isHidden:true, dialogStyle:{width:this.width + 'px'}}},
     template:
-    '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">' +
+    '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display:none;" tabindex="-1">' +
         '<div class="modal-dialog" :style="dialogStyle"><div class="modal-content">' +
             '<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
                 '<h4 class="modal-title">{{title}}</h4></div>' +

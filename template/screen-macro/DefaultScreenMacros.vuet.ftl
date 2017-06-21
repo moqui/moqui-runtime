@@ -75,7 +75,7 @@ ${sri.renderSection(.node["@name"])}
 
 <#macro "container-box">
     <#assign contBoxDivId><@nodeId .node/></#assign>
-    <container-box<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if>>
+    <container-box<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if> type="${.node["@type"]!"default"}">
         <#-- NOTE: direct use of the container-box component would not use template elements but rather use the 'slot' attribute directly on the child elements which we can't do here -->
         <template slot="header"><#recurse .node["box-header"][0]></template>
         <#if .node["box-toolbar"]?has_content><template slot="toolbar"><#recurse .node["box-toolbar"][0]></template></#if>
