@@ -658,7 +658,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         </div>
                         <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
                             <#assign headerFieldNode = fieldNode["header-field"][0]>
-                            <#assign defaultFieldNode = (fieldNode["default-field"][0])!>
                             <#assign allHidden = true>
                             <#list fieldNode?children as fieldSubNode>
                                 <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
@@ -666,7 +665,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
                             <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") || allHidden ||
                                     ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                    ((fieldNode["header-field"][0]["hidden"])?has_content || (fieldNode["header-field"][0]["ignored"])?has_content)))>
+                                    (headerFieldNode["hidden"]?has_content || headerFieldNode["ignored"]?has_content)))>
                                 <@formSingleWidget headerFieldNode headerFormId "col-sm" false false/>
                             <#elseif (headerFieldNode["hidden"])?has_content>
                                 <#recurse headerFieldNode/>
@@ -885,8 +884,38 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#if>
         </nav>
         </th></tr>
+
+        <#if false && isHeaderDialog>
+        <tr><td colspan="${numColumns}">
+            <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
+                <#assign headerFieldNode = fieldNode["header-field"][0]>
+                <#assign allHidden = true>
+                <#list fieldNode?children as fieldSubNode>
+                    <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
+                </#list>
+                <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") || allHidden ||
+                        ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
+                        (headerFieldNode["hidden"]?has_content || headerFieldNode["ignored"]?has_content)))>
+                    <#t>${sri.pushContext()}
+
+                    <#list headerFieldNode?children as widgetNode><#if widgetNode?node_name == "set">${sri.setInContext(widgetNode)}</#if></#list>
+                    <#list headerFieldNode?children as widgetNode><#if widgetNode?node_name != "set">
+                        <#assign fieldValue><@widgetTextValue widgetNode/></#assign>
+                        <#if fieldValue?has_content>
+                            <strong><@fieldTitle headerFieldNode/></strong>
+                            <span>${fieldValue}</span>
+                        </#if>
+                    </#if></#list>
+                    <#t>${sri.popContext()}
+                </#if>
+            </#if></#list>
+
+        </td></tr>
+        </#if>
     </#if>
 </#macro>
+<#macro widgetTextValue widgetNode>${sri.getFieldValueString(widgetNode)}</#macro>
+
 <#macro "form-list">
     <#if sri.doBoundaryComments()><!-- BEGIN form-list[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
