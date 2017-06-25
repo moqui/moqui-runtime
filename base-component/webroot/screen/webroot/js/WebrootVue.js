@@ -1010,7 +1010,7 @@ moqui.webrootVue = new Vue({
             var nm = nowDate.getMinutes(); if (nm < 10) nm = '0' + nm;
             var ns = nowDate.getSeconds(); if (ns < 10) ns = '0' + ns;
             histList.unshift({message:message, type:type, time:(nh + ':' + nm + ':' + ns)});
-            while (histList.length > 15) { histList.pop(); }
+            while (histList.length > 25) { histList.pop(); }
             this.notifyHistoryList = histList;
         },
         switchDarkLight: function() {
