@@ -165,6 +165,7 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     // console.error('respObj: ' + JSON.stringify(respObj));
     var notified = false;
     if (respObj && moqui.isPlainObject(respObj)) { notified = moqui.notifyMessages(respObj.messages, respObj.errors); }
+    else if (resp && moqui.isString(resp) && resp.length) { notified = moqui.notifyMessages(resp); }
 
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status === 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
@@ -221,7 +222,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
                     callback(jsCompObj);
                 } else {
                     var htmlUrl = (path.slice(-3) === '.js' ? path.slice(0, -3) : path) + '.vuet';
-                    $.ajax({ type:"GET", url:htmlUrl, error:moqui.handleAjaxError, success: function (htmlText) {
+                    $.ajax({ type:"GET", url:htmlUrl, error:moqui.handleLoadError, success: function (htmlText) {
                         jsCompObj.template = htmlText;
                         if (isServerStatic) { moqui.componentCache.put(path, jsCompObj); }
                         callback(jsCompObj);
@@ -1123,8 +1124,12 @@ moqui.webrootVue = new Vue({
                 this.activeContainers = {};
                 // update menu, which triggers update of screen/subscreen components
                 var vm = this;
-                $.ajax({ type:"GET", url:"/menuData" + screenUrl, dataType:"json", error:moqui.handleAjaxError, success: function(outerList) {
-                    if (outerList) { vm.navMenuList = outerList; /* console.info('navMenuList ' + JSON.stringify(outerList)); */ } }});
+                $.ajax({ type:"GET", url:"/menuData" + screenUrl, dataType:"text", error:moqui.handleAjaxError, success: function(outerListText) {
+                    var outerList = null;
+                    console.log("menu response " + outerListText);
+                    try { outerList = JSON.parse(outerListText); } catch (e) { console.info("Error parson menu list JSON: " + e); }
+                    if (outerList && moqui.isArray(outerList)) { vm.navMenuList = outerList; /* console.info('navMenuList ' + JSON.stringify(outerList)); */ }
+                }});
             }
         },
         currentLinkUrl: function() { var srch = this.currentSearch; return this.currentLinkPath + (srch.length > 0 ? '?' + srch : ''); },
