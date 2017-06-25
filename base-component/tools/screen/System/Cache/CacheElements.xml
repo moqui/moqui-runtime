@@ -20,14 +20,14 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="clearCacheElement">
         <actions>
             <script><![CDATA[
-                ec.logger.info("trying to clear key ${key}")
+                ec.logger.info("Clearing cache entry with key ${key} from cache ${cacheName}")
                 javax.cache.Cache theCache = ec.cache.getCache(cacheName)
                 Iterator iter = theCache.iterator()
                 while (iter.hasNext()) {
                     javax.cache.Cache.Entry entry = iter.next()
                     if (key == (entry.key as String)) {
-                        Object cacheValue = theCache.getAndRemove(keyObj)
-                        ec.message.addMessage(ec.resource.expand('Cleared [${key}] from cache [${cacheName}] had value [${cacheValue}]',''))
+                        cacheValue = theCache.getAndRemove(key)
+                        ec.message.addMessage(ec.resource.expand('Cleared ${key} from cache [${cacheName}] had value [${cacheValue}]',''))
                         return
                     }
                 }
