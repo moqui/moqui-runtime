@@ -136,7 +136,7 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="databaseLinks"><default-field title="Database">
                 <!-- <link url="checkAppDatabase" text="Check DB" parameter-map="[appInstanceId:appInstanceId]"/> -->
                 <link url="createAppDatabase" text="Create DB" parameter-map="[appInstanceId:appInstanceId]"
-                      condition="!checkAllBool || (!dbUserExists &amp;&amp; !databaseExists)"/>
+                      condition="!checkAllBool || !databaseExists"/>
             </default-field></field>
             <field name="instanceLinks"><default-field title="Instance">
                 <!-- <link url="checkAppInstance" text="Check" parameter-map="[appInstanceId:appInstanceId]"/> -->
