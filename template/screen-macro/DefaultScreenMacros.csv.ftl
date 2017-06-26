@@ -36,15 +36,15 @@ along with this software (see the LICENSE.md file). If not, see
 <#-- ================ Containers ================ -->
 <#macro container><#recurse></#macro>
 <#macro "container-box">
-    <#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
-    <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
+    <#t><#if .node["box-body"]?has_content><#recurse .node["box-body"][0]></#if>
+    <#t><#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
 </#macro>
 <#macro "container-panel">
-    <#if .node["panel-header"]?has_content><#recurse .node["panel-header"][0]></#if>
-    <#if .node["panel-left"]?has_content><#recurse .node["panel-left"][0]></#if>
-    <#recurse .node["panel-center"][0]>
-    <#if .node["panel-right"]?has_content><#recurse .node["panel-right"][0]></#if>
-    <#if .node["panel-footer"]?has_content><#recurse .node["panel-footer"][0]></#if>
+    <#t><#if .node["panel-header"]?has_content><#recurse .node["panel-header"][0]></#if>
+    <#t><#if .node["panel-left"]?has_content><#recurse .node["panel-left"][0]></#if>
+    <#t><#recurse .node["panel-center"][0]>
+    <#t><#if .node["panel-right"]?has_content><#recurse .node["panel-right"][0]></#if>
+    <#t><#if .node["panel-footer"]?has_content><#recurse .node["panel-footer"][0]></#if>
 </#macro>
 <#macro "container-dialog"><#recurse></#macro>
 
@@ -63,22 +63,22 @@ along with this software (see the LICENSE.md file). If not, see
 
 <#-- ============== Render Mode Elements ============== -->
 <#macro "render-mode">
-<#if .node["text"]?has_content>
+<#t><#if .node["text"]?has_content>
     <#list .node["text"] as textNode><#if !textNode["@type"]?has_content || textNode["@type"] == "any"><#local textToUse = textNode/></#if></#list>
     <#list .node["text"] as textNode><#if textNode["@type"]?has_content && textNode["@type"]?split(",")?seq_contains(sri.getRenderMode())><#local textToUse = textNode></#if></#list>
-    <#if textToUse??>
-        <#if textToUse["@location"]?has_content>
-    <#-- NOTE: this still won't encode templates that are rendered to the writer -->
-    <#if .node["@encode"]! == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else>${sri.renderText(textToUse["@location"], textToUse["@template"]!)}</#if>
+    <#t><#if textToUse??>
+        <#t><#if textToUse["@location"]?has_content>
+            <#-- NOTE: this still won't encode templates that are rendered to the writer -->
+            <#t><#if .node["@encode"]! == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else>${sri.renderText(textToUse["@location"], textToUse["@template"]!)}</#if>
         </#if>
         <#assign inlineTemplateSource = textToUse?string/>
-        <#if inlineTemplateSource?has_content>
-          <#if !textToUse["@template"]?has_content || textToUse["@template"] == "true">
-            <#assign inlineTemplate = [inlineTemplateSource, sri.getActiveScreenDef().location + ".render_mode.text"]?interpret>
-            <@inlineTemplate/>
-          <#else>
-            ${inlineTemplateSource}
-          </#if>
+        <#t><#if inlineTemplateSource?has_content>
+            <#t><#if !textToUse["@template"]?has_content || textToUse["@template"] == "true">
+                <#assign inlineTemplate = [inlineTemplateSource, sri.getActiveScreenDef().location + ".render_mode.text"]?interpret>
+                <#t><@inlineTemplate/>
+            <#else>
+                <#t>${inlineTemplateSource}
+            </#if><#t>
         </#if>
     </#if>
 </#if>
