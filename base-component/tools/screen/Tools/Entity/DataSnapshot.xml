@@ -57,7 +57,7 @@ along with this software (see the LICENSE.md file). If not, see
         ]]></script></actions>
         <default-response url="."/>
     </transition>
-    <transition name="dropForeignKeys">
+    <transition name="dropForeignKeys" begin-transaction="false">
         <actions>
             <script>ec.entity.entityDbMeta.forceCheckExistingTables()</script>
             <set field="dropped" from="ec.entity.getEntityDbMeta().dropAllForeignKeys()"/>
@@ -65,7 +65,7 @@ along with this software (see the LICENSE.md file). If not, see
         </actions>
         <default-response url="."/>
     </transition>
-    <transition name="createForeignKeys">
+    <transition name="createForeignKeys" begin-transaction="false">
         <actions>
             <set field="created" from="ec.entity.getEntityDbMeta().createForeignKeysForExistingTables()"/>
             <message>Created ${created} foreign keys</message>
