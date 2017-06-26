@@ -909,7 +909,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#t>${sri.popContext()}
                 </#if>
             </#if></#list>
-
         </td></tr>
         </#if>
     </#if>
@@ -1564,4 +1563,38 @@ a => A, d => D, y => Y
         <span><input type="checkbox" class="form-control" name="${curFieldName}_ic" value="Y"<#if ignoreCase> checked="checked"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>&nbsp;${ec.getL10n().localize("Ignore Case")}</span>
     </#if>
 </span>
+</#macro>
+
+<#macro widgetTextValue widgetNode>
+    <#assign widgetType = widgetNode?node_name>
+    <#assign noDisplay = ["display", "display-entity", "hidden", "ignored", "password", "reset", "submit", "text-area", "link", "label"]>
+    <#t><#if noDisplay?seq_contains(widgetType)><#return></#if>
+    <#t><#if widgetType == "drop-down">
+        <#-- TODO -->
+    <#elseif widgetType == "check" || widgetType == "radio">
+        <#assign currentValue = sri.getFieldValueString(widgetNode)/>
+        <#if !currentValue?has_content><#return></#if>
+        <#assign options = sri.getFieldOptions(widgetNode)/>
+        <#assign currentLabel = "">
+        <#list (options.keySet())! as key><#if currentValue?has_content && currentValue==key><#assign currentLabel = options.get(key)></#if></#list>
+        <#t><#if currentLabel?has_content>${currentLabel}<#else>${currentValue}</#if>
+    <#elseif widgetType == "text-line">
+        <#assign fieldValue = sri.getFieldValueString(.node)>
+        <#t><#if .node["@ac-transition"]?has_content>
+            <#-- TODO -->
+        <#else>
+            <#t>${fieldValue}
+        </#if><#t>
+    <#elseif widgetType == "date-period">
+        <#-- TODO -->
+    <#elseif widgetType == "date-time">
+        <#-- TODO -->
+    <#elseif widgetType == "date-find">
+        <#-- TODO -->
+    <#elseif widgetType == "range-find">
+        <#-- TODO -->
+    <#else>
+        <#-- handles text-find, ... -->
+        <#t>${sri.getFieldValueString(widgetNode)}
+    </#if><#t>
 </#macro>
