@@ -1040,7 +1040,8 @@ moqui.webrootVue = new Vue({
     },
     watch: {
         navMenuList: function(newList) { if (newList.length > 0) {
-            var cur = newList[newList.length - 1]; var par = newList.length > 1 ? newList[newList.length - 2] : null;
+            var cur = newList[newList.length - 1];
+            var par = newList.length > 1 ? newList[newList.length - 2] : null;
             // if there is an extraPathList set it now
             if (cur.extraPathList) this.extraPathList = cur.extraPathList;
             // make sure full currentPathList and activeSubscreens is populated (necessary for minimal path urls)
@@ -1056,7 +1057,8 @@ moqui.webrootVue = new Vue({
             if (questIdx > 0) {
                 var parmList = curUrl.substring(questIdx+1).split("&");
                 curUrl = curUrl.substring(0, questIdx);
-                var dpCount = 0; var titleParms = "";
+                var dpCount = 0;
+                var titleParms = "";
                 for (var pi=0; pi<parmList.length; pi++) {
                     var parm = parmList[pi]; if (parm.indexOf("pageIndex=") === 0) continue;
                     if (curUrl.indexOf("?") === -1) { curUrl += "?"; } else { curUrl += "&"; }
@@ -1067,10 +1069,13 @@ moqui.webrootVue = new Vue({
                         var key = parm.substring(0, eqIdx);
                         if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || key === "moquiSessionToken") continue;
                         if (titleParms.length > 0) titleParms += ", ";
-                        titleParms += parm.substring(eqIdx + 1);
+                        titleParms += decodeURIComponent(parm.substring(eqIdx + 1));
                     }
                 }
-                if (titleParms.length > 0) newTitle = newTitle + " (" + titleParms + ")";
+                if (titleParms.length > 0) {
+                    if (titleParms.length > 70) titleParms = titleParms.substring(0, 70) + "...";
+                    newTitle = newTitle + " (" + titleParms + ")";
+                }
             }
             var navHistoryList = this.navHistoryList;
             for (var hi=0; hi<navHistoryList.length;) {
@@ -1126,7 +1131,7 @@ moqui.webrootVue = new Vue({
                 var vm = this;
                 $.ajax({ type:"GET", url:"/menuData" + screenUrl, dataType:"text", error:moqui.handleAjaxError, success: function(outerListText) {
                     var outerList = null;
-                    console.log("menu response " + outerListText);
+                    // console.log("menu response " + outerListText);
                     try { outerList = JSON.parse(outerListText); } catch (e) { console.info("Error parson menu list JSON: " + e); }
                     if (outerList && moqui.isArray(outerList)) { vm.navMenuList = outerList; /* console.info('navMenuList ' + JSON.stringify(outerList)); */ }
                 }});
