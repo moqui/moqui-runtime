@@ -704,7 +704,7 @@ Vue.component('date-time', {
         size:String, format:String, tooltip:String, form:String },
     template:
     '<input v-if="type==\'time\'" type="text" class="form-control" :pattern="timePattern" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
-    '<div v-else class="input-group date" id="${tlId}">' +
+    '<div v-else class="input-group date" :id="id">' +
         '<input type="text" class="form-control" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
         '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>' +
     '</div>',
@@ -727,10 +727,10 @@ moqui.datePeriods = [{id:'day',text:'Day'},{id:'7d',text:'7 Days'},{id:'30d',tex
     {id:'month',text:'Month'},{id:'year',text:'Year'},{id:'7r',text:'+/-7d'},{id:'30r',text:'+/-30d'}];
 moqui.emptyOpt = {id:'',text:'\u00a0'};
 Vue.component('date-period', {
-    props: { name:{type:String,required:true}, allowEmpty:Boolean, offset:String, period:String, date:String, form:String },
-    template: '<div class="date-period"><select ref="poffset" :name="name+\'_poffset\'" :form="form"></select> ' +
+    props: { name:{type:String,required:true}, id:String, allowEmpty:Boolean, offset:String, period:String, date:String, form:String },
+    template: '<div class="date-period" :id="id"><select ref="poffset" :name="name+\'_poffset\'" :form="form"></select> ' +
         '<select ref="period" :name="name+\'_period\'" :form="form"></select> ' +
-        '<date-time :name="name+\'_pdate\'" :form="form" type="date" :value="date"/></div>',
+        '<date-time :name="name+\'_pdate\'" :id="id+\'_pdate\'" :form="form" type="date" :value="date"/></div>',
     mounted: function() {
         var pofsEl = $(this.$refs.poffset); var perEl = $(this.$refs.period);
         var offsets = moqui.dateOffsets.slice(); var periods = moqui.datePeriods.slice();
