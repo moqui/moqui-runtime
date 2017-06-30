@@ -885,8 +885,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </nav>
         </th></tr>
 
-        <#if false && isHeaderDialog>
-        <tr><td colspan="${numColumns}">
+        <#if isHeaderDialog>
+        <tr><th colspan="${numColumns}" style="font-weight: normal">
             <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
                 <#assign headerFieldNode = fieldNode["header-field"][0]>
                 <#assign allHidden = true>
@@ -897,23 +897,20 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
                         (headerFieldNode["hidden"]?has_content || headerFieldNode["ignored"]?has_content)))>
                     <#t>${sri.pushContext()}
-
                     <#list headerFieldNode?children as widgetNode><#if widgetNode?node_name == "set">${sri.setInContext(widgetNode)}</#if></#list>
                     <#list headerFieldNode?children as widgetNode><#if widgetNode?node_name != "set">
                         <#assign fieldValue><@widgetTextValue widgetNode/></#assign>
                         <#if fieldValue?has_content>
-                            <strong><@fieldTitle headerFieldNode/></strong>
-                            <span>${fieldValue}</span>
+                            <span style="white-space:nowrap;"><strong><@fieldTitle headerFieldNode/>:</strong> <span class="text-success">${fieldValue}</span></span>
                         </#if>
                     </#if></#list>
                     <#t>${sri.popContext()}
                 </#if>
             </#if></#list>
-        </td></tr>
+        </th></tr>
         </#if>
     </#if>
 </#macro>
-<#macro widgetTextValue widgetNode>${sri.getFieldValueString(widgetNode)}</#macro>
 
 <#macro "form-list">
     <#if sri.doBoundaryComments()><!-- BEGIN form-list[@name=${.node["@name"]}] --></#if>
@@ -1451,10 +1448,10 @@ a => A, d => D, y => Y
     <#assign curFieldName><@fieldName .node/></#assign>
     <#assign tlId><@fieldId .node/></#assign>
 <span class="form-range-find">
-    <span>${ec.getL10n().localize("From")}&nbsp;</span><input type="text" class="form-control" name="${curFieldName}_from" value="${ec.getWeb().parameters.get(curFieldName + "_from")!?default(.node["@default-value-from"]!"")?html}" size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if> id="${tlId}_from"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+    <span>${ec.getL10n().localize("From")}&nbsp;</span><input type="text" class="form-control" name="${curFieldName}_from" value="${ec.getContext().get(curFieldName + "_from")!?default(.node["@default-value-from"]!"")?html}" size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if> id="${tlId}_from"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
 </span>
 <span class="form-range-find">
-    <span>${ec.getL10n().localize("Thru")}&nbsp;</span><input type="text" class="form-control" name="${curFieldName}_thru" value="${ec.getWeb().parameters.get(curFieldName + "_thru")!?default(.node["@default-value-thru"]!"")?html}" size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if> id="${tlId}_thru"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+    <span>${ec.getL10n().localize("Thru")}&nbsp;</span><input type="text" class="form-control" name="${curFieldName}_thru" value="${ec.getContext().get(curFieldName + "_thru")!?default(.node["@default-value-thru"]!"")?html}" size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if> id="${tlId}_thru"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
 </span>
 </#macro>
 
@@ -1570,7 +1567,38 @@ a => A, d => D, y => Y
     <#assign noDisplay = ["display", "display-entity", "hidden", "ignored", "password", "reset", "submit", "text-area", "link", "label"]>
     <#t><#if noDisplay?seq_contains(widgetType)><#return></#if>
     <#t><#if widgetType == "drop-down">
-        <#-- TODO -->
+        <#assign ddFieldNode = widgetNode?parent?parent>
+        <#assign allowMultiple = ec.getResource().expand(widgetNode["@allow-multiple"]!, "") == "true">
+        <#assign isDynamicOptions = widgetNode["dynamic-options"]?has_content>
+        <#assign options = sri.getFieldOptions(widgetNode)>
+        <#assign currentValue = sri.getFieldValuePlainString(ddFieldNode, "")>
+        <#if !currentValue?has_content><#assign currentValue = ec.getResource().expandNoL10n(widgetNode["@no-current-selected-key"]!, "")></#if>
+        <#if currentValue?starts_with("[")><#assign currentValue = currentValue?substring(1, currentValue?length - 1)?replace(" ", "")></#if>
+        <#assign currentValueList = (currentValue?split(","))!>
+        <#if currentValueList?has_content><#if allowMultiple><#assign currentValue=""><#else><#assign currentValue = currentValueList[0]></#if></#if>
+        <#assign currentDescription = (options.get(currentValue))!>
+        <#assign optionsHasCurrent = currentDescription?has_content>
+        <#if !optionsHasCurrent && widgetNode["@current-description"]?has_content><#assign currentDescription = ec.getResource().expand(widgetNode["@current-description"], "")></#if>
+        <#t><#if allowMultiple>
+            <#list currentValueList as listValue>
+                <#t><#if isDynamicOptions>
+                    <#assign doNode = widgetNode["dynamic-options"][0]>
+                    <#assign transValue = sri.getFieldTransitionValue(doNode["@transition"], listValue, doNode["@label-field"]!"label")!>
+                    <#t><#if transValue?has_content>${transValue}<#elseif listValue?has_content>${listValue}</#if><#if listValue_has_next>, </#if>
+                <#else>
+                    <#assign currentDescription = (options.get(listValue))!>
+                    <#t><#if currentDescription?has_content>${currentDescription}<#elseif listValue?has_content>${listValue}</#if><#if listValue_has_next>, </#if>
+                </#if><#t>
+            </#list>
+        <#else>
+            <#t><#if isDynamicOptions>
+                <#assign doNode = widgetNode["dynamic-options"][0]>
+                <#assign transValue = sri.getFieldTransitionValue(doNode["@transition"], currentValue, doNode["@label-field"]!"label")!>
+                <#t><#if transValue?has_content>${transValue}<#elseif currentValue?has_content>${currentValue}</#if>
+            <#else>
+                <#t><#if currentDescription?has_content>${currentDescription}<#elseif currentValue?has_content>${currentValue}</#if>
+            </#if><#t>
+        </#if><#t>
     <#elseif widgetType == "check" || widgetType == "radio">
         <#assign currentValue = sri.getFieldValueString(widgetNode)/>
         <#if !currentValue?has_content><#return></#if>
@@ -1579,20 +1607,42 @@ a => A, d => D, y => Y
         <#list (options.keySet())! as key><#if currentValue?has_content && currentValue==key><#assign currentLabel = options.get(key)></#if></#list>
         <#t><#if currentLabel?has_content>${currentLabel}<#else>${currentValue}</#if>
     <#elseif widgetType == "text-line">
-        <#assign fieldValue = sri.getFieldValueString(.node)>
-        <#t><#if .node["@ac-transition"]?has_content>
-            <#-- TODO -->
+        <#assign fieldValue = sri.getFieldValueString(widgetNode)>
+        <#t><#if widgetNode["@ac-transition"]?has_content>
+            <#assign transValue = sri.getFieldTransitionValue(widgetNode["@ac-transition"], fieldValue, "label")!>
+            <#t><#if transValue?has_content>${transValue}</#if>
         <#else>
-            <#t>${fieldValue}
+            <#t><#if fieldValue?has_content>${fieldValue}</#if>
         </#if><#t>
     <#elseif widgetType == "date-period">
-        <#-- TODO -->
+        <#assign curFieldName><@fieldName widgetNode/></#assign>
+        <#assign fvPeriod = ec.getContext().get(curFieldName + "_period")!?lower_case>
+        <#if fvPeriod?has_content>
+            <#assign fvOffset = ec.getContext().get(curFieldName + "_poffset")!"0">
+            <#assign fvDate = ec.getContext().get(curFieldName + "_pdate")!"">
+            <#t><#if fvOffset == "0">${ec.getL10n().localize("This")}<#elseif fvOffset == "-1">${ec.getL10n().localize("Last")}<#elseif fvOffset == "1">${ec.getL10n().localize("Next")}<#else>${fvOffset}</#if>
+            <#t> <#if fvPeriod == "day">${ec.getL10n().localize("Day")}<#elseif fvPeriod == "7d">7 ${ec.getL10n().localize("Days")}<#elseif fvPeriod == "30d">30 ${ec.getL10n().localize("Days")}<#elseif fvPeriod == "week">${ec.getL10n().localize("Week")}<#elseif fvPeriod == "month">${ec.getL10n().localize("Month")}<#elseif fvPeriod == "year">${ec.getL10n().localize("Year")}<#elseif fvPeriod == "7r">+/-7d<#elseif fvPeriod == "30r">+/-30d</#if>
+            <#t><#if fvDate?has_content> from ${fvDate?html}</#if>
+        </#if>
     <#elseif widgetType == "date-time">
-        <#-- TODO -->
+        <#assign dtFieldNode = widgetNode?parent?parent>
+        <#assign javaFormat = widgetNode["@format"]!>
+        <#t><#if !javaFormat?has_content><#if widgetNode["@type"]! == "time"><#assign javaFormat="HH:mm"><#elseif widgetNode["@type"]! == "date"><#assign javaFormat="yyyy-MM-dd"><#else><#assign javaFormat="yyyy-MM-dd HH:mm"></#if></#if>
+        <#assign fieldValue = sri.getFieldValueString(dtFieldNode, widgetNode["@default-value"]!"", javaFormat)>
+        <#t><#if fieldValue?has_content>${fieldValue?html}</#if>
     <#elseif widgetType == "date-find">
-        <#-- TODO -->
+        <#t><#if widgetNode["@type"]! == "time"><#assign defaultFormat="HH:mm"><#elseif widgetNode["@type"]! == "date"><#assign defaultFormat="yyyy-MM-dd"><#else><#assign defaultFormat="yyyy-MM-dd HH:mm"></#if>
+        <#assign curFieldName><@fieldName widgetNode/></#assign>
+        <#assign fieldValueFrom = ec.getL10n().format(ec.getContext().get(curFieldName + "_from")!?default(widgetNode["@default-value-from"]!""), defaultFormat)>
+        <#assign fieldValueThru = ec.getL10n().format(ec.getContext().get(curFieldName + "_thru")!?default(widgetNode["@default-value-thru"]!""), defaultFormat)>
+        <#t><#if fieldValueFrom?has_content>${ec.getL10n().localize("From")} ${fieldValueFrom?html}</#if>
+        <#t><#if fieldValueThru?has_content>${ec.getL10n().localize("Thru")} ${fieldValueThru?html}</#if>
     <#elseif widgetType == "range-find">
-        <#-- TODO -->
+        <#assign curFieldName><@fieldName widgetNode/></#assign>
+        <#assign fieldValueFrom = ec.getContext().get(curFieldName + "_from")!?default(widgetNode["@default-value-from"]!"")>
+        <#assign fieldValueThru = ec.getContext().get(curFieldName + "_thru")!?default(widgetNode["@default-value-thru"]!"")>
+        <#t><#if fieldValueFrom?has_content>${ec.getL10n().localize("From")} ${fieldValueFrom?html}</#if>
+        <#t><#if fieldValueThru?has_content>${ec.getL10n().localize("Thru")} ${fieldValueThru?html}</#if>
     <#else>
         <#-- handles text-find, ... -->
         <#t>${sri.getFieldValueString(widgetNode)}
