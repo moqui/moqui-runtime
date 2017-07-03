@@ -168,11 +168,12 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     else if (resp && moqui.isString(resp) && resp.length) { notified = moqui.notifyMessages(resp); }
 
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
-    if (jqXHR.status === 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); } }
-    else if (jqXHR.status === 0) { $.notify({ message:'Could not connect to server' }, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'}));
-        moqui.webrootVue.addNotify('Could not connect to server', 'danger');}
-    else if (!notified) { $.notify({ message:'Error: ' + errorThrown + ' (' + textStatus + ')' }, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'}));
-        moqui.webrootVue.addNotify('Error: ' + errorThrown + ' (' + textStatus + ')', 'danger'); }
+    if (jqXHR.status === 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); }
+    } else if (jqXHR.status === 0) { if (errorThrown.indexOf('abort') < 0) { var msg = 'Could not connect to server';
+        $.notify({ message:msg }, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'})); moqui.webrootVue.addNotify(msg, 'danger'); }
+    } else if (!notified) { var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
+        $.notify({ message:errMsg }, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'})); moqui.webrootVue.addNotify(errMsg, 'danger');
+    }
 };
 
 /* ========== component loading methods ========== */
