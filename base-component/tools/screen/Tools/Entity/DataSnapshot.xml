@@ -30,7 +30,7 @@ along with this software (see the LICENSE.md file). If not, see
         </actions>
         <default-response url="."/>
     </transition>
-    <transition name="downloadSnapshot" begin-transaction="false">
+    <transition name="downloadSnapshot" begin-transaction="false" read-only="true">
         <actions><script>ec.web.sendResourceResponse("db/snapshot/" + filename)</script></actions>
         <default-response type="none"/>
     </transition>

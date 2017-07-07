@@ -29,7 +29,8 @@ along with this software (see the LICENSE.md file). If not, see
             <container-box><box-header><label text="Server Admin" type="h5"/></box-header><box-body>
                 <link url="../Cache" text="Cache Stats and Mgmt"/>
                 <link url="../Instance" text="Instance Mgmt"/>
-                <link url="../Print" text="Print Servers and Jobs"/>
+                <link url="../Print/Printer" text="Printers"/>
+                <link url="../Print/PrintJob" text="Print Jobs"/>
                 <link url="../ServiceJob" text="Service Jobs"/>
             </box-body></container-box>
             <container-box><box-header><label text="Security" type="h5"/></box-header><box-body>
