@@ -1598,6 +1598,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <option value="30d" <#if fvPeriod == "30d"> selected="selected"</#if>>30 ${ec.getL10n().localize("Days")}</option>
             <option value="week" <#if fvPeriod == "week"> selected="selected"</#if>>${ec.getL10n().localize("Week")}</option>
             <option value="month" <#if fvPeriod == "month"> selected="selected"</#if>>${ec.getL10n().localize("Month")}</option>
+            <option value="quarter" <#if fvPeriod == "quarter"> selected="selected"</#if>>${ec.getL10n().localize("Quarter")}</option>
             <option value="year" <#if fvPeriod == "year"> selected="selected"</#if>>${ec.getL10n().localize("Year")}</option>
             <option value="7r" <#if fvPeriod == "7r"> selected="selected"</#if>>+/-7d</option>
             <option value="30r" <#if fvPeriod == "30r"> selected="selected"</#if>>+/-30d</option>

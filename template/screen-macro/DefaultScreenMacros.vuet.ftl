@@ -1620,9 +1620,7 @@ a => A, d => D, y => Y
         <#if fvPeriod?has_content>
             <#assign fvOffset = ec.getContext().get(curFieldName + "_poffset")!"0">
             <#assign fvDate = ec.getContext().get(curFieldName + "_pdate")!"">
-            <#t><#if fvOffset == "0">${ec.getL10n().localize("This")}<#elseif fvOffset == "-1">${ec.getL10n().localize("Last")}<#elseif fvOffset == "1">${ec.getL10n().localize("Next")}<#else>${fvOffset}</#if>
-            <#t> <#if fvPeriod == "day">${ec.getL10n().localize("Day")}<#elseif fvPeriod == "7d">7 ${ec.getL10n().localize("Days")}<#elseif fvPeriod == "30d">30 ${ec.getL10n().localize("Days")}<#elseif fvPeriod == "week">${ec.getL10n().localize("Week")}<#elseif fvPeriod == "month">${ec.getL10n().localize("Month")}<#elseif fvPeriod == "year">${ec.getL10n().localize("Year")}<#elseif fvPeriod == "7r">+/-7d<#elseif fvPeriod == "30r">+/-30d</#if>
-            <#t><#if fvDate?has_content> from ${fvDate?html}</#if>
+            <#t>${ec.getUser().getPeriodDescription(fvPeriod, fvOffset, fvDate)}
         </#if>
     <#elseif widgetType == "date-time">
         <#assign dtFieldNode = widgetNode?parent?parent>
