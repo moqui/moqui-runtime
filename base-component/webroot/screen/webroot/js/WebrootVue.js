@@ -725,7 +725,7 @@ Vue.component('date-time', {
 moqui.dateOffsets = [{id:'0',text:'This'},{id:'-1',text:'Last'},{id:'1',text:'Next'},
     {id:'-2',text:'-2'},{id:'2',text:'+2'},{id:'-3',text:'-3'},{id:'3',text:'+3'}];
 moqui.datePeriods = [{id:'day',text:'Day'},{id:'7d',text:'7 Days'},{id:'30d',text:'30 Days'},{id:'week',text:'Week'},
-    {id:'month',text:'Month'},{id:'year',text:'Year'},{id:'7r',text:'+/-7d'},{id:'30r',text:'+/-30d'}];
+    {id:'month',text:'Month'},{id:'quarter',text:'Quarter'},{id:'year',text:'Year'},{id:'7r',text:'+/-7d'},{id:'30r',text:'+/-30d'}];
 moqui.emptyOpt = {id:'',text:'\u00a0'};
 Vue.component('date-period', {
     props: { name:{type:String,required:true}, id:String, allowEmpty:Boolean, offset:String, period:String, date:String, form:String },
