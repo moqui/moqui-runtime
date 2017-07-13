@@ -90,7 +90,7 @@ along with this software (see the LICENSE.md file). If not, see
                     </form-single>
                 </container-dialog>
                 <link url="enableUserAccount" text="Enable Account" parameter-map="[userId:userId]" condition="userAccount.disabled == 'Y'"/>
-                <link url="disableUserAccount" text="Disable Account" parameter-map="[userId:userId]" condition="userAccount.disabled == 'N'"/>
+                <link url="disableUserAccount" text="Disable Account" parameter-map="[userId:userId]" condition="userAccount.disabled != 'Y'"/>
                 <container-dialog id="TopicUserDialog" button-text="Topic Subscriptions">
                     <form-list name="NotificationTopicList" list="notificationTopicList" transition="topicSubscriptions" multi="true">
                         <row-actions>
