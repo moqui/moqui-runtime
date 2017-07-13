@@ -712,14 +712,16 @@ Vue.component('date-time', {
     computed: {
         formatVal: function() { var format = this.format; if (format && format.length > 0) { return format; }
             return this.type === 'time' ? 'HH:mm' : (this.type === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm'); },
+        extraFormatsVal: function() { return this.type === 'time' ? ['LT', 'LTS', 'HH:mm'] :
+            (this.type === 'date' ? ['l', 'L', 'YYYY-MM-DD'] : ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD HH:mm:ss', 'MM/DD/YYYY HH:mm']); },
         sizeVal: function() { var size = this.size; if (size && size.length > 0) { return size; }
             return this.type === 'time' ? '9' : (this.type === 'date' ? '10' : '16'); },
         timePattern: function() { return '^(?:(?:([01]?\\d|2[0-3]):)?([0-5]?\\d):)?([0-5]?\\d)$'; }
     },
     mounted: function() {
         var value = this.value;
-        if (this.type !== "time") { $(this.$el).datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true,
-            defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:this.formatVal, stepping:5, locale:this.$root.locale}); }
+        if (this.type !== "time") { $(this.$el).datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true,
+            defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:this.formatVal, extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale}); }
     }
 });
 moqui.dateOffsets = [{id:'0',text:'This'},{id:'-1',text:'Last'},{id:'1',text:'Next'},
