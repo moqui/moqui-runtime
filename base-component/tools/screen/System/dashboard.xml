@@ -65,6 +65,13 @@ along with this software (see the LICENSE.md file). If not, see
         <container-box><box-header><label text="System Information" type="h5"/></box-header><box-toolbar>
             <link url="threadList" text="Thread List"/>
         </box-toolbar><box-body>
+            <container-row><row-col sm="4">
+                <label text="Uptime: ${ec.l10n.format(smap.JavaRuntime.UptimeHours, '#,##0.00')} hours" type="strong"/>
+            </row-col><row-col sm="4">
+                <label text="Locale: ${Locale.getDefault()}" type="strong"/>
+            </row-col><row-col sm="4">
+                <label text="Time Zone: ${TimeZone.getDefault().getID()} GMT${ec.l10n.format(TimeZone.getDefault().getRawOffset()/(1000*60*60), '+00.0;-00.0')} DST ${TimeZone.getDefault().getDSTSavings()/(1000*60*60)}" type="strong"/>
+            </row-col></container-row>
             <container-row><row-col md="4">
                 <container-row><row-col xs="5"><label text="Heap Memory" type="strong"/></row-col>
                     <row-col xs="7"><label text="Heap: ${ec.l10n.format(heapPercent, '00.0')}%" style="${heapPercent &lt; 70 ? 'text-success' : (heapPercent &lt; 90 ? 'text-warn' : 'text-danger' )}"/></row-col></container-row>
