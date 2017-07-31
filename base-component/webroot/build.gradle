@@ -47,6 +47,7 @@ def fileMap = [
     "jquery/3.2.1/jquery.min.js":"",
 
     "jquery.form/4.2.1/jquery.form.min.js":"",
+    "jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js":"",
 
     // can get jquery-sortable-lists from cdnjs? http://camohub.github.io/jquery-sortable-lists/
 
@@ -85,7 +86,7 @@ String getTargetPath(String sourcePath, String targetPath) {
 task downloadFiles { doLast {
     for (Map.Entry fileEntry in fileMap.entrySet()) {
         String sourcePath = fileEntry.key
-        String targetPath = getTargetPath(sourcePath, fileEntry.value)
+        String targetPath = getTargetPath(sourcePath, (String) fileEntry.value)
 
         File targetFile = file(libsPath + '/' + targetPath)
         if (targetFile.exists()) continue
@@ -104,6 +105,8 @@ baseJs.add(libsPath + '/jquery/jquery.min.js')
 baseJs.add(libsPath + '/twitter-bootstrap/js/bootstrap.min.js')
 // Autocomplete (Twitter TypeAhead)
 baseJs.add(libsPath + '/typeahead.js/typeahead.jquery.min.js')
+// Input Masking
+baseJs.add(libsPath + '/jquery.inputmask/jquery.inputmask.bundle.min.js')
 // Form Validation and AJAX (jquery-validation, jquery-form)
 baseJs.add(libsPath + '/jquery-validate/jquery.validate.min.js')
 baseJs.add(libsPath + '/jquery-validate/additional-methods.min.js')
