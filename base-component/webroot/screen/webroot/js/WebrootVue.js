@@ -720,8 +720,12 @@ Vue.component('date-time', {
     },
     mounted: function() {
         var value = this.value;
-        if (this.type !== "time") { $(this.$el).datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true,
-            defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:this.formatVal, extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale}); }
+        var format = this.formatVal;
+        var jqEl = $(this.$el);
+        if (this.type !== "time") { jqEl.datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true,
+            defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format, extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale}); }
+        if (format === "YYYY-MM-DD") { jqEl.find('input').inputmask("yyyy-mm-dd", { clearIncomplete:false, clearMaskOnLostFocus:false, showMaskOnFocus:false, showMaskOnHover:false }); }
+        if (format === "YYYY-MM-DD HH:mm") { jqEl.find('input').inputmask("yyyy-mm-dd hh:mm", { clearIncomplete:false, clearMaskOnLostFocus:false, showMaskOnFocus:false, showMaskOnHover:false }); }
     }
 });
 moqui.dateOffsets = [{id:'0',text:'This'},{id:'-1',text:'Last'},{id:'1',text:'Next'},
