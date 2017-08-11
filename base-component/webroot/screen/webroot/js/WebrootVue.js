@@ -772,7 +772,9 @@ Vue.component('drop-down', {
             var reqData = { moquiSessionToken: this.$root.moquiSessionToken };
             for (var parmName in parmMap) { if (parmMap.hasOwnProperty(parmName)) reqData[parmName] = parmMap[parmName]; }
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
-                var doValue = $('#' + dependsOnMap[doParm]).val(); if (!doValue) { hasAllParms = false; } reqData[doParm] = doValue; }}
+                var doValue = $('#' + dependsOnMap[doParm]).val();
+                if (!doValue || doValue === "\u00a0") { hasAllParms = false; } else { reqData[doParm] = doValue; }
+            }}
             if (params) { reqData.term = params.term || ''; reqData.pageIndex = (params.page || 1) - 1; }
             else if (this.serverSearch) { reqData.term = ''; reqData.pageIndex = 0; }
             reqData.hasAllParms = hasAllParms;
