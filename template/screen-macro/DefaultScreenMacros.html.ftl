@@ -1998,9 +1998,8 @@ a => A, d => D, y => Y
         <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
         <#t><#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if>
         <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-        <#if .node["@mask"]?has_content>
-            <m-script>$('#${id}').inputmask("${ec.getResource().expand(.node["@mask"], "")}");</m-script>
-        </#if>
+        <#assign expandedMask = ec.getResource().expand(.node["@mask"], "")!>
+        <#if expandedMask?has_content><script>$('#${id}').inputmask("${expandedMask}");</script></#if>
         <#if .node["@default-transition"]?has_content>
             <#assign defUrlInfo = sri.makeUrlByType(.node["@default-transition"], "transition", .node, "false")>
             <#assign defUrlParameterMap = defUrlInfo.getParameterMap()>

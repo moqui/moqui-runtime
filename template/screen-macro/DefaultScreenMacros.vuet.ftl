@@ -1512,9 +1512,8 @@ a => A, d => D, y => Y
             <#t><#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if>
             <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
             <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-        <#if .node["@mask"]?has_content>
-            <m-script>$('#${tlId}').inputmask("${ec.getResource().expand(.node["@mask"], "")}");</m-script>
-        </#if>
+        <#assign expandedMask = ec.getResource().expand(.node["@mask"], "")!>
+        <#if expandedMask?has_content><m-script>$('#${tlId}').inputmask("${expandedMask}");</m-script></#if>
         <#if .node["@default-transition"]?has_content>
             <#assign defUrlInfo = sri.makeUrlByType(.node["@default-transition"], "transition", .node, "false")>
             <#assign defUrlParameterMap = defUrlInfo.getParameterMap()>
