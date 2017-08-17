@@ -720,8 +720,12 @@ Vue.component('date-time', {
     },
     mounted: function() {
         var value = this.value;
-        if (this.type !== "time") { $(this.$el).datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true,
-            defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:this.formatVal, extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale}); }
+        var format = this.formatVal;
+        var jqEl = $(this.$el);
+        if (this.type !== "time") { jqEl.datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true,
+            defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format, extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale}); }
+        if (format === "YYYY-MM-DD") { jqEl.find('input').inputmask("yyyy-mm-dd", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:true }); }
+        if (format === "YYYY-MM-DD HH:mm") { jqEl.find('input').inputmask("yyyy-mm-dd hh:mm", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:true }); }
     }
 });
 moqui.dateOffsets = [{id:'0',text:'This'},{id:'-1',text:'Last'},{id:'1',text:'Next'},
@@ -768,7 +772,9 @@ Vue.component('drop-down', {
             var reqData = { moquiSessionToken: this.$root.moquiSessionToken };
             for (var parmName in parmMap) { if (parmMap.hasOwnProperty(parmName)) reqData[parmName] = parmMap[parmName]; }
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
-                var doValue = $('#' + dependsOnMap[doParm]).val(); if (!doValue) { hasAllParms = false; } reqData[doParm] = doValue; }}
+                var doValue = $('#' + dependsOnMap[doParm]).val();
+                if (!doValue || doValue === "\u00a0") { hasAllParms = false; } else { reqData[doParm] = doValue; }
+            }}
             if (params) { reqData.term = params.term || ''; reqData.pageIndex = (params.page || 1) - 1; }
             else if (this.serverSearch) { reqData.term = ''; reqData.pageIndex = 0; }
             reqData.hasAllParms = hasAllParms;
