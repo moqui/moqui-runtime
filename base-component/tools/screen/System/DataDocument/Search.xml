@@ -24,6 +24,8 @@ along with this software (see the LICENSE.md file). If not, see
         </if>
     </actions>
     <widgets>
+        <link url="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax"
+                url-type="plain" link-type="anchor" target-window="_blank" text="Search String Reference"/>
         <form-single name="SearchOptions" transition=".">
             <field name="indexName"><default-field title="">
                 <drop-down>
@@ -41,7 +43,9 @@ along with this software (see the LICENSE.md file). If not, see
                     <text-line ac-transition="searchSuggest" ac-min-length="3" size="40"/> -->
             </default-field></field>
             <field name="submitButton"><default-field title="Search"><submit/></default-field></field>
-            <field-layout><field-row-big><field-ref name="indexName"/><field-ref name="queryString"/><field-ref name="submitButton"/></field-row-big></field-layout>
+
+            <field-layout><field-row-big><field-ref name="indexName"/><field-ref name="queryString"/>
+                <field-ref name="submitButton"/></field-row-big></field-layout>
         </form-single>
 
         <form-list name="SearchResults" list="documentList" paginate="true" paginate-always-show="true">
