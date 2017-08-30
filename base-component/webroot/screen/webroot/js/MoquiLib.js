@@ -168,6 +168,7 @@ $.fn.select2.amd.require(['select2/selection/search'], function (Search) {
     var oldRemoveChoice = Search.prototype.searchRemoveChoice;
     Search.prototype.searchRemoveChoice = function () { oldRemoveChoice.apply(this, arguments); this.$search.val(''); };
 });
+$.fn.select2.defaults.set("selectOnClose", true);
 // this is a fix for Select2 search input within Bootstrap Modal
 $.fn.modal.Constructor.prototype.enforceFocus = function() {};
 // set validator defaults that work with select2
