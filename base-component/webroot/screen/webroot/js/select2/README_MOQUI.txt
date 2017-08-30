@@ -1,13 +1,36 @@
-
 Note for when updating Select2:
 
+2016-12-03:
 When not using width=100% (as is common with Bootstrap) Select2 drop-downs
 are not wide enough using the default calculation. To fix change:
 
-if("element"==b){var e=a.outerWidth(!1);return 0>=e?"auto":e+"px"}
+In the source version, this is in the core.js file, in the function:
+  Select2.prototype._resolveWidth = function ($element, method) {
 
-to this (in select2.min.js):
+and this line:
+  return elementWidth + 'px';
 
-if("element"==b){var e=a.outerWidth(!1);return 0>=e?"auto":(e+24)+"px"}
+is changed to this:
+  return (elementWidth+24) + 'px';
 
-In the minified form this is in the e.prototype._resolveWidth=function(a,b) method.
+
+2017-08-30:
+Fix for selectOnClose option, causing it to only occur with the TAB key:
+
+In core.js, this line:
+        if (key === KEYS.ESC || key === KEYS.TAB ||
+
+is replaced with this:
+        if (key === KEYS.TAB) {
+          self.options.set('okToSelectOnClose', true);
+          self.close();
+
+          evt.preventDefault();
+          self.options.set('okToSelectOnClose', false);
+        } else if (key === KEYS.ESC ||
+
+Additionally, in selectOnClose.js, immediately after this function declaration:
+  SelectOnClose.prototype._handleSelectOnClose = function (_, params) {
+
+Add the following line:
+    if( !this.options.get('okToSelectOnClose') ) return;
