@@ -5377,6 +5377,23 @@ S2.define('select2/core',[
 
           evt.preventDefault();
           self.options.set('okToSelectOnClose', false);
+
+          // Attempt to pass focus to the next input element
+          var el = self.$element[0];
+          var f = el.form;
+          var els = f.elements;
+          var x, nextEl;
+          for (var i=0, len=els.length; i<len; i++) {
+            x = els[i];
+            if (el == x) {
+              // Depending on whether shift is pressed to focus next/previous
+              nextEl = evt.shiftKey ? els[i == 0 ? len-1 : (i-1)] : els[i == len-1 ? 0 : (i+1)];
+              if (nextEl.focus) {
+                nextEl.focus();
+                break;
+              }
+            }
+          }
         } else if (key === KEYS.ESC ||
         // if (key === KEYS.ESC || key === KEYS.TAB ||
             (key === KEYS.UP && evt.altKey)) {

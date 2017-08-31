@@ -34,3 +34,8 @@ Additionally, in selectOnClose.js, immediately after this function declaration:
 
 Add the following line:
     if( !this.options.get('okToSelectOnClose') ) return;
+
+
+2017-08-31:
+Added additional logic to more naturally handle (Shift) Tab keypresses,
+causing focus to move to the next/previous element immediately.
