@@ -27,12 +27,8 @@ along with this software (see the LICENSE.md file). If not, see
         <actions><service-call name="update#${den}" in-map="true"/></actions>
         <default-response url="." parameter-map="ec.entity.getEntityDefinition(aen).getPrimaryKeys(context)"/>
     </transition>
-    <transition name="listSubmit">
-        <actions><if condition="delete"><service-call name="delete#${den}" in-map="true"/></if></actions>
-        <conditional-response url="."><condition><expression>delete</expression></condition></conditional-response>
-        <default-response url="../AutoEditMaster" parameter-map="ec.entity.getEntityDefinition(den).getPrimaryKeys(context)">
-            <parameter name="den" from="aen"/><parameter name="aen" from="den"/></default-response>
-    </transition>
+    <transition name="deleteRecord"><actions><service-call name="delete#${den}" in-map="context"/></actions>
+        <default-response url="."/></transition>
     <transition name="getFormXml">
         <actions><script><![CDATA[
             import org.moqui.util.MNode
@@ -62,9 +58,8 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
-        <entity-find entity-name="${den}" list="entityValueList" offset="0" limit="50">
-            <search-form-inputs/>
-        </entity-find>
+        <entity-find entity-name="${den}" list="entityValueList" offset="0" limit="50" cache="false">
+            <search-form-inputs/></entity-find>
     </actions>
     <widgets>
         <container>
@@ -79,12 +74,22 @@ along with this software (see the LICENSE.md file). If not, see
                 </form-single>
             </container-dialog>
         </container>
-        <form-list name="ListEntityValue" list="entityValueList" transition="listSubmit" multi="false" dynamic="true">
-            <field name="aen"><default-field><hidden/></default-field></field>
-            <field name="den"><default-field><hidden/></default-field></field>
-            <field name="edit"><default-field title="Edit"><submit/></default-field></field>
-            <field name="delete"><default-field title="Delete"><submit confirmation="Are you sure?"/></default-field></field>
-            <auto-fields-entity entity-name="${den}" field-type="display"/>
+        <form-list name="ListEntityValue" list="entityValueList" list-entry="entityValue" header-dialog="true" skip-form="true" dynamic="true">
+            <field name="aen"><header-field><hidden/></header-field><default-field><hidden/></default-field></field>
+            <field name="den"><header-field><hidden/></header-field><default-field><hidden/></default-field></field>
+            <field name="edit">
+                <header-field title="Find"><submit/></header-field>
+                <conditional-field title="" condition="entityValue != null">
+                    <link url="../AutoEditMaster" text="" icon="glyphicon glyphicon-pencil"
+                            parameter-map="entityValue.getPrimaryKeys() + [aen:den, den:null]"/></conditional-field>
+                <default-field><display text=" "/></default-field>
+            </field>
+            <field name="delete">
+                <conditional-field title="" condition="entityValue != null"><link url="deleteRecord" text="" icon="glyphicon glyphicon-trash"
+                        confirmation="Are you sure?" parameter-map="entityValue.getPrimaryKeys()"/></conditional-field>
+                <default-field><display text=" "/></default-field>
+            </field>
+            <auto-fields-entity entity-name="${den}" field-type="find-display"/>
         </form-list>
         <link url="getFormXml" text="Get Forms XML" link-type="hidden-form-link"/>
     </widgets>

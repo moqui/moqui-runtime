@@ -114,7 +114,7 @@ baseJs.add(libsPath + '/jquery-validate/additional-methods.min.js')
 baseJs.add(libsPath + '/moment.js/moment-with-locales.min.js')
 baseJs.add(libsPath + '/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js')
 // Drop-down (Select2, Selectivity)
-baseJs.add(webrootPath + '/js/select2/select2.min.js')
+baseJs.add(webrootPath + '/js/select2.min.js')
 baseJs.add(libsPath + '/Selectivity.js/selectivity-full.min.js')
 // Notify/Growl (Bootstrap Notify)
 baseJs.add(libsPath + '/mouse0270-bootstrap-notify/bootstrap-notify.min.js')
@@ -138,6 +138,11 @@ vuetJs.add(libsPath + '/vue/vue.min.js')
 vuetJs.add(webrootPath + '/js/WebrootVue.min.js')
 
 
+task minifySelect2(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
+    source = file("${webrootPath}/js/select2/select2.js")
+    dest = file("${webrootPath}/js/select2.min.js")
+    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
+}
 task minifyMoquiLib(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     source = file("${webrootPath}/js/MoquiLib.js")
     dest = file("${webrootPath}/js/MoquiLib.min.js")
@@ -145,6 +150,7 @@ task minifyMoquiLib(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
 }
 task combineBaseJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dependsOn downloadFiles
+    dependsOn minifySelect2
     dependsOn minifyMoquiLib
     encoding = "UTF-8"
     source = baseJs

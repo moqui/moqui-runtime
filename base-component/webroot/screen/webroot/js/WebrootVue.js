@@ -285,12 +285,15 @@ Vue.component('m-stylesheet', {
 });
 /* ========== layout components ========== */
 Vue.component('container-box', {
-    props: { type:{type:String,'default':'default'} },
+    props: { type:{type:String,'default':'default'}, title:String, initialOpen:{type:Boolean,'default':true} },
+    data: function() { return { isBodyOpen:this.initialOpen }},
     template:
-    '<div :class="\'panel panel-\' + type"><div class="panel-heading"><slot name="header"></slot>' +
+    '<div :class="\'panel panel-\' + type"><div class="panel-heading" @click.self="toggleBody">' +
+            '<h5 v-if="title && title.length" @click="toggleBody">{{title}}</h5><slot name="header"></slot>' +
             '<div class="panel-toolbar"><slot name="toolbar"></slot></div></div>' +
-        '<slot></slot>' +
-    '</div>'
+        '<div class="panel-collapse collapse" :class="{in:isBodyOpen}"><slot></slot></div>' +
+    '</div>',
+    methods: { toggleBody: function() { this.isBodyOpen = !this.isBodyOpen; } }
 });
 Vue.component('box-body', { template: '<div class="panel-body"><slot></slot></div>' });
 Vue.component('container-dialog', {
