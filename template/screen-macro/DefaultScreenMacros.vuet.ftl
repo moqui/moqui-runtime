@@ -76,9 +76,9 @@ ${sri.renderSection(.node["@name"])}
 <#macro "container-box">
     <#assign contBoxDivId><@nodeId .node/></#assign>
     <#assign boxHeader = .node["box-header"][0]!>
-    <container-box<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if> type="${.node["@type"]!"default"}"<#if boxHeader?has_content> title="${ec.getResource().expand(boxHeader["@title"]!"", "")}"</#if> :initial-open="<#if ec.getResource().expand(.node["@initial"]!, "") == "closed">false<#else>true</#if>">
+    <container-box<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if> type="${.node["@type"]!"default"}"<#if boxHeader??> title="${ec.getResource().expand(boxHeader["@title"]!"", "")}"</#if> :initial-open="<#if ec.getResource().expand(.node["@initial"]!, "") == "closed">false<#else>true</#if>">
         <#-- NOTE: direct use of the container-box component would not use template elements but rather use the 'slot' attribute directly on the child elements which we can't do here -->
-        <#if boxHeader?has_content><template slot="header"><#recurse boxHeader></template></#if>
+        <#if boxHeader??><template slot="header"><#recurse boxHeader></template></#if>
         <#if .node["box-toolbar"]?has_content><template slot="toolbar"><#recurse .node["box-toolbar"][0]></template></#if>
         <#if .node["box-body"]?has_content><box-body><#recurse .node["box-body"][0]></box-body></#if>
         <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
