@@ -29,4 +29,5 @@
 </#list>
 </head>
 <#assign bodyClassList = sri.getThemeValues("STRT_BODY_CLASS")>
-<body class="${(ec.user.getPreference("OUTER_STYLE")!(bodyClassList?first))!"bg-light"} ${(sri.screenUrlInfo.targetScreen.screenName)!""}<#if hideNav! == "true"> hide-nav</#if>"><!-- try "bg-dark" or "bg-light" -->
+<#assign instancePurpose = Static["java.lang.System"].getProperty("instance_purpose")!"production">
+<body class="${instancePurpose} ${(ec.user.getPreference("OUTER_STYLE")!(bodyClassList?first))!"bg-light"} ${(sri.screenUrlInfo.targetScreen.screenName)!""}<#if hideNav! == "true"> hide-nav</#if>"><!-- try "bg-dark" or "bg-light" -->
