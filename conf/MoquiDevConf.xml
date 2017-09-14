@@ -5,6 +5,8 @@
     https://github.com/moqui/moqui-framework/blob/master/framework/src/main/resources/MoquiDefaultConf.xml -->
 <moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-2.1.xsd">
 
+    <default-property name="instance_purpose" value="dev"/>
+
     <tools empty-db-load="all"/>
 
     <cache-list warm-on-start="false">
