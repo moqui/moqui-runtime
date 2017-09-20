@@ -51,8 +51,6 @@ along with this software (see the LICENSE.md file). If not, see
                 in-map="[artifactTarpitLockId:artifactTarpitLockId, releaseDateTime:ec.user.nowTimestamp]"/>
         <default-response url="."/></transition>
 
-    <transition-include name="searchPartyList" location="component://SimpleScreens/template/party/PartyForms.xml"/>
-
     <actions>
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount"/>
 
@@ -130,11 +128,6 @@ along with this software (see the LICENSE.md file). If not, see
                     </default-field></field>
                     <field name="timeZone"><default-field>
                         <drop-down allow-empty="true"><list-options list="new TreeSet(TimeZone.getAvailableIDs().collect())"/></drop-down>
-                    </default-field></field>
-                    <field name="partyId"><default-field>
-                        <drop-down allow-empty="true">
-                            <dynamic-options transition="searchPartyList" server-search="true"/>
-                        </drop-down>
                     </default-field></field>
 
                     <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
