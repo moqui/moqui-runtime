@@ -948,8 +948,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#lt> :pdf-button="${(formNode["@show-pdf-button"]! == "true")?c}" columns="${numColumns}">
         <template slot="headerForm" scope="header">
             <#assign fieldsJsName = "header.search">
-            <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
-            <#list hiddenFieldList as hiddenField><#if hiddenField["header-field"]?has_content><#recurse hiddenField["header-field"][0]/></#if></#list>
+            <#assign hiddenFieldList = formListInfo.getListHeaderHiddenFieldList()>
+            <#list hiddenFieldList as hiddenField><#recurse hiddenField["header-field"][0]/></#list>
             <#assign fieldsJsName = "">
         </template>
         <template slot="header" scope="header">
@@ -977,6 +977,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
             <#assign fieldsJsName = ""><#assign ownerForm = "">
         </template>
+        <#-- TODO: add first-row, last-row forms and rows, here and in form-list Vue component; support add from first (or last?) row with add to client list and server submit -->
         <template slot="row" scope="row">
             <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
             <#list mainColInfoList as columnFieldList>
@@ -1005,12 +1006,30 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#list></#if>
     <#if !skipStart>
         <#if needHeaderForm && !isHeaderDialog>
-            <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-        <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}">
-            <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-            <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
-            <#list hiddenFieldList as hiddenField><#if hiddenField["header-field"]?has_content><#recurse hiddenField["header-field"][0]/></#if></#list>
-        </form-link>
+            <#assign headerUrlInstance = sri.getCurrentScreenUrl()>
+            <form-link name="${headerFormId}" id="${headerFormId}" action="${headerUrlInstance.path}">
+                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#assign hiddenFieldList = formListInfo.getListHeaderHiddenFieldList()>
+                <#list hiddenFieldList as hiddenField><#recurse hiddenField["header-field"][0]/></#list>
+            </form-link>
+        </#if>
+        <#if formListInfo.isFirstRowForm()>
+            <#assign firstUrlInstance = sri.makeUrlByType(formNode["@transition-first-row"], "transition", null, "false")>
+            <m-form name="${formId}_first" id="${formId}_first" action="${firstUrlInstance.url}">
+                <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#assign hiddenFieldList = formListInfo.getListFirstRowHiddenFieldList()>
+                <#list hiddenFieldList as hiddenField><#recurse hiddenField["first-row-field"][0]/></#list>
+            </m-form>
+        </#if>
+        <#if formListInfo.isLastRowForm()>
+            <#assign lastUrlInstance = sri.makeUrlByType(formNode["@transition-last-row"], "transition", null, "false")>
+            <m-form name="${formId}_last" id="${formId}_last" action="${lastUrlInstance.url}">
+                <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#assign hiddenFieldList = formListInfo.getListLastRowHiddenFieldList()>
+                <#list hiddenFieldList as hiddenField><#recurse hiddenField["last-row-field"][0]/></#list>
+            </m-form>
         </#if>
         <#if isMulti>
         <m-form name="${formId}" id="${formId}" action="${formListUrlInfo.path}">
@@ -1054,6 +1073,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if !isServerStatic><tbody></#if>
         <#assign ownerForm = formId>
     </#if>
+    <#-- TODO first-row fields -->
     <#if listHasContent><#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
@@ -1088,6 +1108,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#list></#if>
     <#assign listEntryIndex = "">
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
+    <#-- TODO last-row fields -->
     <#if !skipEnd>
         <#if isMulti && listHasContent>
             <tr><td colspan="${numColumns}">
@@ -1158,6 +1179,18 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign isHeaderField = false>
         <@formListWidget fieldNode["default-field"][0] skipCell isHeaderField isMulti isMultiFinalRow/>
         <#return>
+    </#if>
+</#macro>
+<#macro formListSubFirst fieldNode skipCell>
+    <#if fieldNode["first-row-field"]?has_content>
+        <#assign isHeaderField = false>
+        <@formListWidget fieldNode["first-row-field"][0] skipCell false false false/>
+    </#if>
+</#macro>
+<#macro formListSubLast fieldNode skipCell>
+    <#if fieldNode["last-row-field"]?has_content>
+        <#assign isHeaderField = false>
+        <@formListWidget fieldNode["last-row-field"][0] skipCell false false false/>
     </#if>
 </#macro>
 <#macro formListWidget fieldSubNode skipCell isHeaderField isMulti isMultiFinalRow>
