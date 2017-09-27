@@ -691,6 +691,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </div><!-- accordionId ${accordionId} -->
     <#assign isAccordion = false>
 </#macro>
+<#macro "field-col-row">
+    <div class="row<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>">
+        <#list .node["field-col"] as rowColNode>
+            <div class="<#if rowColNode["@lg"]?has_content> col-lg-${rowColNode["@lg"]}</#if><#if rowColNode["@md"]?has_content> col-md-${rowColNode["@md"]}</#if><#if rowColNode["@sm"]?has_content> col-sm-${rowColNode["@sm"]}</#if><#if rowColNode["@xs"]?has_content> col-xs-${rowColNode["@xs"]}</#if><#if rowColNode["@style"]?has_content> ${ec.getResource().expandNoL10n(rowColNode["@style"], "")}</#if>">
+                <#recurse rowColNode>
+            </div>
+        </#list>
+    </div>
+</#macro>
 
 <#macro formSingleSubField fieldNode formId>
     <#list fieldNode["conditional-field"] as fieldSubNode>
