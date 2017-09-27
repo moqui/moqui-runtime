@@ -1348,7 +1348,22 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <tbody>
             <#assign ownerForm = formId>
     </#if>
-    <#-- TODO first-row fields -->
+    <#-- first-row fields -->
+    <#if formListInfo.hasFirstRow()>
+        <#assign ownerForm = formId + "_first">
+        <#assign listEntryIndex = "first">
+        <tr class="first">
+        <#list mainColInfoList as columnFieldList>
+            <td>
+                <#list columnFieldList as fieldNode>
+                    <@formListSubFirst fieldNode true/>
+                </#list>
+            </td>
+        </#list>
+        </tr>
+        <#assign ownerForm = formId>
+        <#assign listEntryIndex = "">
+    </#if>
     <#if listHasContent><#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
@@ -1391,7 +1406,22 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#list></#if>
     <#assign listEntryIndex = "">
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
-    <#-- TODO last-row fields -->
+    <#-- last-row fields -->
+    <#if formListInfo.hasLastRow()>
+        <#assign ownerForm = formId + "_last">
+        <#assign listEntryIndex = "last">
+        <tr class="last">
+            <#list mainColInfoList as columnFieldList>
+                <td>
+                    <#list columnFieldList as fieldNode>
+                        <@formListSubLast fieldNode true/>
+                    </#list>
+                </td>
+            </#list>
+        </tr>
+        <#assign listEntryIndex = "">
+        <#assign ownerForm = formId>
+    </#if>
     <#if !skipEnd>
         <#if isMulti && listHasContent>
             <tr><td colspan="${numColumns}">
