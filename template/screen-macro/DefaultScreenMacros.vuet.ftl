@@ -1024,8 +1024,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
         <#if formListInfo.isFirstRowForm()>
             <#assign firstUrlInstance = sri.makeUrlByType(formNode["@transition-first-row"], "transition", null, "false")>
-            <m-form name="${formId}_first" id="${formId}_first" action="${firstUrlInstance.url}">
-                <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+            <m-form name="${formId}_first" id="${formId}_first" action="${firstUrlInstance.path}">
                 <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
                 <#assign hiddenFieldList = formListInfo.getListFirstRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["first-row-field"][0]/></#list>
@@ -1033,8 +1032,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
         <#if formListInfo.isLastRowForm()>
             <#assign lastUrlInstance = sri.makeUrlByType(formNode["@transition-last-row"], "transition", null, "false")>
-            <m-form name="${formId}_last" id="${formId}_last" action="${lastUrlInstance.url}">
-                <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+            <m-form name="${formId}_last" id="${formId}_last" action="${lastUrlInstance.path}">
                 <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
                 <#assign hiddenFieldList = formListInfo.getListLastRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["last-row-field"][0]/></#list>
