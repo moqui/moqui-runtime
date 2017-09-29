@@ -1319,7 +1319,12 @@ S2.define('select2/keys',[
     UP: 38,
     RIGHT: 39,
     DOWN: 40,
-    DELETE: 46
+    DELETE: 46,
+    ZERO: 48, NINE: 57,
+    NUMZERO: 96, DIVIDE: 111,
+    A: 65, Z: 90,
+    SEMICOLON: 186, GRAVE: 192,
+    OPENBRACKET: 219, SINGLEQUOTE: 222
   };
 
   return KEYS;
@@ -5401,9 +5406,20 @@ S2.define('select2/core',[
 
           evt.preventDefault();
         } else if (key === KEYS.ENTER) {
-          self.trigger('results:select', {});
+          // self.trigger('results:select', {});
+
+          // evt.preventDefault();
+          // Select the current option, but leave the focus on the dropdown
+          // to preserve correct tab order
+          self.options.set('okToSelectOnClose', true);
+          self.close();
 
           evt.preventDefault();
+          self.options.set('okToSelectOnClose', false);
+
+          // In the case that the input was opened but no new select was made, ensure that
+          // the element retains focus.
+          self.$element[0].focus();
         } else if ((key === KEYS.SPACE && evt.ctrlKey)) {
           self.trigger('results:toggle', {});
 
@@ -5417,12 +5433,22 @@ S2.define('select2/core',[
 
           evt.preventDefault();
         }
-      } else {
+      } else { // Currently closed
         if (key === KEYS.ENTER || key === KEYS.SPACE ||
-            (key === KEYS.DOWN && evt.altKey)) {
+            // (key === KEYS.DOWN && evt.altKey)) {
+            key === KEYS.DOWN) {
           self.open();
 
           evt.preventDefault();
+        } else if( key >= KEYS.ZERO && key <= KEYS.NINE ||
+                   key >= KEYS.NUMZERO && key <= KEYS.DIVIDE ||
+                   key >= KEYS.A && key <= KEYS.Z ||
+                   key >= KEYS.SEMICOLON && key <= KEYS.GRAVE ||
+                   key >= KEYS.OPENBRACKET && key <= KEYS.SINGLEQUOTE ) {
+          self.open();
+          self.dropdown.$search.val(evt.key);
+          self.trigger('selection:update');
+          etc.preventDefault();
         }
       }
     });

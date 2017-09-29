@@ -691,6 +691,17 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </div><!-- accordionId ${accordionId} -->
     <#assign isAccordion = false>
 </#macro>
+<#macro "field-col-row">
+    <div class="row<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>">
+        <#list .node["field-col"] as rowColNode>
+            <div class="<#if rowColNode["@lg"]?has_content> col-lg-${rowColNode["@lg"]}</#if><#if rowColNode["@md"]?has_content> col-md-${rowColNode["@md"]}</#if><#if rowColNode["@sm"]?has_content> col-sm-${rowColNode["@sm"]}</#if><#if rowColNode["@xs"]?has_content> col-xs-${rowColNode["@xs"]}</#if><#if rowColNode["@style"]?has_content> ${ec.getResource().expandNoL10n(rowColNode["@style"], "")}</#if>">
+                <#if rowColNode["@label-cols"]?has_content><#assign labelCols = rowColNode["@label-cols"]></#if>
+                <#recurse rowColNode>
+                <#assign labelCols = "">
+            </div>
+        </#list>
+    </div>
+</#macro>
 
 <#macro formSingleSubField fieldNode formId>
     <#list fieldNode["conditional-field"] as fieldSubNode>
@@ -718,14 +729,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <label class="control-label" for="${formId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
                 </#if>
     <#else>
+        <#if labelCols?has_content>
+            <#assign labelClass = colPrefix + "-" + labelCols>
+            <#assign widgetClass = colPrefix + "-" + (12 - labelCols?number)?c>
+        <#else>
+            <#assign labelClass><#if inFieldRow>${colPrefix}-4<#else>${colPrefix}-2</#if></#assign>
+            <#assign widgetClass><#if inFieldRow>${colPrefix}-8<#else>${colPrefix}-10</#if></#assign>
+        </#if>
         <#if fieldSubNode["submit"]?has_content>
         <div class="form-group">
-            <div class="<#if inFieldRow>${colPrefix}-4<#else>${colPrefix}-2</#if>"> </div>
-            <div class="<#if inFieldRow>${colPrefix}-8<#else>${colPrefix}-10</#if><#if containerStyle?has_content> ${containerStyle}</#if>">
+            <div class="${labelClass}">&nbsp;</div>
+            <div class="${widgetClass}<#if containerStyle?has_content> ${containerStyle}</#if>">
         <#elseif !(inFieldRow! && !curFieldTitle?has_content)>
         <div class="form-group">
-            <label class="control-label <#if inFieldRow>${colPrefix}-4<#else>${colPrefix}-2</#if>" for="${formId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
-            <div class="<#if inFieldRow>${colPrefix}-8<#else>${colPrefix}-10</#if><#if containerStyle?has_content> ${containerStyle}</#if>">
+            <label class="control-label ${labelClass}" for="${formId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
+            <div class="${widgetClass}<#if containerStyle?has_content> ${containerStyle}</#if>">
         </#if>
     </#if>
     <#-- NOTE: this style is only good for 2 fields in a field-row! in field-row cols are double size because are inside a ${colPrefix}-6 element -->
@@ -1223,6 +1241,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </th></tr>
     </#if>
 </#macro>
+
 <#macro "form-list">
     <#if sri.doBoundaryComments()><!-- BEGIN form-list[@name=${.node["@name"]}] --></#if>
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
@@ -1263,13 +1282,31 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#list></#if>
     <#if !skipStart>
         <#if needHeaderForm && !isHeaderDialog>
-            <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-        <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
-            <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
-            <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-            <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
-            <#list hiddenFieldList as hiddenField><#if hiddenField["header-field"]?has_content><#recurse hiddenField["header-field"][0]/></#if></#list>
-        </form>
+            <#assign headerUrlInstance = sri.getCurrentScreenUrl()>
+            <form name="${headerFormId}" id="${headerFormId}" method="post" action="${headerUrlInstance.url}">
+                <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#assign hiddenFieldList = formListInfo.getListHeaderHiddenFieldList()>
+                <#list hiddenFieldList as hiddenField><#recurse hiddenField["header-field"][0]/></#list>
+            </form>
+        </#if>
+        <#if formListInfo.isFirstRowForm()>
+            <#assign firstUrlInstance = sri.makeUrlByType(formNode["@transition-first-row"], "transition", null, "false")>
+            <form name="${formId}_first" id="${formId}_first" method="post" action="${firstUrlInstance.url}">
+                <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#assign hiddenFieldList = formListInfo.getListFirstRowHiddenFieldList()>
+                <#list hiddenFieldList as hiddenField><#recurse hiddenField["first-row-field"][0]/></#list>
+            </form>
+        </#if>
+        <#if formListInfo.isLastRowForm()>
+            <#assign lastUrlInstance = sri.makeUrlByType(formNode["@transition-last-row"], "transition", null, "false")>
+            <form name="${formId}_last" id="${formId}_last" method="post" action="${lastUrlInstance.url}">
+                <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#assign hiddenFieldList = formListInfo.getListLastRowHiddenFieldList()>
+                <#list hiddenFieldList as hiddenField><#recurse hiddenField["last-row-field"][0]/></#list>
+            </form>
         </#if>
         <#if isMulti>
         <form name="${formId}" id="${formId}" method="post" action="${formListUrlInfo.url}">
@@ -1329,6 +1366,22 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <tbody>
             <#assign ownerForm = formId>
     </#if>
+    <#-- first-row fields -->
+    <#if formListInfo.hasFirstRow()>
+        <#assign ownerForm = formId + "_first">
+        <#assign listEntryIndex = "first">
+        <tr class="first">
+        <#list mainColInfoList as columnFieldList>
+            <td>
+                <#list columnFieldList as fieldNode>
+                    <@formListSubFirst fieldNode true/>
+                </#list>
+            </td>
+        </#list>
+        </tr>
+        <#assign ownerForm = formId>
+        <#assign listEntryIndex = "">
+    </#if>
     <#if listHasContent><#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
@@ -1371,6 +1424,22 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#list></#if>
     <#assign listEntryIndex = "">
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
+    <#-- last-row fields -->
+    <#if formListInfo.hasLastRow()>
+        <#assign ownerForm = formId + "_last">
+        <#assign listEntryIndex = "last">
+        <tr class="last">
+            <#list mainColInfoList as columnFieldList>
+                <td>
+                    <#list columnFieldList as fieldNode>
+                        <@formListSubLast fieldNode true/>
+                    </#list>
+                </td>
+            </#list>
+        </tr>
+        <#assign listEntryIndex = "">
+        <#assign ownerForm = formId>
+    </#if>
     <#if !skipEnd>
         <#if isMulti && listHasContent>
             <tr><td colspan="${numColumns}">
@@ -1449,6 +1518,18 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign isHeaderField = false>
         <@formListWidget fieldNode["default-field"][0] skipCell isHeaderField isMulti isMultiFinalRow/>
         <#return>
+    </#if>
+</#macro>
+<#macro formListSubFirst fieldNode skipCell>
+    <#if fieldNode["first-row-field"]?has_content>
+        <#assign isHeaderField = false>
+        <@formListWidget fieldNode["first-row-field"][0] skipCell false false false/>
+    </#if>
+</#macro>
+<#macro formListSubLast fieldNode skipCell>
+    <#if fieldNode["last-row-field"]?has_content>
+        <#assign isHeaderField = false>
+        <@formListWidget fieldNode["last-row-field"][0] skipCell false false false/>
     </#if>
 </#macro>
 <#macro formListWidget fieldSubNode skipCell isHeaderField isMulti isMultiFinalRow>
