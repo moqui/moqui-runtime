@@ -995,6 +995,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if !(isMulti || skipForm) && listHasContent><#list listObject as listEntry>
         ${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
         <m-form name="${formId}_${listEntry_index}" id="${formId}_${listEntry_index}" action="${formListUrlInfo.path}">
+            <input type="hidden" name="pageIndex" value="${pageIndex!"0"}">
             <#assign listEntryIndex = listEntry_index>
             <#-- hidden fields -->
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
@@ -1016,6 +1017,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <m-form name="${formId}" id="${formId}" action="${formListUrlInfo.path}">
             <input type="hidden" name="moquiFormName" value="${formName}">
             <input type="hidden" name="_isMulti" value="true">
+            <input type="hidden" name="pageIndex" value="${pageIndex!"0"}">
             <#if listHasContent><#list listObject as listEntry>
                 <#assign listEntryIndex = listEntry_index>
                 <#t>${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
