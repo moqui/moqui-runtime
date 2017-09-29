@@ -460,7 +460,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <div class="row<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>">
         <#list .node["field-col"] as rowColNode>
             <div class="<#if rowColNode["@lg"]?has_content> col-lg-${rowColNode["@lg"]}</#if><#if rowColNode["@md"]?has_content> col-md-${rowColNode["@md"]}</#if><#if rowColNode["@sm"]?has_content> col-sm-${rowColNode["@sm"]}</#if><#if rowColNode["@xs"]?has_content> col-xs-${rowColNode["@xs"]}</#if><#if rowColNode["@style"]?has_content> ${ec.getResource().expandNoL10n(rowColNode["@style"], "")}</#if>">
+                <#if rowColNode["@label-cols"]?has_content><#assign labelCols = rowColNode["@label-cols"]></#if>
                 <#recurse rowColNode>
+                <#assign labelCols = "">
             </div>
         </#list>
     </div>
@@ -492,14 +494,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <label class="control-label" for="${formId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
                 </#if>
     <#else>
+        <#if labelCols?has_content>
+            <#assign labelClass = colPrefix + "-" + labelCols>
+            <#assign widgetClass = colPrefix + "-" + (12 - labelCols?number)?c>
+        <#else>
+            <#assign labelClass><#if inFieldRow>${colPrefix}-4<#else>${colPrefix}-2</#if></#assign>
+            <#assign widgetClass><#if inFieldRow>${colPrefix}-8<#else>${colPrefix}-10</#if></#assign>
+        </#if>
         <#if fieldSubNode["submit"]?has_content>
         <div class="form-group">
-            <div class="<#if inFieldRow>${colPrefix}-4<#else>${colPrefix}-2</#if>"> </div>
-            <div class="<#if inFieldRow>${colPrefix}-8<#else>${colPrefix}-10</#if><#if containerStyle?has_content> ${containerStyle}</#if>">
+            <div class="${labelClass}">&nbsp;</div>
+            <div class="${widgetClass}<#if containerStyle?has_content> ${containerStyle}</#if>">
         <#elseif !(inFieldRow! && !curFieldTitle?has_content)>
         <div class="form-group">
-            <label class="control-label <#if inFieldRow>${colPrefix}-4<#else>${colPrefix}-2</#if>" for="${formId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
-            <div class="<#if inFieldRow>${colPrefix}-8<#else>${colPrefix}-10</#if><#if containerStyle?has_content> ${containerStyle}</#if>">
+            <label class="control-label ${labelClass}" for="${formId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
+            <div class="${widgetClass}<#if containerStyle?has_content> ${containerStyle}</#if>">
         </#if>
     </#if>
     <#-- NOTE: this style is only good for 2 fields in a field-row! in field-row cols are double size because are inside a ${colPrefix}-6 element -->
