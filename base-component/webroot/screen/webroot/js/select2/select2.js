@@ -5406,9 +5406,20 @@ S2.define('select2/core',[
 
           evt.preventDefault();
         } else if (key === KEYS.ENTER) {
-          self.trigger('results:select', {});
+          // self.trigger('results:select', {});
+
+          // evt.preventDefault();
+          // Select the current option, but leave the focus on the dropdown
+          // to preserve correct tab order
+          self.options.set('okToSelectOnClose', true);
+          self.close();
 
           evt.preventDefault();
+          self.options.set('okToSelectOnClose', false);
+
+          // In the case that the input was opened but no new select was made, ensure that
+          // the element retains focus.
+          self.$element[0].focus();
         } else if ((key === KEYS.SPACE && evt.ctrlKey)) {
           self.trigger('results:toggle', {});
 
