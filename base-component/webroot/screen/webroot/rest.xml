@@ -273,6 +273,9 @@ along with this software (see the LICENSE.md file). If not, see
          http://localhost:8080/rest/s1/example/examples
 
     curl -X GET -u john.doe:moqui "http://localhost:8080/rest/s1/moqui/artifacts/hitSummary?artifactType=entity&artifactSubType=create&artifactName=moqui.basic&artifactName_op=contains"
+
+    Example from mantle-usl to delete with wildcard ID:
+    curl -X DELETE -u john.doe:moqui http://localhost:8080/rest/s1/mantle/products/DEMO_1_1/categories/PopcAllProducts/*
     -->
     <transition name="s1" read-only="true">
         <actions><script>ec.web.handleServiceRestCall(sri.screenUrlInfo.extraPathNameList)</script></actions>
