@@ -18,7 +18,7 @@ along with this software (see the LICENSE.md file). If not, see
     <widget-template name="enumDropDown">
         <drop-down allow-empty="${allowEmpty ?: 'false'}" no-current-selected-key="${noCurrentSelectedKey?:''}"
                    style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}">
-            <entity-options key="${enumId}" text="${description}">
+            <entity-options key="${enumId}" text="EnumerationNameTemplate">
                 <entity-find entity-name="moqui.basic.Enumeration">
                     <econdition field-name="enumTypeId"/>
                     <econdition field-name="parentEnumId" operator="in" ignore-if-empty="true"/>
@@ -30,7 +30,7 @@ along with this software (see the LICENSE.md file). If not, see
     <widget-template name="enumGroupDropDown">
         <drop-down allow-empty="${allowEmpty ?: 'false'}" no-current-selected-key="${noCurrentSelectedKey?:''}"
                 style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}">
-            <entity-options key="${enumId}" text="${description}">
+            <entity-options key="${enumId}" text="EnumerationNameTemplate">
                 <entity-find entity-name="moqui.basic.EnumAndGroup">
                     <econdition field-name="enumGroupEnumId"/>
                     <order-by field-name="sequenceNum,description"/>
