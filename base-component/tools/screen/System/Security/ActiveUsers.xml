@@ -25,7 +25,7 @@ along with this software (see the LICENSE.md file). If not, see
         </entity-find>
     </actions>
     <widgets>
-        <form-list name="VisitUserList" list="visitUserList" skip-form="true">
+        <form-list name="VisitUserList" list="visitUserList" skip-form="true" show-all-button="true">
             <field name="fromDate">
                 <header-field show-order-by="true"><date-period allow-empty="true"/></header-field>
                 <default-field><display text="Min: ${ec.l10n.format(fromDateMin, '')} Max: ${ec.l10n.format(fromDateMax, '')}"/></default-field>
