@@ -46,6 +46,8 @@ along with this software (see the LICENSE.md file). If not, see
         html_scripts.add('/libs/jquery.form/jquery.form.min.js')
         // Tree (JSTree)
         html_scripts.add('/libs/jstree/jstree.min.js')
+        res = ec.service.sync().name("L10nServices.get#LocalizedValidationScripts").call()
+        for (scriptLocation in res?.localizedScriptList) { html_scripts.add(scriptLocation) }
     ]]></script></pre-actions>
 
     <widgets>
