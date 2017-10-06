@@ -467,35 +467,28 @@ Vue.component('m-form', {
                 this.$root.loading++;
                 $.ajax({ type:this.method, url:this.action, data:formData, contentType:false, processData:false,
                     headers:{Accept:'application/json'}, error:moqui.handleLoadError, success:this.handleResponse });
-            }
-            else if ( !this.noValidate ) {
+            } else if (!this.noValidate) {
                 // For convenience, attempt to focus the first invalid element.
                 // Begin by finding the first invalid input
                 var invEle = jqEl.find('div.has-error input, div.has-error select, div.has-error textarea').first();
-                if( invEle.length ) {
+                if (invEle.length) {
                     // If the element is inside a collapsed panel, attempt to open it.
-                    // Find parent (if it exists) with class .panel-collapse.collapse
-                    // (works for accordion and regular panels)
+                    // Find parent (if it exists) with class .panel-collapse.collapse (works for accordion and regular panels)
                     var nearestPanel = invEle.parents('div.panel-collapse.collapse').last();
-
-                    if( nearestPanel.length ) {
+                    if (nearestPanel.length) {
                         // Only bother if the panel is not currently open
-                        if( !nearestPanel.hasClass('in') ) {
+                        if (!nearestPanel.hasClass('in')) {
                             // From there find sibling with class panel-heading
                             var panelHeader = nearestPanel.prevAll('div.panel-heading').last();
-
-                            if( panelHeader.length ) {
+                            if (panelHeader.length) {
                                 // Here is where accordion and regular panels diverge.
                                 var panelLink = panelHeader.find('a[data-toggle="collapse"]').first();
-                                if( panelLink.length ) panelLink.click();
+                                if (panelLink.length) panelLink.click();
                                 else panelHeader.click();
-                                setTimeout( function() { invEle.focus(); }, 250 );
-                            }
-                            else invEle.focus();
-                        }
-                        else invEle.focus();
-                    }
-                    else invEle.focus();
+                                setTimeout(function() { invEle.focus(); }, 250);
+                            } else invEle.focus();
+                        } else invEle.focus();
+                    } else invEle.focus();
                 }
             }
         },
