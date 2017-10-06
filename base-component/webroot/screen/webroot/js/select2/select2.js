@@ -5436,7 +5436,7 @@ S2.define('select2/core',[
           evt.preventDefault();
         }
       } else { // Currently closed
-        if (key === KEYS.TAB || key === KEYS.NUMPLUS) {
+        if (key === KEYS.NUMPLUS) {
           // Attempt to pass focus to the next input element
           var el = self.$element[0];
           var f = el.form;
@@ -5453,6 +5453,9 @@ S2.define('select2/core',[
               }
             }
           }
+
+          evt.preventDefault();
+
         } else if (key === KEYS.ENTER || key === KEYS.SPACE ||
             // (key === KEYS.DOWN && evt.altKey)) {
             key === KEYS.DOWN) {
