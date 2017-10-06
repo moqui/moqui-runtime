@@ -51,8 +51,8 @@ def fileMap = [
 
     // can get jquery-sortable-lists from cdnjs? http://camohub.github.io/jquery-sortable-lists/
 
-    "jquery-validate/1.16.0/jquery.validate.min.js":"",
-    "jquery-validate/1.16.0/additional-methods.min.js":"",
+    "jquery-validate/1.17.0/jquery.validate.min.js":"",
+    "jquery-validate/1.17.0/additional-methods.min.js":"",
 
     "jstree/3.3.3/jstree.min.js":"",
     "jstree/3.3.3/themes/default/style.min.css":"",
@@ -72,8 +72,8 @@ def fileMap = [
     "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
     // NOTE: for production change to min in vapps.xml; currently using dev version for errors/warnings/etc
-    "vue/2.3.3/vue.js":"",
-    "vue/2.3.3/vue.min.js":""
+    "vue/2.4.4/vue.js":"",
+    "vue/2.4.4/vue.min.js":""
 ]
 
 String getTargetPath(String sourcePath, String targetPath) {

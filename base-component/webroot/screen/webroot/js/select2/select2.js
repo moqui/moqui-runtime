@@ -1321,10 +1321,12 @@ S2.define('select2/keys',[
     DOWN: 40,
     DELETE: 46,
     ZERO: 48, NINE: 57,
-    NUMZERO: 96, DIVIDE: 111,
+    NUMZERO: 96, NUMSTAR: 106,
+    NUMSUBTRACT: 109, DIVIDE: 111,
     A: 65, Z: 90,
     SEMICOLON: 186, GRAVE: 192,
-    OPENBRACKET: 219, SINGLEQUOTE: 222
+    OPENBRACKET: 219, SINGLEQUOTE: 222,
+    NUMPLUS: 107
   };
 
   return KEYS;
@@ -5376,7 +5378,7 @@ S2.define('select2/core',[
       var key = evt.which;
 
       if (self.isOpen()) {
-        if (key === KEYS.TAB) {
+        if (key === KEYS.TAB || key === KEYS.NUMPLUS) {
           self.options.set('okToSelectOnClose', true);
           self.close();
 
@@ -5434,14 +5436,35 @@ S2.define('select2/core',[
           evt.preventDefault();
         }
       } else { // Currently closed
-        if (key === KEYS.ENTER || key === KEYS.SPACE ||
+        if (key === KEYS.NUMPLUS) {
+          // Attempt to pass focus to the next input element
+          var el = self.$element[0];
+          var f = el.form;
+          var els = f.elements;
+          var x, nextEl;
+          for (var i=0, len=els.length; i<len; i++) {
+            x = els[i];
+            if (el == x) {
+              // Depending on whether shift is pressed to focus next/previous
+              nextEl = evt.shiftKey ? els[i == 0 ? len-1 : (i-1)] : els[i == len-1 ? 0 : (i+1)];
+              if (nextEl.focus) {
+                nextEl.focus();
+                break;
+              }
+            }
+          }
+
+          evt.preventDefault();
+
+        } else if (key === KEYS.ENTER || key === KEYS.SPACE ||
             // (key === KEYS.DOWN && evt.altKey)) {
             key === KEYS.DOWN) {
           self.open();
 
           evt.preventDefault();
         } else if( key >= KEYS.ZERO && key <= KEYS.NINE ||
-                   key >= KEYS.NUMZERO && key <= KEYS.DIVIDE ||
+                   key >= KEYS.NUMZERO && key <= KEYS.NUMSTAR ||
+                   key >= KEYS.NUMSUBTRACT && key <= KEYS.DIVIDE ||
                    key >= KEYS.A && key <= KEYS.Z ||
                    key >= KEYS.SEMICOLON && key <= KEYS.GRAVE ||
                    key >= KEYS.OPENBRACKET && key <= KEYS.SINGLEQUOTE ) {

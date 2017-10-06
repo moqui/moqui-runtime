@@ -467,6 +467,29 @@ Vue.component('m-form', {
                 this.$root.loading++;
                 $.ajax({ type:this.method, url:this.action, data:formData, contentType:false, processData:false,
                     headers:{Accept:'application/json'}, error:moqui.handleLoadError, success:this.handleResponse });
+            } else if (!this.noValidate) {
+                // For convenience, attempt to focus the first invalid element.
+                // Begin by finding the first invalid input
+                var invEle = jqEl.find('div.has-error input, div.has-error select, div.has-error textarea').first();
+                if (invEle.length) {
+                    // If the element is inside a collapsed panel, attempt to open it.
+                    // Find parent (if it exists) with class .panel-collapse.collapse (works for accordion and regular panels)
+                    var nearestPanel = invEle.parents('div.panel-collapse.collapse').last();
+                    if (nearestPanel.length) {
+                        // Only bother if the panel is not currently open
+                        if (!nearestPanel.hasClass('in')) {
+                            // From there find sibling with class panel-heading
+                            var panelHeader = nearestPanel.prevAll('div.panel-heading').last();
+                            if (panelHeader.length) {
+                                // Here is where accordion and regular panels diverge.
+                                var panelLink = panelHeader.find('a[data-toggle="collapse"]').first();
+                                if (panelLink.length) panelLink.click();
+                                else panelHeader.click();
+                                setTimeout(function() { invEle.focus(); }, 250);
+                            } else invEle.focus();
+                        } else invEle.focus();
+                    } else invEle.focus();
+                }
             }
         },
         handleResponse: function(resp) {
@@ -709,9 +732,26 @@ Vue.component('date-time', {
     template:
     '<input v-if="type==\'time\'" type="text" class="form-control" :pattern="timePattern" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
     '<div v-else class="input-group date" :id="id">' +
-        '<input type="text" class="form-control" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
+        '<input ref="dateInput" @focus="focusDate" @blur="blurDate" type="text" class="form-control" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
         '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>' +
     '</div>',
+    methods: {
+        focusDate: function() {
+            if (this.type === 'time' || this.type === 'date') return;
+            var inputEl = $(this.$refs.dateInput); var curVal = inputEl.val();
+            if (!curVal || !curVal.length) inputEl.val(new Date().getFullYear());
+        },
+        blurDate: function() {
+            if (this.type === 'time' || this.type === 'date') return;
+            var inputEl = $(this.$refs.dateInput); var curVal = inputEl.val();
+            // console.log("date/time unfocus val " + curVal);
+            // if contains 'd ' (month/day missing, or month specified but date missing or partial) clear input
+            if (curVal.indexOf('d ') > 0) { inputEl.val(''); return; }
+            // default time to noon, or minutes to 00
+            if (curVal.indexOf('hh:mm') > 0) { inputEl.val(curVal.replace('hh:mm', '12:00')); return; }
+            if (curVal.indexOf(':mm') > 0) { inputEl.val(curVal.replace(':mm', ':00')); return; }
+        }
+    },
     computed: {
         formatVal: function() { var format = this.format; if (format && format.length > 0) { return format; }
             return this.type === 'time' ? 'HH:mm' : (this.type === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm'); },
