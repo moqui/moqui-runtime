@@ -721,7 +721,7 @@ Vue.component('date-time', {
         blurDate: function() {
             if (this.type === 'time' || this.type === 'date') return;
             var inputEl = $(this.$refs.dateInput); var curVal = inputEl.val();
-            console.log("date/time unfocus val " + curVal);
+            // console.log("date/time unfocus val " + curVal);
             // if contains 'd ' (month/day missing, or month specified but date missing or partial) clear input
             if (curVal.indexOf('d ') > 0) { inputEl.val(''); return; }
             // default time to noon, or minutes to 00
