@@ -25,15 +25,17 @@ along with this software (see the LICENSE.md file). If not, see
         // Moqui Library (3rd party lib workarounds, NotificationClient, etc)
         html_scripts.add('/js/CombinedBase.min.js')
 
-        /* ========== Dev Mode ========== */
-        // Vue JS
-        html_scripts.add('/libs/vue/vue.js')
-        // Vue instance, in footer so runs after page loaded
-        footer_scripts.add('/js/WebrootVue.js')
-
-        /* ========== Production Mode ==========
-        footer_scripts.add('/js/CombinedVuet.min.js')
-        */
+        String instancePurpose = System.getProperty("instance_purpose")
+        if (!instancePurpose || instancePurpose == 'production') {
+            /* ========== Production Mode ========== */
+            footer_scripts.add('/js/CombinedVuet.min.js')
+        } else {
+            /* ========== Dev Mode ========== */
+            // Vue JS
+            html_scripts.add('/libs/vue/vue.js')
+            // Vue instance, in footer so runs after page loaded
+            footer_scripts.add('/js/WebrootVue.js')
+        }
     ]]></script></pre-actions>
 
     <widgets>
