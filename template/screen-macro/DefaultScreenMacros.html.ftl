@@ -1748,7 +1748,7 @@ a => A, d => D, y => Y
 
     <#if .node["@type"]! != "time">
         <div class="input-group date" id="${id}">
-            <input type="text" class="form-control<#if validationClasses?contains("required")> required</#if>" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+            <input type="text" class="form-control<#if validationClasses?contains("required")> required</#if>"<#if validationClasses?contains("required")> required="required"</#if> name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
         </div>
         <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true, defaultDate: '${fieldValue?html}' && moment('${fieldValue?html}','${datepickerFormat}'), format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}"});</script>
