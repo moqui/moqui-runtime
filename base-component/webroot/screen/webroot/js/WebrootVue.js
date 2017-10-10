@@ -139,7 +139,7 @@ moqui.retryInlineScript = function(src, count) {
 };
 
 /* ========== notify and error handling ========== */
-moqui.notifyOpts = { delay:6000, offset:{x:20,y:70}, placement:{from:'top',align:'right'}, z_index:1100, type:'success',
+moqui.notifyOpts = { delay:3000, offset:{x:20,y:50}, placement:{from:'bottom',align:'right'}, z_index:1100, type:'success',
     animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
 moqui.notifyMessages = function(messages, errors) {
     var notified = false;
@@ -152,8 +152,8 @@ moqui.notifyMessages = function(messages, errors) {
     if (errors) {
         if (moqui.isArray(errors)) {
             for (var ei=0; ei < errors.length; ei++) {
-                $.notify({message:errors[ei]}, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'})); moqui.webrootVue.addNotify(errors[ei], 'danger'); notified = true; }
-        } else { $.notify({message:errors}, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'})); moqui.webrootVue.addNotify(errors, 'danger'); notified = true; }
+                $.notify({message:errors[ei]}, $.extend({}, moqui.notifyOpts, {delay:4000, type:'danger'})); moqui.webrootVue.addNotify(errors[ei], 'danger'); notified = true; }
+        } else { $.notify({message:errors}, $.extend({}, moqui.notifyOpts, {delay:4000, type:'danger'})); moqui.webrootVue.addNotify(errors, 'danger'); notified = true; }
     }
     return notified;
 };
@@ -170,9 +170,9 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status === 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); }
     } else if (jqXHR.status === 0) { if (errorThrown.indexOf('abort') < 0) { var msg = 'Could not connect to server';
-        $.notify({ message:msg }, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'})); moqui.webrootVue.addNotify(msg, 'danger'); }
+        $.notify({ message:msg }, $.extend({}, moqui.notifyOpts, {delay:4000, type:'danger'})); moqui.webrootVue.addNotify(msg, 'danger'); }
     } else if (!notified) { var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
-        $.notify({ message:errMsg }, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'})); moqui.webrootVue.addNotify(errMsg, 'danger');
+        $.notify({ message:errMsg }, $.extend({}, moqui.notifyOpts, {delay:4000, type:'danger'})); moqui.webrootVue.addNotify(errMsg, 'danger');
     }
 };
 
