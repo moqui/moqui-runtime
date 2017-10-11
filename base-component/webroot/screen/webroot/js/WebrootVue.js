@@ -1033,7 +1033,7 @@ moqui.webrootVue = new Vue({
             $('.modal.in').modal('hide');
             if (url.indexOf(this.basePath) === 0) url = url.replace(this.basePath, this.linkBasePath);
             // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
-            if (this.currentLinkUrl === url) {
+            if (this.currentLinkUrl === url && url !== this.linkBasePath) {
                 this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */
             } else {
                 var href = url;
