@@ -15,7 +15,7 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-title="SQL" begin-transaction="false"><!-- NOTE: begin tx is false so table meta data changes, etc can be done -->
 
-    <pre-actions>
+    <actions>
         <script><![CDATA[
             import java.sql.Connection
             import java.sql.ResultSet
@@ -29,6 +29,8 @@ along with this software (see the LICENSE.md file). If not, see
 
             int limitInt = (limit?:"500") as int
 
+            // make sure SQL comes in secure parameter (body, etc no URL)
+            sql = ec.web.secureRequestParameters.get("sql")
             if (sql && groupName) {
                 messageList = []
                 Connection con = ec.entity.getConnection(groupName)
@@ -72,12 +74,12 @@ along with this software (see the LICENSE.md file). If not, see
                 }
             }
         ]]></script>
-    </pre-actions>
+    </actions>
     <widgets>
         <section-iterate name="Messages" list="messageList" entry="message"><widgets>
             <label text="${message}" type="p" style="text-info"/>
         </widgets></section-iterate>
-        <form-single name="SqlOptions" transition=".">
+        <form-single name="SqlOptions" transition="." body-parameters="sql">
             <field name="groupName"><default-field><drop-down no-current-selected-key="transactional">
                 <list-options list="ec.entity.getDatasourceGroupNames()"/></drop-down></default-field></field>
             <field name="sql"><default-field title="SQL Statement"><text-area cols="120" rows="8"/></default-field></field>
