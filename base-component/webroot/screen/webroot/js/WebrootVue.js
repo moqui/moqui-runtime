@@ -736,7 +736,7 @@ Vue.component('form-list', {
 /* ========== form field widget components ========== */
 Vue.component('date-time', {
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'},
-        size:String, format:String, tooltip:String, form:String, required:String },
+        size:String, format:String, tooltip:String, form:String, required:String, autoYear:String },
     template:
     '<input v-if="type==\'time\'" type="text" class="form-control" :pattern="timePattern" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
     '<div v-else class="input-group date" :id="id">' +
@@ -745,7 +745,7 @@ Vue.component('date-time', {
     '</div>',
     methods: {
         focusDate: function() {
-            if (this.type === 'time' || this.type === 'date') return;
+            if (this.type === 'time' || this.autoYear === 'false') return;
             var inputEl = $(this.$refs.dateInput); var curVal = inputEl.val();
             if (!curVal || !curVal.length) inputEl.val(new Date().getFullYear());
         },
