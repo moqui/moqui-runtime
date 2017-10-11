@@ -74,7 +74,8 @@ var moqui = {
         }
     },
     NotifySettings: function(type) {
-        this.delay = 6000; this.offset = { x:20, y:70 };
+        this.delay = 3000; this.offset = { x:20, y:70 };
+        this.placement = {from:'bottom',align:'right'};
         this.animate = { enter:'animated fadeInDown', exit:'animated fadeOutUp' };
         if (type) { this.type = type; } else { this.type = 'info'; }
         this.template =
