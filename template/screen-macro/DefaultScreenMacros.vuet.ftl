@@ -1168,6 +1168,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign ownerForm = "">
         </table>
     </#if>
+    <#if formNode["@focus-field"]?has_content>
+        <m-script>$("#${formId}_table").find('[name^="${formNode["@focus-field"]}<#if formListInfo.hasFirstRow()>_first<#else>_0</#if>"]').addClass('default-focus').focus();</m-script>
+    </#if>
     <#if hasSubColumns><m-script>moqui.makeColumnsConsistent('${formId}_table');</m-script></#if>
 </#if>
     <#if sri.doBoundaryComments()><!-- END   form-list[@name=${formName}] --></#if>

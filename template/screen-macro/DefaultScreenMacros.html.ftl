@@ -1459,6 +1459,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             $('#${formId} [data-toggle="tooltip"]').tooltip({placement:'auto top'});
         </script>
     </#if>
+    <#if formNode["@focus-field"]?has_content>
+        <script>$("#${formId}_table").find('[name^="${formNode["@focus-field"]}<#if formListInfo.hasFirstRow()>_first<#else>_0</#if>"]').addClass('default-focus').focus();</script>
+    </#if>
     <#if hasSubColumns><script>moqui.makeColumnsConsistent('${formId}_table');</script></#if>
     <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
     <#assign skipForm = false>
