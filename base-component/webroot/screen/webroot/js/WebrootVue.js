@@ -750,11 +750,12 @@ Vue.component('date-time', {
             if (!curVal || !curVal.length) inputEl.val(new Date().getFullYear());
         },
         blurDate: function() {
-            if (this.type === 'time' || this.type === 'date') return;
+            if (this.type === 'time') return;
             var inputEl = $(this.$refs.dateInput); var curVal = inputEl.val();
             // console.log("date/time unfocus val " + curVal);
             // if contains 'd ' (month/day missing, or month specified but date missing or partial) clear input
-            if (curVal.indexOf('d ') > 0) { inputEl.val(''); return; }
+            // Sufficient to check for just 'd', since the mask handles any scenario where there would only be a single 'd'
+            if (curVal.indexOf('d') > 0) { inputEl.val(''); return; }
             // default time to noon, or minutes to 00
             if (curVal.indexOf('hh:mm') > 0) { inputEl.val(curVal.replace('hh:mm', '12:00')); return; }
             if (curVal.indexOf(':mm') > 0) { inputEl.val(curVal.replace(':mm', ':00')); return; }
