@@ -29,13 +29,18 @@ along with this software (see the LICENSE.md file). If not, see
         ExecutionContext ec = context.ec
         Client elasticSearchClient = ec.getTool("ElasticSearch", Client.class)
         GetResponse docGr = elasticSearchClient.prepareGet(_index, _type, _id).execute().actionGet()
+        sourceMap = docGr.getSource()
         documentString = JsonOutput.prettyPrint(docGr.getSourceAsString())
-        flattenedDocumentMap = flattenNestedMap(docGr.getSourceAsMap())
+        flattenedDocumentMap = flattenNestedMap(sourceMap)
     </script></actions>
     <widgets>
         <label text="Flattened Map" type="h4"/>
         <label text="${flattenedDocumentMap}" encode="true"/>
         <label text="Document JSON" type="h4"/>
         <label text="${documentString}" encode="true" type="pre" style="pre-plain"/>
+        <label text="Document Map" type="h4"/>
+        <section-iterate name="SourceMapSection" list="sourceMap.keySet()" entry="smKey"><widgets>
+            <label text="${smKey}: ${sourceMap.get(smKey)} (${sourceMap.get(smKey)?.class?.name})" type="div"/>
+        </widgets></section-iterate>
     </widgets>
 </screen>
