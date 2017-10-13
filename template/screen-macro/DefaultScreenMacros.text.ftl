@@ -33,6 +33,8 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro widgets>
     <#if !lineCharacters?has_content><#assign lineCharacters = "132"></#if>
     <#assign lineCharactersNum = lineCharacters?number>
+    <#-- NOTE: pageLines is optional, if 0 don't do page breaks -->
+    <#if pageLines?has_content><#assign pageLinesNum = pageLines?number><#else><#assign pageLinesNum = 0></#if>
     <#assign lineWrapBool = ("true" == lineWrap!)>
     <#recurse>
 </#macro>

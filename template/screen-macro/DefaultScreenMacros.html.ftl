@@ -1048,6 +1048,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Text_pageLines">${ec.getL10n().localize("Page Lines")}</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" size="4" name="pageLines" id="${formId}_Text_pageLines" value="88">
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label class="control-label col-sm-3" for="${formId}_Text_lineWrap">${ec.getL10n().localize("Line Wrap?")}</label>
                                 <div class="col-sm-9">
                                     <input type="checkbox" class="form-control" name="lineWrap" id="${formId}_Text_lineWrap" value="true">
@@ -1460,7 +1466,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </script>
     </#if>
     <#if formNode["@focus-field"]?has_content>
-        <script>$("#${formId}_table").find('[name^="${formNode["@focus-field"]}<#if formListInfo.hasFirstRow()>_first<#else>_0</#if>"]').addClass('default-focus').focus();</script>
+        <script>$("#${formId}_table").find('[name="${formNode["@focus-field"]}<#if isMulti && !formListInfo.hasFirstRow()>_0</#if>"][form="${formId}<#if formListInfo.hasFirstRow()>_first<#elseif !isMulti>_0</#if>"]').addClass('default-focus').focus();</script>
     </#if>
     <#if hasSubColumns><script>moqui.makeColumnsConsistent('${formId}_table');</script></#if>
     <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
