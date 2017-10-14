@@ -57,7 +57,7 @@ along with this software (see the LICENSE.md file). If not, see
                     </drop-down></default-field></field>
                     <field name="operator"><default-field title="Operator"><drop-down><list-options list="opOptions"/></drop-down></default-field></field>
                     <field name="fieldValue"><default-field title="Value"><text-line size="40"/></default-field></field>
-                    <field name="toFieldNameAlias"><default-field title="To Field"><drop-down>
+                    <field name="toFieldNameAlias"><default-field title="To Field"><drop-down allow-empty="true">
                         <list-options list="fieldAliasSet" key="${entry}" text="${org.moqui.util.StringUtilities.camelCaseToPretty(entry)}"/>
                     </drop-down></default-field></field>
                     <field name="postQuery"><default-field title="PQ"><drop-down><option key="N"/><option key="Y"/></drop-down></default-field></field>
