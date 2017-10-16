@@ -1125,7 +1125,7 @@ moqui.webrootVue = new Vue({
             if (navMenu.extraPathList && navMenu.extraPathList.length) {
                 var href = navMenu.path + '/' + navMenu.extraPathList.join('/');
                 var questionIdx = navMenu.pathWithParams.indexOf("?");
-                if (questionIdx > 0) { href += navMenu.pathWithParams.slice(questionIdx + 1); }
+                if (questionIdx > 0) { href += navMenu.pathWithParams.slice(questionIdx); }
                 return href;
             } else {
                 return navMenu.pathWithParams;
