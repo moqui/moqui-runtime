@@ -64,6 +64,8 @@ nav.form-list-nav, table.table>thead>tr>th { background: #EEE; }
 
 .form-single-field-group { border-top: #888 solid thin; }
 
+.is-changed { font-weight: bolder; text-decoration: underline; text-decoration-color: #0097cf; text-decoration-style: solid; }
+
 /* ======================= Handy Styles ======================= */
 
 ul.float-box li { background: #EEEEEE; box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 0 1px #CCCCCC;

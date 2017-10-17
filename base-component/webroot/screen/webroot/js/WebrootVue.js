@@ -445,7 +445,7 @@ Vue.component('m-editable', {
 Vue.component('m-form', {
     props: { action:{type:String,required:true}, method:{type:String,'default':'POST'},
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean },
-    data: function() { return { fields:{} }},
+    data: function() { return { fields:{}, fieldsChanged:{} }},
     template: '<form @submit.prevent="submitForm" class="validation-engine-init"><slot></slot></form>',
     methods: {
         submitForm: function submitForm() {
@@ -514,6 +514,39 @@ Vue.component('m-form', {
             } else if (!notified) {
                 $.notify({ message:"Form data saved" }, $.extend({}, moqui.notifyOpts, {type:'success'}));
             }
+        },
+        fieldChange: function (evt) {
+            var targetDom = evt.delegateTarget; var targetEl = $(targetDom);
+            var changed = false;
+            if (targetDom.nodeName === "INPUT" || targetDom.nodeName === "TEXTAREA") {
+                if (targetEl.attr("type") === "radio" || targetEl.attr("type") === "checkbox") {
+                    changed = targetDom.checked !== targetDom.defaultChecked; }
+                else { changed = targetDom.value !== targetDom.defaultValue; }
+            } else if (targetDom.nodeName === "SELECT") {
+                // TODO: doesn't seem to work with select2, always shows changed; defaultSelected may not work as set by JS
+                if (targetDom.multiple) {
+                    var optLen = targetDom.options.length;
+                    for (var i = 0; i < optLen; i++) {
+                        var opt = targetDom.options[i];
+                        if (opt.selected !== opt.defaultSelected) { changed = true; break; }
+                    }
+                } else {
+                    changed = !targetDom.options[targetDom.selectedIndex].defaultSelected;
+                }
+            }
+            /* console.log("changed? " + changed + " node " + targetDom.nodeName + " type " + targetEl.attr("type") + " " + targetEl.attr("name") + " to " + targetDom.value + " default " + targetDom.defaultValue);
+               console.log(targetDom.defaultValue); */
+            var changeEls = targetEl.parents(".form-group");
+            if (changeEls.length === 0) changeEls = targetEl;
+            if (changed) {
+                this.fieldsChanged[targetEl.attr("name")] = true;
+                targetEl.parents(".form-group").children("label").addClass("is-changed");
+                targetEl.addClass("is-changed");
+            } else {
+                this.fieldsChanged[targetEl.attr("name")] = false;
+                targetEl.parents(".form-group").children("label").removeClass("is-changed");
+                targetEl.removeClass("is-changed");
+            }
         }
     },
     mounted: function() {
@@ -524,6 +557,7 @@ Vue.component('m-form', {
         });
         jqEl.find('[data-toggle="tooltip"]').tooltip({placement:'auto top'});
         if (this.focusField && this.focusField.length > 0) jqEl.find('[name^="' + this.focusField + '"]').addClass('default-focus').focus();
+        jqEl.find(':input').on('change', this.fieldChange)
     }
 });
 Vue.component('form-link', {
