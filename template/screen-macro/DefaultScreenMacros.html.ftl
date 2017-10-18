@@ -1760,7 +1760,12 @@ a => A, d => D, y => Y
             <input type="text" class="form-control<#if validationClasses?contains("required")> required</#if>"<#if validationClasses?contains("required")> required="required"</#if> name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
         </div>
-        <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true, defaultDate: '${fieldValue?html}' && moment('${fieldValue?html}','${datepickerFormat}'), format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}"});</script>
+        <script>
+            $('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true,
+                useStrict:true, defaultDate: '${fieldValue?html}' && moment('${fieldValue?html}','${datepickerFormat}'),
+                format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}"});
+            $('#${id}').on("dp.change", function() { var jqEl = $('#${id}'); jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); });
+        </script>
     <#else>
         <#-- datetimepicker does not support time only, even with plain HH:mm format; use a regex to validate time format -->
         <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
@@ -1812,7 +1817,7 @@ a => A, d => D, y => Y
                     <#t>}, dataType:"text" }).done( function(defaultText) { $('#${dispFieldId}_display').html(defaultText); <#if dispHidden>$('#${dispFieldId}').val(defaultText);</#if>  } );
             }
             <#list depNodeList as depNode>
-            $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${dispFieldId}(); });
+            $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { console.log("change for ${dispFieldId}"); populate_${dispFieldId}(); });
             </#list>
             populate_${dispFieldId}();
         </script>

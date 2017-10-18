@@ -789,10 +789,10 @@ Vue.component('date-time', {
             // console.log("date/time unfocus val " + curVal);
             // if contains 'd ' (month/day missing, or month specified but date missing or partial) clear input
             // Sufficient to check for just 'd', since the mask handles any scenario where there would only be a single 'd'
-            if (curVal.indexOf('d') > 0) { inputEl.val(''); return; }
+            if (curVal.indexOf('d') > 0) { inputEl.val(''); inputEl.trigger("change"); return; }
             // default time to noon, or minutes to 00
-            if (curVal.indexOf('hh:mm') > 0) { inputEl.val(curVal.replace('hh:mm', '12:00')); return; }
-            if (curVal.indexOf(':mm') > 0) { inputEl.val(curVal.replace(':mm', ':00')); return; }
+            if (curVal.indexOf('hh:mm') > 0) { inputEl.val(curVal.replace('hh:mm', '12:00')); inputEl.trigger("change"); return; }
+            if (curVal.indexOf(':mm') > 0) { inputEl.val(curVal.replace(':mm', ':00')); inputEl.trigger("change"); return; }
         }
     },
     computed: {
@@ -808,8 +808,12 @@ Vue.component('date-time', {
         var value = this.value;
         var format = this.formatVal;
         var jqEl = $(this.$el);
-        if (this.type !== "time") { jqEl.datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true,
-            defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format, extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale}); }
+        if (this.type !== "time") {
+            jqEl.datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true,
+                defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
+                extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale});
+            jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); })
+        }
         if (format === "YYYY-MM-DD") { jqEl.find('input').inputmask("yyyy-mm-dd", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
         if (format === "YYYY-MM-DD HH:mm") { jqEl.find('input').inputmask("yyyy-mm-dd hh:mm", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
     }
