@@ -187,7 +187,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFormNode()>
-    <#t>${sri.pushSingleFormMapContext(formNode)}
+    <#t>${sri.pushSingleFormMapContext(formNode["@map"]!"fieldValues")}
     <#assign curFieldWidthIn = layoutWidthIn>
     <#assign inFieldRowBig = false>
     <#if formNode["field-layout"]?has_content>

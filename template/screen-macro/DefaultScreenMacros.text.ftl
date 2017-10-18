@@ -131,7 +131,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "form-single">
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formNode = sri.getFormNode(.node["@name"])>
-    <#t>${sri.pushSingleFormMapContext(formNode)}
+    <#t>${sri.pushSingleFormMapContext(formNode["@map"]!"fieldValues")}
     <#list formNode["field"] as fieldNode>
         <#t><@formSingleSubField fieldNode/>${"\n"}
     </#list>

@@ -561,7 +561,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFormNode()>
-    <#t>${sri.pushSingleFormMapContext(formNode)}
+    <#t>${sri.pushSingleFormMapContext(formNode["@map"]!"fieldValues")}
     <#assign skipStart = formNode["@skip-start"]! == "true">
     <#assign skipEnd = formNode["@skip-end"]! == "true">
     <#assign ownerForm = formNode["@owner-form"]!>
@@ -1297,6 +1297,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </form>
         </#if>
         <#if formListInfo.isFirstRowForm()>
+            <#t>${sri.pushSingleFormMapContext(formNode["@map-first-row"]!"")}
             <#assign firstUrlInstance = sri.makeUrlByType(formNode["@transition-first-row"], "transition", null, "false")>
             <form name="${formId}_first" id="${formId}_first" method="post" action="${firstUrlInstance.url}">
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
@@ -1304,8 +1305,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign hiddenFieldList = formListInfo.getListFirstRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["first-row-field"][0]/></#list>
             </form>
+            <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
         </#if>
         <#if formListInfo.isLastRowForm()>
+            <#t>${sri.pushSingleFormMapContext(formNode["@map-last-row"]!"")}
             <#assign lastUrlInstance = sri.makeUrlByType(formNode["@transition-last-row"], "transition", null, "false")>
             <form name="${formId}_last" id="${formId}_last" method="post" action="${lastUrlInstance.url}">
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
@@ -1313,6 +1316,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign hiddenFieldList = formListInfo.getListLastRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["last-row-field"][0]/></#list>
             </form>
+            <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
         </#if>
         <#if isMulti>
         <form name="${formId}" id="${formId}" method="post" action="${formListUrlInfo.url}">
@@ -1374,6 +1378,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
     <#-- first-row fields -->
     <#if formListInfo.hasFirstRow()>
+        <#t>${sri.pushSingleFormMapContext(formNode["@map-first-row"]!"")}
         <#assign ownerForm = formId + "_first">
         <#assign listEntryIndex = "first">
         <tr class="first">
@@ -1387,6 +1392,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </tr>
         <#assign ownerForm = formId>
         <#assign listEntryIndex = "">
+        <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
     </#if>
     <#if listHasContent><#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
@@ -1432,6 +1438,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
     <#-- last-row fields -->
     <#if formListInfo.hasLastRow()>
+        <#t>${sri.pushSingleFormMapContext(formNode["@map-last-row"]!"")}
         <#assign ownerForm = formId + "_last">
         <#assign listEntryIndex = "last">
         <tr class="last">
@@ -1445,6 +1452,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </tr>
         <#assign listEntryIndex = "">
         <#assign ownerForm = formId>
+        <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
     </#if>
     <#if !skipEnd>
         <#if isMulti && listHasContent>
