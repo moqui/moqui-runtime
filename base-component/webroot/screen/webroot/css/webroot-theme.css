@@ -64,7 +64,8 @@ nav.form-list-nav, table.table>thead>tr>th { background: #EEE; }
 
 .form-single-field-group { border-top: #888 solid thin; }
 
-.is-changed { font-weight: bolder; text-decoration: underline; text-decoration-color: #0097cf; text-decoration-style: solid; }
+label.is-changed { text-decoration: underline; text-decoration-color: #0097cf; text-decoration-style: solid; }
+.is-changed { font-weight: bolder; }
 
 /* ======================= Handy Styles ======================= */
 
