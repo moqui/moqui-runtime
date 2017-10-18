@@ -1817,7 +1817,7 @@ a => A, d => D, y => Y
                     <#t>}, dataType:"text" }).done( function(defaultText) { $('#${dispFieldId}_display').html(defaultText); <#if dispHidden>$('#${dispFieldId}').val(defaultText);</#if>  } );
             }
             <#list depNodeList as depNode>
-            $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { console.log("change for ${dispFieldId}"); populate_${dispFieldId}(); });
+            $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${dispFieldId}(); });
             </#list>
             populate_${dispFieldId}();
         </script>
