@@ -1298,6 +1298,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
         <#if formListInfo.isFirstRowForm()>
             <#t>${sri.pushSingleFormMapContext(formNode["@map-first-row"]!"")}
+            <#assign listEntryIndex = "first">
             <#assign firstUrlInstance = sri.makeUrlByType(formNode["@transition-first-row"], "transition", null, "false")>
             <form name="${formId}_first" id="${formId}_first" method="post" action="${firstUrlInstance.url}">
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
@@ -1305,10 +1306,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign hiddenFieldList = formListInfo.getListFirstRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["first-row-field"][0]/></#list>
             </form>
+            <#assign listEntryIndex = "">
             <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
         </#if>
         <#if formListInfo.isLastRowForm()>
             <#t>${sri.pushSingleFormMapContext(formNode["@map-last-row"]!"")}
+            <#assign listEntryIndex = "last">
             <#assign lastUrlInstance = sri.makeUrlByType(formNode["@transition-last-row"], "transition", null, "false")>
             <form name="${formId}_last" id="${formId}_last" method="post" action="${lastUrlInstance.url}">
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
@@ -1316,6 +1319,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign hiddenFieldList = formListInfo.getListLastRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["last-row-field"][0]/></#list>
             </form>
+            <#assign listEntryIndex = "">
             <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
         </#if>
         <#if isMulti>
