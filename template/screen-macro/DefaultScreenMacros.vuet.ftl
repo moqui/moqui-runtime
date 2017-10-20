@@ -365,6 +365,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#t><#if formNode["@background-reload-id"]?has_content> submit-reload-id="${formNode["@background-reload-id"]}"</#if>
             <#t><#if formNode["@background-hide-id"]?has_content> submit-hide-id="${formNode["@background-hide-id"]}"</#if>>
         <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
+        <#assign lastUpdatedString = sri.getNamedValuePlain("lastUpdatedStamp", formNode)>
+        <#if lastUpdatedString?has_content><input type="hidden" name="lastUpdatedStamp" value="${lastUpdatedString}"></#if>
     </#if>
         <fieldset class="form-horizontal"<#if urlInstance.disableLink> disabled="disabled"</#if>>
         <#if formNode["field-layout"]?has_content>

@@ -572,6 +572,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <form name="${formId}" id="${formId}" method="post" action="${urlInstance.url}"<#if formInstance.isUpload()> enctype="multipart/form-data"</#if>>
         <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+        <#assign lastUpdatedString = sri.getNamedValuePlain("lastUpdatedStamp", formNode)>
+        <#if lastUpdatedString?has_content><input type="hidden" name="lastUpdatedStamp" value="${lastUpdatedString}"></#if>
     </#if>
         <fieldset class="form-horizontal"<#if urlInstance.disableLink> disabled="disabled"</#if>>
         <#if formNode["field-layout"]?has_content>
