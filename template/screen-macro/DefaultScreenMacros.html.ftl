@@ -1257,6 +1257,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign mainColInfoList = formListInfo.getMainColInfo()>
     <#assign subColInfoList = formListInfo.getSubColInfo()!>
     <#assign hasSubColumns = subColInfoList?has_content>
+    <#assign tableStyle><#if .node["@style"]?has_content> ${ec.getResource().expand(.node["@style"], "")}</#if></#assign>
     <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
@@ -1340,7 +1341,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
 
         <#if !skipHeader><@paginationHeaderModals formListInfo formId isHeaderDialog/></#if>
-        <table class="table table-striped table-hover table-condensed" id="${formId}_table">
+        <table class="table table-striped table-hover table-condensed${tableStyle}" id="${formId}_table">
         <#if !skipHeader>
             <thead>
                 <@paginationHeader formListInfo formId isHeaderDialog/>
@@ -1360,7 +1361,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </#list>
                 </tr>
                 <#if hasSubColumns>
-                    <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed"><thead>
+                    <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed${tableStyle}"><thead>
                         <#list subColInfoList as subColFieldList><th>
                             <#list subColFieldList as fieldNode>
                                 <div><@formListHeaderField fieldNode isHeaderDialog/></div>
@@ -1414,7 +1415,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#list>
         <#if hasSubColumns><#assign aggregateSubList = listEntry["aggregateSubList"]!><#if aggregateSubList?has_content>
             </tr>
-            <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed">
+            <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed${tableStyle}">
                 <#list aggregateSubList as subListEntry><tr>
                     ${sri.startFormListSubRow(formListInfo, subListEntry, subListEntry_index, subListEntry_has_next)}
                     <#list subColInfoList as subColFieldList><td>
