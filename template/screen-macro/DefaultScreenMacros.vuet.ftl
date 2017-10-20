@@ -1604,7 +1604,7 @@ a => A, d => D, y => Y
                 <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> :disabled="true"</#if>
                 <#t><#if validationClasses?has_content> validation-classes="${validationClasses}"</#if>
                 <#t><#if validationClasses?contains("required")> :required="true"</#if>
-                <#t><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if>
+                <#t><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}" data-msg-pattern="${regexpInfo.message!"Invalid format"}"</#if>
                 <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
                 <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>
                 <#t><#if .node["@ac-min-length"]?has_content> :min-length="${.node["@ac-min-length"]}"</#if>
@@ -1619,7 +1619,7 @@ a => A, d => D, y => Y
             <#t> <#if .node.@size?has_content>size="${.node.@size}"<#else>style="width:100%;"</#if><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
             <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if>
             <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
-            <#t><#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if>
+            <#t><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}" data-msg-pattern="${regexpInfo.message!"Invalid format"}"</#if>
             <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
             <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>>
         <#assign expandedMask = ec.getResource().expand(.node["@mask"], "")!>

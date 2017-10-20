@@ -569,7 +569,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign urlInstance = sri.makeUrlByType(formNode["@transition"], "transition", null, "true")>
     <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#if !skipStart>
-    <form name="${formId}" id="${formId}" class="validation-engine-init" method="post" action="${urlInstance.url}"<#if formInstance.isUpload()> enctype="multipart/form-data"</#if>>
+    <form name="${formId}" id="${formId}" method="post" action="${urlInstance.url}"<#if formInstance.isUpload()> enctype="multipart/form-data"</#if>>
         <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
     </#if>
@@ -2065,7 +2065,12 @@ a => A, d => D, y => Y
         <#assign acUseActual = .node["@ac-use-actual"]! == "true">
         <#if .node["@ac-initial-text"]?has_content><#assign valueText = ec.getResource().expand(.node["@ac-initial-text"]!, "")>
             <#else><#assign valueText = fieldValue></#if>
-        <input id="${id}_ac" type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>" name="${name}_ac" value="${valueText?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if> class="form-control typeahead<#if validationClasses?has_content> ${validationClasses}</#if>"<#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if> autocomplete="off"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
+        <#t><input id="${id}_ac" type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>"
+            <#t> name="${name}_ac" value="${valueText?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
+            <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if>
+            <#t> class="form-control typeahead<#if validationClasses?has_content> ${validationClasses}</#if>"<#if validationClasses?contains("required")> required</#if>
+            <#t><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}" data-msg-pattern="${regexpInfo.message!"Invalid format"}"</#if>
+            <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if> autocomplete="off"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
         <input id="${id}" type="hidden" name="${name}" value="${fieldValue?html}"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
         <#if acShowValue><span id="${id}_value" class="form-autocomplete-value"><#if valueText?has_content>${valueText?html}<#else>&nbsp;</#if></span></#if>
         <#assign depNodeList = .node["depends-on"]>
@@ -2107,7 +2112,7 @@ a => A, d => D, y => Y
         <#t> name="${name}" value="${fieldValue?html}" <#if .node.@size?has_content>size="${.node.@size}"<#else>style="width:100%;"</#if><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
         <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if>
         <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
-        <#t><#if validationClasses?has_content> data-vv-validations="${validationClasses}"</#if><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}"</#if>
+        <#t><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}" data-msg-pattern="${regexpInfo.message!"Invalid format"}"</#if>
         <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
         <#assign expandedMask = ec.getResource().expand(.node["@mask"], "")!>
         <#if expandedMask?has_content><script>$('#${id}').inputmask("${expandedMask}");</script></#if>
