@@ -539,10 +539,8 @@ Vue.component('m-form', {
                     changed = !targetDom.options[targetDom.selectedIndex].defaultSelected;
                 }
             }
-            console.log("changed? " + changed + " node " + targetDom.nodeName + " type " + targetEl.attr("type") + " " + targetEl.attr("name") + " to " + targetDom.value + " default " + targetDom.defaultValue);
-               console.log(targetDom.defaultValue);
-            var changeEls = targetEl.parents(".form-group");
-            if (changeEls.length === 0) changeEls = targetEl;
+            // console.log("changed? " + changed + " node " + targetDom.nodeName + " type " + targetEl.attr("type") + " " + targetEl.attr("name") + " to " + targetDom.value + " default " + targetDom.defaultValue);
+            // console.log(targetDom.defaultValue);
             if (changed) {
                 this.fieldsChanged[targetEl.attr("name")] = true;
                 targetEl.parents(".form-group").children("label").addClass("is-changed");
