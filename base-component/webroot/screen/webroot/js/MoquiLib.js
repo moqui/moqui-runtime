@@ -74,9 +74,8 @@ var moqui = {
         }
     },
     NotifySettings: function(type) {
-        this.delay = 3000; this.offset = { x:20, y:50 };
-        this.placement = {from:'bottom',align:'right'};
-        this.animate = { enter:'animated fadeInDown', exit:'animated fadeOutUp' };
+        this.delay = 4000; this.offset = { x:20, y:60 }; this.placement = {from:'top',align:'right'};
+        this.animate = { enter:'animated fadeInDown', exit:'' }; // no animate on exit: animated fadeOutUp
         if (type) { this.type = type; } else { this.type = 'info'; }
         this.template =
             '<div data-notify="container" class="notify-container col-xs-11 col-sm-3 alert alert-{0}" role="alert">' +

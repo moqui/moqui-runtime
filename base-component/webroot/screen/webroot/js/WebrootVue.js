@@ -139,21 +139,25 @@ moqui.retryInlineScript = function(src, count) {
 };
 
 /* ========== notify and error handling ========== */
-moqui.notifyOpts = { delay:3000, offset:{x:20,y:50}, placement:{from:'bottom',align:'right'}, z_index:1100, type:'success',
-    animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
+moqui.notifyOpts = { delay:1500, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'success',
+    animate:{ enter:'animated fadeInDown', exit:'' } }; // no animate on exit: animated fadeOutUp
+moqui.notifyOptsInfo = { delay:3000, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'info',
+    animate:{ enter:'animated fadeInDown', exit:'' } }; // no animate on exit: animated fadeOutUp
+moqui.notifyOptsError = { delay:5000, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'danger',
+    animate:{ enter:'animated fadeInDown', exit:'' } }; // no animate on exit: animated fadeOutUp
 moqui.notifyMessages = function(messages, errors) {
     var notified = false;
     if (messages) {
         if (moqui.isArray(messages)) {
             for (var mi=0; mi < messages.length; mi++) {
-                $.notify({message:messages[mi]}, $.extend({}, moqui.notifyOpts, {type: 'info'})); moqui.webrootVue.addNotify(messages[mi], 'info'); notified = true; }
-        } else { $.notify({message:messages}, $.extend({}, moqui.notifyOpts, {type: 'info'})); moqui.webrootVue.addNotify(messages, 'info'); notified = true; }
+                $.notify({message:messages[mi]}, moqui.notifyOptsInfo); moqui.webrootVue.addNotify(messages[mi], 'info'); notified = true; }
+        } else { $.notify({message:messages}, moqui.notifyOptsInfo); moqui.webrootVue.addNotify(messages, 'info'); notified = true; }
     }
     if (errors) {
         if (moqui.isArray(errors)) {
             for (var ei=0; ei < errors.length; ei++) {
-                $.notify({message:errors[ei]}, $.extend({}, moqui.notifyOpts, {delay:4000, type:'danger'})); moqui.webrootVue.addNotify(errors[ei], 'danger'); notified = true; }
-        } else { $.notify({message:errors}, $.extend({}, moqui.notifyOpts, {delay:4000, type:'danger'})); moqui.webrootVue.addNotify(errors, 'danger'); notified = true; }
+                $.notify({message:errors[ei]}, moqui.notifyOptsError); moqui.webrootVue.addNotify(errors[ei], 'danger'); notified = true; }
+        } else { $.notify({message:errors}, moqui.notifyOptsError); moqui.webrootVue.addNotify(errors, 'danger'); notified = true; }
     }
     return notified;
 };
@@ -170,9 +174,9 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status === 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); }
     } else if (jqXHR.status === 0) { if (errorThrown.indexOf('abort') < 0) { var msg = 'Could not connect to server';
-        $.notify({ message:msg }, $.extend({}, moqui.notifyOpts, {delay:4000, type:'danger'})); moqui.webrootVue.addNotify(msg, 'danger'); }
+        $.notify({ message:msg }, moqui.notifyOptsError); moqui.webrootVue.addNotify(msg, 'danger'); }
     } else if (!notified) { var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
-        $.notify({ message:errMsg }, $.extend({}, moqui.notifyOpts, {delay:4000, type:'danger'})); moqui.webrootVue.addNotify(errMsg, 'danger');
+        $.notify({ message:errMsg }, moqui.notifyOptsError); moqui.webrootVue.addNotify(errMsg, 'danger');
     }
 };
 
@@ -509,10 +513,10 @@ Vue.component('m-form', {
             if (subMsg && subMsg.length) {
                 var responseText = resp; // this is set for backward compatibility in case message relies on responseText as in old JS
                 var message = eval('"' + subMsg + '"');
-                $.notify({ message:message }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+                $.notify({ message:message }, moqui.notifyOpts);
                 moqui.webrootVue.addNotify(message, 'success');
             } else if (!notified) {
-                $.notify({ message:"Form data saved" }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+                $.notify({ message:"Form data saved" }, moqui.notifyOpts);
             }
         },
         fieldChange: function (evt) {
