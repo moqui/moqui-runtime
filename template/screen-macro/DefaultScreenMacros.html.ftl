@@ -561,7 +561,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
     <#assign formNode = formInstance.getFormNode()>
-    <#t>${sri.pushSingleFormMapContext(formNode)}
+    <#t>${sri.pushSingleFormMapContext(formNode["@map"]!"fieldValues")}
     <#assign skipStart = formNode["@skip-start"]! == "true">
     <#assign skipEnd = formNode["@skip-end"]! == "true">
     <#assign ownerForm = formNode["@owner-form"]!>
@@ -572,6 +572,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <form name="${formId}" id="${formId}" method="post" action="${urlInstance.url}"<#if formInstance.isUpload()> enctype="multipart/form-data"</#if>>
         <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+        <#assign lastUpdatedString = sri.getNamedValuePlain("lastUpdatedStamp", formNode)>
+        <#if lastUpdatedString?has_content><input type="hidden" name="lastUpdatedStamp" value="${lastUpdatedString}"></#if>
     </#if>
         <fieldset class="form-horizontal"<#if urlInstance.disableLink> disabled="disabled"</#if>>
         <#if formNode["field-layout"]?has_content>
@@ -1048,6 +1050,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Text_pageLines">${ec.getL10n().localize("Page Lines")}</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" size="4" name="pageLines" id="${formId}_Text_pageLines" value="88">
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label class="control-label col-sm-3" for="${formId}_Text_lineWrap">${ec.getL10n().localize("Line Wrap?")}</label>
                                 <div class="col-sm-9">
                                     <input type="checkbox" class="form-control" name="lineWrap" id="${formId}_Text_lineWrap" value="true">
@@ -1251,6 +1259,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign mainColInfoList = formListInfo.getMainColInfo()>
     <#assign subColInfoList = formListInfo.getSubColInfo()!>
     <#assign hasSubColumns = subColInfoList?has_content>
+    <#assign tableStyle><#if .node["@style"]?has_content> ${ec.getResource().expand(.node["@style"], "")}</#if></#assign>
     <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
@@ -1291,6 +1300,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </form>
         </#if>
         <#if formListInfo.isFirstRowForm()>
+            <#t>${sri.pushSingleFormMapContext(formNode["@map-first-row"]!"")}
+            <#assign listEntryIndex = "first">
             <#assign firstUrlInstance = sri.makeUrlByType(formNode["@transition-first-row"], "transition", null, "false")>
             <form name="${formId}_first" id="${formId}_first" method="post" action="${firstUrlInstance.url}">
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
@@ -1298,8 +1309,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign hiddenFieldList = formListInfo.getListFirstRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["first-row-field"][0]/></#list>
             </form>
+            <#assign listEntryIndex = "">
+            <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
         </#if>
         <#if formListInfo.isLastRowForm()>
+            <#t>${sri.pushSingleFormMapContext(formNode["@map-last-row"]!"")}
+            <#assign listEntryIndex = "last">
             <#assign lastUrlInstance = sri.makeUrlByType(formNode["@transition-last-row"], "transition", null, "false")>
             <form name="${formId}_last" id="${formId}_last" method="post" action="${lastUrlInstance.url}">
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
@@ -1307,6 +1322,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign hiddenFieldList = formListInfo.getListLastRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["last-row-field"][0]/></#list>
             </form>
+            <#assign listEntryIndex = "">
+            <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
         </#if>
         <#if isMulti>
         <form name="${formId}" id="${formId}" method="post" action="${formListUrlInfo.url}">
@@ -1326,7 +1343,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
 
         <#if !skipHeader><@paginationHeaderModals formListInfo formId isHeaderDialog/></#if>
-        <table class="table table-striped table-hover table-condensed" id="${formId}_table">
+        <table class="table table-striped table-hover table-condensed${tableStyle}" id="${formId}_table">
         <#if !skipHeader>
             <thead>
                 <@paginationHeader formListInfo formId isHeaderDialog/>
@@ -1346,7 +1363,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </#list>
                 </tr>
                 <#if hasSubColumns>
-                    <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed"><thead>
+                    <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed${tableStyle}"><thead>
                         <#list subColInfoList as subColFieldList><th>
                             <#list subColFieldList as fieldNode>
                                 <div><@formListHeaderField fieldNode isHeaderDialog/></div>
@@ -1368,6 +1385,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
     <#-- first-row fields -->
     <#if formListInfo.hasFirstRow()>
+        <#t>${sri.pushSingleFormMapContext(formNode["@map-first-row"]!"")}
         <#assign ownerForm = formId + "_first">
         <#assign listEntryIndex = "first">
         <tr class="first">
@@ -1381,6 +1399,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </tr>
         <#assign ownerForm = formId>
         <#assign listEntryIndex = "">
+        <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
     </#if>
     <#if listHasContent><#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
@@ -1398,7 +1417,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#list>
         <#if hasSubColumns><#assign aggregateSubList = listEntry["aggregateSubList"]!><#if aggregateSubList?has_content>
             </tr>
-            <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed">
+            <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed${tableStyle}">
                 <#list aggregateSubList as subListEntry><tr>
                     ${sri.startFormListSubRow(formListInfo, subListEntry, subListEntry_index, subListEntry_has_next)}
                     <#list subColInfoList as subColFieldList><td>
@@ -1426,6 +1445,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
     <#-- last-row fields -->
     <#if formListInfo.hasLastRow()>
+        <#t>${sri.pushSingleFormMapContext(formNode["@map-last-row"]!"")}
         <#assign ownerForm = formId + "_last">
         <#assign listEntryIndex = "last">
         <tr class="last">
@@ -1439,6 +1459,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </tr>
         <#assign listEntryIndex = "">
         <#assign ownerForm = formId>
+        <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
     </#if>
     <#if !skipEnd>
         <#if isMulti && listHasContent>
@@ -1458,6 +1479,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             });
             $('#${formId} [data-toggle="tooltip"]').tooltip({placement:'auto top'});
         </script>
+    </#if>
+    <#if formNode["@focus-field"]?has_content>
+        <script>$("#${formId}_table").find('[name="${formNode["@focus-field"]}<#if isMulti && !formListInfo.hasFirstRow()>_0</#if>"][form="${formId}<#if formListInfo.hasFirstRow()>_first<#elseif !isMulti>_0</#if>"]').addClass('default-focus').focus();</script>
     </#if>
     <#if hasSubColumns><script>moqui.makeColumnsConsistent('${formId}_table');</script></#if>
     <#if sri.doBoundaryComments()><!-- END   form-list[@name=${.node["@name"]}] --></#if>
@@ -1584,7 +1608,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#-- ================== Form Field Widgets ==================== -->
 <#-- ========================================================== -->
 
-<#macro fieldName widgetNode><#assign fieldNode=widgetNode?parent?parent/>${fieldNode["@name"]?html}<#if isMulti?exists && isMulti && listEntryIndex?has_content>_${listEntryIndex}</#if></#macro>
+<#macro fieldName widgetNode><#assign fieldNode=widgetNode?parent?parent/>${fieldNode["@name"]?html}<#if isMulti?exists && isMulti && listEntryIndex?has_content && listEntryIndex?matches("\\d*")>_${listEntryIndex}</#if></#macro>
 <#macro fieldId widgetNode><#assign fieldNode=widgetNode?parent?parent/><#if fieldFormId?has_content>${fieldFormId}<#else>${ec.getResource().expandNoL10n(fieldNode?parent["@name"], "")}</#if>_${fieldNode["@name"]}<#if listEntryIndex?has_content>_${listEntryIndex}</#if><#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#macro>
 <#macro fieldTitle fieldSubNode><#t>
     <#t><#if (fieldSubNode?node_name == 'header-field')>
@@ -1748,10 +1772,15 @@ a => A, d => D, y => Y
 
     <#if .node["@type"]! != "time">
         <div class="input-group date" id="${id}">
-            <input type="text" class="form-control<#if validationClasses?contains("required")> required</#if>" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+            <input type="text" class="form-control<#if validationClasses?contains("required")> required</#if>"<#if validationClasses?contains("required")> required="required"</#if> name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
         </div>
-        <script>$('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true, defaultDate: '${fieldValue?html}' && moment('${fieldValue?html}','${datepickerFormat}'), format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}"});</script>
+        <script>
+            $('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true,
+                useStrict:true, defaultDate: '${fieldValue?html}' && moment('${fieldValue?html}','${datepickerFormat}'),
+                format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}"});
+            $('#${id}').on("dp.change", function() { var jqEl = $('#${id}'); jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); });
+        </script>
     <#else>
         <#-- datetimepicker does not support time only, even with plain HH:mm format; use a regex to validate time format -->
         <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$" name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
@@ -1794,11 +1823,13 @@ a => A, d => D, y => Y
         <#assign depNodeList = .node["depends-on"]>
         <script>
             function populate_${dispFieldId}() {
-                var hasAllParms = true;
-                <#list depNodeList as depNode>if (!$('#<@fieldIdByName depNode["@field"]/>').val()) { hasAllParms = false; } </#list>
-                if (!hasAllParms) { <#-- alert("not has all parms"); --> return; }
+                <#if .node["@depends-optional"]! != "true">
+                    var hasAllParms = true;
+                    <#list depNodeList as depNode>if (!$('#<@fieldIdByName depNode["@field"]/>').val()) { hasAllParms = false; } </#list>
+                    if (!hasAllParms) { <#-- alert("not has all parms"); --> return; }
+                </#if>
                 $.ajax({ type:"POST", url:"${defUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
-                    <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = defUrlParameterMap.remove(depNodeField)!>, "${depNode["@parameter"]!depNodeField}": $("#<@fieldIdByName depNodeField/>").val()</#list>
+                    <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local depNodeParm = depNode["@parameter"]!depNodeField><#local _void = defUrlParameterMap.remove(depNodeParm)!>, "${depNodeParm}": $("#<@fieldIdByName depNodeField/>").val()</#list>
                     <#t><#list defUrlParameterMap?keys as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
                     <#t>}, dataType:"text" }).done( function(defaultText) { $('#${dispFieldId}_display').html(defaultText); <#if dispHidden>$('#${dispFieldId}').val(defaultText);</#if>  } );
             }
@@ -1872,7 +1903,7 @@ a => A, d => D, y => Y
                 <#if isServerSearch>minimumResultsForSearch:0, width:"100%", minimumInputLength:${doNode["@min-length"]!"1"},
                 ajax:{ url:"${doUrlInfo.url}", type:"POST", dataType:"json", cache:true, delay:${doNode["@delay"]!"300"},
                     data:function(params) { return { moquiSessionToken: "${(ec.getWeb().sessionToken)!}", term:(params.term || ''), pageIndex:(params.page || 1) - 1
-                        <#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = doUrlParameterMap.remove(depNodeField)!>, "${depNode["@parameter"]!depNodeField}": $("#<@fieldIdByName depNodeField/>").val()</#list>
+                        <#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local depNodeParm = depNode["@parameter"]!depNodeField><#local _void = doUrlParameterMap.remove(depNodeParm)!>, "${depNodeParm}": $("#<@fieldIdByName depNodeField/>").val()</#list>
                         <#list doUrlParameterMap?keys as parameterKey><#if doUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${doUrlParameterMap.get(parameterKey)}"</#if></#list>
                     }},
                     processResults:function(data, params) {

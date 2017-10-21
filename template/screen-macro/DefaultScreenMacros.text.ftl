@@ -33,6 +33,8 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro widgets>
     <#if !lineCharacters?has_content><#assign lineCharacters = "132"></#if>
     <#assign lineCharactersNum = lineCharacters?number>
+    <#-- NOTE: pageLines is optional, if 0 don't do page breaks -->
+    <#if pageLines?has_content><#assign pageLinesNum = pageLines?number><#else><#assign pageLinesNum = 0></#if>
     <#assign lineWrapBool = ("true" == lineWrap!)>
     <#recurse>
 </#macro>
@@ -129,7 +131,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "form-single">
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formNode = sri.getFormNode(.node["@name"])>
-    <#t>${sri.pushSingleFormMapContext(formNode)}
+    <#t>${sri.pushSingleFormMapContext(formNode["@map"]!"fieldValues")}
     <#list formNode["field"] as fieldNode>
         <#t><@formSingleSubField fieldNode/>${"\n"}
     </#list>
@@ -156,6 +158,38 @@ along with this software (see the LICENSE.md file). If not, see
     <#t><@paddedValue curTitle lineCharactersNum*0.2 true/>: <#recurse fieldSubNode/>
 </#macro>
 
+<#macro headerRows formListColumnList columnCharWidths>
+    <#list 0..5 as hdrFieldInColIndex>
+        <#assign hasMoreFields = false>
+        <#list formListColumnList as columnFieldList>
+            <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
+            <#if (cellCharWidth > 0)>
+                <#t><#if (columnFieldList_index > 0)>|</#if>
+                <#assign curColumnFieldSize = columnFieldList.size()>
+                <#if (hdrFieldInColIndex >= curColumnFieldSize)>
+                    <#t>${" "?left_pad(cellCharWidth)}
+                <#else>
+                    <#assign fieldNode = columnFieldList.get(hdrFieldInColIndex)!>
+                    <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
+                    <#t><@formListHeaderField fieldNode cellCharWidth cellLeftPad/>
+                </#if>
+                <#if (curColumnFieldSize > (hdrFieldInColIndex + 1))><#assign hasMoreFields = true></#if>
+            </#if>
+        </#list>
+        <#t>${"\n"}
+        <#assign lineCount = lineCount+1>
+        <#if !hasMoreFields><#break></#if>
+    </#list>
+    <#list formListColumnList as columnFieldList>
+        <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
+        <#if (cellCharWidth > 0)>
+            <#t><#if (columnFieldList_index > 0)>+</#if>
+            <#t><#list 1..cellCharWidth as charNum>-</#list>
+        </#if>
+    </#list>
+    <#t>${"\n"}
+    <#assign lineCount = lineCount+1>
+</#macro>
 <#macro "form-list">
     <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
@@ -166,28 +200,8 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign listName = formNode["@list"]>
     <#assign columnCharWidths = formListInfo.getFormListColumnCharWidths(lineCharactersNum)>
     <#-- <#t><#list 1..lineCharactersNum as charNum><#assign charNumMod10 = charNum % 10><#if charNumMod10 == 0>*<#else>${charNumMod10}</#if></#list> -->
-    <#list 0..5 as fieldInColIndex>
-        <#assign hasMoreFields = false>
-        <#list formListColumnList as columnFieldList>
-            <#assign cellCharWidth = columnCharWidths.get(columnFieldList_index)>
-            <#if (cellCharWidth > 0)>
-                <#t><#if (columnFieldList_index > 0)>|</#if>
-                <#assign curColumnFieldSize = columnFieldList.size()>
-                <#if (fieldInColIndex >= curColumnFieldSize)>
-                    <#t>${" "?left_pad(cellCharWidth)}
-                <#else>
-                    <#assign fieldNode = columnFieldList.get(fieldInColIndex)!>
-                    <#assign cellLeftPad = (fieldNode["@align"]! == "right" || fieldNode["@align"]! == "center")>
-                    <#t><@formListHeaderField fieldNode/>
-                </#if>
-                <#if (curColumnFieldSize > (fieldInColIndex + 1))><#assign hasMoreFields = true></#if>
-            </#if>
-        </#list>
-        <#t>${"\n"}
-        <#if !hasMoreFields><#break></#if>
-    </#list>
-    <#t><#list 1..lineCharactersNum as charNum>-</#list>
-    <#t>${"\n"}
+    <#assign lineCount = 1>
+    <@headerRows formListColumnList columnCharWidths/>
     <#list listObject as listEntry>
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
@@ -212,7 +226,13 @@ along with this software (see the LICENSE.md file). If not, see
                         <#if (curColumnFieldSize > (fieldInColIndex + 1))><#assign hasMoreFields = true></#if>
                     </#if>
                 </#list>
-                <#t>${"\n"}
+                <#t><#-- :${lineCount} -->${"\n"}
+                <#if (pageLinesNum > 0 && lineCount == pageLinesNum)>
+                    <#assign lineCount = 1>
+                    <@headerRows formListColumnList columnCharWidths/>
+                <#else>
+                    <#assign lineCount = lineCount+1>
+                </#if>
                 <#if !cellWrapOverflow || !lineWrapBool><#break></#if>
             </#list>
             <#if !hasMoreFields><#break></#if>
@@ -222,7 +242,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#t>${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
     <#t>${"\n"}
 </#macro>
-<#macro formListHeaderField fieldNode>
+<#macro formListHeaderField fieldNode cellCharWidth cellLeftPad>
     <#if fieldNode["header-field"]?has_content>
         <#assign fieldSubNode = fieldNode["header-field"][0]>
     <#elseif fieldNode["default-field"]?has_content>
@@ -232,7 +252,7 @@ along with this software (see the LICENSE.md file). If not, see
         <#assign fieldSubNode = fieldNode["conditional-field"][0]>
     </#if>
     <#assign curTitle><@fieldTitle fieldSubNode/></#assign>
-    <#t><@paddedValue curTitle/>
+    <#t><@paddedValue curTitle cellCharWidth!0 cellLeftPad!false 0/>
 </#macro>
 <#macro formListSubField fieldNode>
     <#list fieldNode["conditional-field"] as fieldSubNode>

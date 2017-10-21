@@ -139,21 +139,25 @@ moqui.retryInlineScript = function(src, count) {
 };
 
 /* ========== notify and error handling ========== */
-moqui.notifyOpts = { delay:6000, offset:{x:20,y:70}, placement:{from:'top',align:'right'}, z_index:1100, type:'success',
-    animate:{ enter:'animated fadeInDown', exit:'animated fadeOutUp' } };
+moqui.notifyOpts = { delay:1500, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'success',
+    animate:{ enter:'animated fadeInDown', exit:'' } }; // no animate on exit: animated fadeOutUp
+moqui.notifyOptsInfo = { delay:3000, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'info',
+    animate:{ enter:'animated fadeInDown', exit:'' } }; // no animate on exit: animated fadeOutUp
+moqui.notifyOptsError = { delay:5000, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'danger',
+    animate:{ enter:'animated fadeInDown', exit:'' } }; // no animate on exit: animated fadeOutUp
 moqui.notifyMessages = function(messages, errors) {
     var notified = false;
     if (messages) {
         if (moqui.isArray(messages)) {
             for (var mi=0; mi < messages.length; mi++) {
-                $.notify({message:messages[mi]}, $.extend({}, moqui.notifyOpts, {type: 'info'})); moqui.webrootVue.addNotify(messages[mi], 'info'); notified = true; }
-        } else { $.notify({message:messages}, $.extend({}, moqui.notifyOpts, {type: 'info'})); moqui.webrootVue.addNotify(messages, 'info'); notified = true; }
+                $.notify({message:messages[mi]}, moqui.notifyOptsInfo); moqui.webrootVue.addNotify(messages[mi], 'info'); notified = true; }
+        } else { $.notify({message:messages}, moqui.notifyOptsInfo); moqui.webrootVue.addNotify(messages, 'info'); notified = true; }
     }
     if (errors) {
         if (moqui.isArray(errors)) {
             for (var ei=0; ei < errors.length; ei++) {
-                $.notify({message:errors[ei]}, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'})); moqui.webrootVue.addNotify(errors[ei], 'danger'); notified = true; }
-        } else { $.notify({message:errors}, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'})); moqui.webrootVue.addNotify(errors, 'danger'); notified = true; }
+                $.notify({message:errors[ei]}, moqui.notifyOptsError); moqui.webrootVue.addNotify(errors[ei], 'danger'); notified = true; }
+        } else { $.notify({message:errors}, moqui.notifyOptsError); moqui.webrootVue.addNotify(errors, 'danger'); notified = true; }
     }
     return notified;
 };
@@ -170,9 +174,9 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status === 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); }
     } else if (jqXHR.status === 0) { if (errorThrown.indexOf('abort') < 0) { var msg = 'Could not connect to server';
-        $.notify({ message:msg }, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'})); moqui.webrootVue.addNotify(msg, 'danger'); }
+        $.notify({ message:msg }, moqui.notifyOptsError); moqui.webrootVue.addNotify(msg, 'danger'); }
     } else if (!notified) { var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
-        $.notify({ message:errMsg }, $.extend({}, moqui.notifyOpts, {delay:10000, type:'danger'})); moqui.webrootVue.addNotify(errMsg, 'danger');
+        $.notify({ message:errMsg }, moqui.notifyOptsError); moqui.webrootVue.addNotify(errMsg, 'danger');
     }
 };
 
@@ -445,7 +449,7 @@ Vue.component('m-editable', {
 Vue.component('m-form', {
     props: { action:{type:String,required:true}, method:{type:String,'default':'POST'},
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean },
-    data: function() { return { fields:{} }},
+    data: function() { return { fields:{}, fieldsChanged:{} }},
     template: '<form @submit.prevent="submitForm"><slot></slot></form>',
     methods: {
         submitForm: function submitForm() {
@@ -509,10 +513,48 @@ Vue.component('m-form', {
             if (subMsg && subMsg.length) {
                 var responseText = resp; // this is set for backward compatibility in case message relies on responseText as in old JS
                 var message = eval('"' + subMsg + '"');
-                $.notify({ message:message }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+                $.notify({ message:message }, moqui.notifyOpts);
                 moqui.webrootVue.addNotify(message, 'success');
             } else if (!notified) {
-                $.notify({ message:"Form data saved" }, $.extend({}, moqui.notifyOpts, {type:'success'}));
+                $.notify({ message:"Form data saved" }, moqui.notifyOpts);
+            }
+        },
+        fieldChange: function (evt) {
+            var targetDom = evt.delegateTarget; var targetEl = $(targetDom);
+            if (targetEl.hasClass("input-group") && targetEl.children("input").length) {
+                // special case for date-time using bootstrap-datetimepicker
+                targetEl = targetEl.children("input").first();
+                targetDom = targetEl.get(0);
+            }
+            var changed = false;
+            if (targetDom.nodeName === "INPUT" || targetDom.nodeName === "TEXTAREA") {
+                if (targetEl.attr("type") === "radio" || targetEl.attr("type") === "checkbox") {
+                    changed = targetDom.checked !== targetDom.defaultChecked; }
+                else { changed = targetDom.value !== targetDom.defaultValue; }
+            } else if (targetDom.nodeName === "SELECT") {
+                // TODO: doesn't seem to work with select2, always shows changed; defaultSelected may not work as set by JS
+                if (targetDom.multiple) {
+                    var optLen = targetDom.options.length;
+                    for (var i = 0; i < optLen; i++) {
+                        var opt = targetDom.options[i];
+                        if (opt.selected !== opt.defaultSelected) { changed = true; break; }
+                    }
+                } else {
+                    changed = !targetDom.options[targetDom.selectedIndex].defaultSelected;
+                }
+            }
+            // console.log("changed? " + changed + " node " + targetDom.nodeName + " type " + targetEl.attr("type") + " " + targetEl.attr("name") + " to " + targetDom.value + " default " + targetDom.defaultValue);
+            // console.log(targetDom.defaultValue);
+            if (changed) {
+                this.fieldsChanged[targetEl.attr("name")] = true;
+                targetEl.parents(".form-group").children("label").addClass("is-changed");
+                targetEl.parents(".form-group").find(".select2-selection").addClass("is-changed");
+                targetEl.addClass("is-changed");
+            } else {
+                this.fieldsChanged[targetEl.attr("name")] = false;
+                targetEl.parents(".form-group").children("label").removeClass("is-changed");
+                targetEl.parents(".form-group").find(".select2-selection").removeClass("is-changed");
+                targetEl.removeClass("is-changed");
             }
         }
     },
@@ -524,6 +566,10 @@ Vue.component('m-form', {
         });
         jqEl.find('[data-toggle="tooltip"]').tooltip({placement:'auto top'});
         if (this.focusField && this.focusField.length > 0) jqEl.find('[name^="' + this.focusField + '"]').addClass('default-focus').focus();
+        // watch changed fields
+        jqEl.find(':input').on('change', this.fieldChange);
+        // special case for date-time using bootstrap-datetimepicker
+        jqEl.find('div.input-group.date').on('change', this.fieldChange);
     }
 });
 Vue.component('form-link', {
@@ -736,28 +782,29 @@ Vue.component('form-list', {
 /* ========== form field widget components ========== */
 Vue.component('date-time', {
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'},
-        size:String, format:String, tooltip:String, form:String },
+        size:String, format:String, tooltip:String, form:String, required:String, autoYear:String },
     template:
     '<input v-if="type==\'time\'" type="text" class="form-control" :pattern="timePattern" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
     '<div v-else class="input-group date" :id="id">' +
-        '<input ref="dateInput" @focus="focusDate" @blur="blurDate" type="text" class="form-control" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
+        '<input ref="dateInput" @focus="focusDate" @blur="blurDate" type="text" class="form-control" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form" :required="required == \'required\' ? true : false">' +
         '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>' +
     '</div>',
     methods: {
         focusDate: function() {
-            if (this.type === 'time' || this.type === 'date') return;
+            if (this.type === 'time' || this.autoYear === 'false') return;
             var inputEl = $(this.$refs.dateInput); var curVal = inputEl.val();
             if (!curVal || !curVal.length) inputEl.val(new Date().getFullYear());
         },
         blurDate: function() {
-            if (this.type === 'time' || this.type === 'date') return;
+            if (this.type === 'time') return;
             var inputEl = $(this.$refs.dateInput); var curVal = inputEl.val();
             // console.log("date/time unfocus val " + curVal);
             // if contains 'd ' (month/day missing, or month specified but date missing or partial) clear input
-            if (curVal.indexOf('d ') > 0) { inputEl.val(''); return; }
+            // Sufficient to check for just 'd', since the mask handles any scenario where there would only be a single 'd'
+            if (curVal.indexOf('d') > 0) { inputEl.val(''); inputEl.trigger("change"); return; }
             // default time to noon, or minutes to 00
-            if (curVal.indexOf('hh:mm') > 0) { inputEl.val(curVal.replace('hh:mm', '12:00')); return; }
-            if (curVal.indexOf(':mm') > 0) { inputEl.val(curVal.replace(':mm', ':00')); return; }
+            if (curVal.indexOf('hh:mm') > 0) { inputEl.val(curVal.replace('hh:mm', '12:00')); inputEl.trigger("change"); return; }
+            if (curVal.indexOf(':mm') > 0) { inputEl.val(curVal.replace(':mm', ':00')); inputEl.trigger("change"); return; }
         }
     },
     computed: {
@@ -773,8 +820,12 @@ Vue.component('date-time', {
         var value = this.value;
         var format = this.formatVal;
         var jqEl = $(this.$el);
-        if (this.type !== "time") { jqEl.datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true,
-            defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format, extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale}); }
+        if (this.type !== "time") {
+            jqEl.datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true,
+                defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
+                extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale});
+            jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); })
+        }
         if (format === "YYYY-MM-DD") { jqEl.find('input').inputmask("yyyy-mm-dd", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
         if (format === "YYYY-MM-DD HH:mm") { jqEl.find('input').inputmask("yyyy-mm-dd hh:mm", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
     }
