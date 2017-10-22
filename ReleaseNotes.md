@@ -1,15 +1,21 @@
 
 # Moqui Runtime Release Notes
 
-## Release 2.1.0 - Not Yet Released
+## Release 2.1.0 - 22 Oct 2017
 
-Moqui Runtime 2.1.0 is a minor new feature and bug fix release, in parallel with the release of Moqui Framework.
+Moqui Runtime 2.1.0 is a major new feature and bug fix release, in parallel with the release of Moqui Framework.
 
-This release introduces the new 'vuet' render mode for applications that uses a Vue JS based single-page 
-application shell and supports hybrid client/server HTML rendering. The Vue shell (router, etc) is accessible on /vapps while the 
-server rendered HTML is still on /apps. The benefit is a significantly better user experience with existing XML Screens and a
-foundation for fully client-rendered screens for dynamic in-browser interactivity. Even with hybrid client/server rendering using
-XML Screens page loads are faster and there is less load on the server, along with better error handling and some improved widgets. 
+This release introduces the new 'vuet' render mode for applications that uses a Vue JS based single-page application shell and 
+supports hybrid client/server HTML rendering. The Vue shell (router, etc) is accessible on /vapps while the server rendered HTML is 
+still on /apps. The benefit is a significantly better user experience with existing XML Screens and a foundation for fully 
+client-rendered screens for dynamic in-browser interactivity. Even with hybrid client/server rendering using XML Screens page loads 
+are faster and there is less load on the server, along with better error handling and improved widgets (user interface elements). 
+
+### Non Backward Compatible Changes
+
+- The default subscreen of webroot.xml has been changed from /apps to /vapps making the Vue based hybrid client/server rendering 
+  mode the default; most screens will work fine in it with no changes, but sometimes small tweaks are needed to make sure navigation
+  forms vs data submit forms are handled properly
 
 ### New Features
 
