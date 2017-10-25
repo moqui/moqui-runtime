@@ -1944,6 +1944,7 @@ a => A, d => D, y => Y
                         var list = moqui.isArray(data) ? data : data.options;
                         if (list) {
                             var jqEl = $("#${id}");
+                            var bWasFocused = jqEl.next().hasClass('select2-container--focus');
                             jqEl.select2("destroy");
                             jqEl.html("");<#-- clear out the drop-down -->
                             <#if allowEmpty! == "true">
@@ -1963,6 +1964,7 @@ a => A, d => D, y => Y
                                 }
                             });
                             $("#${id}").select2(${id}S2Opts);
+                            if( bWasFocused ) jqEl.focus();
                             setTimeout(function() { jqEl.trigger('change'); }, 50);
                         }
                     }
