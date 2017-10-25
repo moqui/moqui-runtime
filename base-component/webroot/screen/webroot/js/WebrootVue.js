@@ -946,10 +946,12 @@ Vue.component('drop-down', {
         options: function(options) { this.curData = options; },
         curData: function(options) {
             var jqEl = $(this.$el); var vm = this;
+            var bWasFocused = jqEl.next().hasClass('select2-container--focus');
             // save the lastVal if there is one to remember what was selected even if new options don't have it, just in case options change again
             var saveVal = jqEl.select2().val(); if (saveVal && saveVal.length > 1) this.lastVal = saveVal;
             jqEl.select2('destroy'); jqEl.empty();
             this.s2Opts.data = options; jqEl.select2(this.s2Opts);
+            if( bWasFocused ) jqEl.focus();
             setTimeout(function() {
                 var setVal = vm.lastVal; if (!setVal || setVal.length < 2) { setVal = vm.value; }
                 if (setVal) {
