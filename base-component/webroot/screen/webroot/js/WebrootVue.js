@@ -936,8 +936,10 @@ Vue.component('drop-down', {
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
                 $('#' + dependsOnMap[doParm]).on('change', function() { vm.populateFromUrl({term:initValue}); }); }}
             // do initial populate if not a serverSearch or for serverSearch if we have an initial value do the search so we don't display the ID
+            /* initial options and current value now handled server-side:
             if (!this.serverSearch) { this.populateFromUrl(); }
             else if (initValue && initValue.length && moqui.isString(initValue)) { this.populateFromUrl({term:initValue}); }
+            */
         }
     },
     computed: { curVal: { get: function() { return $(this.$el).select2().val(); },
