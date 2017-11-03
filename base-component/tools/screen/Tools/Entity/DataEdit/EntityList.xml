@@ -23,6 +23,14 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/>
     </transition>
 
+    <transition name="getLiquibaseInitXml" read-only="true">
+        <actions><script><![CDATA[
+            def lbRootNode = ec.entity.getEntityDbMeta().liquibaseInitChangelog(filterRegexp)
+            ec.web.sendTextResponse(lbRootNode.toString(), "text/xml", "LiquibaseInit-${new java.sql.Date(System.currentTimeMillis()).toString()}.xml")
+        ]]></script></actions>
+        <default-response type="none"/>
+    </transition>
+
     <actions>
         <set field="pageSize" from="pageSize ?: 60"/>
         <set field="entityList" from="ec.entity.getAllEntitiesInfo(orderByField?:'fullEntityName', filterRegexp, false, false)"/>
@@ -30,6 +38,12 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <link url="checkTables" text="Check/Update All Tables"/>
+        <container-dialog id="LiquibaseInitDialog" button-text="Liquibase Init XML">
+            <form-single name="LiquibaseInit" transition="getLiquibaseInitXml">
+                <field name="filterRegexp"><default-field><text-line size="40"/></default-field></field>
+                <field name="submitButton"><default-field title="Download"><submit/></default-field></field>
+            </form-single>
+        </container-dialog>
 
         <form-single name="FilterForm" transition=".">
             <field name="filterRegexp"><default-field><text-line size="30"/></default-field></field>
