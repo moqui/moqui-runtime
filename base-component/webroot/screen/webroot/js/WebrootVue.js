@@ -132,9 +132,10 @@ moqui.loadStylesheet = function(href, rel, type) {
 moqui.retryInlineScript = function(src, count) {
     try { eval(src); } catch(e) {
         src = src.trim();
-        console.warn('error ' + count + ' running inline script: ' + src.slice(0, 30) + '...');
+        var retryTime = count <= 5 ? count*count*100 : 'N/A';
+        console.warn('inline script error ' + count + ' retry ' + retryTime + ' script: ' + src.slice(0, 80) + '...');
         console.warn(e);
-        if (count <= 5) setTimeout(moqui.retryInlineScript, 200, src, count+1);
+        if (count <= 5) setTimeout(moqui.retryInlineScript, retryTime, src, count+1);
     }
 };
 
