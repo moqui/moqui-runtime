@@ -859,10 +859,10 @@ Vue.component('drop-down', {
     data: function() { return { curData:null, s2Opts:null, lastVal:null } },
     template: '<select :form="form"><slot></slot></select>',
     methods: {
-        processOptionList: function(list, page) {
+        processOptionList: function(list, page, term) {
             var newData = [];
             // funny case where select2 specifies no option.@value if empty so &nbsp; ends up passed with form submit; now filtered on server for \u00a0 only and set to null
-            if (this.allowEmpty && (!page || page <= 1)) newData.push({ id:'\u00a0', text:'\u00a0' });
+            if (this.allowEmpty && (!page || page <= 1) && (!term || term.trim() == '')) newData.push({ id:'\u00a0', text:'\u00a0' });
             var labelField = this.labelField; if (!labelField) { labelField = "label"; }
             var valueField = this.valueField; if (!valueField) { valueField = "value"; }
             $.each(list, function(idx, curObj) {
@@ -887,11 +887,11 @@ Vue.component('drop-down', {
         },
         processResponse: function(data, params) {
             if (moqui.isArray(data)) {
-                return { results:this.processOptionList(data) };
+                return { results:this.processOptionList(data, null, params.term) };
             } else {
                 params.page = params.page || 1; // NOTE: 1 based index, is 0 based on server side
                 var pageSize = data.pageSize || 20;
-                return { results: this.processOptionList(data.options, params.page),
+                return { results: this.processOptionList(data.options, params.page, params.term),
                     pagination: { more: (data.count ? (params.page * pageSize) < data.count : false) } };
             }
         },
@@ -903,7 +903,7 @@ Vue.component('drop-down', {
             $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
                 error:moqui.handleAjaxError, success: function(data) {
                     var list = moqui.isArray(data) ? data : data.options;
-                    if (list) { vm.curData = vm.processOptionList(list); }
+                    if (list) { vm.curData = vm.processOptionList(list, null, params.term); }
                 }});
         }
     },
