@@ -1694,7 +1694,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <option value="-2"<#if fvOffset == "-2"> selected="selected"</#if>>-2</option>
             <option value="2"<#if fvOffset == "2"> selected="selected"</#if>>+2</option>
             <option value="-3"<#if fvOffset == "-3"> selected="selected"</#if>>-3</option>
-            <option value="3"<#if fvOffset == "3"> selected="selected"</#if>>+3</option>
+            <option value="-4"<#if fvOffset == "-4"> selected="selected"</#if>>-4</option>
+            <option value="-6"<#if fvOffset == "-6"> selected="selected"</#if>>-6</option>
+            <option value="-12"<#if fvOffset == "-12"> selected="selected"</#if>>-12</option>
         </select>
         <select name="${curFieldName}_period" id="${id}_period"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <#if (allowEmpty! != "false")>
@@ -1704,7 +1706,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <option value="7d" <#if fvPeriod == "7d"> selected="selected"</#if>>7 ${ec.getL10n().localize("Days")}</option>
             <option value="30d" <#if fvPeriod == "30d"> selected="selected"</#if>>30 ${ec.getL10n().localize("Days")}</option>
             <option value="week" <#if fvPeriod == "week"> selected="selected"</#if>>${ec.getL10n().localize("Week")}</option>
+            <option value="weeks" <#if fvPeriod == "weeks"> selected="selected"</#if>>${ec.getL10n().localize("Weeks")}</option>
             <option value="month" <#if fvPeriod == "month"> selected="selected"</#if>>${ec.getL10n().localize("Month")}</option>
+            <option value="months" <#if fvPeriod == "months"> selected="selected"</#if>>${ec.getL10n().localize("Months")}</option>
             <option value="quarter" <#if fvPeriod == "quarter"> selected="selected"</#if>>${ec.getL10n().localize("Quarter")}</option>
             <option value="year" <#if fvPeriod == "year"> selected="selected"</#if>>${ec.getL10n().localize("Year")}</option>
             <option value="7r" <#if fvPeriod == "7r"> selected="selected"</#if>>+/-7d</option>
