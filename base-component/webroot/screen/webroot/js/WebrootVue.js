@@ -146,7 +146,7 @@ moqui.notifyOptsInfo = { delay:3000, offset:{x:20,y:60}, placement:{from:'top',a
     animate:{ enter:'animated fadeInDown', exit:'' } }; // no animate on exit: animated fadeOutUp
 moqui.notifyOptsError = { delay:5000, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'danger',
     animate:{ enter:'animated fadeInDown', exit:'' } }; // no animate on exit: animated fadeOutUp
-moqui.notifyMessages = function(messages, errors) {
+moqui.notifyMessages = function(messages, errors, validationErrors) {
     var notified = false;
     if (messages) {
         if (moqui.isArray(messages)) {
@@ -160,7 +160,22 @@ moqui.notifyMessages = function(messages, errors) {
                 $.notify({message:errors[ei]}, moqui.notifyOptsError); moqui.webrootVue.addNotify(errors[ei], 'danger'); notified = true; }
         } else { $.notify({message:errors}, moqui.notifyOptsError); moqui.webrootVue.addNotify(errors, 'danger'); notified = true; }
     }
+    if (validationErrors) {
+        if (moqui.isArray(validationErrors)) {
+            for (var vei=0; vei < validationErrors.length; vei++) { moqui.notifyValidationError(validationErrors[vei]); notified = true; }
+        } else { moqui.notifyValidationError(validationErrors); notified = true; }
+    }
     return notified;
+};
+moqui.notifyValidationError = function(valError) {
+    var message = valError;
+    if (moqui.isPlainObject(valError)) {
+        message = valError.message;
+        if (valError.fieldPretty && valError.fieldPretty.length) message = message + " (for field " + valError.fieldPretty + ")";
+    }
+    $.notify({message:message}, moqui.notifyOptsError);
+    moqui.webrootVue.addNotify(message, 'danger');
+
 };
 moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     var resp = jqXHR.responseText;
@@ -169,7 +184,7 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     console.warn('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown /*+ '; response: ' + resp*/);
     // console.error('respObj: ' + JSON.stringify(respObj));
     var notified = false;
-    if (respObj && moqui.isPlainObject(respObj)) { notified = moqui.notifyMessages(respObj.messages, respObj.errors); }
+    if (respObj && moqui.isPlainObject(respObj)) { notified = moqui.notifyMessages(respObj.messages, respObj.errors, respObj.validationErrors); }
     else if (resp && moqui.isString(resp) && resp.length) { notified = moqui.notifyMessages(resp); }
 
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
