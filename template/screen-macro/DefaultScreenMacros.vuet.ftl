@@ -1005,7 +1005,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
             <#assign fieldsJsName = ""><#assign ownerForm = "">
         </template>
-        <#-- TODO: add first-row, last-row forms and rows, here and in form-list Vue component; support add from first (or last?) row with add to client list and server submit -->
+        <#-- TODO: add first-row, second-row, last-row forms and rows, here and in form-list Vue component; support add from first, second (or last?) row with add to client list and server submit -->
         <template slot="row" scope="row">
             <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
             <#list mainColInfoList as columnFieldList>
@@ -1050,6 +1050,18 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
                 <#assign hiddenFieldList = formListInfo.getListFirstRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["first-row-field"][0]/></#list>
+            </m-form>
+            <#assign listEntryIndex = "">
+            <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+        </#if>
+        <#if formListInfo.isSecondRowForm()>
+            <#t>${sri.pushSingleFormMapContext(formNode["@map-second-row"]!"")}
+            <#assign listEntryIndex = "second">
+            <#assign secondUrlInstance = sri.makeUrlByType(formNode["@transition-second-row"], "transition", null, "false")>
+            <m-form name="${formId}_second" id="${formId}_second" action="${secondUrlInstance.path}">
+                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#assign hiddenFieldList = formListInfo.getListSecondRowHiddenFieldList()>
+                <#list hiddenFieldList as hiddenField><#recurse hiddenField["second-row-field"][0]/></#list>
             </m-form>
             <#assign listEntryIndex = "">
             <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
@@ -1119,6 +1131,24 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <td>
                     <#list columnFieldList as fieldNode>
                         <@formListSubFirst fieldNode true/>
+                    </#list>
+                </td>
+            </#list>
+        </tr>
+        <#assign ownerForm = formId>
+        <#assign listEntryIndex = "">
+        <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+    </#if>
+    <#-- second-row fields -->
+    <#if formListInfo.hasSecondRow()>
+        <#t>${sri.pushSingleFormMapContext(formNode["@map-second-row"]!"")}
+        <#assign ownerForm = formId + "_second">
+        <#assign listEntryIndex = "second">
+        <tr class="second">
+            <#list mainColInfoList as columnFieldList>
+                <td>
+                    <#list columnFieldList as fieldNode>
+                        <@formListSubSecond fieldNode true/>
                     </#list>
                 </td>
             </#list>
@@ -1258,6 +1288,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if fieldNode["first-row-field"]?has_content>
         <#assign isHeaderField = false>
         <@formListWidget fieldNode["first-row-field"][0] skipCell false false false/>
+    </#if>
+</#macro>
+<#macro formListSubSecond fieldNode skipCell>
+    <#if fieldNode["second-row-field"]?has_content>
+        <#assign isHeaderField = false>
+        <@formListWidget fieldNode["second-row-field"][0] skipCell false false false/>
     </#if>
 </#macro>
 <#macro formListSubLast fieldNode skipCell>

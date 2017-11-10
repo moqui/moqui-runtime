@@ -1312,6 +1312,19 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign listEntryIndex = "">
             <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
         </#if>
+        <#if formListInfo.isSecondRowForm()>
+          <#t>${sri.pushSingleFormMapContext(formNode["@map-second-row"]!"")}
+          <#assign listEntryIndex = "last">
+          <#assign lastUrlInstance = sri.makeUrlByType(formNode["@transition-second-row"], "transition", null, "false")>
+          <form name="${formId}_last" id="${formId}_last" method="post" action="${lastUrlInstance.url}">
+              <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+              <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+              <#assign hiddenFieldList = formListInfo.getListSecondRowHiddenFieldList()>
+              <#list hiddenFieldList as hiddenField><#recurse hiddenField["second-row-field"][0]/></#list>
+          </form>
+          <#assign listEntryIndex = "">
+          <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+        </#if>
         <#if formListInfo.isLastRowForm()>
             <#t>${sri.pushSingleFormMapContext(formNode["@map-last-row"]!"")}
             <#assign listEntryIndex = "last">
@@ -1393,6 +1406,24 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <td>
                 <#list columnFieldList as fieldNode>
                     <@formListSubFirst fieldNode true/>
+                </#list>
+            </td>
+        </#list>
+        </tr>
+        <#assign ownerForm = formId>
+        <#assign listEntryIndex = "">
+        <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+    </#if>
+    <#-- second-row fields -->
+    <#if formListInfo.hasSecondRow()>
+        <#t>${sri.pushSingleFormMapContext(formNode["@map-second-row"]!"")}
+        <#assign ownerForm = formId + "_second">
+        <#assign listEntryIndex = "second">
+        <tr class="second">
+        <#list mainColInfoList as columnFieldList>
+            <td>
+                <#list columnFieldList as fieldNode>
+                    <@formListSubSecond fieldNode true/>
                 </#list>
             </td>
         </#list>
@@ -1548,6 +1579,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if fieldNode["first-row-field"]?has_content>
         <#assign isHeaderField = false>
         <@formListWidget fieldNode["first-row-field"][0] skipCell false false false/>
+    </#if>
+</#macro>
+<#macro formListSubSecond fieldNode skipCell>
+    <#if fieldNode["second-row-field"]?has_content>
+        <#assign isHeaderField = false>
+        <@formListWidget fieldNode["second-row-field"][0] skipCell false false false/>
     </#if>
 </#macro>
 <#macro formListSubLast fieldNode skipCell>
