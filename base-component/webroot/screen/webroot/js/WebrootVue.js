@@ -132,9 +132,10 @@ moqui.loadStylesheet = function(href, rel, type) {
 moqui.retryInlineScript = function(src, count) {
     try { eval(src); } catch(e) {
         src = src.trim();
-        console.warn('error ' + count + ' running inline script: ' + src.slice(0, 30) + '...');
+        var retryTime = count <= 5 ? count*count*100 : 'N/A';
+        console.warn('inline script error ' + count + ' retry ' + retryTime + ' script: ' + src.slice(0, 80) + '...');
         console.warn(e);
-        if (count <= 5) setTimeout(moqui.retryInlineScript, 200, src, count+1);
+        if (count <= 5) setTimeout(moqui.retryInlineScript, retryTime, src, count+1);
     }
 };
 
@@ -838,8 +839,10 @@ Vue.component('date-time', {
         if (this.type !== "time") {
             jqEl.datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
-                extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale});
+                extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
+                keyBinds: {t: function() {this.date(moment());}}});
             jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); })
+            jqEl.val(jqEl.find("input").first().val());
         }
         if (format === "YYYY-MM-DD") { jqEl.find('input').inputmask("yyyy-mm-dd", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
         if (format === "YYYY-MM-DD HH:mm") { jqEl.find('input').inputmask("yyyy-mm-dd hh:mm", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
@@ -871,10 +874,10 @@ Vue.component('drop-down', {
     data: function() { return { curData:null, s2Opts:null, lastVal:null } },
     template: '<select :form="form"><slot></slot></select>',
     methods: {
-        processOptionList: function(list, page) {
+        processOptionList: function(list, page, term) {
             var newData = [];
             // funny case where select2 specifies no option.@value if empty so &nbsp; ends up passed with form submit; now filtered on server for \u00a0 only and set to null
-            if (this.allowEmpty && (!page || page <= 1)) newData.push({ id:'\u00a0', text:'\u00a0' });
+            if (this.allowEmpty && (!page || page <= 1) && (!term || term.trim() == '')) newData.push({ id:'\u00a0', text:'\u00a0' });
             var labelField = this.labelField; if (!labelField) { labelField = "label"; }
             var valueField = this.valueField; if (!valueField) { valueField = "value"; }
             $.each(list, function(idx, curObj) {
@@ -899,11 +902,11 @@ Vue.component('drop-down', {
         },
         processResponse: function(data, params) {
             if (moqui.isArray(data)) {
-                return { results:this.processOptionList(data) };
+                return { results:this.processOptionList(data, null, params.term) };
             } else {
                 params.page = params.page || 1; // NOTE: 1 based index, is 0 based on server side
                 var pageSize = data.pageSize || 20;
-                return { results: this.processOptionList(data.options, params.page),
+                return { results: this.processOptionList(data.options, params.page, params.term),
                     pagination: { more: (data.count ? (params.page * pageSize) < data.count : false) } };
             }
         },
@@ -915,7 +918,7 @@ Vue.component('drop-down', {
             $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
                 error:moqui.handleAjaxError, success: function(data) {
                     var list = moqui.isArray(data) ? data : data.options;
-                    if (list) { vm.curData = vm.processOptionList(list); }
+                    if (list) { vm.curData = vm.processOptionList(list, null, params.term); }
                 }});
         }
     },
@@ -950,8 +953,10 @@ Vue.component('drop-down', {
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
                 $('#' + dependsOnMap[doParm]).on('change', function() { vm.populateFromUrl({term:initValue}); }); }}
             // do initial populate if not a serverSearch or for serverSearch if we have an initial value do the search so we don't display the ID
+            /* initial options and current value now handled server-side:
             if (!this.serverSearch) { this.populateFromUrl(); }
             else if (initValue && initValue.length && moqui.isString(initValue)) { this.populateFromUrl({term:initValue}); }
+            */
         }
     },
     computed: { curVal: { get: function() { return $(this.$el).select2().val(); },
@@ -961,10 +966,12 @@ Vue.component('drop-down', {
         options: function(options) { this.curData = options; },
         curData: function(options) {
             var jqEl = $(this.$el); var vm = this;
+            var bWasFocused = jqEl.next().hasClass('select2-container--focus');
             // save the lastVal if there is one to remember what was selected even if new options don't have it, just in case options change again
             var saveVal = jqEl.select2().val(); if (saveVal && saveVal.length > 1) this.lastVal = saveVal;
             jqEl.select2('destroy'); jqEl.empty();
             this.s2Opts.data = options; jqEl.select2(this.s2Opts);
+            if( bWasFocused ) jqEl.focus();
             setTimeout(function() {
                 var setVal = vm.lastVal; if (!setVal || setVal.length < 2) { setVal = vm.value; }
                 if (setVal) {
