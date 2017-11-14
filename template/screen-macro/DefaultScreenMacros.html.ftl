@@ -807,6 +807,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
     <#assign currentFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("formListFindId")>
     <#assign currentFindUrlParms = currentFindUrl.getParameterMap()>
+    <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
+    <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
     <#if isSavedFinds || isHeaderDialog>
         <#assign headerFormDialogId = formId + "_hdialog">
         <#assign headerFormId = formId + "_header">
@@ -887,6 +889,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                         <#if formListFindId?has_content><input type="hidden" name="formListFindId" value="${formListFindId}"></#if>
+                        <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
                         <fieldset class="form-horizontal">
                             <div class="form-group"><div class="col-sm-2">&nbsp;</div><div class="col-sm-10">
                                 <button type="button" class="btn btn-primary btn-sm" onclick="${headerFormId}_clearForm()">${ec.getL10n().localize("Clear Parameters")}</button></div></div>
@@ -1275,6 +1278,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign listName = formNode["@list"]>
     <#assign listObject = formListInfo.getListObject(true)!>
     <#assign listHasContent = listObject?has_content>
+    <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
+    <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
 
     <#-- all form elements outside table element and referred to with input/etc.@form attribute for proper HTML -->
     <#if !(isMulti || skipForm) && listHasContent><#list listObject as listEntry>
@@ -1282,6 +1287,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <form name="${formId}_${listEntry_index}" id="${formId}_${listEntry_index}" method="post" action="${formListUrlInfo.url}">
             <#assign listEntryIndex = listEntry_index>
             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+            <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#-- hidden fields -->
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
             <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
@@ -1295,6 +1301,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <form name="${headerFormId}" id="${headerFormId}" method="post" action="${headerUrlInstance.url}">
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                 <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
                 <#assign hiddenFieldList = formListInfo.getListHeaderHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["header-field"][0]/></#list>
             </form>
@@ -1306,6 +1313,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <form name="${formId}_first" id="${formId}_first" method="post" action="${firstUrlInstance.url}">
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                 <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
                 <#assign hiddenFieldList = formListInfo.getListFirstRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["first-row-field"][0]/></#list>
             </form>
@@ -1319,6 +1327,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
           <form name="${formId}_last" id="${formId}_last" method="post" action="${lastUrlInstance.url}">
               <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
               <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+              <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
               <#assign hiddenFieldList = formListInfo.getListSecondRowHiddenFieldList()>
               <#list hiddenFieldList as hiddenField><#recurse hiddenField["second-row-field"][0]/></#list>
           </form>
@@ -1332,6 +1341,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <form name="${formId}_last" id="${formId}_last" method="post" action="${lastUrlInstance.url}">
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                 <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
                 <#assign hiddenFieldList = formListInfo.getListLastRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["last-row-field"][0]/></#list>
             </form>
@@ -1343,6 +1353,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
             <input type="hidden" name="_isMulti" value="true">
+            <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#if listHasContent><#list listObject as listEntry>
                 <#assign listEntryIndex = listEntry_index>
                 ${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
