@@ -1588,20 +1588,26 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 <#macro formListSubFirst fieldNode skipCell>
     <#if fieldNode["first-row-field"]?has_content>
+        <#assign rowSubFieldNode = fieldNode["first-row-field"][0]>
+        <#if rowSubFieldNode["hidden"]?has_content><#return></#if>
         <#assign isHeaderField = false>
-        <@formListWidget fieldNode["first-row-field"][0] skipCell false false false/>
+        <@formListWidget rowSubFieldNode skipCell false false false/>
     </#if>
 </#macro>
 <#macro formListSubSecond fieldNode skipCell>
     <#if fieldNode["second-row-field"]?has_content>
+        <#assign rowSubFieldNode = fieldNode["second-row-field"][0]>
+        <#if rowSubFieldNode["hidden"]?has_content><#return></#if>
         <#assign isHeaderField = false>
-        <@formListWidget fieldNode["second-row-field"][0] skipCell false false false/>
+        <@formListWidget rowSubFieldNode skipCell false false false/>
     </#if>
 </#macro>
 <#macro formListSubLast fieldNode skipCell>
     <#if fieldNode["last-row-field"]?has_content>
+        <#assign rowSubFieldNode = fieldNode["last-row-field"][0]>
+        <#if rowSubFieldNode["hidden"]?has_content><#return></#if>
         <#assign isHeaderField = false>
-        <@formListWidget fieldNode["last-row-field"][0] skipCell false false false/>
+        <@formListWidget rowSubFieldNode skipCell false false false/>
     </#if>
 </#macro>
 <#macro formListWidget fieldSubNode skipCell isHeaderField isMulti isMultiFinalRow>
