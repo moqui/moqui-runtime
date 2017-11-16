@@ -870,7 +870,8 @@ Vue.component('date-period', {
 Vue.component('drop-down', {
     props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String, optionsUrl:String,
         serverSearch:{type:Boolean,'default':false}, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
-        optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object, dependsOptional:Boolean, form:String },
+        optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object, dependsOptional:Boolean,
+        optionsLoadInit:Boolean, form:String },
     data: function() { return { curData:null, s2Opts:null, lastVal:null } },
     template: '<select :form="form"><slot></slot></select>',
     methods: {
@@ -918,7 +919,7 @@ Vue.component('drop-down', {
             $.ajax({ type:"POST", url:this.optionsUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
                 error:moqui.handleAjaxError, success: function(data) {
                     var list = moqui.isArray(data) ? data : data.options;
-                    if (list) { vm.curData = vm.processOptionList(list, null, params.term); }
+                    if (list) { vm.curData = vm.processOptionList(list, null, (params ? params.term : null)); }
                 }});
         }
     },
@@ -953,10 +954,10 @@ Vue.component('drop-down', {
             for (var doParm in dependsOnMap) { if (dependsOnMap.hasOwnProperty(doParm)) {
                 $('#' + dependsOnMap[doParm]).on('change', function() { vm.populateFromUrl({term:initValue}); }); }}
             // do initial populate if not a serverSearch or for serverSearch if we have an initial value do the search so we don't display the ID
-            /* initial options and current value now handled server-side:
-            if (!this.serverSearch) { this.populateFromUrl(); }
-            else if (initValue && initValue.length && moqui.isString(initValue)) { this.populateFromUrl({term:initValue}); }
-            */
+            if (this.optionsLoadInit) {
+                if (!this.serverSearch) { this.populateFromUrl(); }
+                else if (initValue && initValue.length && moqui.isString(initValue)) { this.populateFromUrl({term:initValue}); }
+            }
         }
     },
     computed: { curVal: { get: function() { return $(this.$el).select2().val(); },
