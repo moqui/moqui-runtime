@@ -478,7 +478,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <form method="post" action="${urlInstance.url}" name="${linkFormId!""}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>>
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                 <#assign targetParameters = urlInstance.getParameterMap()>
-                <#-- NOTE: using .keySet() here instead of ?keys because ?keys was returning all method names with the other keys, not sure why -->
+                <#-- NOTE: using .keySet() here instead of ?keys because ?keys returns all method names with the other keys, not sure why -->
                 <#if targetParameters?has_content><#list targetParameters.keySet() as pKey>
                     <input type="hidden" name="${pKey?html}" value="${targetParameters.get(pKey)?default("")?html}"/>
                 </#list></#if>
@@ -1312,6 +1312,19 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign listEntryIndex = "">
             <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
         </#if>
+        <#if formListInfo.isSecondRowForm()>
+          <#t>${sri.pushSingleFormMapContext(formNode["@map-second-row"]!"")}
+          <#assign listEntryIndex = "last">
+          <#assign lastUrlInstance = sri.makeUrlByType(formNode["@transition-second-row"], "transition", null, "false")>
+          <form name="${formId}_last" id="${formId}_last" method="post" action="${lastUrlInstance.url}">
+              <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+              <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+              <#assign hiddenFieldList = formListInfo.getListSecondRowHiddenFieldList()>
+              <#list hiddenFieldList as hiddenField><#recurse hiddenField["second-row-field"][0]/></#list>
+          </form>
+          <#assign listEntryIndex = "">
+          <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+        </#if>
         <#if formListInfo.isLastRowForm()>
             <#t>${sri.pushSingleFormMapContext(formNode["@map-last-row"]!"")}
             <#assign listEntryIndex = "last">
@@ -1393,6 +1406,24 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <td>
                 <#list columnFieldList as fieldNode>
                     <@formListSubFirst fieldNode true/>
+                </#list>
+            </td>
+        </#list>
+        </tr>
+        <#assign ownerForm = formId>
+        <#assign listEntryIndex = "">
+        <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+    </#if>
+    <#-- second-row fields -->
+    <#if formListInfo.hasSecondRow()>
+        <#t>${sri.pushSingleFormMapContext(formNode["@map-second-row"]!"")}
+        <#assign ownerForm = formId + "_second">
+        <#assign listEntryIndex = "second">
+        <tr class="second">
+        <#list mainColInfoList as columnFieldList>
+            <td>
+                <#list columnFieldList as fieldNode>
+                    <@formListSubSecond fieldNode true/>
                 </#list>
             </td>
         </#list>
@@ -1550,6 +1581,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <@formListWidget fieldNode["first-row-field"][0] skipCell false false false/>
     </#if>
 </#macro>
+<#macro formListSubSecond fieldNode skipCell>
+    <#if fieldNode["second-row-field"]?has_content>
+        <#assign isHeaderField = false>
+        <@formListWidget fieldNode["second-row-field"][0] skipCell false false false/>
+    </#if>
+</#macro>
 <#macro formListSubLast fieldNode skipCell>
     <#if fieldNode["last-row-field"]?has_content>
         <#assign isHeaderField = false>
@@ -1655,7 +1692,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <input type="text" class="form-control" name="${curFieldName}_from" value="${fieldValueFrom?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
         </div>
-        <script>$('#${id}_from').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, useStrict:true, showTodayButton:true, defaultDate:'${fieldValueFrom?html}' && moment('${fieldValueFrom?html}','${datepickerFormat}'), format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}"});</script>
+        <script>$('#${id}_from').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, useStrict:true, showTodayButton:true, defaultDate:'${fieldValueFrom?html}' && moment('${fieldValueFrom?html}','${datepickerFormat}'), format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}", keyBinds: {t: function() {this.date(moment());}}});</script>
     <#else>
         <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"
                name="${curFieldName}_from" value="${fieldValueFrom?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
@@ -1668,7 +1705,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <input type="text" class="form-control" name="${curFieldName}_thru" value="${fieldValueThru?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
         </div>
-        <script>$('#${id}_thru').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, useStrict:true, showTodayButton:true, defaultDate:'${fieldValueThru?html}' && moment('${fieldValueThru?html}','${datepickerFormat}'), format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}"});</script>
+        <script>$('#${id}_thru').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, useStrict:true, showTodayButton:true, defaultDate:'${fieldValueThru?html}' && moment('${fieldValueThru?html}','${datepickerFormat}'), format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}", keyBinds: {t: function() {this.date(moment());}}});</script>
     <#else>
         <input type="text" class="form-control" pattern="^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$"
                name="${curFieldName}_thru" value="${fieldValueThru?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
@@ -1720,7 +1757,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </div>
         <script>
             $("#${id}_poffset").select2({ }); $("#${id}_period").select2({ });
-            $('#${id}_pdate').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true, defaultDate: '${fvDate?html}' && moment('${fvDate?html}','YYYY-MM-DD'), format:'YYYY-MM-DD', extraFormats:['l', 'L', 'YYYY-MM-DD'], locale:"${ec.getUser().locale.toLanguageTag()}"});
+            $('#${id}_pdate').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true, defaultDate: '${fvDate?html}' && moment('${fvDate?html}','YYYY-MM-DD'), format:'YYYY-MM-DD', extraFormats:['l', 'L', 'YYYY-MM-DD'], locale:"${ec.getUser().locale.toLanguageTag()}", keyBinds: {t: function() {this.date(moment());}}});
         </script>
     </div>
 </#macro>
@@ -1782,7 +1819,8 @@ a => A, d => D, y => Y
         <script>
             $('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true,
                 useStrict:true, defaultDate: '${fieldValue?html}' && moment('${fieldValue?html}','${datepickerFormat}'),
-                format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}"});
+                format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}",
+                keyBinds: {t: function() {this.date(moment());}}});
             $('#${id}').on("dp.change", function() { var jqEl = $('#${id}'); jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); });
         </script>
     <#else>
@@ -1813,7 +1851,7 @@ a => A, d => D, y => Y
     <#else>
         <#assign fieldValue = sri.getFieldValueString(.node)>
     </#if>
-    <#t><span class="text-inline ${sri.getFieldValueClass(dispFieldNode)}<#if .node["@currency-unit-field"]?has_content> currency</#if><#if dispAlign == "center"> text-center<#elseif dispAlign == "right"> text-right</#if>"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if .node["@dynamic-transition"]?has_content> id="${dispFieldId}_display"</#if>>
+    <#t><span class="text-inline ${sri.getFieldValueClass(dispFieldNode)}<#if .node["@currency-unit-field"]?has_content> currency</#if><#if dispAlign == "center"> text-center<#elseif dispAlign == "right"> text-right</#if><#if .node["@style"]?has_content> ${ec.getResource().expand(.node["@style"], "")}</#if>"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if .node["@dynamic-transition"]?has_content> id="${dispFieldId}_display"</#if>>
     <#t><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if>
     <#t></span>
     <#t><#if dispHidden>
@@ -1834,7 +1872,7 @@ a => A, d => D, y => Y
                 </#if>
                 $.ajax({ type:"POST", url:"${defUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
                     <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local depNodeParm = depNode["@parameter"]!depNodeField><#local _void = defUrlParameterMap.remove(depNodeParm)!>, "${depNodeParm}": $("#<@fieldIdByName depNodeField/>").val()</#list>
-                    <#t><#list defUrlParameterMap?keys as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
+                    <#t><#list defUrlParameterMap.keySet() as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
                     <#t>}, dataType:"text" }).done( function(defaultText) { $('#${dispFieldId}_display').html(defaultText); <#if dispHidden>$('#${dispFieldId}').val(defaultText);</#if>  } );
             }
             <#list depNodeList as depNode>
@@ -1847,7 +1885,7 @@ a => A, d => D, y => Y
 <#macro "display-entity">
     <#assign fieldValue = sri.getFieldEntityValue(.node)!/>
     <#assign dispHidden = (!.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true") && !(skipForm!false)>
-    <#t><span class="text-inline"><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue!"&nbsp;"}<#else>${(fieldValue!" ")?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></span>
+    <#t><span class="text-inline<#if .node["@style"]?has_content> ${ec.getResource().expand(.node["@style"], "")}</#if>"><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue!"&nbsp;"}<#else>${(fieldValue!" ")?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></span>
     <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
     <#t><#if dispHidden><input type="hidden" id="<@fieldId .node/>" name="<@fieldName .node/>" value="${sri.getFieldValuePlainString(.node?parent?parent, "")?html}"<#if ownerForm?has_content> form="${ownerForm}"</#if>></#if>
 </#macro>
@@ -1908,7 +1946,7 @@ a => A, d => D, y => Y
                 ajax:{ url:"${doUrlInfo.url}", type:"POST", dataType:"json", cache:true, delay:${doNode["@delay"]!"300"},
                     data:function(params) { return { moquiSessionToken: "${(ec.getWeb().sessionToken)!}", term:(params.term || ''), pageIndex:(params.page || 1) - 1
                         <#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local depNodeParm = depNode["@parameter"]!depNodeField><#local _void = doUrlParameterMap.remove(depNodeParm)!>, "${depNodeParm}": $("#<@fieldIdByName depNodeField/>").val()</#list>
-                        <#list doUrlParameterMap?keys as parameterKey><#if doUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${doUrlParameterMap.get(parameterKey)}"</#if></#list>
+                        <#list doUrlParameterMap.keySet() as parameterKey><#if doUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${doUrlParameterMap.get(parameterKey)}"</#if></#list>
                     }},
                     processResults:function(data, params) {
                         var isDataArray = moqui.isArray(data);
@@ -1942,12 +1980,13 @@ a => A, d => D, y => Y
                 </#if>
                 $.ajax({ type:"POST", url:"${doUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
                         <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = doUrlParameterMap.remove(depNodeField)!>, "${depNode["@parameter"]!depNodeField}": $("#<@fieldIdByName depNodeField/>").val()</#list>
-                        <#t><#list doUrlParameterMap?keys as parameterKey><#if doUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${doUrlParameterMap.get(parameterKey)}"</#if></#list>
+                        <#t><#list doUrlParameterMap.keySet() as parameterKey><#if doUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${doUrlParameterMap.get(parameterKey)}"</#if></#list>
                         <#t>, term:((params && params.term) || '')}, dataType:"json"}).done(
                     function(data) {
                         var list = moqui.isArray(data) ? data : data.options;
                         if (list) {
                             var jqEl = $("#${id}");
+                            var bWasFocused = jqEl.next().hasClass('select2-container--focus');
                             jqEl.select2("destroy");
                             jqEl.html("");<#-- clear out the drop-down -->
                             <#if allowEmpty! == "true">
@@ -1967,6 +2006,7 @@ a => A, d => D, y => Y
                                 }
                             });
                             $("#${id}").select2(${id}S2Opts);
+                            if( bWasFocused ) jqEl.focus();
                             setTimeout(function() { jqEl.trigger('change'); }, 50);
                         }
                     }
@@ -2086,7 +2126,7 @@ a => A, d => D, y => Y
                 source: moqui.debounce(function(query, syncResults, asyncResults) { $.ajax({
                     url: "${acUrlInfo.url}", type: "POST", dataType: "json", data: { term: query, moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
                         <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = acUrlParameterMap.remove(depNodeField)!>, '${depNode["@parameter"]!depNodeField}': $('#<@fieldIdByName depNodeField/>').val()</#list>
-                        <#t><#list acUrlParameterMap?keys as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${acUrlParameterMap.get(parameterKey)}"</#if></#list> },
+                        <#t><#list acUrlParameterMap.keySet() as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${acUrlParameterMap.get(parameterKey)}"</#if></#list> },
                     success: function(data) { var list = moqui.isArray(data) ? data : data.options; asyncResults($.map(list, function(item) { return { label: item.label, value: item.value } })); }
                 }); }, <#if .node["@ac-delay"]?has_content>${.node["@ac-delay"]}<#else>300</#if>),
                 display: function(item) { return item.label; }
@@ -2102,7 +2142,7 @@ a => A, d => D, y => Y
             <#if !.node["@ac-initial-text"]?has_content>
             /* load the initial value if there is one */
             if ($("#${id}").val()) {
-                $.ajax({ url: "${acUrlInfo.url}", type: "POST", dataType: "json", data: { term: $("#${id}").val(), moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#list acUrlParameterMap?keys as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${acUrlParameterMap.get(parameterKey)}"</#if></#list> },
+                $.ajax({ url: "${acUrlInfo.url}", type: "POST", dataType: "json", data: { term: $("#${id}").val(), moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#list acUrlParameterMap.keySet() as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${acUrlParameterMap.get(parameterKey)}"</#if></#list> },
                     success: function(data) {
                         var list = moqui.isArray(data) ? data : data.options;
                         var curValue = $("#${id}").val();
@@ -2135,7 +2175,7 @@ a => A, d => D, y => Y
                     if (!hasAllParms) { <#-- alert("not has all parms"); --> return; }
                     $.ajax({ type:"POST", url:"${defUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
                             <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = defUrlParameterMap.remove(depNodeField)!>, "${depNode["@parameter"]!depNodeField}": $("#<@fieldIdByName depNodeField/>").val()</#list>
-                            <#t><#list defUrlParameterMap?keys as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
+                            <#t><#list defUrlParameterMap.keySet() as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
                             <#t>}, dataType:"text", success:function(defaultText) {   $('#${id}').val(defaultText);  } });
                 }
                 <#list depNodeList as depNode>

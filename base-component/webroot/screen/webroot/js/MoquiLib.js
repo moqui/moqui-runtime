@@ -25,17 +25,24 @@ var moqui = {
     // function to set columns across multiple tables to the same width
     makeColumnsConsistent: function(outerId) {
         var tableArr = $('#' + outerId + ' table');
+        // console.log(tableArr);
         var widthMaxArr = [];
-        for (var i = 0; i < tableArr.length; i++) {
-            var curTable = tableArr[i];
+        var i, j, curTable, row, rowIdx;
+        for (i = 0; i < tableArr.length; i++) {
+            curTable = tableArr[i];
             if (!curTable.rows || curTable.rows.length === 0) continue;
-            var row = curTable.rows[0];
+            rowIdx = 0; row = curTable.rows[rowIdx];
+            while (rowIdx < 5 && rowIdx < curTable.rows.length) {
+                if ((!row.cells || row.cells.length <= 1) && curTable.rows.length > (rowIdx + 1)) {
+                    rowIdx++; row = curTable.rows[rowIdx]; } else { break; }
+            }
             if (!row.cells || row.cells.length === 0) continue;
-            for (var j = 0; j < row.cells.length; j++) {
+            for (j = 0; j < row.cells.length; j++) {
                 var curWidth = $(row.cells[j]).width();
                 if (!widthMaxArr[j] || widthMaxArr[j] < curWidth) widthMaxArr[j] = curWidth;
             }
         }
+        // console.log("Columns max widths: " + widthMaxArr);
         var numCols = widthMaxArr.length;
         var totalWidth = 0; for (i = 0; i < numCols; i++) totalWidth += widthMaxArr[i];
         var widthPercents = []; for (i = 0; i < numCols; i++) widthPercents[i] = (widthMaxArr[i] * 100) / totalWidth;
@@ -43,8 +50,16 @@ var moqui = {
         for (i = 0; i < tableArr.length; i++) {
             curTable = tableArr[i];
             if (!curTable.rows || curTable.rows.length === 0) continue;
-            row = curTable.rows[0];
-            for (j = 0; j < row.cells.length; j++) { row.cells[j].style.width = widthPercents[j]+'%'; }
+            rowIdx = 0; row = curTable.rows[rowIdx];
+            while (rowIdx < 5 && rowIdx < curTable.rows.length) {
+                if ((!row.cells || row.cells.length <= 1) && curTable.rows.length > (rowIdx + 1)) {
+                    rowIdx++; row = curTable.rows[rowIdx]; } else { break; }
+            }
+            if (!row.cells || row.cells.length === 0) continue;
+            for (j = 0; j < row.cells.length; j++) {
+                // console.log("setting table " + i + " row " + rowIdx + " col " + j + " to " + widthPercents[j]);
+                row.cells[j].style.width = widthPercents[j]+'%';
+            }
         }
     },
 

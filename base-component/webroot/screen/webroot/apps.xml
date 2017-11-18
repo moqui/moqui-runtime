@@ -73,7 +73,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <section-iterate name="headerValidationErrors" list="ec.message.validationErrors" entry="validationError"><widgets>
                     <!-- TODO: put these by fields instead of in header -->
                     <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
-                    <label text="${validationError.message} (for field ${validationError.field})" type="h4"/>
+                    <label text="${validationError.message} (for field ${validationError.fieldPretty})" type="h4"/>
                     <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
                 </widgets></section-iterate>
 
@@ -90,7 +90,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <section-iterate name="headerSavedValidationErrors" list="ec.web?.savedValidationErrors" entry="validationError"><widgets>
                     <!-- TODO: put these by fields instead of in header -->
                     <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
-                    <label text="${validationError.message} (for field ${validationError.field})" type="h4"/>
+                    <label text="${validationError.message} (for field ${validationError.fieldPretty})" type="h4"/>
                     <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
                 </widgets></section-iterate>
             </widgets></section>

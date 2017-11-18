@@ -5388,7 +5388,16 @@ S2.define('select2/core',[
           // Attempt to pass focus to the next input element
           var el = self.$element[0];
           var f = el.form;
-          var els = f.elements;
+          var allEls = f.elements;
+          var els = [];
+          for( var i = 0, len = allEls.length; i<len; i++ ) {
+            if( allEls[i].type != 'hidden' &&
+                allEls[i].style.display != 'none' &&
+                !allEls[i].readOnly &&
+                !allEls[i].disabled ) {
+              els.push(allEls[i]);
+            }
+          }
           var x, nextEl;
           for (var i=0, len=els.length; i<len; i++) {
             x = els[i];
@@ -5440,7 +5449,16 @@ S2.define('select2/core',[
           // Attempt to pass focus to the next input element
           var el = self.$element[0];
           var f = el.form;
-          var els = f.elements;
+          var allEls = f.elements;
+          var els = [];
+          for( var i = 0, len = allEls.length; i<len; i++ ) {
+            if( allEls[i].type != 'hidden' &&
+                allEls[i].style.display != 'none' &&
+                !allEls[i].readOnly &&
+                !allEls[i].disabled ) {
+              els.push(allEls[i]);
+            }
+          }
           var x, nextEl;
           for (var i=0, len=els.length; i<len; i++) {
             x = els[i];
