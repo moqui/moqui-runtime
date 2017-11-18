@@ -359,12 +359,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if urlInstance.getTargetTransition()?has_content><#assign formSingleType = "m-form"><#else><#assign formSingleType = "form-link"></#if>
     <#else><#assign formSingleType = "form"></#if>
     <#if !skipStart>
-    <${formSingleType} name="${formId}" id="${formId}" action="${urlInstance.path}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
+    <${formSingleType} name="${formId}" id="${formId}" method="post" action="${urlInstance.path}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
             <#t><#if formNode["@body-parameters"]?has_content> :body-parameter-names="[<#list formNode["@body-parameters"]?split(",") as bodyParm>'${bodyParm}'<#sep>,</#list>]"</#if>
             <#t><#if formNode["@background-message"]?has_content> submit-message="${formNode["@background-message"]?html}"</#if>
             <#t><#if formNode["@background-reload-id"]?has_content> submit-reload-id="${formNode["@background-reload-id"]}"</#if>
             <#t><#if formNode["@background-hide-id"]?has_content> submit-hide-id="${formNode["@background-hide-id"]}"</#if>>
         <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
+        <#if formSingleType == "form"><input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}"></#if>
         <#assign lastUpdatedString = sri.getNamedValuePlain("lastUpdatedStamp", formNode)>
         <#if lastUpdatedString?has_content><input type="hidden" name="lastUpdatedStamp" value="${lastUpdatedString}"></#if>
     </#if>
