@@ -575,7 +575,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign lastUpdatedString = sri.getNamedValuePlain("lastUpdatedStamp", formNode)>
         <#if lastUpdatedString?has_content><input type="hidden" name="lastUpdatedStamp" value="${lastUpdatedString}"></#if>
     </#if>
-        <fieldset class="form-horizontal"<#if urlInstance.disableLink> disabled="disabled"</#if>>
+        <fieldset class="form-horizontal"<#if !urlInstance.disableLink || ownerForm?has_content> <#else>disabled="disabled"</#if>>
         <#if formNode["field-layout"]?has_content>
             <#recurse formNode["field-layout"][0]/>
         <#else>
