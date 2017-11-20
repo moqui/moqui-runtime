@@ -280,7 +280,7 @@ Vue.component('m-link', {
         if (this.loadId && this.loadId.length > 0) { this.$root.loadContainer(this.loadId, this.href); }
         else { if (event.ctrlKey || event.metaKey) { window.open(this.linkHref, "_blank"); } else { this.$root.setUrl(this.linkHref); } }
     }},
-    computed: { linkHref: function () { return this.href.indexOf(this.$root.basePath) === 0 ? this.href.replace(this.$root.basePath, this.$root.linkBasePath) : this.href; } }
+    computed: { linkHref: function () { return this.$root.getLinkPath(this.href); } }
 });
 Vue.component('m-script', {
     props: { src:String, type:{type:String,'default':'text/javascript'} },
@@ -487,7 +487,7 @@ Vue.component('m-form', {
                 // console.info('m-form parameters ' + JSON.stringify(formData));
                 // for (var key of formData.keys()) { console.log('m-form key ' + key + ' val ' + JSON.stringify(formData.get(key))); }
                 this.$root.loading++;
-                $.ajax({ type:this.method, url:this.action, data:formData, contentType:false, processData:false,
+                $.ajax({ type:this.method, url:(this.$root.appRootPath + this.action), data:formData, contentType:false, processData:false,
                     headers:{Accept:'application/json'}, error:moqui.handleLoadError, success:this.handleResponse });
             } else if (!this.noValidate) {
                 // For convenience, attempt to focus the first invalid element.
@@ -1079,13 +1079,24 @@ Vue.component('subscreens-active', {
         var newPath = curPathList[pathIndex];
         var pathChanged = (this.pathName !== newPath);
         this.pathName = newPath;
-        if (!newPath || newPath.length === 0) { this.activeComponent = moqui.EmptyComponent; return true; }
+        if (!newPath || newPath.length === 0) {
+            console.info("in subscreens-active newPath is empty, loading EmptyComponent and returning true");
+            this.activeComponent = moqui.EmptyComponent;
+            return true;
+        }
         var fullPath = root.basePath + '/' + curPathList.slice(0, pathIndex + 1).join('/');
-        if (!pathChanged && moqui.componentCache.containsKey(fullPath)) { return false; } // no need to reload component
+        if (!pathChanged && moqui.componentCache.containsKey(fullPath)) {
+            // no need to reload component
+            // console.info("in subscreens-active returning false because pathChanged is false and componentCache contains " + fullPath);
+            return false;
+        }
         var urlInfo = { path:fullPath };
         if (pathIndex === (curPathList.length - 1)) {
-            var extra = root.extraPathList; if (extra && extra.length > 0) { urlInfo.extraPath = extra.join('/'); } }
-        var search = root.currentSearch; if (search && search.length > 0) { urlInfo.search = search; }
+            var extra = root.extraPathList;
+            if (extra && extra.length > 0) { urlInfo.extraPath = extra.join('/'); }
+        }
+        var search = root.currentSearch;
+        if (search && search.length > 0) { urlInfo.search = search; }
         urlInfo.bodyParameters = root.bodyParameters;
         console.info('subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
         root.loading++;
@@ -1105,14 +1116,18 @@ moqui.webrootVue = new Vue({
             this.bodyParameters = bodyParameters;
             // make sure any open modals are closed before setting current URL
             $('.modal.in').modal('hide');
-            if (url.indexOf(this.basePath) === 0) url = url.replace(this.basePath, this.linkBasePath);
+            url = this.getLinkPath(url);
             // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
             if (this.currentLinkUrl === url && url !== this.linkBasePath) {
                 this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */
             } else {
                 var href = url;
-                var ssIdx = href.indexOf('//');
-                if (ssIdx >= 0) { var slIdx = href.indexOf('/', ssIdx + 1); if (slIdx === -1) { return; } href = href.slice(slIdx); }
+                var ssIdx = href.indexOf('://');
+                if (ssIdx >= 0) {
+                    var slIdx = href.indexOf('/', ssIdx + 3);
+                    if (slIdx === -1) return;
+                    href = href.slice(slIdx);
+                }
                 var splitHref = href.split("?");
                 // clear out extra path, to be set from nav menu data if needed
                 this.extraPathList = [];
@@ -1127,9 +1142,12 @@ moqui.webrootVue = new Vue({
                 this.lastNavTime = Date.now();
                 // TODO: somehow only clear out activeContainers that are in subscreens actually reloaded? may cause issues if any but last screen have dynamic-container
                 this.activeContainers = {};
+
                 // update menu, which triggers update of screen/subscreen components
                 var vm = this;
-                $.ajax({ type:"GET", url:"/menuData" + screenUrl, dataType:"text", error:moqui.handleAjaxError, success: function(outerListText) {
+                var menuDataUrl = this.appRootPath && this.appRootPath.length && screenUrl.indexOf(this.appRootPath) === 0 ?
+                    this.appRootPath + "/menuData" + screenUrl.slice(this.appRootPath.length) : "/menuData" + screenUrl;
+                $.ajax({ type:"GET", url:menuDataUrl, dataType:"text", error:moqui.handleAjaxError, success: function(outerListText) {
                     var outerList = null;
                     // console.log("menu response " + outerListText);
                     try { outerList = JSON.parse(outerListText); } catch (e) { console.info("Error parson menu list JSON: " + e); }
@@ -1155,6 +1173,7 @@ moqui.webrootVue = new Vue({
         reloadSubscreens: function() {
             // console.info('reloadSubscreens currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
             var fullPathList = this.currentPathList; var activeSubscreens = this.activeSubscreens;
+            console.info("reloadSubscreens currentPathList " + JSON.stringify(this.currentPathList));
             if (fullPathList.length === 0 && activeSubscreens.length > 0) { activeSubscreens.splice(1); activeSubscreens[0].loadActive(); return; }
             for (var i=0; i<activeSubscreens.length; i++) {
                 if (i >= fullPathList.length) break;
@@ -1170,7 +1189,7 @@ moqui.webrootVue = new Vue({
             if (contComp) { contComp.reload(); } else { console.error("Container with ID " + contId + " not found, not reloading"); }},
         loadContainer: function(contId, url) { var contComp = this.activeContainers[contId];
             if (contComp) { contComp.load(url); } else { console.error("Container with ID " + contId + " not found, not loading url " + url); }},
-        addNavPlugin: function(url) { var vm = this; moqui.loadComponent(url, function(comp) { vm.navPlugins.push(comp); }) },
+        addNavPlugin: function(url) { var vm = this; moqui.loadComponent(this.appRootPath + url, function(comp) { vm.navPlugins.push(comp); }) },
         addNotify: function(message, type) {
             var histList = this.notifyHistoryList.slice(0);
             var nowDate = new Date();
@@ -1184,7 +1203,7 @@ moqui.webrootVue = new Vue({
         switchDarkLight: function() {
             var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
             var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
-            $.ajax({ type:'POST', url:'/apps/setPreference', error:moqui.handleAjaxError,
+            $.ajax({ type:'POST', url:(this.appRootPath + '/apps/setPreference'), error:moqui.handleAjaxError,
                 data:{ moquiSessionToken: this.moquiSessionToken, preferenceKey:'OUTER_STYLE', preferenceValue:currentStyle } });
         },
         showScreenDocDialog: function(docIndex) {
@@ -1203,6 +1222,11 @@ moqui.webrootVue = new Vue({
             } else {
                 return navMenu.pathWithParams;
             }
+        },
+        getLinkPath: function(path) {
+            if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
+            if (path.indexOf(this.basePath) === 0) path = path.replace(this.basePath, this.linkBasePath);
+            return path;
         }
     },
     watch: {
@@ -1212,7 +1236,8 @@ moqui.webrootVue = new Vue({
             // if there is an extraPathList set it now
             if (cur.extraPathList) this.extraPathList = cur.extraPathList;
             // make sure full currentPathList and activeSubscreens is populated (necessary for minimal path urls)
-            var basePathSize = this.basePath.split('/').length;
+            // fullPathList is the path after the base path, menu and link paths are in the screen tree context only so need to subtract off the appRootPath (Servlet Context Path)
+            var basePathSize = this.basePath.split('/').length - (this.appRootPath.split('/').length - 1);
             var fullPathList = cur.path.split('/').slice(basePathSize);
             console.info('nav updated fullPath ' + JSON.stringify(fullPathList) + ' currentPathList ' + JSON.stringify(this.currentPathList));
             this.currentPathList = fullPathList;

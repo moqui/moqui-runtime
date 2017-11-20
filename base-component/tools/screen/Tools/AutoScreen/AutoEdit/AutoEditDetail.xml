@@ -27,7 +27,7 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="." parameter-map="ec.entity.getEntityDefinition(aen).getPrimaryKeys(context)"/></transition>
     <transition name="deleteRecord"><actions><service-call name="delete#${den}" in-map="context"/></actions>
         <default-response url="." parameter-map="ec.entity.getEntityDefinition(aen).getPrimaryKeys(context)"/></transition>
-    <transition name="getFormXml">
+    <transition name="getFormXml" read-only="true">
         <actions><script><![CDATA[
             import org.moqui.util.MNode
 
@@ -89,6 +89,6 @@ along with this software (see the LICENSE.md file). If not, see
             </field>
             <auto-fields-entity entity-name="${den}" field-type="find-display"/>
         </form-list>
-        <link url="getFormXml" text="Get Forms XML" link-type="hidden-form-link"/>
+        <link url="getFormXml" text="Get Forms XML" link-type="anchor"/>
     </widgets>
 </screen>
