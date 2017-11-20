@@ -837,7 +837,7 @@ Vue.component('date-time', {
         var format = this.formatVal;
         var jqEl = $(this.$el);
         if (this.type !== "time") {
-            jqEl.datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true, useStrict:true,
+            jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
                 extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
                 keyBinds: {t: function() {this.date(moment());}}});
