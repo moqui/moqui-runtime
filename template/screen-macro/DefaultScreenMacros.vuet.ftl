@@ -1032,6 +1032,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         ${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
         <m-form name="${formId}_${listEntry_index}" id="${formId}_${listEntry_index}" action="${formListUrlInfo.path}">
             <input type="hidden" name="pageIndex" value="${pageIndex!"0"}">
+            <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
             <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#assign listEntryIndex = listEntry_index>
             <#-- hidden fields -->
@@ -1095,6 +1096,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <input type="hidden" name="moquiFormName" value="${formName}">
             <input type="hidden" name="_isMulti" value="true">
             <input type="hidden" name="pageIndex" value="${pageIndex!"0"}">
+            <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
             <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#if listHasContent><#list listObject as listEntry>
                 <#assign listEntryIndex = listEntry_index>
