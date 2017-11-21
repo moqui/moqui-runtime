@@ -966,6 +966,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign isHeaderDialog = needHeaderForm && formNode["@header-dialog"]! == "true">
     <#assign isMulti = !skipForm && formNode["@multi"]! == "true">
     <#assign formListUrlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
+    <#assign formListUrlParms = formListUrlInfo.getParameterMap()>
     <#assign listName = formNode["@list"]>
     <#assign isServerStatic = formInstance.isServerStatic(sri.getRenderMode())>
     <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
@@ -1097,6 +1098,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <input type="hidden" name="_isMulti" value="true">
             <input type="hidden" name="pageIndex" value="${pageIndex!"0"}">
             <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+            <#list formListUrlParms.keySet() as parmName><#if !hiddenParameterMap.containsKey(parmName)>
+                <input type="hidden" name="${parmName}" value="${formListUrlParms.get(parmName)!?html}">
+            </#if></#list>
             <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#if listHasContent><#list listObject as listEntry>
                 <#assign listEntryIndex = listEntry_index>
