@@ -678,6 +678,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 </m-script>
                             </div>
                         </div>
+                        <#t>${sri.pushSingleFormMapContext("")}
                         <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
                             <#assign headerFieldNode = fieldNode["header-field"][0]>
                             <#assign allHidden = true>
@@ -693,6 +694,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <#recurse headerFieldNode/>
                             </#if>
                         </#if></#list>
+                        <#t>${sri.popContext()}<#-- context was pushed so pop here at the end -->
                     </fieldset>
                 </template></form-link>
             </#if>
