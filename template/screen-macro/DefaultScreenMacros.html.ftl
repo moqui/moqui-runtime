@@ -807,6 +807,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
     <#assign currentFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("formListFindId")>
     <#assign currentFindUrlParms = currentFindUrl.getParameterMap()>
+    <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
+    <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
     <#if isSavedFinds || isHeaderDialog>
         <#assign headerFormDialogId = formId + "_hdialog">
         <#assign headerFormId = formId + "_header">
@@ -887,6 +889,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
                         <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                         <#if formListFindId?has_content><input type="hidden" name="formListFindId" value="${formListFindId}"></#if>
+                        <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
                         <fieldset class="form-horizontal">
                             <div class="form-group"><div class="col-sm-2">&nbsp;</div><div class="col-sm-10">
                                 <button type="button" class="btn btn-primary btn-sm" onclick="${headerFormId}_clearForm()">${ec.getL10n().localize("Clear Parameters")}</button></div></div>
@@ -1275,6 +1278,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign listName = formNode["@list"]>
     <#assign listObject = formListInfo.getListObject(true)!>
     <#assign listHasContent = listObject?has_content>
+    <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
+    <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
 
     <#-- all form elements outside table element and referred to with input/etc.@form attribute for proper HTML -->
     <#if !(isMulti || skipForm) && listHasContent><#list listObject as listEntry>
@@ -1282,6 +1287,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <form name="${formId}_${listEntry_index}" id="${formId}_${listEntry_index}" method="post" action="${formListUrlInfo.url}">
             <#assign listEntryIndex = listEntry_index>
             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
+            <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#-- hidden fields -->
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
             <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
@@ -1295,6 +1301,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <form name="${headerFormId}" id="${headerFormId}" method="post" action="${headerUrlInstance.url}">
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                 <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
                 <#assign hiddenFieldList = formListInfo.getListHeaderHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["header-field"][0]/></#list>
             </form>
@@ -1306,6 +1313,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <form name="${formId}_first" id="${formId}_first" method="post" action="${firstUrlInstance.url}">
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                 <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
                 <#assign hiddenFieldList = formListInfo.getListFirstRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["first-row-field"][0]/></#list>
             </form>
@@ -1319,6 +1327,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
           <form name="${formId}_last" id="${formId}_last" method="post" action="${lastUrlInstance.url}">
               <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
               <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+              <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
               <#assign hiddenFieldList = formListInfo.getListSecondRowHiddenFieldList()>
               <#list hiddenFieldList as hiddenField><#recurse hiddenField["second-row-field"][0]/></#list>
           </form>
@@ -1332,6 +1341,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <form name="${formId}_last" id="${formId}_last" method="post" action="${lastUrlInstance.url}">
                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
                 <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
                 <#assign hiddenFieldList = formListInfo.getListLastRowHiddenFieldList()>
                 <#list hiddenFieldList as hiddenField><#recurse hiddenField["last-row-field"][0]/></#list>
             </form>
@@ -1343,6 +1353,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
             <input type="hidden" name="_isMulti" value="true">
+            <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#if listHasContent><#list listObject as listEntry>
                 <#assign listEntryIndex = listEntry_index>
                 ${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
@@ -1577,20 +1588,26 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 <#macro formListSubFirst fieldNode skipCell>
     <#if fieldNode["first-row-field"]?has_content>
+        <#assign rowSubFieldNode = fieldNode["first-row-field"][0]>
+        <#if rowSubFieldNode["hidden"]?has_content><#return></#if>
         <#assign isHeaderField = false>
-        <@formListWidget fieldNode["first-row-field"][0] skipCell false false false/>
+        <@formListWidget rowSubFieldNode skipCell false false false/>
     </#if>
 </#macro>
 <#macro formListSubSecond fieldNode skipCell>
     <#if fieldNode["second-row-field"]?has_content>
+        <#assign rowSubFieldNode = fieldNode["second-row-field"][0]>
+        <#if rowSubFieldNode["hidden"]?has_content><#return></#if>
         <#assign isHeaderField = false>
-        <@formListWidget fieldNode["second-row-field"][0] skipCell false false false/>
+        <@formListWidget rowSubFieldNode skipCell false false false/>
     </#if>
 </#macro>
 <#macro formListSubLast fieldNode skipCell>
     <#if fieldNode["last-row-field"]?has_content>
+        <#assign rowSubFieldNode = fieldNode["last-row-field"][0]>
+        <#if rowSubFieldNode["hidden"]?has_content><#return></#if>
         <#assign isHeaderField = false>
-        <@formListWidget fieldNode["last-row-field"][0] skipCell false false false/>
+        <@formListWidget rowSubFieldNode skipCell false false false/>
     </#if>
 </#macro>
 <#macro formListWidget fieldSubNode skipCell isHeaderField isMulti isMultiFinalRow>
@@ -1669,9 +1686,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if !currentValue?has_content><#assign currentValue = ec.getResource().expandNoL10n(.node["@no-current-selected-key"]!, "")/></#if>
     <#assign id><@fieldId .node/></#assign>
     <#assign curName><@fieldName .node/></#assign>
+    <#assign containerStyle = ec.getResource().expandNoL10n(.node["@container-style"]!, "")>
     <#list (options.keySet())! as key>
         <#assign allChecked = ec.getResource().expandNoL10n(.node["@all-checked"]!, "")>
-        <span id="${id}<#if (key_index > 0)>_${key_index}</#if>"><input type="checkbox" name="${curName}" value="${key?html}"<#if allChecked! == "true"> checked="checked"<#elseif currentValue?has_content && currentValue==key> checked="checked"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>${options.get(key)!""}</span>
+        <#assign fullId = id>
+        <#if (key_index > 0)><#assign fullId = id + "_" + key_index></#if>
+        <span id="${fullId}"<#if containerStyle?has_content> class="${containerStyle}"</#if>><input type="checkbox" name="${curName}" value="${key?html}"<#if allChecked! == "true"> checked="checked"<#elseif currentValue?has_content && currentValue==key> checked="checked"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>><#if options.get(key)! != ""><span class="checkbox-label" onclick="$('#${fullId}').children('input[type=checkbox]').click()" style="cursor: default">${options.get(key)}</span></#if></span>
     </#list>
 </#macro>
 
