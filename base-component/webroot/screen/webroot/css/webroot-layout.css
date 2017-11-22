@@ -147,7 +147,13 @@ nav.form-list-nav>span.select2-container { float: left; margin: 6px 0 6px 0; min
 
 .btn { margin: 4px 4px 4px 0; }
 .btn-group .btn { margin-right: 0; }
-.btn-group { margin-right: 4px; }
+.btn-group { margin-right: 4px; margin-left: 4px; }
+
+/* nav .btn-group { padding-left: 4px; } */
+.btn-group-condensed>.btn:not(:first-child):not(:last-child):not(.dropdown-toggle) {
+    padding-left: 4px; padding-right: 4px; border-left: 0; border-right: 0; }
+.btn-group-condensed>.btn:first-child { padding-right: 4px; border-right: 0; }
+.btn-group-condensed>.btn:last-child { padding-left: 4px; border-left: 0; }
 
 /* Variations on Bootstrap default table styles */
 .table>thead>tr>th { vertical-align: top; }
