@@ -317,7 +317,11 @@ Vue.component('container-box', {
     '</div>',
     methods: { toggleBody: function() { this.isBodyOpen = !this.isBodyOpen; } }
 });
-Vue.component('box-body', { template: '<div class="panel-body"><slot></slot></div>' });
+Vue.component('box-body', {
+    props: { height:String },
+    data: function() { return this.height ? { dialogStyle:{'max-height':this.height+'px', 'overflow-y':'auto'}} : {}},
+    template: '<div class="panel-body" :style="dialogStyle"><slot></slot></div>'
+});
 Vue.component('container-dialog', {
     props: { id:{type:String,required:true}, title:String, width:{type:String,'default':'760'}, openDialog:{type:Boolean,'default':false} },
     data: function() { return { isHidden:true, dialogStyle:{width:this.width + 'px'}}},
