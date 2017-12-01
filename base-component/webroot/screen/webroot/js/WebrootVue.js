@@ -319,7 +319,7 @@ Vue.component('container-box', {
 });
 Vue.component('box-body', {
     props: { height:String },
-    data: function() { return this.height ? { dialogStyle:{'max-height':this.height+'px', 'overflow-y':'auto'}} : {}},
+    data: function() { return this.height ? { dialogStyle:{'max-height':this.height+'px', 'overflow-y':'auto'}} : {dialogStyle:{}}},
     template: '<div class="panel-body" :style="dialogStyle"><slot></slot></div>'
 });
 Vue.component('container-dialog', {
