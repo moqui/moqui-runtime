@@ -76,6 +76,8 @@ along with this software (see the LICENSE.md file). If not, see
                         {{histItem.title}}</m-link></li>
                 </ul>
             </div>
+            <#-- screen history previous screen -->
+            <a href="#" @click.prevent="goPreviousScreen()" data-toggle="tooltip" data-original-title="Previous Screen" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-step-backward"></i></a>
             <#-- notify history -->
             <div id="notify-history-menu" class="nav navbar-right dropdown">
                 <a id="notify-history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="Notifications">

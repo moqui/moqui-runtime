@@ -80,7 +80,7 @@ ${sri.renderSection(.node["@name"])}
         <#-- NOTE: direct use of the container-box component would not use template elements but rather use the 'slot' attribute directly on the child elements which we can't do here -->
         <#if boxHeader??><template slot="header"><#recurse boxHeader></template></#if>
         <#if .node["box-toolbar"]?has_content><template slot="toolbar"><#recurse .node["box-toolbar"][0]></template></#if>
-        <#if .node["box-body"]?has_content><box-body><#recurse .node["box-body"][0]></box-body></#if>
+        <#if .node["box-body"]?has_content><box-body<#if .node["box-body"][0]["@height"]?has_content> height="${.node["box-body"][0]["@height"]}"</#if>><#recurse .node["box-body"][0]></box-body></#if>
         <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
     </container-box>
 </#macro>
@@ -122,11 +122,13 @@ ${sri.renderSection(.node["@name"])}
 </#macro>
 
 <#macro "container-dialog">
+    <#assign iconClass = "glyphicon glyphicon-share">
+    <#if .node["@icon"]?has_content><#assign iconClass = .node["@icon"]></#if>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
         <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
         <#assign cdDivId><@nodeId .node/></#assign>
-        <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+        <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="${iconClass}"></i> ${buttonText}</button>
         <container-dialog id="${cdDivId}" width="${.node["@width"]!"760"}" title="${buttonText}"<#if _openDialog! == cdDivId> :openDialog="true"</#if>>
             <#recurse>
         </container-dialog>
@@ -138,12 +140,14 @@ ${sri.renderSection(.node["@name"])}
     <dynamic-container id="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().pathWithParams}"></dynamic-container>
 </#macro>
 <#macro "dynamic-dialog">
+    <#assign iconClass = "glyphicon glyphicon-share">
+    <#if .node["@icon"]?has_content><#assign iconClass = .node["@icon"]></#if>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
         <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
         <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
         <#assign ddDivId><@nodeId .node/></#assign>
-        <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+        <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="${iconClass}"></i> ${buttonText}</button>
         <#assign afterFormText>
         <dynamic-dialog id="${ddDivId}" url="${urlInstance.urlWithParams}" width="${.node["@width"]!"760"}" title="${buttonText}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></dynamic-dialog>
         </#assign>

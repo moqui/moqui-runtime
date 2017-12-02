@@ -213,7 +213,7 @@ ${sri.renderSection(.node["@name"])}
             </#if>
         </div>
         <#if .node["box-body"]?has_content>
-            <div class="panel-body">
+            <div class="panel-body"<#if .node["box-body"][0]["@height"]?has_content> style="max-height: ${.node["box-body"][0]["@height"]}px; overflow-y: auto;"</#if>>
                 <#recurse .node["box-body"][0]>
             </div>
         </#if>
@@ -262,11 +262,13 @@ ${sri.renderSection(.node["@name"])}
 </#macro>
 
 <#macro "container-dialog">
+    <#assign iconClass = "glyphicon glyphicon-share">
+    <#if .node["@icon"]?has_content><#assign iconClass = .node["@icon"]></#if>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
         <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
         <#assign cdDivId><@nodeId .node/></#assign>
-        <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+        <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="${iconClass}"></i> ${buttonText}</button>
         <#if _openDialog! == cdDivId><#assign afterScreenScript>$('#${cdDivId}').modal('show'); </#assign><#t>${sri.appendToScriptWriter(afterScreenScript)}</#if>
         <div id="${cdDivId}" class="modal container-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
             <div class="modal-dialog" style="width: ${.node["@width"]!"760"}px;">
@@ -301,13 +303,15 @@ ${sri.renderSection(.node["@name"])}
 </#macro>
 
 <#macro "dynamic-dialog">
+    <#assign iconClass = "glyphicon glyphicon-share">
+    <#if .node["@icon"]?has_content><#assign iconClass = .node["@icon"]></#if>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
         <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
         <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
         <#assign ddDivId><@nodeId .node/></#assign>
 
-        <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="glyphicon glyphicon-share"></i> ${buttonText}</button>
+        <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="${iconClass}"></i> ${buttonText}</button>
         <#assign afterFormText>
         <div id="${ddDivId}" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">
             <div class="modal-dialog" style="width: ${.node["@width"]!"760"}px;">

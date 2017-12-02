@@ -317,7 +317,11 @@ Vue.component('container-box', {
     '</div>',
     methods: { toggleBody: function() { this.isBodyOpen = !this.isBodyOpen; } }
 });
-Vue.component('box-body', { template: '<div class="panel-body"><slot></slot></div>' });
+Vue.component('box-body', {
+    props: { height:String },
+    data: function() { return this.height ? { dialogStyle:{'max-height':this.height+'px', 'overflow-y':'auto'}} : {dialogStyle:{}}},
+    template: '<div class="panel-body" :style="dialogStyle"><slot></slot></div>'
+});
 Vue.component('container-dialog', {
     props: { id:{type:String,required:true}, title:String, width:{type:String,'default':'760'}, openDialog:{type:Boolean,'default':false} },
     data: function() { return { isHidden:true, dialogStyle:{width:this.width + 'px'}}},
@@ -878,7 +882,7 @@ Vue.component('drop-down', {
         processOptionList: function(list, page, term) {
             var newData = [];
             // funny case where select2 specifies no option.@value if empty so &nbsp; ends up passed with form submit; now filtered on server for \u00a0 only and set to null
-            if (this.allowEmpty && (!page || page <= 1) && (!term || term.trim() == '')) newData.push({ id:'\u00a0', text:'\u00a0' });
+            if (this.allowEmpty && (!page || page <= 1) && (!term || term.trim() === '')) newData.push({ id:'\u00a0', text:'\u00a0' });
             var labelField = this.labelField; if (!labelField) { labelField = "label"; }
             var valueField = this.valueField; if (!valueField) { valueField = "value"; }
             $.each(list, function(idx, curObj) {
@@ -1182,6 +1186,14 @@ moqui.webrootVue = new Vue({
                 // clear out remaining activeSubscreens, after first changed loads its placeholders will register and load
                 if (loaded) activeSubscreens.splice(i+1);
             }
+        },
+        goPreviousScreen: function() {
+            var currentPath = this.currentPath;
+            var navHistoryList = this.navHistoryList;
+            var prevHist;
+            for (var hi = 0; hi < navHistoryList.length; hi++) {
+                if (navHistoryList[hi].pathWithParams.indexOf(currentPath) < 0) { prevHist = navHistoryList[hi]; break; } }
+            if (prevHist && prevHist.pathWithParams && prevHist.pathWithParams.length) this.setUrl(prevHist.pathWithParams)
         },
         // all container components added with this must have reload() and load(url) methods
         addContainer: function(contId, comp) { this.activeContainers[contId] = comp; },
