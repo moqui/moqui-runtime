@@ -198,6 +198,7 @@ a.jstree-anchor { white-space: normal; }
 .Login .form-signin input.bottom { border-top-left-radius: 0; border-top-right-radius: 0; margin-bottom: 10px; }
 
 /* wiki screen, including CodeMirror class */
+#wiki-page-area { width: 100%; overflow-x: scroll; overflow-y: visible; }
 #wiki-page-area th, #wiki-page-area td { padding: 2px 4px 2px 4px; border: thin solid lightgrey; }
 .CodeMirror, .CodeMirror-scroll { min-height: 600px; min-width: 800px; }
 
