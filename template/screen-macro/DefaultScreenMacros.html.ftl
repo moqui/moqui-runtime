@@ -680,6 +680,17 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </div>
         </div>
         <#assign accordionIndex = accordionIndex + 1>
+    <#elseif isContainerRow!false>
+        <div class="<#if .node["@lg"]?has_content> col-lg-${.node["@lg"]}</#if><#if .node["@md"]?has_content> col-md-${.node["@md"]}</#if><#if .node["@sm"]?has_content> col-sm-${.node["@sm"]}</#if><#if .node["@xs"]?has_content> col-xs-${.node["@xs"]}</#if>">
+            <div class="panel panel-default">
+                <div class="panel-heading"><#if fgTitle?has_content><h5>${fgTitle}</h5></#if></div>
+                <div class="panel-collapse collapse in">
+                    <div class="panel-body<#if .node["@style"]?has_content> ${.node["@style"]}</#if>">
+                        <#recurse .node/>
+                    </div>
+                </div>
+            </div>
+        </div>
     <#else>
         <div class="form-single-field-group<#if .node["@style"]?has_content> ${.node["@style"]}</#if>">
             <#if fgTitle?has_content><h5>${fgTitle}</h5></#if>
@@ -696,6 +707,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#recurse .node/>
     </div><!-- accordionId ${accordionId} -->
     <#assign isAccordion = false>
+</#macro>
+<#macro "field-container-row">
+    <#assign isContainerRow = true>
+    <div class="row">
+        <#recurse .node/>
+    </div>
+    <#assign isContainerRow = false>
 </#macro>
 <#macro "field-col-row">
     <div class="row<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>">
