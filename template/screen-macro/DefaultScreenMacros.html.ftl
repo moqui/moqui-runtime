@@ -670,9 +670,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if isAccordion!false>
         <#assign accIsActive = accordionIndex?string == accordionActive>
         <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="${accordionId}_heading${accordionIndex}"><h4 class="panel-title">
+            <div class="panel-heading" role="tab" id="${accordionId}_heading${accordionIndex}"><h5 class="panel-title">
                 <a <#if !accIsActive>class="collapsed" </#if>role="button" data-toggle="collapse" data-parent="#${accordionId}" href="#${accordionId}_collapse${accordionIndex}" aria-expanded="true" aria-controls="${accordionId}_collapse${accordionIndex}">${fgTitle!"Fields"}</a>
-            </h4></div>
+            </h5></div>
             <div id="${accordionId}_collapse${accordionIndex}" class="panel-collapse collapse<#if accIsActive> in</#if>" role="tabpanel" aria-labelledby="${accordionId}_heading${accordionIndex}">
                 <div class="panel-body<#if .node["@style"]?has_content> ${.node["@style"]}</#if>">
                     <#recurse .node/>
@@ -680,6 +680,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </div>
         </div>
         <#assign accordionIndex = accordionIndex + 1>
+    <#elseif .node["@box"]! == "true">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab"><h5 class="panel-title">${fgTitle!"Fields"}</h5></div>
+            <div class="panel-collapse collapse in" role="tabpanel">
+                <div class="panel-body<#if .node["@style"]?has_content> ${.node["@style"]}</#if>">
+                    <#recurse .node/>
+                </div>
+            </div>
+        </div>
     <#else>
         <div class="form-single-field-group<#if .node["@style"]?has_content> ${.node["@style"]}</#if>">
             <#if fgTitle?has_content><h5>${fgTitle}</h5></#if>
