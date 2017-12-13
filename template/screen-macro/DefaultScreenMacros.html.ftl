@@ -1254,6 +1254,31 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#if>
         </nav>
         </th></tr>
+
+        <#if isHeaderDialog>
+            <tr><th colspan="${numColumns}" style="font-weight: normal">
+                <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
+                    <#assign headerFieldNode = fieldNode["header-field"][0]>
+                    <#assign allHidden = true>
+                    <#list fieldNode?children as fieldSubNode>
+                        <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
+                    </#list>
+                    <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") || allHidden ||
+                            ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
+                            (headerFieldNode["hidden"]?has_content || headerFieldNode["ignored"]?has_content)))>
+                        <#t>${sri.pushContext()}
+                        <#list headerFieldNode?children as widgetNode><#if widgetNode?node_name == "set">${sri.setInContext(widgetNode)}</#if></#list>
+                        <#list headerFieldNode?children as widgetNode><#if widgetNode?node_name != "set">
+                            <#assign fieldValue><@widgetTextValue widgetNode/></#assign>
+                            <#if fieldValue?has_content>
+                                <span style="white-space:nowrap;"><strong><@fieldTitle headerFieldNode/>:</strong> <span class="text-success">${fieldValue}</span></span>
+                            </#if>
+                        </#if></#list>
+                        <#t>${sri.popContext()}
+                    </#if>
+                </#if></#list>
+            </th></tr>
+            </#if>
     </#if>
 </#macro>
 
@@ -2235,4 +2260,89 @@ a => A, d => D, y => Y
         <span><input type="checkbox" class="form-control" name="${curFieldName}_ic" value="Y"<#if ignoreCase> checked="checked"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>&nbsp;${ec.getL10n().localize("Ignore Case")}</span>
     </#if>
 </span>
+</#macro>
+
+<#macro widgetTextValue widgetNode>
+    <#assign widgetType = widgetNode?node_name>
+    <#assign noDisplay = ["display", "display-entity", "hidden", "ignored", "password", "reset", "submit", "text-area", "link", "label"]>
+    <#t><#if noDisplay?seq_contains(widgetType)><#return></#if>
+    <#t><#if widgetType == "drop-down">
+        <#assign ddFieldNode = widgetNode?parent?parent>
+        <#assign allowMultiple = ec.getResource().expand(widgetNode["@allow-multiple"]!, "") == "true">
+        <#assign isDynamicOptions = widgetNode["dynamic-options"]?has_content>
+        <#assign options = sri.getFieldOptions(widgetNode)>
+        <#assign currentValue = sri.getFieldValuePlainString(ddFieldNode, "")>
+        <#if !currentValue?has_content><#assign currentValue = ec.getResource().expandNoL10n(widgetNode["@no-current-selected-key"]!, "")></#if>
+        <#if currentValue?starts_with("[")><#assign currentValue = currentValue?substring(1, currentValue?length - 1)?replace(" ", "")></#if>
+        <#assign currentValueList = (currentValue?split(","))!>
+        <#if currentValueList?has_content><#if allowMultiple><#assign currentValue=""><#else><#assign currentValue = currentValueList[0]></#if></#if>
+        <#assign currentDescription = (options.get(currentValue))!>
+        <#assign optionsHasCurrent = currentDescription?has_content>
+        <#if !optionsHasCurrent && widgetNode["@current-description"]?has_content><#assign currentDescription = ec.getResource().expand(widgetNode["@current-description"], "")></#if>
+        <#t><#if allowMultiple>
+            <#list currentValueList as listValue>
+                <#t><#if isDynamicOptions>
+                    <#assign doNode = widgetNode["dynamic-options"][0]>
+                    <#assign transValue = sri.getFieldTransitionValue(doNode["@transition"], listValue, doNode["@label-field"]!"label")!>
+                    <#t><#if transValue?has_content>${transValue}<#elseif listValue?has_content>${listValue}</#if><#if listValue_has_next>, </#if>
+                <#else>
+                    <#assign currentDescription = (options.get(listValue))!>
+                    <#t><#if currentDescription?has_content>${currentDescription}<#elseif listValue?has_content>${listValue}</#if><#if listValue_has_next>, </#if>
+                </#if><#t>
+            </#list>
+        <#else>
+            <#t><#if isDynamicOptions>
+                <#assign doNode = widgetNode["dynamic-options"][0]>
+                <#assign transValue = sri.getFieldTransitionValue(doNode["@transition"], currentValue, doNode["@label-field"]!"label")!>
+                <#t><#if transValue?has_content>${transValue}<#elseif currentValue?has_content>${currentValue}</#if>
+            <#else>
+                <#t><#if currentDescription?has_content>${currentDescription}<#elseif currentValue?has_content>${currentValue}</#if>
+            </#if><#t>
+        </#if><#t>
+    <#elseif widgetType == "check" || widgetType == "radio">
+        <#assign currentValue = sri.getFieldValueString(widgetNode)/>
+        <#if !currentValue?has_content><#return></#if>
+        <#assign options = sri.getFieldOptions(widgetNode)/>
+        <#assign currentLabel = "">
+        <#list (options.keySet())! as key><#if currentValue?has_content && currentValue==key><#assign currentLabel = options.get(key)></#if></#list>
+        <#t><#if currentLabel?has_content>${currentLabel}<#else>${currentValue}</#if>
+    <#elseif widgetType == "text-line">
+        <#assign fieldValue = sri.getFieldValueString(widgetNode)>
+        <#t><#if widgetNode["@ac-transition"]?has_content>
+            <#assign transValue = sri.getFieldTransitionValue(widgetNode["@ac-transition"], fieldValue, "label")!>
+            <#t><#if transValue?has_content>${transValue}</#if>
+        <#else>
+            <#t><#if fieldValue?has_content>${fieldValue}</#if>
+        </#if><#t>
+    <#elseif widgetType == "date-period">
+        <#assign curFieldName><@fieldName widgetNode/></#assign>
+        <#assign fvPeriod = ec.getContext().get(curFieldName + "_period")!?lower_case>
+        <#if fvPeriod?has_content>
+            <#assign fvOffset = ec.getContext().get(curFieldName + "_poffset")!"0">
+            <#assign fvDate = ec.getContext().get(curFieldName + "_pdate")!"">
+            <#t>${ec.getUser().getPeriodDescription(fvPeriod, fvOffset, fvDate)}
+        </#if>
+    <#elseif widgetType == "date-time">
+        <#assign dtFieldNode = widgetNode?parent?parent>
+        <#assign javaFormat = widgetNode["@format"]!>
+        <#t><#if !javaFormat?has_content><#if widgetNode["@type"]! == "time"><#assign javaFormat="HH:mm"><#elseif widgetNode["@type"]! == "date"><#assign javaFormat="yyyy-MM-dd"><#else><#assign javaFormat="yyyy-MM-dd HH:mm"></#if></#if>
+        <#assign fieldValue = sri.getFieldValueString(dtFieldNode, widgetNode["@default-value"]!"", javaFormat)>
+        <#t><#if fieldValue?has_content>${fieldValue?html}</#if>
+    <#elseif widgetType == "date-find">
+        <#t><#if widgetNode["@type"]! == "time"><#assign defaultFormat="HH:mm"><#elseif widgetNode["@type"]! == "date"><#assign defaultFormat="yyyy-MM-dd"><#else><#assign defaultFormat="yyyy-MM-dd HH:mm"></#if>
+        <#assign curFieldName><@fieldName widgetNode/></#assign>
+        <#assign fieldValueFrom = ec.getL10n().format(ec.getContext().get(curFieldName + "_from")!?default(widgetNode["@default-value-from"]!""), defaultFormat)>
+        <#assign fieldValueThru = ec.getL10n().format(ec.getContext().get(curFieldName + "_thru")!?default(widgetNode["@default-value-thru"]!""), defaultFormat)>
+        <#t><#if fieldValueFrom?has_content>${ec.getL10n().localize("From")} ${fieldValueFrom?html}</#if>
+        <#t><#if fieldValueThru?has_content>${ec.getL10n().localize("Thru")} ${fieldValueThru?html}</#if>
+    <#elseif widgetType == "range-find">
+        <#assign curFieldName><@fieldName widgetNode/></#assign>
+        <#assign fieldValueFrom = ec.getContext().get(curFieldName + "_from")!?default(widgetNode["@default-value-from"]!"")>
+        <#assign fieldValueThru = ec.getContext().get(curFieldName + "_thru")!?default(widgetNode["@default-value-thru"]!"")>
+        <#t><#if fieldValueFrom?has_content>${ec.getL10n().localize("From")} ${fieldValueFrom?html}</#if>
+        <#t><#if fieldValueThru?has_content>${ec.getL10n().localize("Thru")} ${fieldValueThru?html}</#if>
+    <#else>
+        <#-- handles text-find, ... -->
+        <#t>${sri.getFieldValueString(widgetNode)}
+    </#if><#t>
 </#macro>
