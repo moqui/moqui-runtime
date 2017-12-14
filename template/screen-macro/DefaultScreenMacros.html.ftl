@@ -2274,7 +2274,7 @@ a => A, d => D, y => Y
 </span>
 </#macro>
 
-<#macro widgetTextValue widgetNode>
+<#macro widgetTextValue widgetNode alwaysGet=false>
     <#assign widgetType = widgetNode?node_name>
     <#assign noDisplay = ["display", "display-entity", "hidden", "ignored", "password", "reset", "submit", "text-area", "link", "label"]>
     <#t><#if noDisplay?seq_contains(widgetType)><#return></#if>
@@ -2295,7 +2295,7 @@ a => A, d => D, y => Y
             <#list currentValueList as listValue>
                 <#t><#if isDynamicOptions>
                     <#assign doNode = widgetNode["dynamic-options"][0]>
-                    <#assign transValue = sri.getFieldTransitionValue(doNode["@transition"], listValue, doNode["@label-field"]!"label")!>
+                    <#assign transValue = sri.getFieldTransitionValue(doNode["@transition"], doNode, listValue, doNode["@label-field"]!"label", alwaysGet)!>
                     <#t><#if transValue?has_content>${transValue}<#elseif listValue?has_content>${listValue}</#if><#if listValue_has_next>, </#if>
                 <#else>
                     <#assign currentDescription = (options.get(listValue))!>
@@ -2305,7 +2305,7 @@ a => A, d => D, y => Y
         <#else>
             <#t><#if isDynamicOptions>
                 <#assign doNode = widgetNode["dynamic-options"][0]>
-                <#assign transValue = sri.getFieldTransitionValue(doNode["@transition"], currentValue, doNode["@label-field"]!"label")!>
+                <#assign transValue = sri.getFieldTransitionValue(doNode["@transition"], doNode, currentValue, doNode["@label-field"]!"label", alwaysGet)!>
                 <#t><#if transValue?has_content>${transValue}<#elseif currentValue?has_content>${currentValue}</#if>
             <#else>
                 <#t><#if currentDescription?has_content>${currentDescription}<#elseif currentValue?has_content>${currentValue}</#if>
@@ -2321,7 +2321,7 @@ a => A, d => D, y => Y
     <#elseif widgetType == "text-line">
         <#assign fieldValue = sri.getFieldValueString(widgetNode)>
         <#t><#if widgetNode["@ac-transition"]?has_content>
-            <#assign transValue = sri.getFieldTransitionValue(widgetNode["@ac-transition"], fieldValue, "label")!>
+            <#assign transValue = sri.getFieldTransitionValue(widgetNode["@ac-transition"], widgetNode, fieldValue, "label", alwaysGet)!>
             <#t><#if transValue?has_content>${transValue}</#if>
         <#else>
             <#t><#if fieldValue?has_content>${fieldValue}</#if>
