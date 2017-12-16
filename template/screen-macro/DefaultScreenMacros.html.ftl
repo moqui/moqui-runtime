@@ -670,9 +670,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if isAccordion!false>
         <#assign accIsActive = accordionIndex?string == accordionActive>
         <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="${accordionId}_heading${accordionIndex}"><h4 class="panel-title">
+            <div class="panel-heading" role="tab" id="${accordionId}_heading${accordionIndex}"><h5 class="panel-title">
                 <a <#if !accIsActive>class="collapsed" </#if>role="button" data-toggle="collapse" data-parent="#${accordionId}" href="#${accordionId}_collapse${accordionIndex}" aria-expanded="true" aria-controls="${accordionId}_collapse${accordionIndex}">${fgTitle!"Fields"}</a>
-            </h4></div>
+            </h5></div>
             <div id="${accordionId}_collapse${accordionIndex}" class="panel-collapse collapse<#if accIsActive> in</#if>" role="tabpanel" aria-labelledby="${accordionId}_heading${accordionIndex}">
                 <div class="panel-body<#if .node["@style"]?has_content> ${.node["@style"]}</#if>">
                     <#recurse .node/>
@@ -680,6 +680,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </div>
         </div>
         <#assign accordionIndex = accordionIndex + 1>
+    <#elseif .node["@box"]! == "true">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab"><h5 class="panel-title">${fgTitle!"Fields"}</h5></div>
+            <div class="panel-collapse collapse in" role="tabpanel">
+                <div class="panel-body<#if .node["@style"]?has_content> ${.node["@style"]}</#if>">
+                    <#recurse .node/>
+                </div>
+            </div>
+        </div>
     <#else>
         <div class="form-single-field-group<#if .node["@style"]?has_content> ${.node["@style"]}</#if>">
             <#if fgTitle?has_content><h5>${fgTitle}</h5></#if>
@@ -1596,7 +1605,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
     <#t></div>
     <#if !isHeaderDialog && fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
-        <div class="form-header-field<#if containerStyle?has_content> ${containerStyle}</#if>">
+        <div class="form-header-field<#if containerStyle?has_content> ${containerStyle}</#if><#if headerAlign == "center"> text-center<#elseif headerAlign == "right"> text-right</#if>">
             <@formListWidget fieldNode["header-field"][0] true true false false/>
             <#-- <#recurse fieldNode["header-field"][0]/> -->
         </div>
@@ -1649,7 +1658,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if fieldSubNode["hidden"]?has_content><#recurse fieldSubNode/><#return></#if>
     <#assign containerStyle = ec.getResource().expandNoL10n(fieldSubNode["@container-style"]!, "")>
     <#if fieldSubParent["@align"]! == "right"><#assign containerStyle = containerStyle + " text-right"><#elseif fieldSubParent["@align"]! == "center"><#assign containerStyle = containerStyle + " text-center"></#if>
-    <#if !isMultiFinalRow && !isHeaderField><#if skipCell><div<#if containerStyle?has_content> class="${containerStyle}"</#if>><#else><td<#if containerStyle?has_content> class="${containerStyle}"</#if>></#if></#if>
+    <#if !isMultiFinalRow && !isHeaderField><#if skipCell><div class="form-group<#if containerStyle?has_content>  ${containerStyle}</#if>"><#else><td class="form-group<#if containerStyle?has_content> ${containerStyle}</#if>"></#if></#if>
     <#t>${sri.pushContext()}
     <#list fieldSubNode?children as widgetNode><#if widgetNode?node_name == "set">${sri.setInContext(widgetNode)}</#if></#list>
     <#list fieldSubNode?children as widgetNode>
@@ -1841,9 +1850,10 @@ a => A, d => D, y => Y
 <#macro getMomentDateFormat dateFormat>${dateFormat?replace("a","A")?replace("d","D")?replace("y","Y")}</#macro>
 
 <#macro "date-time">
-    <#assign dtFieldNode = .node?parent?parent>
+    <#assign dtSubFieldNode = .node?parent>
+    <#assign dtFieldNode = dtSubFieldNode?parent>
     <#assign javaFormat = .node["@format"]!>
-    <#assign validationClasses = formInstance.getFieldValidationClasses(dtFieldNode["@name"])>
+    <#assign validationClasses = formInstance.getFieldValidationClasses(dtSubFieldNode)>
     <#if !javaFormat?has_content>
         <#if .node["@type"]! == "time"><#assign javaFormat="HH:mm">
         <#elseif .node["@type"]! == "date"><#assign javaFormat="yyyy-MM-dd">
@@ -1940,7 +1950,8 @@ a => A, d => D, y => Y
 </#macro>
 
 <#macro "drop-down">
-    <#assign ddFieldNode = .node?parent?parent>
+    <#assign ddSubFieldNode = .node?parent>
+    <#assign ddFieldNode = ddSubFieldNode?parent>
     <#assign id><@fieldId .node/></#assign>
     <#assign allowMultiple = ec.getResource().expand(.node["@allow-multiple"]!, "") == "true">
     <#assign isDynamicOptions = .node["dynamic-options"]?has_content>
@@ -1954,7 +1965,7 @@ a => A, d => D, y => Y
     <#assign currentValueList = (currentValue?split(","))!>
     <#if currentValueList?has_content><#if allowMultiple><#assign currentValue=""><#else><#assign currentValue = currentValueList[0]></#if></#if>
     <#assign currentDescription = (options.get(currentValue))!>
-    <#assign validationClasses = formInstance.getFieldValidationClasses(ddFieldNode["@name"])>
+    <#assign validationClasses = formInstance.getFieldValidationClasses(ddSubFieldNode)>
     <#assign optionsHasCurrent = currentDescription?has_content>
     <#if !optionsHasCurrent && .node["@current-description"]?has_content>
         <#assign currentDescription = ec.getResource().expand(.node["@current-description"], "")></#if>
@@ -2102,7 +2113,7 @@ a => A, d => D, y => Y
 -->
 
 <#macro password>
-    <#assign validationClasses = formInstance.getFieldValidationClasses(.node?parent?parent["@name"])>
+    <#assign validationClasses = formInstance.getFieldValidationClasses(.node?parent)>
     <input type="password" name="<@fieldName .node/>" id="<@fieldId .node/>" class="form-control<#if validationClasses?has_content> ${validationClasses}</#if>" size="${.node.@size!"25"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if validationClasses?contains("required")> required</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
 </#macro>
 
@@ -2147,12 +2158,13 @@ a => A, d => D, y => Y
 <#macro "text-area"><textarea class="form-control" name="<@fieldName .node/>" <#if .node["@cols"]?has_content>cols="${.node["@cols"]}"<#else>style="width:100%;"</#if> rows="${.node["@rows"]!"3"}"<#if .node["@read-only"]!"false" == "true"> readonly="readonly"</#if><#if .node["@maxlength"]?has_content> maxlength="${.node["@maxlength"]}"</#if> id="<@fieldId .node/>"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>${sri.getFieldValueString(.node)?html}</textarea></#macro>
 
 <#macro "text-line">
-    <#assign tlFieldNode = .node?parent?parent>
+    <#assign tlSubFieldNode = .node?parent>
+    <#assign tlFieldNode = tlSubFieldNode?parent>
     <#assign id><@fieldId .node/></#assign>
     <#assign name><@fieldName .node/></#assign>
     <#assign fieldValue = sri.getFieldValueString(.node)>
-    <#assign validationClasses = formInstance.getFieldValidationClasses(tlFieldNode["@name"])>
-    <#assign regexpInfo = formInstance.getFieldValidationRegexpInfo(tlFieldNode["@name"])!>
+    <#assign validationClasses = formInstance.getFieldValidationClasses(tlSubFieldNode)>
+    <#assign regexpInfo = formInstance.getFieldValidationRegexpInfo(tlSubFieldNode)!>
     <#-- NOTE: removed number type (<#elseif validationClasses?contains("number")>number) because on Safari, maybe others, ignores size and behaves funny for decimal values -->
     <#if .node["@ac-transition"]?has_content>
         <#assign acUrlInfo = sri.makeUrlByType(.node["@ac-transition"], "transition", .node, "false")>

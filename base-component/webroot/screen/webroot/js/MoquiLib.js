@@ -186,20 +186,87 @@ $.fn.select2.amd.require(['select2/selection/search'], function (Search) {
 $.fn.select2.defaults.set("selectOnClose", true);
 // this is a fix for Select2 search input within Bootstrap Modal
 $.fn.modal.Constructor.prototype.enforceFocus = function() {};
-// set validator defaults that work with select2
+
+// set jQuery Validator defaults that work with select2
 $.validator.setDefaults({ errorPlacement: function (error, element) {
     if (element.parent('.twitter-typeahead').length) { error.insertAfter(element.parent()); /* typeahead */ }
     else if (element.parent('.input-group').length) { error.insertAfter(element.parent()); /* radio/checkbox? */ }
     else if (element.hasClass('select2-hidden-accessible')) { error.insertAfter(element.next('span')); /* select2 */ }
     else { error.insertAfter(element); /* default */ }
 }});
-
-// JQuery validation not work well with bootstrap popover http://stackoverflow.com/a/30539639/244431, this patches it.
+// jQuery Validator does not work well with bootstrap popover http://stackoverflow.com/a/30539639/244431, this patches it.
 $.validator.prototype.errorsFor = function(element) {
     var name = this.escapeCssMeta(this.idOrName(element)), selector = "label[for='" + name + "'], label[for='" + name + "'] *";
     // 'aria-describedby' should directly reference the error element
     if (this.settings.errorElement !== 'label') { selector = selector + ", #" + name + '-error'; }
-    return this.errors().filter( selector );
+    return this.errors().filter(selector);
+};
+$.validator.prototype.errors = function() {
+    var errorClass = this.settings.errorClass.split(" ").join(".");
+    if (this.errorContext.is && this.errorContext.is("form")) {
+        // Moqui change here: if the error context is the form then look for error element under grandparent of each form element
+        return $(this.currentForm.elements).parents().parents().find(this.settings.errorElement + "." + errorClass);
+    } else {
+        return $(this.settings.errorElement + "." + errorClass, this.errorContext);
+    }
+};
+// jQuery Validator does not support inputs/etc added to a form using the HTML5 @form attribute (for form-list, form-single in some cases)
+$.validator.prototype.elements = function() {
+    var validator = this, rulesCache = {};
+    // Select all valid inputs inside the form (no submit or reset buttons)
+    // NOTE: this line modified to use .elements and filter instead of find
+    return $(this.currentForm.elements).filter(":input, [contenteditable]").not(":submit, :reset, :image, :disabled").not(this.settings.ignore)
+        .filter(function() {
+            var name = this.name || $(this).attr("name"); // For contenteditable
+            if (!name && window.console) { console.error("%o has no name assigned", this); }
+
+            // Set form expando on contenteditable
+            if (this.hasAttribute("contenteditable")) { this.form = $(this).closest("form")[0]; this.name = name; }
+
+            // Select only the first element for each name, and only those with rules specified
+            if (name in rulesCache || !validator.objectLength($(this).rules())) { return false; }
+
+            rulesCache[name] = true;
+            return true;
+        });
+};
+$.validator.prototype.init = function() {
+    this.labelContainer = $(this.settings.errorLabelContainer);
+    this.errorContext = this.labelContainer.length && this.labelContainer || $(this.currentForm);
+    this.containers = $(this.settings.errorContainer).add(this.settings.errorLabelContainer);
+    this.submitted = {};
+    this.valueCache = {};
+    this.pendingRequest = 0;
+    this.pending = {};
+    this.invalid = {};
+    this.reset();
+
+    var groups = (this.groups = {}), rules;
+    $.each(this.settings.groups, function(key, value) {
+        if (typeof value === "string") { value = value.split(/\s/); }
+        $.each(value, function(index, name) { groups[name] = key; });
+    });
+    rules = this.settings.rules;
+    $.each(rules, function(key, value) { rules[key] = $.validator.normalizeRule(value); });
+
+    function delegate(event) {
+        // Set form expando on contenteditable
+        if (!this.form && this.hasAttribute("contenteditable")) {
+            this.form = $(this).closest("form")[0];
+            this.name = $(this).attr("name");
+        }
+
+        var validator = $.data(this.form, "validator"), eventType = "on" + event.type.replace(/^validate/, ""), settings = validator.settings;
+        if (settings[eventType] && !$(this).is(settings.ignore)) { settings[eventType].call(validator, this, event); }
+    }
+
+    // BEGIN Moqui changes for .elements and filter instead of find
+    var onElements = $(this.currentForm.elements).filter(":input, [contenteditable]").not(":submit, :reset, :image, :disabled").not(this.settings.ignore);
+    onElements.on("focusin.validate focusout.validate keyup.validate", delegate);
+    // Support: Chrome, oldIE
+    // "select" is provided as event.target when clicking a option
+    onElements.on("click.validate", "select, option, [type='radio'], [type='checkbox']", delegate);
+    // END Moqui changes
 };
 
 // custom event handler: programmatically trigger validation
