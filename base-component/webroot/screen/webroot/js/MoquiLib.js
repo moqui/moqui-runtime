@@ -186,22 +186,31 @@ $.fn.select2.amd.require(['select2/selection/search'], function (Search) {
 $.fn.select2.defaults.set("selectOnClose", true);
 // this is a fix for Select2 search input within Bootstrap Modal
 $.fn.modal.Constructor.prototype.enforceFocus = function() {};
-// set validator defaults that work with select2
+
+// set jQuery Validator defaults that work with select2
 $.validator.setDefaults({ errorPlacement: function (error, element) {
     if (element.parent('.twitter-typeahead').length) { error.insertAfter(element.parent()); /* typeahead */ }
     else if (element.parent('.input-group').length) { error.insertAfter(element.parent()); /* radio/checkbox? */ }
     else if (element.hasClass('select2-hidden-accessible')) { error.insertAfter(element.next('span')); /* select2 */ }
     else { error.insertAfter(element); /* default */ }
 }});
-
-// JQuery validate does not work well with bootstrap popover http://stackoverflow.com/a/30539639/244431, this patches it.
+// jQuery Validator does not work well with bootstrap popover http://stackoverflow.com/a/30539639/244431, this patches it.
 $.validator.prototype.errorsFor = function(element) {
     var name = this.escapeCssMeta(this.idOrName(element)), selector = "label[for='" + name + "'], label[for='" + name + "'] *";
     // 'aria-describedby' should directly reference the error element
     if (this.settings.errorElement !== 'label') { selector = selector + ", #" + name + '-error'; }
     return this.errors().filter(selector);
 };
-// JQuery validate does not support inputs/etc added to a form using the HTML5 @form attribute (for form-list, form-single in some cases)
+$.validator.prototype.errors = function() {
+    var errorClass = this.settings.errorClass.split(" ").join(".");
+    if (this.errorContext.is && this.errorContext.is("form")) {
+        // Moqui change here: if the error context is the form then look for error element under grandparent of each form element
+        return $(this.currentForm.elements).parents().parents().find(this.settings.errorElement + "." + errorClass);
+    } else {
+        return $(this.settings.errorElement + "." + errorClass, this.errorContext);
+    }
+};
+// jQuery Validator does not support inputs/etc added to a form using the HTML5 @form attribute (for form-list, form-single in some cases)
 $.validator.prototype.elements = function() {
     var validator = this, rulesCache = {};
     // Select all valid inputs inside the form (no submit or reset buttons)
