@@ -17,7 +17,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <widget-template name="enumDropDown">
         <drop-down allow-empty="${allowEmpty ?: 'false'}" no-current-selected-key="${noCurrentSelectedKey?:''}"
-                   style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}">
+                   style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}" show-not="${showNot ?: 'false'}">
             <entity-options key="${enumId}" text="EnumerationNameTemplate">
                 <entity-find entity-name="moqui.basic.Enumeration">
                     <econdition field-name="enumTypeId"/>
@@ -31,7 +31,7 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- Similar to EnumDropDown, but uses EnumAndParent view entity. -->
     <widget-template name="enumParentDropDown">
         <drop-down allow-empty="${allowEmpty ?: 'false'}" no-current-selected-key="${noCurrentSelectedKey?:''}"
-                   style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}">
+                   style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}" show-not="${showNot ?: 'false'}">
             <entity-options key="${enumId}" text="EnumerationNameTemplate">
                 <entity-find entity-name="moqui.basic.EnumAndParent">
                     <econdition field-name="enumTypeId"/>
@@ -44,7 +44,7 @@ along with this software (see the LICENSE.md file). If not, see
     </widget-template>
     <widget-template name="enumGroupDropDown">
         <drop-down allow-empty="${allowEmpty ?: 'false'}" no-current-selected-key="${noCurrentSelectedKey?:''}"
-                style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}">
+                style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}" show-not="${showNot ?: 'false'}">
             <entity-options key="${enumId}" text="EnumerationNameTemplate">
                 <entity-find entity-name="moqui.basic.EnumAndGroup">
                     <econdition field-name="enumGroupEnumId"/>
@@ -58,7 +58,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <widget-template name="statusDropDown">
         <drop-down allow-empty="${allowEmpty ?: 'false'}" no-current-selected-key="${noCurrentSelectedKey?:''}"
-                style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}">
+                style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}" show-not="${showNot ?: 'false'}">
             <entity-options key="${statusId}" text="StatusItemNameTemplate">
                 <entity-find entity-name="moqui.basic.StatusItem">
                     <econdition field-name="statusTypeId"/>

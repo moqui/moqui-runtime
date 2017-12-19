@@ -1993,6 +1993,7 @@ a => A, d => D, y => Y
         </#list>
     </#if>
     </select>
+    <#if ec.getResource().expand(.node["@show-not"]!, "") == "true"><span><input type="checkbox" class="form-control" name="${name}_not" value="Y"<#if ec.getWeb().parameters.get(name + "_not")! == "Y"> checked="checked"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>&nbsp;${ec.getL10n().localize("Not")}</span></#if>
     <#-- <span>[${currentValue}]; <#list currentValueList as curValue>[${curValue!''}], </#list></span> -->
     <#if allowMultiple><input type="hidden" id="${id}_op" name="${name}_op" value="in"></#if>
     <#if isDynamicOptions>
@@ -2276,6 +2277,7 @@ a => A, d => D, y => Y
 
 <#macro widgetTextValue widgetNode alwaysGet=false>
     <#assign widgetType = widgetNode?node_name>
+    <#assign curFieldName><@fieldName widgetNode/></#assign>
     <#assign noDisplay = ["display", "display-entity", "hidden", "ignored", "password", "reset", "submit", "text-area", "link", "label"]>
     <#t><#if noDisplay?seq_contains(widgetType)><#return></#if>
     <#t><#if widgetType == "drop-down">
@@ -2311,6 +2313,7 @@ a => A, d => D, y => Y
                 <#t><#if currentDescription?has_content>${currentDescription}<#elseif currentValue?has_content>${currentValue}</#if>
             </#if><#t>
         </#if><#t>
+        <#t><#if ec.getWeb().parameters.get(curFieldName + "_not")! == "Y"> (${ec.getL10n().localize("Not")})</#if>
     <#elseif widgetType == "check" || widgetType == "radio">
         <#assign currentValue = sri.getFieldValueString(widgetNode)/>
         <#if !currentValue?has_content><#return></#if>
@@ -2327,7 +2330,6 @@ a => A, d => D, y => Y
             <#t><#if fieldValue?has_content>${fieldValue}</#if>
         </#if><#t>
     <#elseif widgetType == "date-period">
-        <#assign curFieldName><@fieldName widgetNode/></#assign>
         <#assign fvPeriod = ec.getContext().get(curFieldName + "_period")!?lower_case>
         <#if fvPeriod?has_content>
             <#assign fvOffset = ec.getContext().get(curFieldName + "_poffset")!"0">
@@ -2342,13 +2344,11 @@ a => A, d => D, y => Y
         <#t><#if fieldValue?has_content>${fieldValue?html}</#if>
     <#elseif widgetType == "date-find">
         <#t><#if widgetNode["@type"]! == "time"><#assign defaultFormat="HH:mm"><#elseif widgetNode["@type"]! == "date"><#assign defaultFormat="yyyy-MM-dd"><#else><#assign defaultFormat="yyyy-MM-dd HH:mm"></#if>
-        <#assign curFieldName><@fieldName widgetNode/></#assign>
         <#assign fieldValueFrom = ec.getL10n().format(ec.getContext().get(curFieldName + "_from")!?default(widgetNode["@default-value-from"]!""), defaultFormat)>
         <#assign fieldValueThru = ec.getL10n().format(ec.getContext().get(curFieldName + "_thru")!?default(widgetNode["@default-value-thru"]!""), defaultFormat)>
         <#t><#if fieldValueFrom?has_content>${ec.getL10n().localize("From")} ${fieldValueFrom?html}</#if>
         <#t><#if fieldValueThru?has_content>${ec.getL10n().localize("Thru")} ${fieldValueThru?html}</#if>
     <#elseif widgetType == "range-find">
-        <#assign curFieldName><@fieldName widgetNode/></#assign>
         <#assign fieldValueFrom = ec.getContext().get(curFieldName + "_from")!?default(widgetNode["@default-value-from"]!"")>
         <#assign fieldValueThru = ec.getContext().get(curFieldName + "_thru")!?default(widgetNode["@default-value-thru"]!"")>
         <#t><#if fieldValueFrom?has_content>${ec.getL10n().localize("From")} ${fieldValueFrom?html}</#if>
