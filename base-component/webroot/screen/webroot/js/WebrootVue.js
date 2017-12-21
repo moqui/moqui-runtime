@@ -151,7 +151,17 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
     if (messages) {
         if (moqui.isArray(messages)) {
             for (var mi=0; mi < messages.length; mi++) {
-                $.notify({message:messages[mi]}, moqui.notifyOptsInfo); moqui.webrootVue.addNotify(messages[mi], 'info'); notified = true; }
+                var messageItem = messages[mi];
+                if (moqui.isPlainObject(messageItem)) {
+                    var msgType = messageItem.type; if (!msgType || !msgType.length) msgType = 'info';
+                    $.notify({message:messageItem.message}, $.extend({}, moqui.notifyOptsInfo, { type:msgType }));
+                    moqui.webrootVue.addNotify(messageItem.message, msgType);
+                } else {
+                    $.notify({message:messageItem}, moqui.notifyOptsInfo);
+                    moqui.webrootVue.addNotify(messageItem, 'info');
+                }
+                notified = true;
+            }
         } else { $.notify({message:messages}, moqui.notifyOptsInfo); moqui.webrootVue.addNotify(messages, 'info'); notified = true; }
     }
     if (errors) {
@@ -184,7 +194,7 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     console.warn('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown /*+ '; response: ' + resp*/);
     // console.error('respObj: ' + JSON.stringify(respObj));
     var notified = false;
-    if (respObj && moqui.isPlainObject(respObj)) { notified = moqui.notifyMessages(respObj.messages, respObj.errors, respObj.validationErrors); }
+    if (respObj && moqui.isPlainObject(respObj)) { notified = moqui.notifyMessages(respObj.messageInfos, respObj.errors, respObj.validationErrors); }
     else if (resp && moqui.isString(resp) && resp.length) { notified = moqui.notifyMessages(resp); }
 
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
@@ -523,7 +533,7 @@ Vue.component('m-form', {
             var notified = false;
             // console.info('m-form response ' + JSON.stringify(resp));
             if (resp && moqui.isPlainObject(resp)) {
-                notified = moqui.notifyMessages(resp.messages, resp.errors);
+                notified = moqui.notifyMessages(resp.messageInfos, resp.errors);
                 if (resp.screenUrl && resp.screenUrl.length > 0) { this.$root.setUrl(resp.screenUrl); }
                 else if (resp.redirectUrl && resp.redirectUrl.length > 0) { window.location.href = resp.redirectUrl; }
             } else { console.warn('m-form no response or non-JSON response: ' + JSON.stringify(resp)) }
@@ -616,7 +626,7 @@ Vue.component('form-link', {
                 var bodyParameters = null;
                 for (var pi=0; pi<parmList.length; pi++) {
                     var parm = parmList[pi]; var key = parm.name; var value = parm.value;
-                    if (value.trim().length === 0 || key === "moquiSessionToken" || key === "moquiFormName" || key.indexOf('%5B%5D') > 0) continue;
+                    if (value.trim().length === 0 || key === "moquiSessionToken" || key === "moquiFormName" || key.indexOf('[]') > 0) continue;
                     if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0) {
                         extraList.push(parm);
                     } else {
@@ -1207,8 +1217,8 @@ moqui.webrootVue = new Vue({
             var nowDate = new Date();
             var nh = nowDate.getHours(); if (nh < 10) nh = '0' + nh;
             var nm = nowDate.getMinutes(); if (nm < 10) nm = '0' + nm;
-            var ns = nowDate.getSeconds(); if (ns < 10) ns = '0' + ns;
-            histList.unshift({message:message, type:type, time:(nh + ':' + nm + ':' + ns)});
+            // var ns = nowDate.getSeconds(); if (ns < 10) ns = '0' + ns;
+            histList.unshift({message:message, type:type, time:(nh + ':' + nm)}); //  + ':' + ns
             while (histList.length > 25) { histList.pop(); }
             this.notifyHistoryList = histList;
         },
@@ -1259,21 +1269,25 @@ moqui.webrootVue = new Vue({
             var newTitle = (par ? par.title + ' - ' : '') + cur.title;
             var curUrl = cur.pathWithParams; var questIdx = curUrl.indexOf("?");
             if (questIdx > 0) {
+                var excludeKeys = ["pageIndex", "orderBySelect", "orderByField", "moquiSessionToken"];
                 var parmList = curUrl.substring(questIdx+1).split("&");
                 curUrl = curUrl.substring(0, questIdx);
                 var dpCount = 0;
                 var titleParms = "";
                 for (var pi=0; pi<parmList.length; pi++) {
-                    var parm = parmList[pi]; if (parm.indexOf("pageIndex=") === 0) continue;
+                    var parm = parmList[pi];
                     if (curUrl.indexOf("?") === -1) { curUrl += "?"; } else { curUrl += "&"; }
                     curUrl += parm;
-                    if (dpCount > 1) continue; // add up to 2 parms to the title
+                    // from here down only add to title parms
+                    if (dpCount > 3) continue; // add up to 4 parms to the title
                     var eqIdx = parm.indexOf("=");
                     if (eqIdx > 0) {
                         var key = parm.substring(0, eqIdx);
-                        if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || key === "moquiSessionToken") continue;
+                        var value = parm.substring(eqIdx + 1);
+                        if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || excludeKeys.indexOf(key) > 0 || key === value) continue;
                         if (titleParms.length > 0) titleParms += ", ";
-                        titleParms += decodeURIComponent(parm.substring(eqIdx + 1));
+                        titleParms += decodeURIComponent(value);
+                        dpCount++;
                     }
                 }
                 if (titleParms.length > 0) {
