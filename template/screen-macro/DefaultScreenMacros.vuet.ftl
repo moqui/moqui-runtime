@@ -1834,6 +1834,11 @@ a => A, d => D, y => Y
             <#assign fvOffset = ec.getContext().get(curFieldName + "_poffset")!"0">
             <#assign fvDate = ec.getContext().get(curFieldName + "_pdate")!"">
             <#t>${ec.getUser().getPeriodDescription(fvPeriod, fvOffset, fvDate)}
+        <#else>
+            <#assign fieldValueFrom = ec.getL10n().format(ec.getContext().get(curFieldName + "_from")!, "yyyy-MM-dd")>
+            <#assign fieldValueThru = ec.getL10n().format(ec.getContext().get(curFieldName + "_thru")!, "yyyy-MM-dd")>
+            <#t><#if fieldValueFrom?has_content>${ec.getL10n().localize("From")} ${fieldValueFrom?html}</#if>
+            <#t><#if fieldValueThru?has_content> ${ec.getL10n().localize("to")} ${fieldValueThru?html}</#if>
         </#if>
     <#elseif widgetType == "date-time">
         <#assign dtFieldNode = widgetNode?parent?parent>
@@ -1846,12 +1851,12 @@ a => A, d => D, y => Y
         <#assign fieldValueFrom = ec.getL10n().format(ec.getContext().get(curFieldName + "_from")!?default(widgetNode["@default-value-from"]!""), defaultFormat)>
         <#assign fieldValueThru = ec.getL10n().format(ec.getContext().get(curFieldName + "_thru")!?default(widgetNode["@default-value-thru"]!""), defaultFormat)>
         <#t><#if fieldValueFrom?has_content>${ec.getL10n().localize("From")} ${fieldValueFrom?html}</#if>
-        <#t><#if fieldValueThru?has_content> ${ec.getL10n().localize("Thru")} ${fieldValueThru?html}</#if>
+        <#t><#if fieldValueThru?has_content> ${ec.getL10n().localize("to")} ${fieldValueThru?html}</#if>
     <#elseif widgetType == "range-find">
         <#assign fieldValueFrom = ec.getContext().get(curFieldName + "_from")!?default(widgetNode["@default-value-from"]!"")>
         <#assign fieldValueThru = ec.getContext().get(curFieldName + "_thru")!?default(widgetNode["@default-value-thru"]!"")>
         <#t><#if fieldValueFrom?has_content>${ec.getL10n().localize("From")} ${fieldValueFrom?html}</#if>
-        <#t><#if fieldValueThru?has_content> ${ec.getL10n().localize("Thru")} ${fieldValueThru?html}</#if>
+        <#t><#if fieldValueThru?has_content> ${ec.getL10n().localize("to")} ${fieldValueThru?html}</#if>
     <#elseif widgetType == "display">
         <#assign fieldValue = sri.getFieldValueString(widgetNode)>
         <#t><#if widgetNode["@dynamic-transition"]?has_content>
