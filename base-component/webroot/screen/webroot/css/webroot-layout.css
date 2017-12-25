@@ -162,6 +162,8 @@ nav.form-list-nav>span.select2-container { float: left; margin: 6px 0 6px 0; min
 .table>tbody>tr>td { vertical-align: middle; }
 .table { margin-bottom: 8px; }
 
+.well>.list-inline { margin-bottom: 0; }
+
 /* ================ Other, Fix Styles =============== */
 
 input[type=radio], input[type=checkbox] { height: auto; }
