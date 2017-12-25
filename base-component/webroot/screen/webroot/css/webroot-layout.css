@@ -114,7 +114,7 @@ span.shaded-area { display: inline-block; white-space: normal; }
 
 /* Styles to get around default Bootstrap input width:100%; note margin-right on .input-group is enough for a 14px icon but nothing more! */
 .form-control { display: inline; min-width: 20px; width: auto; max-width: 100%; }
-.input-group { display: inline-block; white-space: nowrap; margin-right: 39px; }
+.input-group { display: inline-block; white-space: nowrap; margin-right: 0; margin-top: -2px; }
 .input-group .form-control { display: inline; min-width: 20px; width: auto; }
 .input-group .input-group-addon, .input-group .input-group-btn { display: inline; line-height: 34px; padding: 8px 12px; }
 

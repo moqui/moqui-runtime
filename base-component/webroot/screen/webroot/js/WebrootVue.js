@@ -424,7 +424,7 @@ Vue.component('tree-item', {
     template:
     '<li :id="model.id">' +
         '<i v-if="isFolder" @click="toggle" class="glyphicon" :class="{\'glyphicon-chevron-right\':!open, \'glyphicon-chevron-down\':open}"></i>' +
-        '<i v-else class="glyphicon" class="glyphicon glyphicon-unchecked"></i>' +
+        '<i v-else class="glyphicon glyphicon-unchecked"></i>' +
         ' <span @click="setSelected">' +
             '<m-link v-if="model.a_attr" :href="model.a_attr.urlText" :load-id="model.a_attr.loadId" :class="{\'text-success\':selected}">{{model.text}}</m-link>' +
             '<span v-if="!model.a_attr" :class="{\'text-success\':selected}">{{model.text}}</span>' +
@@ -868,18 +868,19 @@ moqui.datePeriods = [{id:'day',text:'Day'},{id:'7d',text:'7 Days'},{id:'30d',tex
     {id:'month',text:'Month'},{id:'months',text:'Months'},{id:'quarter',text:'Quarter'},{id:'year',text:'Year'},{id:'7r',text:'+/-7d'},{id:'30r',text:'+/-30d'}];
 moqui.emptyOpt = {id:'',text:'\u00a0'};
 Vue.component('date-period', {
-    props: { name:{type:String,required:true}, id:String, allowEmpty:Boolean, offset:String, period:String, date:String, form:String },
-    template: '<div class="date-period" :id="id"><select ref="poffset" :name="name+\'_poffset\'" :form="form"></select> ' +
-        '<select ref="period" :name="name+\'_period\'" :form="form"></select> ' +
-        '<date-time :name="name+\'_pdate\'" :id="id+\'_pdate\'" :form="form" type="date" :value="date"/></div>',
-    mounted: function() {
-        var pofsEl = $(this.$refs.poffset); var perEl = $(this.$refs.period);
-        var offsets = moqui.dateOffsets.slice(); var periods = moqui.datePeriods.slice();
-        if (this.allowEmpty) { offsets.unshift(moqui.emptyOpt); periods.unshift(moqui.emptyOpt); }
-        pofsEl.select2({ data:offsets }); perEl.select2({ data:periods });
-        var offset = this.offset; if (offset && offset.length) { pofsEl.val(offset).trigger('change'); }
-        var period = this.period; if (period && period.length) { perEl.val(period).trigger('change'); }
-    }
+    props: { name:{type:String,required:true}, id:String, allowEmpty:Boolean, offset:String, period:String, date:String, fromDate:String, thruDate:String, form:String },
+    data: function() { return { fromThruMode:false, dateOffsets:moqui.dateOffsets.slice(), datePeriods:moqui.datePeriods.slice() } },
+    template:
+    '<div v-if="fromThruMode"><date-time :name="name+\'_from\'" :id="id+\'_from\'" :form="form" type="date" :value="fromDate"/> - ' +
+        '<date-time :name="name+\'_thru\'" :id="id+\'_thru\'" :form="form" type="date" :value="thruDate"/>' +
+        ' <i @click="toggleMode" class="glyphicon glyphicon-resize-vertical"></i></div>' +
+    '<div v-else class="date-period" :id="id">' +
+        '<drop-down :name="name+\'_poffset\'" :options="dateOffsets" :value="offset" :allow-empty="allowEmpty" :form="form"></drop-down> ' +
+        '<drop-down :name="name+\'_period\'" :options="datePeriods" :value="period" :allow-empty="allowEmpty" :form="form"></drop-down> ' +
+        '<date-time :name="name+\'_pdate\'" :id="id+\'_pdate\'" :form="form" type="date" :value="date"/>' +
+        ' <i @click="toggleMode" class="glyphicon glyphicon-resize-horizontal"></i></div>',
+    methods: { toggleMode: function() { this.fromThruMode = !this.fromThruMode; } },
+    beforeMount: function() { if (((this.fromDate && this.fromDate.length) || (this.thruDate && this.thruDate.length))) this.fromThruMode = true; }
 });
 Vue.component('drop-down', {
     props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String, optionsUrl:String,
@@ -946,7 +947,10 @@ Vue.component('drop-down', {
             jqEl.css("min-width", "240px"); // this gets ignored, not sure why select2 isn't passing it through
             jqEl.addClass("noResetSelect2"); // so doesn't get reset on container dialog load
         }
-        if (this.options && this.options.length > 0) { opts.data = this.options; }
+        if (this.options && this.options.length > 0) {
+            if (this.allowEmpty && this.multiple !== "multiple") opts.data = [{id:'',text:'\u00a0'}].concat(this.options);
+            else opts.data = this.options;
+        }
         if (this.serverSearch) {
             if (!this.optionsUrl) console.error("drop-down in form " + this.form + " has no options-url but has server-search=true");
             opts.ajax = { url:this.optionsUrl, type:"POST", dataType:"json", delay:this.serverDelay, cache:true,
@@ -981,12 +985,12 @@ Vue.component('drop-down', {
         options: function(options) { this.curData = options; },
         curData: function(options) {
             var jqEl = $(this.$el); var vm = this;
-            var bWasFocused = jqEl.next().hasClass('select2-container--focus');
+            var wasFocused = jqEl.next().hasClass('select2-container--focus');
             // save the lastVal if there is one to remember what was selected even if new options don't have it, just in case options change again
             var saveVal = jqEl.select2().val(); if (saveVal && saveVal.length > 1) this.lastVal = saveVal;
             jqEl.select2('destroy'); jqEl.empty();
             this.s2Opts.data = options; jqEl.select2(this.s2Opts);
-            if( bWasFocused ) jqEl.focus();
+            if (wasFocused) jqEl.focus();
             setTimeout(function() {
                 var setVal = vm.lastVal; if (!setVal || setVal.length < 2) { setVal = vm.value; }
                 if (setVal) {
