@@ -33,7 +33,7 @@
             <p class="text-muted text-center">Enter your username to reset and email your password</p>
             <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
             <input type="text" name="username" placeholder="Username" required="required" class="form-control">
-            <button class="btn btn-lg btn-danger btn-block" type="submit">Reset and Email Password</button>
+            <button class="btn btn-lg btn-danger btn-block" type="submit">Reset &amp; Email Password</button>
         </form>
     </div>
     <div id="change" class="tab-pane">
