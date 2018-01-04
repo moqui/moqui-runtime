@@ -27,7 +27,7 @@ div.message { width: 600px; margin: 2px auto 2px auto; border: 1px solid #DDDDDF
 div.message span { font-size: 1em; }
 div.error span { color: red; }
 
-tt, pre, pre code { font-family: "Courier New", Courier, monospace; }
+tt, pre, pre code, .text-mono { font-family: monospace,monospace; font-size: 1em; }
 .bg-dark pre { background-color: #3a3a3a; color: #EEE; border-color: #222; }
 .bg-dark .well { background-color: #303030; color: #EEE; border-color: #222; }
 
