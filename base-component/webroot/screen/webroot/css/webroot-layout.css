@@ -230,7 +230,7 @@ body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
     a[href]:after { content: ""; }
     body { font-size: 10px; }
     /* condense more for printing (bootstrap default 5px), note still has border between rows */
-    .table-condensed>tbody>tr>td { padding-top: 0; padding-bottom: 0; }
+    .table-condensed tbody tr td { padding-top: 0; padding-bottom: 0; }
 
     button, a.btn { display: none !important; }
     #footer, .nav, .form-order-by, .form-list-nav-row { display: none; }
