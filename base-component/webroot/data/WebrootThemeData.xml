@@ -33,7 +33,7 @@ along with this software (see the LICENSE.md file). If not, see
             resourceValue="/libs/jstree/themes/default/style.min.css"/>
 
     <!-- Add external theme(s) here  -->
-    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="10" resourceTypeEnumId="STRT_STYLESHEET" resourceValue=""/>
+    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="10" resourceTypeEnumId="STRT_STYLESHEET" resourceValue="/libs/quill/quill.snow.min.css"/>
 
     <!-- Webroot layout and theme -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="20" resourceTypeEnumId="STRT_STYLESHEET"
