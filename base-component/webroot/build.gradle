@@ -71,6 +71,9 @@ def fileMap = [
 
     "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
+	"quill/1.3.4/quill.min.js":"",
+	"quill/1.3.4/quill.snow.min.css":"",
+	
     // NOTE: for production change to min in vapps.xml; currently using dev version for errors/warnings/etc
     "vue/2.4.4/vue.js":"",
     "vue/2.4.4/vue.min.js":""
@@ -120,6 +123,8 @@ baseJs.add(libsPath + '/Selectivity.js/selectivity-full.min.js')
 baseJs.add(libsPath + '/mouse0270-bootstrap-notify/bootstrap-notify.min.js')
 // Inline Editable
 baseJs.add(libsPath + '/jeditable.js/jeditable.min.js')
+// Quill Editor
+baseJs.add(libsPath + '/quill/quill.min.js')
 // Sortable Hierarchical List
 baseJs.add(webrootPath + '/js/jquery-sortable-lists/jquery-sortable-lists.min.js')
 // Moqui Library (3rd party lib workarounds, NotificationClient, etc)
