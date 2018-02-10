@@ -58,7 +58,7 @@ input:focus:valid, textarea:focus:valid { background-color: #EEE; }
 
 nav.form-list-nav, table.table>thead>tr>th { background: #EEE; }
 .form-list-sub-rows table.table>thead>tr>th { background: #D8D8D8; }
-.bg-dark nav.form-list-nav, .bg-dark table.table>thead>tr>th { background: #333; }
+.bg-dark nav.form-list-nav, .bg-dark table.table>thead>tr>th { background: #222; }
 .bg-dark .form-list-sub-rows table.table>thead>tr>th { background: #383838; }
 .form-list-sub-rows td { background: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.1)); }
 .bg-dark .form-list-sub-rows td { background: linear-gradient(rgba(192,192,192,0.1),rgba(192,192,192,0.1)); }
@@ -102,11 +102,10 @@ body.test #content { background: #f0fff0; }
 /* Variations on Bootstrap default table styles */
 .table .table { background-color: transparent; }
 .bg-dark .table-striped th, .bg-dark .table-striped td { border-color: transparent; }
-.bg-dark .table-striped > tbody > tr:nth-child(odd):not(.danger):not(.info):not(.warning):not(.success) > td { background-color: #303030; }
-.bg-dark .table-hover > tbody > tr:hover > td { background-color: #444444; }
+.bg-dark .table-striped>tbody>tr:nth-child(odd):not(.danger):not(.info):not(.warning):not(.success) { background-color: #303030; }
+.bg-dark .table-hover>tbody>tr:hover>td { background-color: #444444; }
 
-.bg-light .table-striped>tbody>tr:nth-child(odd):not(.danger):not(.info):not(.warning):not(.success)>td { background-color: rgba(243, 243, 243, 0.5); }
-.bg-light .table-hover > tbody > tr:hover > td { background-color: rgba(234, 234, 234, 0.5); }
+.table-hover>tbody>tr:hover { background-color: #f0f0f0; }
 
 /* prevent extra padding at the bottom of form-single within container-box (panel) */
 .panel-body fieldset > .form-group:last-child { margin-bottom: 0; }
