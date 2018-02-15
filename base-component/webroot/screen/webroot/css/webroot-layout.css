@@ -240,6 +240,7 @@ body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
     .modal { background: white !important; }
     body.modal-open { visibility: hidden; }
     body.modal-open .modal.in { visibility: visible; }
+    .chart-container canvas { min-height: 100%; max-width: 100%; max-height: 100%; height: auto!important; width: auto!important; }
 
     .table-striped>tbody>tr:nth-child(even)>td { background-color: #EEEEEE !important; }
     .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12 { float: left; }
