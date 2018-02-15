@@ -237,6 +237,10 @@ body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
     body { padding-top: 0; } /* don't do body padding-top for nav bar */
     #content { min-height: 100%; } /* make body content full height, no -50px for footer */
 
+    .modal { background: white !important; }
+    body.modal-open { visibility: hidden; }
+    body.modal-open .modal.in { visibility: visible; }
+
     .table-striped>tbody>tr:nth-child(even)>td { background-color: #EEEEEE !important; }
     .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12 { float: left; }
     .col-sm-12{width:100%;}.col-sm-11{width:91.66666667%;}.col-sm-10{width:83.33333333%;}.col-sm-9{width:75%;}.col-sm-8{width:66.66666667%;}.col-sm-7{width:58.33333333%;}
