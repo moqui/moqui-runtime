@@ -39,6 +39,9 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/></transition>
     <transition-include name="getUserList" location="component://tools/screen/System/Security/UserGroup/GroupUsers.xml"/>
 
+    <transition name="runJob"><actions><script>ec.service.job(jobName).run()</script></actions>
+        <default-response url="."/></transition>
+
     <actions>
         <entity-find-one entity-name="moqui.service.job.ServiceJob" value-field="serviceJob"/>
         <entity-find-one entity-name="moqui.service.job.ServiceJobRunLock" value-field="runLock"/>
@@ -48,9 +51,9 @@ along with this software (see the LICENSE.md file). If not, see
             <econdition field-name="jobName"/><order-by field-name="username"/></entity-find>
     </actions>
     <widgets>
-
         <container-row><row-col md="6">
             <container-box><box-header><label text="Job Run Info" type="h5"/></box-header><box-toolbar>
+                <link url="runJob" text="Run Job" confirmation="Run job now with current parameters?"/>
                 <link url="jobRunList" text="Job Runs" parameter-map="[jobName:jobName, startTime_poffset:'0', startTime_period:'Month']"/>
             </box-toolbar><box-body>
                 <container-row>

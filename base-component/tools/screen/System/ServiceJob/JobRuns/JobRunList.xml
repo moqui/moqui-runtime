@@ -26,7 +26,7 @@ along with this software (see the LICENSE.md file). If not, see
         </entity-find>
     </actions>
     <widgets>
-        <form-list name="JobRunList" list="jobRunList" skip-form="true">
+        <form-list name="JobRunList" list="jobRunList" skip-form="true" header-dialog="true">
             <field name="jobRunId"><header-field show-order-by="true"><text-find size="10" hide-options="true"/></header-field>
                 <default-field><link url="jobRunDetail" text="${jobRunId}" link-type="anchor"/></default-field></field>
             <field name="jobName">
