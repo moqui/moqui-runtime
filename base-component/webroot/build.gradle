@@ -71,7 +71,6 @@ def fileMap = [
 
     "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
-    // NOTE: for production change to min in vapps.xml; currently using dev version for errors/warnings/etc
     "vue/2.4.4/vue.js":"",
     "vue/2.4.4/vue.min.js":""
 ]
