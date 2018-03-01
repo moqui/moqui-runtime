@@ -162,13 +162,24 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
                 }
                 notified = true;
             }
-        } else { $.notify({message:messages}, moqui.notifyOptsInfo); moqui.webrootVue.addNotify(messages, 'info'); notified = true; }
+        } else {
+            $.notify({message:messages}, moqui.notifyOptsInfo);
+            moqui.webrootVue.addNotify(messages, 'info');
+            notified = true;
+        }
     }
     if (errors) {
         if (moqui.isArray(errors)) {
             for (var ei=0; ei < errors.length; ei++) {
-                $.notify({message:errors[ei]}, moqui.notifyOptsError); moqui.webrootVue.addNotify(errors[ei], 'danger'); notified = true; }
-        } else { $.notify({message:errors}, moqui.notifyOptsError); moqui.webrootVue.addNotify(errors, 'danger'); notified = true; }
+                $.notify({message:errors[ei]}, moqui.notifyOptsError);
+                moqui.webrootVue.addNotify(errors[ei], 'danger');
+                notified = true;
+            }
+        } else {
+            $.notify({message:errors}, moqui.notifyOptsError);
+            moqui.webrootVue.addNotify(errors, 'danger');
+            notified = true;
+        }
     }
     if (validationErrors) {
         if (moqui.isArray(validationErrors)) {
@@ -234,7 +245,8 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
     }
 
     // prep url
-    var url = path; var isJsPath = (path.slice(-3) === '.js');
+    var url = path;
+    var isJsPath = (path.slice(-3) === '.js');
     if (!isJsPath) url += '.vuet';
     if (extraPath && extraPath.length > 0) url += ('/' + extraPath);
     if (search && search.length > 0) url += ('?' + search);
