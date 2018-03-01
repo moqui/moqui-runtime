@@ -249,7 +249,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <${linkElement} href="${urlText}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#rt>
                 <#t><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>
                 <#t><#if linkNode["@dynamic-load-id"]?has_content> load-id="${linkNode["@dynamic-load-id"]}"</#if>
-                <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>
+                <#t><#if confirmationMessage?has_content><#if linkElement == "m-link"> :confirmation="'${confirmationMessage?js_string}'"<#else> onclick="return confirm('${confirmationMessage?js_string}')"</#if></#if>
                 <#t> class="<#if linkNode["@link-type"]! != "anchor">btn btn-${linkNode["@btn-type"]!"primary"} btn-sm</#if><#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"
                 <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
                 <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if><#rt>
