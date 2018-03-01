@@ -1561,7 +1561,6 @@ a => A, d => D, y => Y
                     <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local depNodeParm = depNode["@parameter"]!depNodeField><#local _void = defUrlParameterMap.remove(depNodeParm)!>, "${depNodeParm}": $("#<@fieldIdByName depNodeField/>").val()</#list>
                     <#t><#list defUrlParameterMap.keySet() as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
                     <#t>}, dataType:"text" }).done(function(defaultText) {
-                           // Attempt to parse the text as JSON
                            var label = '', value = '';
                            try { response = JSON.parse(defaultText);
                                  if( $.isArray(response) && response.length ) { response = response[0]; }
