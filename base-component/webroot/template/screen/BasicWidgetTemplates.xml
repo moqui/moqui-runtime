@@ -47,7 +47,8 @@ along with this software (see the LICENSE.md file). If not, see
                 style="${style?:''}" allow-multiple="${allowMultiple ?: 'false'}" show-not="${showNot ?: 'false'}">
             <entity-options key="${enumId}" text="EnumerationNameTemplate">
                 <entity-find entity-name="moqui.basic.EnumAndGroup">
-                    <econdition field-name="enumGroupEnumId"/>
+                    <econdition field-name="enumGroupEnumId" operator="in" ignore-if-empty="true"/>
+                    <econdition field-name="parentEnumId" operator="in" ignore-if-empty="true"/>
                     <econdition field-name="enumTypeId" operator="in" from="enumTypeId" ignore-if-empty="true"/>
                     <econdition field-name="enumId" operator="not-in" from="excludeEnumId" ignore-if-empty="true"/>
                     <order-by field-name="sequenceNum,description"/>
