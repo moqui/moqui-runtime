@@ -109,6 +109,7 @@ var moqui = {
             this.webSocket = new WebSocket(this.webSocketUrl);
             this.webSocket.clientObj = this;
             this.webSocket.onopen = function(event) {
+                this.clientObj.tryReopenCount = 0;
                 var topics = []; for (var topic in this.clientObj.topicListeners) { topics.push(topic); }
                 this.send("subscribe:" + topics.join(","));
             };
@@ -119,8 +120,20 @@ var moqui = {
                 var allCallbacks = this.clientObj.topicListeners["ALL"];
                 if (allCallbacks) allCallbacks.forEach(function(allCallbacks) { allCallbacks(jsonObj, this) }, this);
             };
-            this.webSocket.onclose = function(event) { console.log(event); };
+            this.webSocket.onclose = function(event) {
+                console.log(event);
+                setTimeout(this.clientObj.tryReopen, 30*1000, this.clientObj);
+            };
             this.webSocket.onerror = function(event) { console.log(event); };
+        };
+        this.tryReopen = function (clientObj) {
+            if ((!clientObj.webSocket || clientObj.webSocket.readyState === WebSocket.CLOSED || clientObj.webSocket.readyState === WebSocket.CLOSING) &&
+                    (!clientObj.tryReopenCount || clientObj.tryReopenCount < 6)) {
+                console.log("Trying WebSocket reopen, count " + clientObj.tryReopenCount);
+                clientObj.tryReopenCount = (clientObj.tryReopenCount || 0) + 1;
+                clientObj.initWebSocket();
+                // no need to call this, onclose gets called when WS connect fails: setTimeout(clientObj.tryReopen, 30*1000, clientObj);
+            }
         };
         this.displayNotify = function(jsonObj, webSocket) {
             if (!webSocket.clientObj.displayEnable) return; // console.log(jsonObj);
