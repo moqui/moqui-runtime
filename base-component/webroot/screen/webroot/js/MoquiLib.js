@@ -77,7 +77,24 @@ var moqui = {
         }
     },
 
-    /* NotificationClient, note does not connect the WebSocket until notificationClient.registerListener() is called the first time */
+    notifyNotification: function (jsonObj, fallback) {
+        if (!jsonObj) return;
+        var notificationOptions = {};
+        if (jsonObj.topic && jsonObj.topic.length) notificationOptions.tag = jsonObj.topic;
+        // consider options 'body' and 'icon' (icon URL, any way to use glyphicon class?)
+        if (window.Notification && Notification.permission === "granted") {
+            var notif = new Notification(jsonObj.title, notificationOptions);
+            if (jsonObj.link && jsonObj.link.length) notif.onclick = function () { window.open(jsonObj.link); };
+        } else if (window.Notification && Notification.permission !== "denied") {
+            Notification.requestPermission(function (status) {
+                if (status === "granted") {
+                    var notif = new Notification(jsonObj.title, notificationOptions);
+                    if (jsonObj.link && jsonObj.link.length) notif.onclick = function () { window.open(jsonObj.link); };
+                } else { fallback(jsonObj); }
+            });
+        } else { fallback(jsonObj); }
+    },
+
     NotifyOptions: function(message, url, type, icon) {
         this.message = message; if (url) this.url = url;
         if (icon) { this.icon = icon; }
@@ -99,6 +116,13 @@ var moqui = {
                 '<a href="{3}" target="{4}" data-notify="url"></a>' +
             '</div>';
     },
+    notifyGrowl: function (jsonObj) {
+        if (!jsonObj) return;
+        $.notify(new moqui.NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), new moqui.NotifySettings(jsonObj.type));
+        if (moqui.webrootVue) { moqui.webrootVue.addNotify(jsonObj.title, jsonObj.type); }
+    },
+
+    /* NotificationClient, note does not connect the WebSocket until notificationClient.registerListener() is called the first time */
     NotificationClient: function(webSocketUrl) {
         this.displayEnable = true;
         this.webSocketUrl = webSocketUrl;
@@ -138,13 +162,11 @@ var moqui = {
         this.displayNotify = function(jsonObj, webSocket) {
             if (!webSocket.clientObj.displayEnable) return; // console.log(jsonObj);
             if (jsonObj.title && jsonObj.showAlert === true) {
-                $.notify(new moqui.NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), new moqui.NotifySettings(jsonObj.type));
-                if (moqui.webrootVue) { moqui.webrootVue.addNotify(jsonObj.title, jsonObj.type); }
+                moqui.notifyNotification(jsonObj, moqui.notifyGrowl);
             }
         };
         this.registerListener = function(topic, callback) {
             if (!this.webSocket) this.initWebSocket();
-
             if (!callback) callback = this.displayNotify;
             var listenerArray = this.topicListeners[topic];
             if (!listenerArray) {
