@@ -1923,7 +1923,7 @@ a => A, d => D, y => Y
     <#t><#if dispHidden>
         <#if dispDynamic>
             <#assign hiddenValue><@widgetTextValue .node true "value"/></#assign>
-            <input type="hidden" id="${dispFieldId}" name="${dispFieldName}" value="${hiddenValue}"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
+            <input type="hidden" id="${dispFieldId}" name="<@fieldName .node/>" value="${hiddenValue}"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
         <#else>
             <#-- use getFieldValuePlainString() and not getFieldValueString() so we don't do timezone conversions, etc -->
             <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
