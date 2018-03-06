@@ -938,6 +938,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
         <#if isHeaderDialog>
         <tr><th colspan="${numColumns}" style="font-weight: normal">
+            <#assign haveFilters = false>
             <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
                 <#assign headerFieldNode = fieldNode["header-field"][0]>
                 <#assign allHidden = true>
@@ -953,11 +954,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#assign fieldValue><@widgetTextValue widgetNode/></#assign>
                         <#if fieldValue?has_content>
                             <span style="white-space:nowrap;"><strong><@fieldTitle headerFieldNode/>:</strong> <span class="text-success">${fieldValue}</span></span>
+                            <#assign haveFilters = true>
                         </#if>
                     </#if></#list>
                     <#t>${sri.popContext()}
                 </#if>
             </#if></#list>
+            <#if haveFilters>
+                <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
+                <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
+                <#assign curUrlInstance = sri.getCurrentScreenUrl()>
+                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}">
+                    <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
+                    <button id="quickClear_button" type="submit" name="clearParameters" style="float:left; padding: 0px 5px 0px 4px; margin-top: 1px;" class="btn btn-primary btn-sm"><i class="fa fa-remove"></i></button>
+                </form-link>
+            </#if>
         </th></tr>
         </#if>
     </#if>
