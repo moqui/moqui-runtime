@@ -5402,11 +5402,18 @@ S2.define('select2/core',[
           for (var i=0, len=els.length; i<len; i++) {
             x = els[i];
             if (el == x) {
-              // Depending on whether shift is pressed to focus next/previous
-              nextEl = evt.shiftKey ? els[i == 0 ? len-1 : (i-1)] : els[i == len-1 ? 0 : (i+1)];
-              if (nextEl.focus) {
-                nextEl.focus();
-                break;
+              // Found the current element, search for the next focusable element
+              for(var j = 1; j < els.length; j++ ) {
+                // Depending on whether shift is pressed to focus next/previous
+                idx = evt.shiftKey ? i-j : i+j;
+                if( idx < 0 ) idx = len+idx;
+                if( idx >= len ) idx = idx-len;
+                nextEl = els[idx];
+                if (nextEl.focus && $(nextEl).is(':visible')) {
+                  console.log("Focus 1: " + nextEl.id)
+                  nextEl.focus();
+                  break;
+                }
               }
             }
           }
@@ -5463,11 +5470,18 @@ S2.define('select2/core',[
           for (var i=0, len=els.length; i<len; i++) {
             x = els[i];
             if (el == x) {
-              // Depending on whether shift is pressed to focus next/previous
-              nextEl = evt.shiftKey ? els[i == 0 ? len-1 : (i-1)] : els[i == len-1 ? 0 : (i+1)];
-              if (nextEl.focus) {
-                nextEl.focus();
-                break;
+              // Found the current element, search for the next focusable element
+              for(var j = 1; j < els.length; j++ ) {
+                // Depending on whether shift is pressed to focus next/previous
+                idx = evt.shiftKey ? i-j : i+j;
+                if( idx < 0 ) idx = len+idx;
+                if( idx >= len ) idx = idx-len;
+                nextEl = els[idx];
+                if (nextEl.focus && $(nextEl).is(':visible')) {
+                  console.log("Focus 2: " + nextEl.id)
+                  nextEl.focus();
+                  break;
+                }
               }
             }
           }
