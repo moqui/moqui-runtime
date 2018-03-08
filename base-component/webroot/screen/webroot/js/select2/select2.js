@@ -5409,7 +5409,7 @@ S2.define('select2/core',[
                 if( idx < 0 ) idx = len+idx;
                 if( idx >= len ) idx = idx-len;
                 nextEl = els[idx];
-                if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabIndex') != -1) {
+                if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabIndex') != -2) {
                   nextEl.focus();
                   break;
                 }
@@ -5476,7 +5476,7 @@ S2.define('select2/core',[
                 if( idx < 0 ) idx = len+idx;
                 if( idx >= len ) idx = idx-len;
                 nextEl = els[idx];
-                if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabIndex') != -1) {
+                if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabIndex') != -2) {
                   nextEl.focus();
                   break;
                 }
