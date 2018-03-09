@@ -1139,7 +1139,7 @@ Vue.component('subscreens-active', {
 moqui.webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
-        navMenuList:[], navMenuSortedList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[], lastNavTime:Date.now(), loading:0, activeContainers:{},
+        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[], lastNavTime:Date.now(), loading:0, activeContainers:{},
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null },
     methods: {
         setUrl: function(url, bodyParameters) {
@@ -1179,20 +1179,10 @@ moqui.webrootVue = new Vue({
                 var menuDataUrl = this.appRootPath && this.appRootPath.length && screenUrl.indexOf(this.appRootPath) === 0 ?
                     this.appRootPath + "/menuData" + screenUrl.slice(this.appRootPath.length) : "/menuData" + screenUrl;
                 $.ajax({ type:"GET", url:menuDataUrl, dataType:"text", error:moqui.handleAjaxError, success: function(outerListText) {
-                    var outerList = null, outerSortedList = null;
+                    var outerList = null;
                     // console.log("menu response " + outerListText);
-                    try { outerList = JSON.parse(outerListText); outerSortedList = JSON.parse(outerListText); } catch (e) { console.info("Error parson menu list JSON: " + e); }
-                    if (outerList && moqui.isArray(outerList)) {
-                        vm.navMenuList = outerList;
-                        for( var i = 0; i < outerSortedList.length; i++ ) {
-                            if( outerSortedList[i].title == 'Applications' ) {continue;}
-                            if( outerSortedList[i].subscreens && moqui.isArray(outerSortedList[i].subscreens) ){
-                                outerSortedList[i].subscreens.sort(function(a, b) {return (a.title < b.title) ? -1 : (a.title > b.title ? 1 : 0)});
-                            }
-                        }
-                        vm.navMenuSortedList = outerSortedList;
-                        /* console.info('navMenuList ' + JSON.stringify(outerList)); */
-                    }
+                    try { outerList = JSON.parse(outerListText); } catch (e) { console.info("Error parson menu list JSON: " + e); }
+                    if (outerList && moqui.isArray(outerList)) { vm.navMenuList = outerList; /* console.info('navMenuList ' + JSON.stringify(outerList)); */ }
                 }});
 
                 // set the window URL

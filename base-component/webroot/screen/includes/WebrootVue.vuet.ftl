@@ -38,8 +38,8 @@ along with this software (see the LICENSE.md file). If not, see
         </header>
         <div id="navbar-buttons" class="collapse navbar-collapse navbar-ex1-collapse">
             <ul id="dynamic-menus" class="nav navbar-nav">
-                <li v-for="(navMenuItem, menuIndex) in navMenuSortedList" class="dropdown">
-                    <template v-if="menuIndex < (navMenuSortedList.length - 1)">
+                <li v-for="(navMenuItem, menuIndex) in navMenuList" class="dropdown">
+                    <template v-if="menuIndex < (navMenuList.length - 1)">
                         <m-link v-if="navMenuItem.hasTabMenu" :href="navMenuItem.path">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></m-link>
                         <template v-else-if="navMenuItem.subscreens && navMenuItem.subscreens.length > 1">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></a>
