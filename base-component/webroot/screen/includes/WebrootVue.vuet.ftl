@@ -38,8 +38,8 @@ along with this software (see the LICENSE.md file). If not, see
         </header>
         <div id="navbar-buttons" class="collapse navbar-collapse navbar-ex1-collapse">
             <ul id="dynamic-menus" class="nav navbar-nav">
-                <li v-for="(navMenuItem, menuIndex) in navMenuList" class="dropdown">
-                    <template v-if="menuIndex < (navMenuList.length - 1)">
+                <li v-for="(navMenuItem, menuIndex) in navMenuSortedList" class="dropdown">
+                    <template v-if="menuIndex < (navMenuSortedList.length - 1)">
                         <m-link v-if="navMenuItem.hasTabMenu" :href="navMenuItem.path">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></m-link>
                         <template v-else-if="navMenuItem.subscreens && navMenuItem.subscreens.length > 1">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></a>
@@ -47,7 +47,7 @@ along with this software (see the LICENSE.md file). If not, see
                                 <li v-for="subscreen in navMenuItem.subscreens" :class="{active:subscreen.active}">
                                     <m-link :href="subscreen.pathWithParams">
                                         <template v-if="subscreen.image">
-                                            <i v-if="subscreen.imageType === 'icon'" :class="subscreen.image" style="padding-right: 8px;"></i>
+                                            <i v-if="subscreen.imageType === 'icon'" :class="subscreen.image" style="padding-right: 4px;"></i>
                                             <img v-else :src="subscreen.image" :alt="subscreen.title" width="18" style="padding-right: 4px;">
                                         </template>
                                         <i v-else class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
