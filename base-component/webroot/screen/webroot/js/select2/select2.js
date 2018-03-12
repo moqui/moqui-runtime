@@ -5437,6 +5437,10 @@ S2.define('select2/core',[
           // In the case that the input was opened but no new select was made, ensure that
           // the element retains focus.
           self.$element[0].focus();
+
+          if( $(self.$element[0]).hasClass('submit-on-enter') && self.$element[0].form ) {
+            self.$element[0].form.submit();
+          }
         } else if ((key === KEYS.SPACE && evt.ctrlKey)) {
           self.trigger('results:toggle', {});
 
