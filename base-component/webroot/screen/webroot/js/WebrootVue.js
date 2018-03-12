@@ -353,7 +353,9 @@ Vue.component('box-body', {
 });
 Vue.component('container-dialog', {
     props: { id:{type:String,required:true}, title:String, width:{type:String,'default':'760'}, openDialog:{type:Boolean,'default':false} },
-    data: function() { return { isHidden:true, dialogStyle:{width:this.width + 'px'}}},
+    data: function() {
+        var viewportWidth = $(window).width();
+        return { isHidden:true, dialogStyle:{width:(this.width < viewportWidth ? this.width : viewportWidth) + 'px'}}},
     template:
     '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display:none;" tabindex="-1">' +
         '<div class="modal-dialog" :style="dialogStyle"><div class="modal-content">' +
@@ -389,7 +391,9 @@ Vue.component('dynamic-container', {
 Vue.component('dynamic-dialog', {
     props: { id:{type:String,required:true}, url:{type:String,required:true}, title:String, width:{type:String,'default':'760'},
         openDialog:{type:Boolean,'default':false} },
-    data: function() { return { curComponent:moqui.EmptyComponent, curUrl:"", isHidden:true, dialogStyle:{width:this.width + 'px'}}},
+    data: function() {
+        var viewportWidth = $(window).width();
+        return { curComponent:moqui.EmptyComponent, curUrl:"", isHidden:true, dialogStyle:{width:(this.width < viewportWidth ? this.width : viewportWidth) + 'px'}}},
     template:
     '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display: none;" tabindex="-1">' +
         '<div class="modal-dialog" :style="dialogStyle"><div class="modal-content">' +
