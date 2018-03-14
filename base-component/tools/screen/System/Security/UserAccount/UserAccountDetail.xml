@@ -64,7 +64,6 @@ along with this software (see the LICENSE.md file). If not, see
         <entity-find entity-name="moqui.security.UserPreference" list="upList">
             <econdition field-name="userId"/><order-by field-name="preferenceKey"/></entity-find>
         <entity-find entity-name="moqui.security.user.NotificationTopic" list="notificationTopicList">
-            <econdition field-name="isPrivate" value="N" or-null="true"/>
             <order-by field-name="description"/></entity-find>
 
         <entity-find entity-name="moqui.security.UserLoginHistory" list="historyList">
@@ -100,7 +99,7 @@ along with this software (see the LICENSE.md file). If not, see
                         <field name="userId"><default-field><hidden/></default-field></field>
                         <field name="topic"><default-field><hidden/></default-field></field>
                         <field name="description"><default-field title="Topic"><display/></default-field></field>
-                        <field name="receiveNotifications" from="notTopicUser?.receiveNotifications ?: receiveNotifications ?: 'Y'"><default-field title="Receive">
+                        <field name="receiveNotifications" from="notTopicUser?.receiveNotifications ?: receiveNotifications ?: 'N'"><default-field title="Receive">
                             <radio><option key="Y"/><option key="N"/></radio>
                         </default-field></field>
                         <field name="allNotifications" from="notTopicUser?.allNotifications ?: allNotifications ?: 'N'"><default-field title="All">

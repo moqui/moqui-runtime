@@ -48,6 +48,11 @@ along with this software (see the LICENSE.md file). If not, see
         </script></actions>
         <default-response type="none"/>
     </transition>
+    <!-- Get a session token for clients that are not authenticated (no api_key) to use for all request methods other than GET -->
+    <transition name="moquiSessionToken" begin-transaction="false">
+        <actions><script>ec.web.sendTextResponse(ec.web.sessionToken)</script></actions>
+        <default-response type="none"/>
+    </transition>
     <!-- REST API calls from a browser or session aware client will have an active session, use this for explicit logout and terminate session -->
     <transition name="logout" begin-transaction="false">
         <actions><script>
@@ -167,16 +172,16 @@ along with this software (see the LICENSE.md file). If not, see
     curl -X GET -u john.doe:moqui -i http://localhost:8080/rest/e1/examples/TEST2?dependentLevels=1
     -->
     <!-- NOTE: read-only=true to disable check for URL parameters for transitions with actions -->
-    <transition name="e1" read-only="true" require-session-token="false">
+    <transition name="e1" read-only="true">
         <actions><script>ec.web.handleEntityRestCall(sri.screenUrlInfo.extraPathNameList, false)</script></actions>
         <default-response type="none"/>
     </transition>
-    <transition name="m1" read-only="true" require-session-token="false">
+    <transition name="m1" read-only="true">
         <actions><script>ec.web.handleEntityRestCall(sri.screenUrlInfo.extraPathNameList, true)</script></actions>
         <default-response type="none"/>
     </transition>
     <!-- DEPRECATED: v1 is the same as e1, was the original Entity REST API; e1 is preferred to distinguish from m1, s1; v1 should be considered deprecated -->
-    <transition name="v1" read-only="true" require-session-token="false">
+    <transition name="v1" read-only="true">
         <actions><script>ec.web.handleEntityRestCall(sri.screenUrlInfo.extraPathNameList, false)</script></actions>
         <default-response type="none"/>
     </transition>
@@ -292,7 +297,7 @@ along with this software (see the LICENSE.md file). If not, see
     Example from mantle-usl to delete with wildcard ID:
     curl -X DELETE -u john.doe:moqui http://localhost:8080/rest/s1/mantle/products/DEMO_1_1/categories/PopcAllProducts/*
     -->
-    <transition name="s1" read-only="true" require-session-token="false">
+    <transition name="s1" read-only="true">
         <actions><script>ec.web.handleServiceRestCall(sri.screenUrlInfo.extraPathNameList)</script></actions>
         <default-response type="none"/>
     </transition>
