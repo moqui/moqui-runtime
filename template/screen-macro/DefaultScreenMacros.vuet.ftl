@@ -938,6 +938,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
         <#if isHeaderDialog>
         <tr><th colspan="${numColumns}" style="font-weight: normal">
+            <#assign haveFilters = false>
             <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
                 <#assign headerFieldNode = fieldNode["header-field"][0]>
                 <#assign allHidden = true>
@@ -953,11 +954,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#assign fieldValue><@widgetTextValue widgetNode/></#assign>
                         <#if fieldValue?has_content>
                             <span style="white-space:nowrap;"><strong><@fieldTitle headerFieldNode/>:</strong> <span class="text-success">${fieldValue}</span></span>
+                            <#assign haveFilters = true>
                         </#if>
                     </#if></#list>
                     <#t>${sri.popContext()}
                 </#if>
             </#if></#list>
+            <#if haveFilters>
+                <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
+                <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
+                <#assign curUrlInstance = sri.getCurrentScreenUrl()>
+                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}">
+                    <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
+                    <button id="quickClear_button" type="submit" name="clearParameters" style="float:left; padding: 0px 5px 0px 4px; margin-top: 1px;" class="btn btn-primary btn-sm"><i class="fa fa-remove"></i></button>
+                </form-link>
+            </#if>
         </th></tr>
         </#if>
     </#if>
@@ -1542,9 +1553,14 @@ a => A, d => D, y => Y
     <#t><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if>
     <#t></span>
     <#t><#if dispHidden>
-        <#-- use getFieldValuePlainString() and not getFieldValueString() so we don't do timezone conversions, etc -->
-        <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
-        <input type="hidden" id="${dispFieldId}" name="${dispFieldName}" <#if fieldsJsName?has_content>:value="${fieldsJsName}.${dispFieldName}"<#else>value="${sri.getFieldValuePlainString(dispFieldNode, "")?html}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+        <#if dispDynamic>
+            <#assign hiddenValue><@widgetTextValue .node true "value"/></#assign>
+            <input type="hidden" id="${dispFieldId}" name="${dispFieldName}" value="${hiddenValue}"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
+        <#else>
+            <#-- use getFieldValuePlainString() and not getFieldValueString() so we don't do timezone conversions, etc -->
+            <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
+            <input type="hidden" id="${dispFieldId}" name="${dispFieldName}" <#if fieldsJsName?has_content>:value="${fieldsJsName}.${dispFieldName}"<#else>value="${sri.getFieldValuePlainString(dispFieldNode, "")?html}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+        </#if>
     </#if>
     <#if dispDynamic>
         <#assign defUrlInfo = sri.makeUrlByType(.node["@dynamic-transition"], "transition", .node, "false")>
@@ -1560,7 +1576,18 @@ a => A, d => D, y => Y
                 $.ajax({ type:"POST", url:"${defUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
                     <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local depNodeParm = depNode["@parameter"]!depNodeField><#local _void = defUrlParameterMap.remove(depNodeParm)!>, "${depNodeParm}": $("#<@fieldIdByName depNodeField/>").val()</#list>
                     <#t><#list defUrlParameterMap.keySet() as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
-                    <#t>}, dataType:"text" }).done(function(defaultText) { $('#${dispFieldId}_display').html(defaultText); <#if dispHidden>$('#${dispFieldId}').val(defaultText);</#if> });
+                    <#t>}, dataType:"text" }).done(function(defaultText) {
+                           var label = '', value = '';
+                           try { response = JSON.parse(defaultText);
+                                 if( $.isArray(response) && response.length ) { response = response[0]; }
+                                 else if( $.isPlainObject(response) && response.hasOwnProperty('options') && response.options.length ) {
+                                     response = response.options[0]; }
+                                 if( response.hasOwnProperty('label') ) { label = response.label; }
+                                 if( response.hasOwnProperty('value') ) { value = response.value; } }
+                           catch(e) { value = label = defaultText; }
+                           $('#${dispFieldId}_display').html(label);
+                           <#if dispHidden>$('#${dispFieldId}').val(value);</#if>
+                       });
             }
             <#list depNodeList as depNode>
             $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${dispFieldId}(); });
@@ -1779,7 +1806,7 @@ a => A, d => D, y => Y
 </span>
 </#macro>
 
-<#macro widgetTextValue widgetNode alwaysGet=false>
+<#macro widgetTextValue widgetNode alwaysGet=false valueField="label">
     <#assign widgetType = widgetNode?node_name>
     <#assign curFieldName><@fieldName widgetNode/></#assign>
     <#assign noDisplay = ["display", "display-entity", "hidden", "ignored", "password", "reset", "submit", "text-area", "link", "label"]>
@@ -1865,7 +1892,7 @@ a => A, d => D, y => Y
     <#elseif widgetType == "display">
         <#assign fieldValue = sri.getFieldValueString(widgetNode)>
         <#t><#if widgetNode["@dynamic-transition"]?has_content>
-            <#assign transValue = sri.getFieldTransitionValue(widgetNode["@dynamic-transition"], widgetNode, fieldValue, "label", alwaysGet)!>
+            <#assign transValue = sri.getFieldTransitionValue(widgetNode["@dynamic-transition"], widgetNode, fieldValue, valueField, alwaysGet)!>
             <#t><#if transValue?has_content>${transValue}</#if>
         <#else>
             <#t><#if fieldValue?has_content>${fieldValue}</#if>

@@ -47,7 +47,7 @@ along with this software (see the LICENSE.md file). If not, see
                                 <li v-for="subscreen in navMenuItem.subscreens" :class="{active:subscreen.active}">
                                     <m-link :href="subscreen.pathWithParams">
                                         <template v-if="subscreen.image">
-                                            <i v-if="subscreen.imageType === 'icon'" :class="subscreen.image" style="padding-right: 8px;"></i>
+                                            <i v-if="subscreen.imageType === 'icon'" :class="subscreen.image" style="padding-right: 4px;"></i>
                                             <img v-else :src="subscreen.image" :alt="subscreen.title" width="18" style="padding-right: 4px;">
                                         </template>
                                         <i v-else class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
