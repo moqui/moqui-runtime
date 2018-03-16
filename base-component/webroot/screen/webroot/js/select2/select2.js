@@ -3084,6 +3084,10 @@ S2.define('select2/data/select',[
 
       this.$element.trigger('change');
 
+      if( $(self.$element[0]).hasClass('submit-on-close') && self.$element[0].form ) {
+        self.$element[0].form.submit();
+      }
+
       return;
     }
 
@@ -3110,6 +3114,10 @@ S2.define('select2/data/select',[
 
       this.$element.val(val);
       this.$element.trigger('change');
+
+      if( $(self.$element[0]).hasClass('submit-on-close') && self.$element[0].form ) {
+        self.$element[0].form.submit();
+      }
     }
   };
 
@@ -5380,7 +5388,9 @@ S2.define('select2/core',[
       if (self.isOpen()) {
         if (key === KEYS.TAB || key === KEYS.NUMPLUS) {
           self.options.set('okToSelectOnClose', true);
+          console.log('findme1');
           self.close();
+          console.log('findme2');
 
           evt.preventDefault();
           self.options.set('okToSelectOnClose', false);
@@ -5437,10 +5447,6 @@ S2.define('select2/core',[
           // In the case that the input was opened but no new select was made, ensure that
           // the element retains focus.
           self.$element[0].focus();
-
-          if( $(self.$element[0]).hasClass('submit-on-enter') && self.$element[0].form ) {
-            self.$element[0].form.submit();
-          }
         } else if ((key === KEYS.SPACE && evt.ctrlKey)) {
           self.trigger('results:toggle', {});
 
