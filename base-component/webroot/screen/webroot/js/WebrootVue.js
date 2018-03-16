@@ -985,7 +985,7 @@ Vue.component('drop-down', {
             jqEl.addClass("noResetSelect2"); // so doesn't get reset on container dialog load
         }
         this.s2Opts = opts;
-        jqEl.select2(opts);
+        jqEl.select2(opts).on('change', function () { vm.$emit('input', this.value); });
         // needed? was a hack for something, but interferes with closeOnSelect:false for multiple: .on('select2:select', function () { jqEl.select2('open').select2('close'); });
         // needed? caused some issues: .on('change', function () { vm.$emit('input', vm.curVal); })
         var initValue = this.value;
@@ -1012,7 +1012,8 @@ Vue.component('drop-down', {
             // save the lastVal if there is one to remember what was selected even if new options don't have it, just in case options change again
             var saveVal = jqEl.select2().val(); if (saveVal && saveVal.length > 1) this.lastVal = saveVal;
             jqEl.select2('destroy'); jqEl.empty();
-            this.s2Opts.data = options; jqEl.select2(this.s2Opts);
+            this.s2Opts.data = options;
+            jqEl.select2(this.s2Opts).on('change', function () { vm.$emit('input', this.value); });
             if (wasFocused) jqEl.focus();
             setTimeout(function() {
                 var setVal = vm.lastVal; if (!setVal || setVal.length < 2) { setVal = vm.value; }
