@@ -5396,30 +5396,33 @@ S2.define('select2/core',[
           // Attempt to pass focus to the next input element
           var el = self.$element[0];
           var f = el.form;
-          var allEls = f.elements;
-          var els = [];
-          for( var i = 0, len = allEls.length; i<len; i++ ) {
-            if( allEls[i].type != 'hidden' &&
-                allEls[i].style.display != 'none' &&
-                !allEls[i].readOnly &&
-                !allEls[i].disabled ) {
-              els.push(allEls[i]);
+          // TODO: Handle elements not in forms
+          if( f ) {
+            var allEls = f.elements;
+            var els = [];
+            for( var i = 0, len = allEls.length; i<len; i++ ) {
+              if( allEls[i].type != 'hidden' &&
+                  allEls[i].style.display != 'none' &&
+                  !allEls[i].readOnly &&
+                  !allEls[i].disabled ) {
+                els.push(allEls[i]);
+              }
             }
-          }
-          var x, nextEl;
-          for (var i=0, len=els.length; i<len; i++) {
-            x = els[i];
-            if (el == x) {
-              // Found the current element, search for the next focusable element
-              for(var j = 1; j < els.length; j++ ) {
-                // Depending on whether shift is pressed to focus next/previous
-                idx = evt.shiftKey ? i-j : i+j;
-                if( idx < 0 ) idx = len+idx;
-                if( idx >= len ) idx = idx-len;
-                nextEl = els[idx];
-                if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabIndex') != -2) {
-                  nextEl.focus();
-                  break;
+            var x, nextEl;
+            for (var i=0, len=els.length; i<len; i++) {
+              x = els[i];
+              if (el == x) {
+                // Found the current element, search for the next focusable element
+                for(var j = 1; j < els.length; j++ ) {
+                  // Depending on whether shift is pressed to focus next/previous
+                  idx = evt.shiftKey ? i-j : i+j;
+                  if( idx < 0 ) idx = len+idx;
+                  if( idx >= len ) idx = idx-len;
+                  nextEl = els[idx];
+                  if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabIndex') != -2) {
+                    nextEl.focus();
+                    break;
+                  }
                 }
               }
             }
@@ -5463,30 +5466,33 @@ S2.define('select2/core',[
           // Attempt to pass focus to the next input element
           var el = self.$element[0];
           var f = el.form;
-          var allEls = f.elements;
-          var els = [];
-          for( var i = 0, len = allEls.length; i<len; i++ ) {
-            if( allEls[i].type != 'hidden' &&
-                allEls[i].style.display != 'none' &&
-                !allEls[i].readOnly &&
-                !allEls[i].disabled ) {
-              els.push(allEls[i]);
+          // TODO: Handle elements not in forms
+          if( f ) {
+            var allEls = f.elements;
+            var els = [];
+            for( var i = 0, len = allEls.length; i<len; i++ ) {
+              if( allEls[i].type != 'hidden' &&
+                  allEls[i].style.display != 'none' &&
+                  !allEls[i].readOnly &&
+                  !allEls[i].disabled ) {
+                els.push(allEls[i]);
+              }
             }
-          }
-          var x, nextEl;
-          for (var i=0, len=els.length; i<len; i++) {
-            x = els[i];
-            if (el == x) {
-              // Found the current element, search for the next focusable element
-              for(var j = 1; j < els.length; j++ ) {
-                // Depending on whether shift is pressed to focus next/previous
-                idx = evt.shiftKey ? i-j : i+j;
-                if( idx < 0 ) idx = len+idx;
-                if( idx >= len ) idx = idx-len;
-                nextEl = els[idx];
-                if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabIndex') != -2) {
-                  nextEl.focus();
-                  break;
+            var x, nextEl;
+            for (var i=0, len=els.length; i<len; i++) {
+              x = els[i];
+              if (el == x) {
+                // Found the current element, search for the next focusable element
+                for(var j = 1; j < els.length; j++ ) {
+                  // Depending on whether shift is pressed to focus next/previous
+                  idx = evt.shiftKey ? i-j : i+j;
+                  if( idx < 0 ) idx = len+idx;
+                  if( idx >= len ) idx = idx-len;
+                  nextEl = els[idx];
+                  if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabIndex') != -2) {
+                    nextEl.focus();
+                    break;
+                  }
                 }
               }
             }
