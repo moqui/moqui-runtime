@@ -5388,9 +5388,7 @@ S2.define('select2/core',[
       if (self.isOpen()) {
         if (key === KEYS.TAB || key === KEYS.NUMPLUS) {
           self.options.set('okToSelectOnClose', true);
-          console.log('findme1');
           self.close();
-          console.log('findme2');
 
           evt.preventDefault();
           self.options.set('okToSelectOnClose', false);
