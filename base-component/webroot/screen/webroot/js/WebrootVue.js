@@ -870,6 +870,7 @@ Vue.component('date-time', {
         timePattern: function() { return '^(?:(?:([01]?\\d|2[0-3]):)?([0-5]?\\d):)?([0-5]?\\d)$'; }
     },
     mounted: function() {
+        var vm = this;
         var value = this.value;
         var format = this.formatVal;
         var jqEl = $(this.$el);
@@ -878,7 +879,8 @@ Vue.component('date-time', {
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
                 extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
                 keyBinds: {t: function() {this.date(moment());}}});
-            jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); })
+            jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
+
             jqEl.val(jqEl.find("input").first().val());
         }
         if (format === "YYYY-MM-DD") { jqEl.find('input').inputmask("yyyy-mm-dd", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
