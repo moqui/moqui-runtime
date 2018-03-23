@@ -5386,12 +5386,16 @@ S2.define('select2/core',[
       var key = evt.which;
 
       if (self.isOpen()) {
-        if (key === KEYS.TAB || key === KEYS.NUMPLUS) {
+        if (key === KEYS.TAB || key === KEYS.NUMPLUS ||
+            (evt.ctrlKey && (key === KEYS.LEFT || key === KEYS.RIGHT))) {
           self.options.set('okToSelectOnClose', true);
           self.close();
 
           evt.preventDefault();
           self.options.set('okToSelectOnClose', false);
+
+          // Determine which direction to move focus based on the key presses
+          var dir = (evt.ctrlKey && key === KEYS.LEFT || evt.shiftKey) ? -1 : 1;
 
           // Attempt to pass focus to the next input element
           var el = self.$element[0];
@@ -5415,7 +5419,8 @@ S2.define('select2/core',[
                 // Found the current element, search for the next focusable element
                 for(var j = 1; j < els.length; j++ ) {
                   // Depending on whether shift is pressed to focus next/previous
-                  idx = evt.shiftKey ? i-j : i+j;
+//                  idx = evt.shiftKey ? i-j : i+j;
+                  idx = i+dir*j;
                   if( idx < 0 ) idx = len+idx;
                   if( idx >= len ) idx = idx-len;
                   nextEl = els[idx];
@@ -5462,7 +5467,11 @@ S2.define('select2/core',[
           evt.preventDefault();
         }
       } else { // Currently closed
-        if (key === KEYS.NUMPLUS) {
+        if (key === KEYS.NUMPLUS ||
+            (evt.ctrlKey && (key === KEYS.LEFT || key === KEYS.RIGHT))) {
+          // Determine which direction to move focus based on the key presses
+          var dir = (evt.ctrlKey && key === KEYS.LEFT || evt.shiftKey) ? -1 : 1;
+
           // Attempt to pass focus to the next input element
           var el = self.$element[0];
           var f = el.form;
@@ -5485,7 +5494,8 @@ S2.define('select2/core',[
                 // Found the current element, search for the next focusable element
                 for(var j = 1; j < els.length; j++ ) {
                   // Depending on whether shift is pressed to focus next/previous
-                  idx = evt.shiftKey ? i-j : i+j;
+//                  idx = evt.shiftKey ? i-j : i+j;
+                  idx = i+dir*j;
                   if( idx < 0 ) idx = len+idx;
                   if( idx >= len ) idx = idx-len;
                   nextEl = els[idx];
