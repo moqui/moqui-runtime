@@ -5408,27 +5408,25 @@ S2.define('select2/core',[
               if( allEls[i].type != 'hidden' &&
                   allEls[i].style.display != 'none' &&
                   !allEls[i].readOnly &&
-                  !allEls[i].disabled ) {
+                  !allEls[i].disabled &&
+                  allEls[i].focus &&
+                  $(allEls[i]).is(':visible') &&
+                  $(allEls[i]).attr('tabIndex') != -2 &&
+                  !$(allEls[i]).prop('skiptab') ) {
                 els.push(allEls[i]);
               }
             }
-            var x, nextEl;
+            var x;
             for (var i=0, len=els.length; i<len; i++) {
               x = els[i];
               if (el == x) {
                 // Found the current element, search for the next focusable element
-                for(var j = 1; j < els.length; j++ ) {
-                  // Depending on whether shift is pressed to focus next/previous
-//                  idx = evt.shiftKey ? i-j : i+j;
-                  idx = i+dir*j;
-                  if( idx < 0 ) idx = len+idx;
-                  if( idx >= len ) idx = idx-len;
-                  nextEl = els[idx];
-                  if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabIndex') != -2 && !$(nextEl).prop('skiptab')) {
-                    nextEl.focus();
-                    break;
-                  }
-                }
+                // Depending on whether shift is pressed to focus next/previous
+                idx = i+dir;
+                if( idx < 0 ) idx = len+idx;
+                if( idx >= len ) idx = idx-len;
+                els[idx].focus();
+                break;
               }
             }
           }
@@ -5483,27 +5481,25 @@ S2.define('select2/core',[
               if( allEls[i].type != 'hidden' &&
                   allEls[i].style.display != 'none' &&
                   !allEls[i].readOnly &&
-                  !allEls[i].disabled ) {
+                  !allEls[i].disabled &&
+                  allEls[i].focus &&
+                  $(allEls[i]).is(':visible') &&
+                  $(allEls[i]).attr('tabIndex') != -2 &&
+                  !$(allEls[i]).prop('skiptab')) {
                 els.push(allEls[i]);
               }
             }
-            var x, nextEl;
+            var x;
             for (var i=0, len=els.length; i<len; i++) {
               x = els[i];
               if (el == x) {
                 // Found the current element, search for the next focusable element
-                for(var j = 1; j < els.length; j++ ) {
-                  // Depending on whether shift is pressed to focus next/previous
-//                  idx = evt.shiftKey ? i-j : i+j;
-                  idx = i+dir*j;
-                  if( idx < 0 ) idx = len+idx;
-                  if( idx >= len ) idx = idx-len;
-                  nextEl = els[idx];
-                  if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabIndex') != -2 && !$(nextEl).prop('skiptab')) {
-                    nextEl.focus();
-                    break;
-                  }
-                }
+                // Depending on whether shift is pressed to focus next/previous
+                idx = i+dir;
+                if( idx < 0 ) idx = len+idx;
+                if( idx >= len ) idx = idx-len;
+                els[idx].focus();
+                break;
               }
             }
           }
