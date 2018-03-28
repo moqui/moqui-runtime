@@ -877,15 +877,14 @@ Vue.component('date-time', {
         var value = this.value;
         var format = this.formatVal;
         var jqEl = $(this.$el);
-        if (this.type !== "time") {
+        if (this.type === "time") {
             jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
                 extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
-                keyBinds: {t: function() {this.date(moment());},
-                           up: function () { this.date(this.date().clone().add(1, 'd')); },
-                           down: function () { this.date(this.date().clone().subtract(1, 'd')); },
-                           'control up': function () { this.date(this.date().clone().add(1, 'm')); },
-                           'control down': function () { this.date(this.date().clone().subtract(1, 'm')); } }});
+                keyBinds: {up: function () { this.date(this.date().clone().add(1, 'H')); },
+                           down: function () { this.date(this.date().clone().subtract(1, 'H')); },
+                           'control up': function () { this.date(this.date().clone().add(this.stepping(), 'm')); },
+                           'control down': function () { this.date(this.date().clone().subtract(this.stepping(), 'm')); }}});
             jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
 
             jqEl.val(jqEl.find("input").first().val());
@@ -894,11 +893,12 @@ Vue.component('date-time', {
             jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
                 extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
-                keyBinds: {t: function() {this.date(moment());},
-                           up: function () { this.date(this.date().clone().add(1, 'H')); },
-                           down: function () { this.date(this.date().clone().subtract(1, 'H')); },
-                           'control up': function () { this.date(this.date().clone().add(5, 'm')); },
-                           'control down': function () { this.date(this.date().clone().subtract(5, 'm')); }}});
+                keyBinds: {up: function () { this.date(this.date().clone().add(1, 'd')); },
+                           down: function () { this.date(this.date().clone().subtract(1, 'd')); },
+                           'alt up': function () { this.date(this.date().clone().add(1, 'M')); },
+                           'alt down': function () { this.date(this.date().clone().subtract(1, 'M')); },
+                           'control up': function () { this.date(this.date().clone().add(1, 'y')); },
+                           'control down': function () { this.date(this.date().clone().subtract(1, 'y')); } }});
             jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
 
             jqEl.val(jqEl.find("input").first().val());
