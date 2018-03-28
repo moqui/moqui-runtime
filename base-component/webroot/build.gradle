@@ -1,12 +1,12 @@
 /*
- * This software is in the public domain under CC0 1.0 Universal plus a 
+ * This software is in the public domain under CC0 1.0 Universal plus a
  * Grant of Patent License.
- * 
+ *
  * To the extent possible under law, the author(s) have dedicated all
  * copyright and related and neighboring rights to this software to the
  * public domain worldwide. This software is distributed without any
  * warranty.
- * 
+ *
  * You should have received a copy of the CC0 Public Domain Dedication
  * along with this software (see the LICENSE.md file). If not, see
  * <http://creativecommons.org/publicdomain/zero/1.0/>.
@@ -30,7 +30,8 @@ def fileMap = [
     "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff2":"",
 
     "bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css":"",
-    "bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js":"",
+    // js/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js 4.17.47 has a small change so that keyBinds are handled properly
+    // "bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js":"",
 
     "mouse0270-bootstrap-notify/3.1.7/bootstrap-notify.min.js":"",
 
@@ -111,7 +112,8 @@ baseJs.add(libsPath + '/jquery-validate/jquery.validate.min.js')
 baseJs.add(libsPath + '/jquery-validate/additional-methods.min.js')
 // Date/Time (Moment, bootstrap-datetimepicker)
 baseJs.add(libsPath + '/moment.js/moment-with-locales.min.js')
-baseJs.add(libsPath + '/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js')
+//baseJs.add(libsPath + '/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js')
+baseJs.add(webrootPath + '/js/bootstrap-datetimepicker.min.js')
 // Drop-down (Select2, Selectivity)
 baseJs.add(webrootPath + '/js/select2.min.js')
 baseJs.add(libsPath + '/Selectivity.js/selectivity-full.min.js')
@@ -142,6 +144,11 @@ task minifySelect2(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     dest = file("${webrootPath}/js/select2.min.js")
     closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
 }
+task minifyDateTimePicker(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
+    source = file("${webrootPath}/js/bootstrap-datetimepicker/bootstrap-datetimepicker.js")
+    dest = file("${webrootPath}/js/bootstrap-datetimepicker.min.js")
+    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
+}
 task minifyMoquiLib(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     source = file("${webrootPath}/js/MoquiLib.js")
     dest = file("${webrootPath}/js/MoquiLib.min.js")
@@ -150,6 +157,7 @@ task minifyMoquiLib(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
 task combineBaseJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dependsOn downloadFiles
     dependsOn minifySelect2
+    dependsOn minifyDateTimePicker
     dependsOn minifyMoquiLib
     encoding = "UTF-8"
     source = baseJs
