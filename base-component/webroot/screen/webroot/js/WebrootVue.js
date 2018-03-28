@@ -837,7 +837,10 @@ Vue.component('date-time', {
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'},
         size:String, format:String, tooltip:String, form:String, required:String, autoYear:String },
     template:
-    '<input v-if="type==\'time\'" type="text" class="form-control" :pattern="timePattern" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
+    '<div v-if="type==\'time\'" class="input-group time" :id="id">' +
+        '<input type="text" class="form-control" :pattern="timePattern" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
+        '<span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>' +
+    '</div>' +
     '<div v-else class="input-group date" :id="id">' +
         '<input ref="dateInput" @focus="focusDate" @blur="blurDate" type="text" class="form-control" :id="id?(id+\'_idate\'):\'\'" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form" :required="required == \'required\' ? true : false">' +
         '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>' +
@@ -878,7 +881,24 @@ Vue.component('date-time', {
             jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
                 extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
-                keyBinds: {t: function() {this.date(moment());}, up: function () { this.date(this.date().clone().add(1, 'd')); }, down: function () { this.date(this.date().clone().subtract(1, 'd')); }, 'control up': function () { this.date(this.date().clone().add(1, 'd')); }, 'control down': function () { this.date(this.date().clone().subtract(1, 'd')); }}});
+                keyBinds: {t: function() {this.date(moment());},
+                           up: function () { this.date(this.date().clone().add(1, 'd')); },
+                           down: function () { this.date(this.date().clone().subtract(1, 'd')); },
+                           'control up': function () { this.date(this.date().clone().add(1, 'm')); },
+                           'control down': function () { this.date(this.date().clone().subtract(1, 'm')); } }});
+            jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
+
+            jqEl.val(jqEl.find("input").first().val());
+        }
+        else {
+            jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
+                defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
+                extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
+                keyBinds: {t: function() {this.date(moment());},
+                           up: function () { this.date(this.date().clone().add(1, 'H')); },
+                           down: function () { this.date(this.date().clone().subtract(1, 'H')); },
+                           'control up': function () { this.date(this.date().clone().add(5, 'm')); },
+                           'control down': function () { this.date(this.date().clone().subtract(5, 'm')); }}});
             jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
 
             jqEl.val(jqEl.find("input").first().val());
