@@ -1329,8 +1329,10 @@
 
                 if (handler) {
                     handler.call(picker, widget);
-                    e.stopPropagation();
-                    e.preventDefault();
+                    if( currentKey != keyMap['left'] && currentKey != keyMap['right'] ) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                    }
                 }
             },
 
@@ -2581,20 +2583,20 @@
             },
             'alt up': null,
             'alt down': null,
-            'y':function () { this.date(this.date().clone().add(1, 'y')); },
-            'm':function () { this.date(this.date().clone().add(1, 'M')); },
-            'd':function () { this.date(this.date().clone().add(1, 'd')); },
-            'h':function () { this.date(this.date().clone().add(1, 'H')); },
-            'i':function () { this.date(this.date().clone().add(this.stepping(), 'm')); },
-            's':function () { this.date(this.date().clone().add(1, 's')); },
-            'w':function () { this.date(this.date().clone().add(7, 'd')); },
-            'shift y':function () { this.date(this.date().clone().subtract(1, 'y')); },
-            'shift m':function () { this.date(this.date().clone().subtract(1, 'M')); },
-            'shift d':function () { this.date(this.date().clone().subtract(1, 'd')); },
-            'shift h':function () { this.date(this.date().clone().subtract(1, 'H')); },
-            'shift i':function () { this.date(this.date().clone().subtract(this.stepping(), 'm')); },
-            'shift s':function () { this.date(this.date().clone().subtract(1, 's')); },
-            'shift w':function () { this.date(this.date().clone().subtract(7, 'd')); },
+            'y':function () { if(this.date()) this.date(this.date().clone().add(1, 'y')); },
+            'm':function () { if(this.date()) this.date(this.date().clone().add(1, 'M')); },
+            'd':function () { if(this.date()) this.date(this.date().clone().add(1, 'd')); },
+            'h':function () { if(this.date()) this.date(this.date().clone().add(1, 'H')); },
+            'i':function () { if(this.date()) this.date(this.date().clone().add(this.stepping(), 'm')); },
+            's':function () { if(this.date()) this.date(this.date().clone().add(1, 's')); },
+            'w':function () { if(this.date()) this.date(this.date().clone().add(7, 'd')); },
+            'shift y':function () { if(this.date()) this.date(this.date().clone().subtract(1, 'y')); },
+            'shift m':function () { if(this.date()) this.date(this.date().clone().subtract(1, 'M')); },
+            'shift d':function () { if(this.date()) this.date(this.date().clone().subtract(1, 'd')); },
+            'shift h':function () { if(this.date()) this.date(this.date().clone().subtract(1, 'H')); },
+            'shift i':function () { if(this.date()) this.date(this.date().clone().subtract(this.stepping(), 'm')); },
+            'shift s':function () { if(this.date()) this.date(this.date().clone().subtract(1, 's')); },
+            'shift w':function () { if(this.date()) this.date(this.date().clone().subtract(7, 'd')); },
             left: function (widget) {
                 if (!widget) {
                     return;
