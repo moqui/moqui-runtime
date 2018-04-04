@@ -1299,6 +1299,11 @@
 
                 keyState[currentKey] = pressed;
 
+                // Manually handle the modifier keys, since they may be pressed upon entering the input
+                keyState[keyMap['alt']]     = e.altKey   ? pressed : 'r';
+                keyState[keyMap['shift']]   = e.shiftKey ? pressed : 'r';
+                keyState[keyMap['control']] = e.ctrlKey  ? pressed : 'r';
+
                 for (index in keyState) {
                     if (keyState.hasOwnProperty(index) && keyState[index] === pressed) {
                         pressedKeys.push(index);
