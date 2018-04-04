@@ -883,8 +883,10 @@ Vue.component('date-time', {
                 extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
                 keyBinds: {up: function () { if(this.date()) this.date(this.date().clone().add(1, 'H')); },
                            down: function () { if(this.date()) this.date(this.date().clone().subtract(1, 'H')); },
-                           'control up': function () { if(this.date()) this.date(this.date().clone().add(this.stepping(), 'm')); },
-                           'control down': function () { if(this.date()) this.date(this.date().clone().subtract(this.stepping(), 'm')); }}});
+                           'control up': null,
+                           'control down': null,
+                           'shift up': function () { if(this.date()) this.date(this.date().clone().add(this.stepping(), 'm')); },
+                           'shift down': function () { if(this.date()) this.date(this.date().clone().subtract(this.stepping(), 'm')); }}});
             jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
 
             jqEl.val(jqEl.find("input").first().val());
@@ -897,8 +899,10 @@ Vue.component('date-time', {
                            down: function () { if(this.date()) this.date(this.date().clone().subtract(1, 'd')); },
                            'alt up': function () { if(this.date()) this.date(this.date().clone().add(1, 'M')); },
                            'alt down': function () { if(this.date()) this.date(this.date().clone().subtract(1, 'M')); },
-                           'control up': function () { if(this.date()) this.date(this.date().clone().add(1, 'y')); },
-                           'control down': function () { if(this.date()) this.date(this.date().clone().subtract(1, 'y')); } }});
+                           'control up': null,
+                           'control down': null,
+                           'shift up': function () { if(this.date()) this.date(this.date().clone().add(1, 'y')); },
+                           'shift down': function () { if(this.date()) this.date(this.date().clone().subtract(1, 'y')); } }});
             jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
 
             jqEl.val(jqEl.find("input").first().val());
