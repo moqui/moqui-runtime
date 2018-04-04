@@ -5386,8 +5386,7 @@ S2.define('select2/core',[
       var key = evt.which;
 
       if (self.isOpen()) {
-        if (key === KEYS.TAB || key === KEYS.NUMPLUS ||
-            (evt.ctrlKey && (key === KEYS.LEFT || key === KEYS.RIGHT))) {
+        if (key === KEYS.TAB || key === KEYS.NUMPLUS ) {
           self.options.set('okToSelectOnClose', true);
           self.close();
 
@@ -5395,7 +5394,7 @@ S2.define('select2/core',[
           self.options.set('okToSelectOnClose', false);
 
           // Determine which direction to move focus based on the key presses
-          var dir = (evt.ctrlKey && key === KEYS.LEFT || evt.shiftKey) ? -1 : 1;
+          var dir = evt.shiftKey ? -1 : 1;
 
           // Attempt to pass focus to the next input element
           var el = self.$element[0];
@@ -5412,7 +5411,7 @@ S2.define('select2/core',[
                   allEls[i].focus &&
                   $(allEls[i]).is(':visible') &&
                   $(allEls[i]).attr('tabIndex') != -2 &&
-                  !$(allEls[i]).prop('skiptab') ) {
+                  !$(allEls[i]).prop('no-tab') ) {
                 els.push(allEls[i]);
               }
             }
@@ -5465,10 +5464,9 @@ S2.define('select2/core',[
           evt.preventDefault();
         }
       } else { // Currently closed
-        if (key === KEYS.NUMPLUS ||
-            (evt.ctrlKey && (key === KEYS.LEFT || key === KEYS.RIGHT))) {
+        if (key === KEYS.NUMPLUS ) {
           // Determine which direction to move focus based on the key presses
-          var dir = (evt.ctrlKey && key === KEYS.LEFT || evt.shiftKey) ? -1 : 1;
+          var dir = evt.shiftKey ? -1 : 1;
 
           // Attempt to pass focus to the next input element
           var el = self.$element[0];
@@ -5485,7 +5483,7 @@ S2.define('select2/core',[
                   allEls[i].focus &&
                   $(allEls[i]).is(':visible') &&
                   $(allEls[i]).attr('tabIndex') != -2 &&
-                  !$(allEls[i]).prop('skiptab')) {
+                  !$(allEls[i]).prop('no-tab')) {
                 els.push(allEls[i]);
               }
             }
@@ -5508,7 +5506,7 @@ S2.define('select2/core',[
 
         } else if (key === KEYS.ENTER || key === KEYS.SPACE ||
             // (key === KEYS.DOWN && evt.altKey)) {
-            key === KEYS.DOWN) {
+            key === KEYS.DOWN && !evt.ctrlKey) {
           self.open();
 
           evt.preventDefault();
