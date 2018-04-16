@@ -838,7 +838,7 @@ Vue.component('date-time', {
         size:String, format:String, tooltip:String, form:String, required:String, autoYear:String },
     template:
     '<div v-if="type==\'time\'" class="input-group time" :id="id">' +
-        '<input type="text" class="form-control" :pattern="timePattern" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
+        '<input type="text" class="form-control" :pattern="timePattern" :id="id?(id+\'_itime\'):\'\'" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
         '<span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>' +
     '</div>' +
     '<div v-else class="input-group date" :id="id">' +
