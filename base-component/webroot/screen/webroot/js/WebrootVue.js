@@ -849,7 +849,10 @@ Vue.component('date-time', {
         focusDate: function() {
             if (this.type === 'time' || this.autoYear === 'false') return;
             var inputEl = $(this.$refs.dateInput); var curVal = inputEl.val();
-            if (!curVal || !curVal.length) inputEl.val(new Date().getFullYear());
+            if (!curVal || !curVal.length) {
+                var startYear = (this.autoYear && this.autoYear.match(/^[12]\d\d\d$/)) ? this.autoYear : new Date().getFullYear()
+                inputEl.val(startYear);
+            }
         },
         blurDate: function() {
             if (this.type === 'time') return;
