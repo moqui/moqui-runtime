@@ -1574,7 +1574,7 @@ S2.define('select2/selection/single',[
   };
 
   SingleSelection.prototype.update = function (data) {
-    if (data.length === 0) {
+    if (data == null || data.length === 0) {
       this.clear();
       return;
     }
@@ -5482,7 +5482,7 @@ S2.define('select2/core',[
           self.open();
           self.dropdown.$search.val(evt.key);
           self.trigger('selection:update');
-          etc.preventDefault();
+          evt.preventDefault();
         }
       }
     });
