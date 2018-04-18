@@ -5386,7 +5386,7 @@ S2.define('select2/core',[
       var key = evt.which;
 
       if (self.isOpen()) {
-        if (key === KEYS.TAB ) {
+        if (key === KEYS.TAB || key === KEYS.NUMPLUS ) {
           self.options.set('okToSelectOnClose', true);
           self.close();
 
