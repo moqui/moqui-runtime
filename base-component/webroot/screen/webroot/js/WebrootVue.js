@@ -837,16 +837,22 @@ Vue.component('date-time', {
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'},
         size:String, format:String, tooltip:String, form:String, required:String, autoYear:String },
     template:
-    '<input v-if="type==\'time\'" type="text" class="form-control" :pattern="timePattern" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
+    '<div v-if="type==\'time\'" class="input-group time" :id="id">' +
+        '<input type="text" class="form-control" :pattern="timePattern" :id="id?(id+\'_itime\'):\'\'" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
+        '<span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>' +
+    '</div>' +
     '<div v-else class="input-group date" :id="id">' +
-        '<input ref="dateInput" @focus="focusDate" @blur="blurDate" type="text" class="form-control" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form" :required="required == \'required\' ? true : false">' +
+        '<input ref="dateInput" @focus="focusDate" @blur="blurDate" type="text" class="form-control" :id="id?(id+\'_idate\'):\'\'" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form" :required="required == \'required\' ? true : false">' +
         '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>' +
     '</div>',
     methods: {
         focusDate: function() {
             if (this.type === 'time' || this.autoYear === 'false') return;
             var inputEl = $(this.$refs.dateInput); var curVal = inputEl.val();
-            if (!curVal || !curVal.length) inputEl.val(new Date().getFullYear());
+            if (!curVal || !curVal.length) {
+                var startYear = (this.autoYear && this.autoYear.match(/^[12]\d\d\d$/)) ? this.autoYear : new Date().getFullYear()
+                inputEl.val(startYear);
+            }
         },
         blurDate: function() {
             if (this.type === 'time') return;
@@ -870,15 +876,38 @@ Vue.component('date-time', {
         timePattern: function() { return '^(?:(?:([01]?\\d|2[0-3]):)?([0-5]?\\d):)?([0-5]?\\d)$'; }
     },
     mounted: function() {
+        var vm = this;
         var value = this.value;
         var format = this.formatVal;
         var jqEl = $(this.$el);
-        if (this.type !== "time") {
+        if (this.type === "time") {
             jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
                 extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
-                keyBinds: {t: function() {this.date(moment());}}});
-            jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); })
+                keyBinds: {up: function () { if(this.date()) this.date(this.date().clone().add(1, 'H')); },
+                           down: function () { if(this.date()) this.date(this.date().clone().subtract(1, 'H')); },
+                           'control up': null,
+                           'control down': null,
+                           'shift up': function () { if(this.date()) this.date(this.date().clone().add(this.stepping(), 'm')); },
+                           'shift down': function () { if(this.date()) this.date(this.date().clone().subtract(this.stepping(), 'm')); }}});
+            jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
+
+            jqEl.val(jqEl.find("input").first().val());
+        }
+        else {
+            jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
+                defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
+                extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
+                keyBinds: {up: function () { if(this.date()) this.date(this.date().clone().add(1, 'd')); },
+                           down: function () { if(this.date()) this.date(this.date().clone().subtract(1, 'd')); },
+                           'alt up': function () { if(this.date()) this.date(this.date().clone().add(1, 'M')); },
+                           'alt down': function () { if(this.date()) this.date(this.date().clone().subtract(1, 'M')); },
+                           'control up': null,
+                           'control down': null,
+                           'shift up': function () { if(this.date()) this.date(this.date().clone().add(1, 'y')); },
+                           'shift down': function () { if(this.date()) this.date(this.date().clone().subtract(1, 'y')); } }});
+            jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
+
             jqEl.val(jqEl.find("input").first().val());
         }
         if (format === "YYYY-MM-DD") { jqEl.find('input').inputmask("yyyy-mm-dd", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
@@ -985,7 +1014,7 @@ Vue.component('drop-down', {
             jqEl.addClass("noResetSelect2"); // so doesn't get reset on container dialog load
         }
         this.s2Opts = opts;
-        jqEl.select2(opts);
+        jqEl.select2(opts).on('change', function () { vm.$emit('input', this.value); });
         // needed? was a hack for something, but interferes with closeOnSelect:false for multiple: .on('select2:select', function () { jqEl.select2('open').select2('close'); });
         // needed? caused some issues: .on('change', function () { vm.$emit('input', vm.curVal); })
         var initValue = this.value;
@@ -1012,7 +1041,8 @@ Vue.component('drop-down', {
             // save the lastVal if there is one to remember what was selected even if new options don't have it, just in case options change again
             var saveVal = jqEl.select2().val(); if (saveVal && saveVal.length > 1) this.lastVal = saveVal;
             jqEl.select2('destroy'); jqEl.empty();
-            this.s2Opts.data = options; jqEl.select2(this.s2Opts);
+            this.s2Opts.data = options;
+            jqEl.select2(this.s2Opts).on('change', function () { vm.$emit('input', this.value); });
             if (wasFocused) jqEl.focus();
             setTimeout(function() {
                 var setVal = vm.lastVal; if (!setVal || setVal.length < 2) { setVal = vm.value; }

@@ -1574,7 +1574,7 @@ S2.define('select2/selection/single',[
   };
 
   SingleSelection.prototype.update = function (data) {
-    if (data.length === 0) {
+    if (data == null || data.length === 0) {
       this.clear();
       return;
     }
@@ -3084,6 +3084,10 @@ S2.define('select2/data/select',[
 
       this.$element.trigger('change');
 
+      if( $(self.$element[0]).hasClass('submit-on-close') && self.$element[0].form ) {
+        self.$element[0].form.submit();
+      }
+
       return;
     }
 
@@ -3110,6 +3114,10 @@ S2.define('select2/data/select',[
 
       this.$element.val(val);
       this.$element.trigger('change');
+
+      if( $(self.$element[0]).hasClass('submit-on-close') && self.$element[0].form ) {
+        self.$element[0].form.submit();
+      }
     }
   };
 
@@ -5378,41 +5386,49 @@ S2.define('select2/core',[
       var key = evt.which;
 
       if (self.isOpen()) {
-        if (key === KEYS.TAB || key === KEYS.NUMPLUS) {
+//        if (key === KEYS.TAB || key === KEYS.NUMPLUS ) {
+        if (key === KEYS.TAB ) {
           self.options.set('okToSelectOnClose', true);
           self.close();
 
           evt.preventDefault();
           self.options.set('okToSelectOnClose', false);
 
+          // Determine which direction to move focus based on the key presses
+          var dir = evt.shiftKey ? -1 : 1;
+
           // Attempt to pass focus to the next input element
           var el = self.$element[0];
           var f = el.form;
-          var allEls = f.elements;
-          var els = [];
-          for( var i = 0, len = allEls.length; i<len; i++ ) {
-            if( allEls[i].type != 'hidden' &&
-                allEls[i].style.display != 'none' &&
-                !allEls[i].readOnly &&
-                !allEls[i].disabled ) {
-              els.push(allEls[i]);
+          // TODO: Handle elements not in forms
+          if( f ) {
+            var allEls = f.elements;
+            var els = [];
+            for( var i = 0, len = allEls.length; i<len; i++ ) {
+              if( allEls[i].type != 'hidden' &&
+                  allEls[i].style.display != 'none' &&
+                  !allEls[i].readOnly &&
+                  !allEls[i].disabled ) {
+                els.push(allEls[i]);
+              }
             }
-          }
-          var x, nextEl;
-          for (var i=0, len=els.length; i<len; i++) {
-            x = els[i];
-            if (el == x) {
-              // Found the current element, search for the next focusable element
-              for(var j = 1; j < els.length; j++ ) {
-                // Depending on whether shift is pressed to focus next/previous
-                idx = evt.shiftKey ? i-j : i+j;
-                if( idx < 0 ) idx = len+idx;
-                if( idx >= len ) idx = idx-len;
-                nextEl = els[idx];
-                if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabIndex') != -2) {
-                  nextEl.focus();
-                  break;
-                }
+            var x, nextEl;
+            for (var i=0, len=els.length; i<len; i++) {
+              x = els[i];
+              if (el == x) {
+                  // Found the current element, search for the next focusable element
+                  for(var j = 1; j < els.length; j++ ) {
+                    // Depending on whether shift is pressed to focus next/previous
+                    idx = i+dir*j;
+                    if( idx < 0 ) idx = len+idx;
+                    if( idx >= len ) idx = idx-len;
+                    nextEl = els[idx];
+                    // NOTE: These checks need to be performed here instead of above, so that the current element can be found even if it's not supposed to be tabbable
+                    if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabindex') != -2 && !$(nextEl).prop('no-tab')) {
+                      nextEl.focus();
+                      break;
+                    }
+                  }
               }
             }
           }
@@ -5437,10 +5453,6 @@ S2.define('select2/core',[
           // In the case that the input was opened but no new select was made, ensure that
           // the element retains focus.
           self.$element[0].focus();
-
-          if( $(self.$element[0]).hasClass('submit-on-enter') && self.$element[0].form ) {
-            self.$element[0].form.submit();
-          }
         } else if ((key === KEYS.SPACE && evt.ctrlKey)) {
           self.trigger('results:toggle', {});
 
@@ -5455,44 +5467,9 @@ S2.define('select2/core',[
           evt.preventDefault();
         }
       } else { // Currently closed
-        if (key === KEYS.NUMPLUS) {
-          // Attempt to pass focus to the next input element
-          var el = self.$element[0];
-          var f = el.form;
-          var allEls = f.elements;
-          var els = [];
-          for( var i = 0, len = allEls.length; i<len; i++ ) {
-            if( allEls[i].type != 'hidden' &&
-                allEls[i].style.display != 'none' &&
-                !allEls[i].readOnly &&
-                !allEls[i].disabled ) {
-              els.push(allEls[i]);
-            }
-          }
-          var x, nextEl;
-          for (var i=0, len=els.length; i<len; i++) {
-            x = els[i];
-            if (el == x) {
-              // Found the current element, search for the next focusable element
-              for(var j = 1; j < els.length; j++ ) {
-                // Depending on whether shift is pressed to focus next/previous
-                idx = evt.shiftKey ? i-j : i+j;
-                if( idx < 0 ) idx = len+idx;
-                if( idx >= len ) idx = idx-len;
-                nextEl = els[idx];
-                if (nextEl.focus && $(nextEl).is(':visible') && $(nextEl).attr('tabIndex') != -2) {
-                  nextEl.focus();
-                  break;
-                }
-              }
-            }
-          }
-
-          evt.preventDefault();
-
-        } else if (key === KEYS.ENTER || key === KEYS.SPACE ||
+        if (key === KEYS.ENTER || key === KEYS.SPACE ||
             // (key === KEYS.DOWN && evt.altKey)) {
-            key === KEYS.DOWN) {
+            key === KEYS.DOWN && !evt.ctrlKey) {
           self.open();
 
           evt.preventDefault();
@@ -5505,7 +5482,7 @@ S2.define('select2/core',[
           self.open();
           self.dropdown.$search.val(evt.key);
           self.trigger('selection:update');
-          etc.preventDefault();
+          evt.preventDefault();
         }
       }
     });
