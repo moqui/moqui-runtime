@@ -121,6 +121,7 @@ span.shaded-area { display: inline-block; white-space: normal; }
 /* Similar styles to Bootstrap .form-control-static, applied more specifically and without explicit class */
 .form-group > div > p, .form-group > div > span.text-inline, .form-group > div > a:not(.btn) {
     display: inline-block; min-height: 34px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 0; }
+table .form-group > div > a:not(.btn), table .form-group > div > span.text-inline { min-height: 10px; padding-top: 0; padding-bottom: 0; }
 .form-header-field > button.btn, .form-group > div > a.btn { margin-top: 2px !important; }
 
 .nav.nav-tabs { margin-bottom: 8px; }
