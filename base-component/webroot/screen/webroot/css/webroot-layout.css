@@ -82,7 +82,7 @@ div.container-panel-footer { width: 100%; }
 
 td span.form-display { display: inline-block; width: 100%; }
 
-.form-date-find, .form-range-find { display: block; padding-bottom: 4px; }
+.form-date-find, .form-range-find { display: inline-block; padding-bottom: 4px; }
 .form-text-find input, .form-range-find input { display: inline-block; }
 
 td .Long, td .Double, td .Float, td .Integer { text-align: center; }
