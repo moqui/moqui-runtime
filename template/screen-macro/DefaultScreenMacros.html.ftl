@@ -1955,18 +1955,20 @@ a => A, d => D, y => Y
                 $.ajax({ type:"POST", url:"${defUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
                     <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local depNodeParm = depNode["@parameter"]!depNodeField><#local _void = defUrlParameterMap.remove(depNodeParm)!>, "${depNodeParm}": $("#<@fieldIdByName depNodeField/>").val()</#list>
                     <#t><#list defUrlParameterMap.keySet() as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
-                    <#t>}, dataType:"text" }).done( function(defaultText) {
-                           var label = '', value = '';
-                           try { response = JSON.parse(defaultText);
-                                 if( $.isArray(response) && response.length ) { response = response[0]; }
-                                 else if( $.isPlainObject(response) && response.hasOwnProperty('options') && response.options.length ) {
-                                     response = response.options[0]; }
-                                 if( response.hasOwnProperty('label') ) { label = response.label; }
-                                 if( response.hasOwnProperty('value') ) { value = response.value; } }
-                           catch(e) { value = label = defaultText; }
-                           $('#${dispFieldId}_display').html(label);
-                           <#if dispHidden>$('#${dispFieldId}').val(value);</#if>
-                       } );
+                    <#t>}, dataType:"text" }).done( function(defaultText) { if (defaultText && defaultText.length) {
+                        var label = '', value = '';
+                        try {
+                            var response = JSON.parse(defaultText);
+                            if ($.isArray(response) && response.length) { response = response[0]; }
+                            else if ($.isPlainObject(response) && response.hasOwnProperty('options') && response.options.length) { response = response.options[0]; }
+                            if (response.hasOwnProperty('label')) { label = response.label; }
+                            if (response.hasOwnProperty('value')) { value = response.value; }
+                        } catch(e) { }
+                        if (!label || !label.length) label = defaultText;
+                        if (!value || !value.length) value = defaultText;
+                        $('#${dispFieldId}_display').html(label);
+                        <#if dispHidden>$('#${dispFieldId}').val(value);</#if>
+                    }});
             }
             <#list depNodeList as depNode>
             $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${dispFieldId}(); });
