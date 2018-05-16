@@ -12,8 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
-<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         require-authentication="false" track-artifact-hit="false" default-menu-include="false">
     <!-- NOTE: require-authentication=false is required to allow transitions to decide. -->
 
@@ -318,6 +317,21 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
     <transition name="service.raml" read-only="true" method="get">
         <actions><script>org.moqui.impl.util.RestSchemaUtil.handleServiceRestRaml(ec, sri.screenUrlInfo.extraPathNameList, sri.buildUrl("s1").getUrl())</script></actions>
+        <default-response type="none"/>
+    </transition>
+
+    <!--
+    Specialized request handler for SystemMessage receipt and recording.
+    Calls service: org.moqui.impl.SystemMessageServices.receive#IncomingSystemMessage
+
+    Use a path like: /rest/sm/{systemMessageTypeId}/{systemMessageRemoteId}/{remoteMessageId}
+    Note that systemMessageTypeId is required, the other two are optional.
+    Note that a Content-Type header is required and must be one of the various supported text content types
+
+    curl -X POST -H "Content-Type: application/json" -d '{ "test1":"foo", "test2":"bar" }' http://localhost:8080/rest/sm/ExampleMessage/Example1Local/12345
+    -->
+    <transition name="sm" read-only="true" require-session-token="false" begin-transaction="false">
+        <actions><script>ec.web.handleSystemMessage(sri.screenUrlInfo.extraPathNameList)</script></actions>
         <default-response type="none"/>
     </transition>
 
