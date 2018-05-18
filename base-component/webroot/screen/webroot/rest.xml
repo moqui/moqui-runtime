@@ -325,10 +325,10 @@ along with this software (see the LICENSE.md file). If not, see
     Calls service: org.moqui.impl.SystemMessageServices.receive#IncomingSystemMessage
 
     Use a path like: /rest/sm/{systemMessageTypeId}/{systemMessageRemoteId}/{remoteMessageId}
-    Note that systemMessageTypeId is required, the other two are optional.
+    Note that systemMessageTypeId (so we know how to process the message) and systemMessageRemoteId (for security, etc) are required, remoteMessageId is optional.
     Note that a Content-Type header is required and must be one of the various supported text content types
 
-    curl -X POST -H "Content-Type: application/json" -d '{ "test1":"foo", "test2":"bar" }' http://localhost:8080/rest/sm/ExampleMessage/Example1Local/12345
+    curl -X POST -u john.doe:moqui -H "Content-Type: application/json" -d '{ "test1":"foo", "test2":"bar" }' http://localhost:8080/rest/sm/ExampleMessage/Example1Local/12345
     -->
     <transition name="sm" read-only="true" require-session-token="false" begin-transaction="false">
         <actions><script>ec.web.handleSystemMessage(sri.screenUrlInfo.extraPathNameList)</script></actions>
