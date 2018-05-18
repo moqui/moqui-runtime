@@ -1301,7 +1301,7 @@ moqui.webrootVue = new Vue({
                 if (questionIdx > 0) { href += navMenu.pathWithParams.slice(questionIdx); }
                 return href;
             } else {
-                return navMenu.pathWithParams;
+                return navMenu.pathWithParams || navMenu.path;
             }
         },
         getLinkPath: function(path) {
