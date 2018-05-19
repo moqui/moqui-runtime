@@ -30,6 +30,14 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="description"><default-field><text-line size="40"/></default-field></field>
             <field name="sendUrl"><default-field><text-line size="100"/></default-field></field>
             <field name="sendServiceName"><default-field><text-line size="100"/></default-field></field>
+            <field name="messageAuthEnumId"><default-field title="Message Auth">
+                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                    <set field="enumTypeId" value="SystemMessageAuthType"/><set field="allowEmpty" value="true"/></widget-template-include>
+            </default-field></field>
+            <field name="sendAuthEnumId"><default-field title="Message Send Auth">
+                <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                    <set field="enumTypeId" value="SystemMessageAuthType"/><set field="allowEmpty" value="true"/></widget-template-include>
+            </default-field></field>
             <field name="systemMessageTypeId"><default-field title="Message Type">
                 <drop-down allow-empty="true">
                     <entity-options key="${systemMessageTypeId}" text="${description}">

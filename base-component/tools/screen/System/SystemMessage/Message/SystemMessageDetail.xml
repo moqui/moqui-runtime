@@ -45,14 +45,17 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <dynamic-dialog id="EmtDialog" button-text="Edit Message Text" transition="EditMessageText" width="900"/>
 
-        <section name="SendSection" condition="systemMessage.isOutgoing == 'Y' &amp;&amp; (systemMessage.statusId == 'SmsgProduced' || systemMessage.statusId == 'SmsgError')">
-            <widgets><link url="sendMessage" text="Send Message" parameter-map="[systemMessageId:systemMessageId]"/></widgets></section>
-        <section name="ConsumeSection" condition="systemMessage.isOutgoing == 'N' &amp;&amp; (systemMessage.statusId == 'SmsgReceived' || systemMessage.statusId == 'SmsgError')">
-            <widgets><link url="consumeMessage" text="Consume Message" parameter-map="[systemMessageId:systemMessageId]"/></widgets></section>
-        <section name="AckSection" condition="systemMessage.isOutgoing == 'N' &amp;&amp; (systemMessage.statusId in ['SmsgConsumed', 'SmsgRejected', 'SmsgError'])">
-            <widgets><link url="queueAckMessage" text="Send Ack Message" parameter-map="[systemMessageId:systemMessageId]"/></widgets></section>
-        <section name="CancelSection" condition="systemMessage.statusId in ['SmsgProduced', 'SmsgReceived', 'SmsgError']">
-            <widgets><link url="updateMessage" text="Cancel Message" parameter-map="[systemMessageId:systemMessageId, statusId:'SmsgCancelled']"/></widgets></section>
+        <link url="sendMessage" text="Send Message" parameter-map="[systemMessageId:systemMessageId]"
+                condition="systemMessage.isOutgoing == 'Y' &amp;&amp; (systemMessage.statusId == 'SmsgProduced' || systemMessage.statusId == 'SmsgError')"/>
+        <link url="updateMessage" text="Reset to Produced" parameter-map="[systemMessageId:systemMessageId, statusId:'SmsgProduced']"
+                condition="systemMessage.statusId == 'SmsgSending'" confirmation="Are you sure? If message is actually sending may result in double send."/>
+
+        <link url="consumeMessage" text="Consume Message" parameter-map="[systemMessageId:systemMessageId]"
+                condition="systemMessage.isOutgoing == 'N' &amp;&amp; (systemMessage.statusId == 'SmsgReceived' || systemMessage.statusId == 'SmsgError')"/>
+        <link url="queueAckMessage" text="Send Ack Message" parameter-map="[systemMessageId:systemMessageId]"
+                condition="systemMessage.isOutgoing == 'N' &amp;&amp; (systemMessage.statusId in ['SmsgConsumed', 'SmsgRejected', 'SmsgError'])"/>
+        <link url="updateMessage" text="Cancel Message" parameter-map="[systemMessageId:systemMessageId, statusId:'SmsgCancelled']"
+                condition="systemMessage.statusId in ['SmsgProduced', 'SmsgReceived', 'SmsgError']"/>
 
         <section name="ResetErrorSection" condition="systemMessage.statusId == 'SmsgError'">
             <widgets><link url="resetError" text="Reset from Error" parameter-map="[systemMessageId:systemMessageId]"/></widgets></section>
@@ -113,42 +116,33 @@ along with this software (see the LICENSE.md file). If not, see
                     </form-list>
                 </widgets></section>
 
-                <section name="StatusHistorySection">
-                    <actions>
-                        <entity-find entity-name="moqui.entity.EntityAuditLog" list="reverseList">
-                            <econdition field-name="changedEntityName" value="moqui.service.message.SystemMessage"/>
-                            <econdition field-name="changedFieldName" value="statusId"/>
-                            <econdition field-name="pkPrimaryValue" from="systemMessageId"/>
-                            <order-by field-name="-changedDate"/>
-                        </entity-find>
-                    </actions>
-                    <widgets>
-                        <container-box>
-                            <box-header><label text="Status History" type="h5"/></box-header>
-                            <box-body>
-                                <section-iterate name="StatusHistoryTable" list="reverseList" entry="statusHistory">
-                                    <actions>
-                                        <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
-                                            <field-map field-name="userId" from="statusHistory.changedByUserId"/></entity-find-one>
-                                        <entity-find-one entity-name="moqui.basic.StatusItem" value-field="statusItem" cache="true">
-                                            <field-map field-name="statusId" from="statusHistory.newValueText"/></entity-find-one>
-                                    </actions>
-                                    <widgets>
-                                        <container-row>
-                                            <row-col lg="7" md="7" sm="7">
-                                                <label text="${ec.l10n.format(statusHistory.changedDate, '')}" type="strong" style="text-nowrap"/>
-                                                <label text="by ${userAccount?.username ?: statusHistory.changedByUserId ?: 'Unknown'}" style="text-nowrap"/>
-                                            </row-col>
-                                            <row-col lg="5" md="5" sm="5">
-                                                <label text="${statusItem?statusItem.description:''}" type="p"/>
-                                            </row-col>
-                                        </container-row>
-                                    </widgets>
-                                </section-iterate>
-                            </box-body>
-                        </container-box>
-                    </widgets>
-                </section>
+                <section name="StatusHistorySection"><actions>
+                    <entity-find entity-name="moqui.entity.EntityAuditLog" list="reverseList">
+                        <econdition field-name="changedEntityName" value="moqui.service.message.SystemMessage"/>
+                        <econdition field-name="changedFieldName" value="statusId"/>
+                        <econdition field-name="pkPrimaryValue" from="systemMessageId"/>
+                        <order-by field-name="-changedDate"/>
+                    </entity-find>
+                </actions><widgets>
+                    <container-box><box-header title="Status History"/><box-body>
+                        <section-iterate name="StatusHistoryTable" list="reverseList" entry="statusHistory"><actions>
+                            <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
+                                <field-map field-name="userId" from="statusHistory.changedByUserId"/></entity-find-one>
+                            <entity-find-one entity-name="moqui.basic.StatusItem" value-field="statusItem" cache="true">
+                                <field-map field-name="statusId" from="statusHistory.newValueText"/></entity-find-one>
+                        </actions><widgets>
+                            <container-row>
+                                <row-col lg="7" md="7" sm="7">
+                                    <label text="${ec.l10n.format(statusHistory.changedDate, '')}" type="strong" style="text-nowrap"/>
+                                    <label text="by ${userAccount?.username ?: statusHistory.changedByUserId ?: 'Unknown'}" style="text-nowrap"/>
+                                </row-col>
+                                <row-col lg="5" md="5" sm="5">
+                                    <label text="${statusItem?statusItem.description:''}" type="p"/>
+                                </row-col>
+                            </container-row>
+                        </widgets></section-iterate>
+                    </box-body></container-box>
+                </widgets></section>
                 <form-list name="ErrorListForm" list="errorList" skip-form="true">
                     <field name="errorDate"><default-field><display/></default-field></field>
                     <field name="errorText"><default-field><display/></default-field></field>

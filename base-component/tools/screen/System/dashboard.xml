@@ -59,7 +59,9 @@ along with this software (see the LICENSE.md file). If not, see
             </box-body></container-box>
             <container-box><box-header><label text="Integration Admin" type="h5"/></box-header><box-body>
                 <link url="../EntitySync" text="Entity Data Sync"/>
-                <link url="../SystemMessage" text="System-System Messages"/>
+                <link url="../SystemMessage/Message" text="System Messages"/>
+                <link url="../SystemMessage/Remote" text="Message Remotes"/>
+                <link url="../SystemMessage/Type" text="Message Types"/>
             </box-body></container-box>
         </row-col></container-row>
         <container-box><box-header><label text="System Information" type="h5"/></box-header><box-toolbar>
