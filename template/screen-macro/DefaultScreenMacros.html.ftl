@@ -202,7 +202,8 @@ ${sri.renderSection(.node["@name"])}
 <#macro "container-box">
     <#assign contBoxDivId><@nodeId .node/></#assign>
     <#assign boxHeader = .node["box-header"][0]>
-    <div class="panel panel-${.node["@type"]!"default"}"<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if>>
+    <#assign boxType = ec.resource.expand(.node["@type"], "")!>
+    <div class="panel panel-${boxType!"default"}"<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if>>
         <div class="panel-heading">
             <#if boxHeader["@title"]?has_content><h5>${ec.getResource().expand(boxHeader["@title"]!"", "")}</h5></#if>
             <#recurse boxHeader>
