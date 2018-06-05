@@ -885,7 +885,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#assign quickSavedFindId = formId + "_QuickSavedFind">
                     <select id="${quickSavedFindId}" name="${quickSavedFindId}">
                         <option></option><#-- empty option for placeholder -->
-                        <option value="_clear" data-action="${sri.getScreenUrlInstance().path}">${ec.getL10n().localize("Clear Current Find")}</option>
+                        <option value="_clear" data-action="${sri.buildUrl(sri.getScreenUrlInstance().path).pathWithParams}">${ec.getL10n().localize("Clear Current Find")}</option>
                         <#list userFindInfoList as userFindInfo>
                             <#assign formListFind = userFindInfo.formListFind>
                             <#assign findParameters = userFindInfo.findParameters>
