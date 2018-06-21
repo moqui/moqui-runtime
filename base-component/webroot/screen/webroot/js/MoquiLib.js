@@ -85,11 +85,13 @@ var moqui = {
         if (window.Notification && Notification.permission === "granted") {
             var notif = new Notification(jsonObj.title, notificationOptions);
             if (jsonObj.link && jsonObj.link.length) notif.onclick = function () { window.open(jsonObj.link); };
+            if (moqui.webrootVue) { moqui.webrootVue.addNotify(jsonObj.title, jsonObj.type); }
         } else if (window.Notification && Notification.permission !== "denied") {
             Notification.requestPermission(function (status) {
                 if (status === "granted") {
                     var notif = new Notification(jsonObj.title, notificationOptions);
                     if (jsonObj.link && jsonObj.link.length) notif.onclick = function () { window.open(jsonObj.link); };
+                    if (moqui.webrootVue) { moqui.webrootVue.addNotify(jsonObj.title, jsonObj.type); }
                 } else { fallback(jsonObj); }
             });
         } else { fallback(jsonObj); }
