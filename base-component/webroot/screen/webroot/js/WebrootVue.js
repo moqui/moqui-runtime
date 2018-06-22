@@ -54,7 +54,7 @@ if (!window.define) window.define = function(name, deps, callback) {
 moqui.localeMap = { 'zh':'zh-cn' };
 moqui.objToSearch = function(obj) {
     var search = '';
-    $.each(obj, function (key, value) { search = search + (search.length > 0 ? '&' : '') + key + '=' + value; });
+    if (moqui.isPlainObject(obj)) $.each(obj, function (key, value) { search = search + (search.length > 0 ? '&' : '') + key + '=' + value; });
     return search;
 };
 moqui.searchToObj = function(search) {
@@ -390,7 +390,7 @@ Vue.component('dynamic-container', {
 });
 Vue.component('dynamic-dialog', {
     props: { id:{type:String,required:true}, url:{type:String,required:true}, title:String, width:{type:String,'default':'760'},
-        openDialog:{type:Boolean,'default':false} },
+        openDialog:{type:Boolean,'default':false}, dynamicParams:{type:Object,'default':null} },
     data: function() {
         var viewportWidth = $(window).width();
         return { curComponent:moqui.EmptyComponent, curUrl:"", isHidden:true, dialogStyle:{width:(this.width < viewportWidth ? this.width : viewportWidth) + 'px'}}},
@@ -409,6 +409,14 @@ Vue.component('dynamic-dialog', {
     watch: { curUrl: function (newUrl) {
         if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
         var vm = this;
+        if (moqui.isPlainObject(this.dynamicParams)) {
+            var dpStr = '';
+            $.each(this.dynamicParams, function (key, value) {
+                var dynVal = $("#" + value).val();
+                if (dynVal && dynVal.length) dpStr = dpStr + (dpStr.length > 0 ? '&' : '') + key + '=' + dynVal;
+            });
+            if (dpStr.length) newUrl = newUrl + (newUrl.indexOf("?") > 0 ? '&' : '?') + dpStr;
+        }
         moqui.loadComponent(newUrl, function(comp) {
             comp.mounted = function() {
                 var jqEl = $(vm.$el);
