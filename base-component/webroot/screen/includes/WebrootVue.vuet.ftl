@@ -60,11 +60,11 @@ along with this software (see the LICENSE.md file). If not, see
             </ul>
             <template v-if="navMenuList.length > 0"><m-link class="navbar-text" :href="getNavHref(navMenuList.length - 1)">{{navMenuList[navMenuList.length - 1].title}}</m-link></template>
             <#-- logout button -->
-            <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="Logout ${(ec.user.userAccount.userFullName)!''}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-off"></i></a>
+            <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="${ec.l10n.localize("Logout")} ${(ec.user.userAccount.userFullName)!''}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-off"></i></a>
             <#-- screen history menu -->
             <#-- get initial history from server? <#assign screenHistoryList = ec.web.getScreenHistory()><#list screenHistoryList as screenHistory><#if (screenHistory_index >= 25)><#break></#if>{url:pathWithParams, name:title}</#list> -->
             <div id="history-menu" class="nav navbar-right dropdown">
-                <a id="history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="History">
+                <a id="history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="${ec.l10n.localize("History")}">
                     <i class="glyphicon glyphicon-list"></i></a>
                 <ul class="dropdown-menu">
                     <li v-for="histItem in navHistoryList"><m-link :href="histItem.pathWithParams">
@@ -77,10 +77,10 @@ along with this software (see the LICENSE.md file). If not, see
                 </ul>
             </div>
             <#-- screen history previous screen -->
-            <a href="#" @click.prevent="goPreviousScreen()" data-toggle="tooltip" data-original-title="Previous Screen" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-step-backward"></i></a>
+            <a href="#" @click.prevent="goPreviousScreen()" data-toggle="tooltip" data-original-title="${ec.l10n.localize("Previous Screen")}" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-step-backward"></i></a>
             <#-- notify history -->
             <div id="notify-history-menu" class="nav navbar-right dropdown">
-                <a id="notify-history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="Notifications">
+                <a id="notify-history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="${ec.l10n.localize("Notifications")}">
                     <i class="glyphicon glyphicon-exclamation-sign"></i></a>
                 <ul class="dropdown-menu" @click.prevent="stopProp">
                     <li v-for="histItem in notifyHistoryList">
@@ -98,7 +98,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </ul>
             </div>
             <#-- dark/light switch -->
-            <a href="#" @click.prevent="switchDarkLight()" data-toggle="tooltip" data-original-title="Switch Dark/Light" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-adjust"></i></a>
+            <a href="#" @click.prevent="switchDarkLight()" data-toggle="tooltip" data-original-title="${ec.l10n.localize ("Switch Dark/Light")}" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-adjust"></i></a>
 
             <#-- nav plugins -->
             <template v-for="navPlugin in navPlugins"><component :is="navPlugin"></component></template>
