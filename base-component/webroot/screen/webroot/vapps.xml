@@ -36,6 +36,8 @@ along with this software (see the LICENSE.md file). If not, see
             // Vue instance, in footer so runs after page loaded
             footer_scripts.add('/js/WebrootVue.js')
         }
+        res = ec.service.sync().name("L10nServices.get#LocalizedValidationScripts").call()
+        for (scriptLocation in res?.localizedScriptList) { html_scripts.add(scriptLocation) }
     ]]></script></pre-actions>
 
     <widgets>
