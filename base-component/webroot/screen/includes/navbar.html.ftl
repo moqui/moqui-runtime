@@ -23,7 +23,7 @@
         </div>
         <a class="navbar-text" href="${sri.getScreenUrlInstance().getUrlWithParams()}">${html_title!(ec.resource.expand(sri.screenUrlInfo.targetScreen.getDefaultMenuName()!"Page", ""))}</a>
         <#-- logout button -->
-        <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="Logout ${(ec.getUser().getUserAccount().userFullName)!}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right">
+        <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="${ec.l10n.localize("Logout")} ${(ec.getUser().getUserAccount().userFullName)!}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right">
             <i class="glyphicon glyphicon-off"></i>
         </a>
         <#-- screen documentation/help -->
@@ -37,7 +37,7 @@
             </div>
         </#if>
         <#-- dark/light switch -->
-        <a href="#" onclick="switchDarkLight();" data-toggle="tooltip" data-original-title="Switch Dark/Light" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right">
+        <a href="#" onclick="switchDarkLight();" data-toggle="tooltip" data-original-title="${ec.l10n.localize("Switch Dark/Light")}" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right">
             <i class="glyphicon glyphicon-adjust"></i>
         </a>
         <#-- header navbar items from the theme -->
@@ -47,9 +47,10 @@
             <@navbarItemTemplate/>
         </#list>
         <#-- screen history menu -->
+
         <#assign screenHistoryList = ec.web.getScreenHistory()>
         <div id="history-menu" class="nav navbar-right dropdown">
-            <a id="history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="History">
+            <a id="history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="${ec.l10n.localize("History")}">
                 <i class="glyphicon glyphicon-list"></i></a>
             <ul class="dropdown-menu"><#list screenHistoryList as screenHistory><#if (screenHistory_index >= 25)><#break></#if>
                 <li><a href="${screenHistory.url}">
