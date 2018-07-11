@@ -20,10 +20,15 @@ along with this software (see the LICENSE.md file). If not, see
         // if user not logged in save current path and params then redirect to Login
         if (!ec.user.userId) { ec.web.saveScreenLastInfo(null, null); sri.sendRedirectAndStopRender('/Login') }
 
-        // jQuery, Bootstrap, Twitter TypeAhead, Form Validation (jquery-validation), Date/Time (Moment, bootstrap-datetimepicker),
+        // jQuery, Bootstrap, Twitter TypeAhead, Form Validation (jquery-validate), Date/Time (Moment, bootstrap-datetimepicker),
         //      Drop-down (Select2, Selectivity), Notify/Growl (Bootstrap Notify), Inline Editable, Sortable Hierarchical List
         // Moqui Library (3rd party lib workarounds, NotificationClient, etc)
         html_scripts.add('/js/CombinedBase.min.js')
+
+        // jquery-validate locale specific scripts
+        Map validateScriptsOut = ec.service.sync().name("webroot.LocaleServices.get#ValidateLocaleScripts").call()
+        if (validateScriptsOut.messagesLocation) html_scripts.add(validateScriptsOut.messagesLocation)
+        if (validateScriptsOut.methodsLocation) html_scripts.add(validateScriptsOut.methodsLocation)
 
         String instancePurpose = System.getProperty("instance_purpose")
         if (!instancePurpose || instancePurpose == 'production') {

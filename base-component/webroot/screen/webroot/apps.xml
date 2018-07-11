@@ -31,7 +31,7 @@ along with this software (see the LICENSE.md file). If not, see
     <subscreens default-item="AppList"/>
 
     <pre-actions><script><![CDATA[
-        // jQuery, Bootstrap, Twitter TypeAhead, Form Validation (jquery-validation), Date/Time (Moment, bootstrap-datetimepicker),
+        // jQuery, Bootstrap, Twitter TypeAhead, Form Validation (jquery-validate), Date/Time (Moment, bootstrap-datetimepicker),
         //      Drop-down (Select2, Selectivity), Notify/Growl (Bootstrap Notify), Inline Editable, Sortable Hierarchical List
         // Moqui Library (3rd party lib workarounds, NotificationClient, etc)
         html_scripts.add('/js/CombinedBase.min.js')
@@ -40,6 +40,11 @@ along with this software (see the LICENSE.md file). If not, see
         html_scripts.add('/libs/jquery.form/jquery.form.min.js')
         // Tree (JSTree)
         html_scripts.add('/libs/jstree/jstree.min.js')
+
+        // jquery-validate locale specific scripts
+        Map validateScriptsOut = ec.service.sync().name("webroot.LocaleServices.get#ValidateLocaleScripts").call()
+        if (validateScriptsOut.messagesLocation) html_scripts.add(validateScriptsOut.messagesLocation)
+        if (validateScriptsOut.methodsLocation) html_scripts.add(validateScriptsOut.methodsLocation)
     ]]></script></pre-actions>
 
     <widgets>
