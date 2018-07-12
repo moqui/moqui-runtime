@@ -21,6 +21,8 @@ def webrootPath = "screen/webroot"
 def libsPath = webrootPath + "/libs"
 def downloadBase = "http://cdnjs.cloudflare.com/ajax/libs/"
 def fileMap = [
+    "rsvp/4.8.3/rsvp.min.js":"",
+
     "twitter-bootstrap/3.3.7/css/bootstrap.min.css":"",
     "twitter-bootstrap/3.3.7/js/bootstrap.min.js":"",
     "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.eot":"",
@@ -99,6 +101,8 @@ task downloadFiles { doLast {
 } }
 
 def baseJs = []
+// RSVP (promises, futures)
+baseJs.add(libsPath + '/rsvp/rsvp.min.js')
 // jQuery
 baseJs.add(libsPath + '/jquery/jquery.min.js')
 // Bootstrap
@@ -126,6 +130,8 @@ baseJs.add(webrootPath + '/js/jquery-sortable-lists/jquery-sortable-lists.min.js
 // Moqui Library (3rd party lib workarounds, NotificationClient, etc)
 baseJs.add(webrootPath + '/js/MoquiLib.min.js')
 
+// NOTE: not adding qz-tray/qz-tray.js (qz-tray.min.js) or qz-tray/sha-256.min.js to combined base, only included if user preference 'qz.print.enabled' == "true"
+
 def htmlJs = []
 // Form AJAX (jquery-form)
 htmlJs.add(libsPath + '/jquery.form/jquery.form.min.js')
@@ -149,6 +155,13 @@ task minifyDateTimePicker(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     dest = file("${webrootPath}/js/bootstrap-datetimepicker.min.js")
     closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
 }
+/* using pre-minified version
+task minifyQzTray(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
+    source = file("${webrootPath}/js/qz-tray/qz-tray.js")
+    dest = file("${webrootPath}/js/qz-tray.min.js")
+    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8); warningLevel = 'QUIET' }
+}
+*/
 task minifyMoquiLib(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     source = file("${webrootPath}/js/MoquiLib.js")
     dest = file("${webrootPath}/js/MoquiLib.min.js")

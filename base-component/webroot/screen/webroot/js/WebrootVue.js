@@ -1190,7 +1190,7 @@ moqui.webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
         navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[], lastNavTime:Date.now(), loading:0, activeContainers:{},
-        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null },
+        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null },
     methods: {
         setUrl: function(url, bodyParameters) {
             // always set bodyParameters, setting to null when not specified to clear out previous
@@ -1293,7 +1293,7 @@ moqui.webrootVue = new Vue({
             var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
             var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
             $.ajax({ type:'POST', url:(this.appRootPath + '/apps/setPreference'), error:moqui.handleAjaxError,
-                data:{ moquiSessionToken: this.moquiSessionToken, preferenceKey:'OUTER_STYLE', preferenceValue:currentStyle } });
+                data:{ moquiSessionToken:this.moquiSessionToken, preferenceKey:'OUTER_STYLE', preferenceValue:currentStyle } });
         },
         showScreenDocDialog: function(docIndex) {
             $("#screen-document-dialog").modal("show");
@@ -1420,6 +1420,8 @@ moqui.webrootVue = new Vue({
         this.setUrl(window.location.pathname + window.location.search);
         // init the NotificationClient and register 'displayNotify' as the default listener
         this.notificationClient.registerListener("ALL");
+        // set the qzVue component if present
+        if (moqui.qzVue) this.qzVue = moqui.qzVue;
 
         $("#screen-document-dialog").on("hidden.bs.modal", function () { var jqEl = $("#screen-document-dialog-body");
                 jqEl.empty(); jqEl.append('<div class="spinner"><div>Loading…</div></div>'); });
