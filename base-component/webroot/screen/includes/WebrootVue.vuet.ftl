@@ -101,7 +101,7 @@ along with this software (see the LICENSE.md file). If not, see
             <a href="#" @click.prevent="switchDarkLight()" data-toggle="tooltip" data-original-title="${ec.l10n.localize ("Switch Dark/Light")}" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-adjust"></i></a>
 
             <#-- QZ print options placeholder -->
-            <component :is="qzVue"></component>
+            <component :is="qzVue" ref="qzVue"></component>
 
             <#-- nav plugins -->
             <template v-for="navPlugin in navPlugins"><component :is="navPlugin"></component></template>

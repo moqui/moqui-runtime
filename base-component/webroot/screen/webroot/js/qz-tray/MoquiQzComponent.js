@@ -1,7 +1,7 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 if (window.qz && window.moqui) {
     console.info("Creating QZ component");
-    moqui.qzVue = {
+    moqui.qzVue = Vue.extend({
         template:
         '<span>' +
             '<button id="qz-print-modal-link" type="button" class="btn btn-sm navbar-btn navbar-right" :class="readyStyleBtn" data-toggle="modal" data-target="#qz-print-modal" title="Print Options"><i class="glyphicon glyphicon-print"></i></button>' +
@@ -18,19 +18,65 @@ if (window.qz && window.moqui) {
                             '<button v-if="connectionState !== \'Active\'" type="button" class="btn btn-success btn-sm" @click="startConnection()">Connect</button>' +
                             '<button v-if="connectionState === \'Active\'" type="button" class="btn btn-warning btn-sm" @click="endConnection()">Disconnect</button>' +
                         '</div></div>' +
+                        '<p v-if="connectionState !== \'Active\'">Don\'t have QZ Tray installed? <a href="https://qz.io/download/" target="_blank">Download from QZ.io</a></p>' +
                         '<div class="panel panel-default">' +
-                            '<div class="panel-heading"><h5 class="panel-title">Printers: Main <span class="text-info">{{currentPrinter||"not set"}}</span> Label <span class="text-info">{{currentLabelPrinter||"not set"}}</span></h5>' +
+                            '<div class="panel-heading"><h5 class="panel-title">Printers: Main <span class="text-info">{{currentPrinter||"not set"}}</span> <button v-if="currentPrinter && currentPrinter.length" type="button" class="btn btn-default btn-sm" style="padding:0 4px 0 4px;margin:0;" @click="setPrinter(null)">&times;</button> ' +
+                                    'Label <span class="text-info">{{currentLabelPrinter||"not set"}}</span> <button v-if="currentLabelPrinter && currentLabelPrinter.length" type="button" class="btn btn-default btn-sm" style="padding:0 4px 0 4px;margin:0;" @click="setLabelPrinter(null)">&times;</button></h5>' +
                                 '<div class="panel-toolbar"><button type="button" class="btn btn-default btn-sm" @click="findPrinters()">Find</button></div></div>' +
                             '<div class="panel-body"><div class="row">' +
-                                '<div v-for="printerName in printerList" class="col-xs-6">{{printerName}} <button type="button" class="btn btn-default btn-sm" @click="setPrinter(printerName)">Main</button><button type="button" class="btn btn-default btn-sm" @click="setLabelPrinter(printerName)">Label</button></div>' +
+                                '<div v-for="printerName in printerList" class="col-xs-6">{{printerName}} ' +
+                                    '<button v-if="currentPrinter !== printerName" type="button" class="btn btn-default btn-sm" @click="setPrinter(printerName)">Main</button>' +
+                                    '<button v-if="currentPrinter === printerName" type="button" class="btn btn-primary btn-sm" @click="setPrinter(null)">Main</button>' +
+                                    '<button v-if="currentLabelPrinter !== printerName" type="button" class="btn btn-default btn-sm" @click="setLabelPrinter(printerName)">Label</button>' +
+                                    '<button v-if="currentLabelPrinter === printerName" type="button" class="btn btn-primary btn-sm" @click="setLabelPrinter(null)">Label</button>' +
+                                '</div>' +
                             '</div>' +
+                        '</div></div>' +
+                        '<div class="row"><div class="col-xs-6">' +
+                            '<h4>Main Options</h4>' +
+                            '<div class="form-group form-inline"><label for="pxlOrientation">Orientation</label>' +
+                                '<select id="pxlOrientation" class="form-control pull-right" v-model="mainOptions.orientation">' +
+                                    '<option value="">Default</option><option value="portrait">Portrait</option>' +
+                                    '<option value="landscape">Landscape</option><option value="reverse-landscape">Reverse LS</option>' +
+                                '</select>' +
+                            '</div>' +
+                            '<div class="form-group form-inline"><label for="pxlColorType">Color Type</label>' +
+                                '<select id="pxlColorType" class="form-control pull-right" v-model="mainOptions.colorType">' +
+                                    '<option value="">Default</option><option value="color">Color</option>' +
+                                    '<option value="grayscale">Grayscale</option><option value="blackwhite">Black & White</option>' +
+                                '</select>' +
+                            '</div>' +
+                            '<div class="form-group form-inline"><label for="pxlScale">Scale Content</label>' +
+                                '<input type="checkbox" id="pxlScale" class="pull-right" v-model="mainOptions.scaleContent"></div>' +
+                            '<div class="form-group form-inline"><label for="pxlRasterize">Rasterize</label>' +
+                                '<input type="checkbox" id="pxlRasterize" class="pull-right" v-model="mainOptions.rasterize"></div>' +
+                        '</div><div class="col-xs-6">' +
+                            '<h4>Label Options</h4>' +
+                            '<div class="form-group form-inline"><label for="pxlOrientation">Orientation</label>' +
+                                '<select id="pxlOrientation" class="form-control pull-right" v-model="labelOptions.orientation">' +
+                                    '<option value="">Default</option><option value="portrait">Portrait</option>' +
+                                    '<option value="landscape">Landscape</option><option value="reverse-landscape">Reverse LS</option>' +
+                                '</select>' +
+                            '</div>' +
+                            '<div class="form-group form-inline"><label for="pxlColorType">Color Type</label>' +
+                                '<select id="pxlColorType" class="form-control pull-right" v-model="labelOptions.colorType">' +
+                                    '<option value="">Default</option><option value="color">Color</option>' +
+                                    '<option value="grayscale">Grayscale</option><option value="blackwhite">Black & White</option>' +
+                                '</select>' +
+                            '</div>' +
+                            '<div class="form-group form-inline"><label for="pxlScale">Scale Content</label>' +
+                                '<input type="checkbox" id="pxlScale" class="pull-right" v-model="labelOptions.scaleContent"></div>' +
+                            '<div class="form-group form-inline"><label for="pxlRasterize">Rasterize</label>' +
+                                '<input type="checkbox" id="pxlRasterize" class="pull-right" v-model="labelOptions.rasterize"></div>' +
                         '</div></div>' +
                     '</div>' +
                 '</div></div>' +
             '</div>' +
         '</span>',
         data: function() { return { connectionState:'Inactive', connectionClass:'text-muted', qzVersion:null,
-                currentPrinter:null, currentLabelPrinter:null, printerList:[] } },
+                currentPrinter:null, currentLabelPrinter:null, printerList:[],
+                mainOptions:{ orientation:"", colorType:"color", scaleContent:true, rasterize:false },
+                labelOptions:{ orientation:"", colorType:"blackwhite", scaleContent:false, rasterize:false }} },
         methods: {
             findPrinters: function() {
                 var vm = this;
@@ -40,9 +86,9 @@ if (window.qz && window.moqui) {
                         vm.printerList = data;
                         for (var i = 0; i < data.length; i++) {
                             var printerName = data[i]; var pnLower = printerName.toLowerCase(); var hasLabelKw = false;
-                            for (var j = 0; j < labelKeywords.length; j++) { if (pnLower.indexOf(labelKeywords[j]) !== -1) { hasLabelKw = true; } }
-                            if (!hasLabelKw && !vm.currentPrinter) vm.currentPrinter = printerName;
-                            if (hasLabelKw && !vm.currentLabelPrinter) vm.currentLabelPrinter = printerName;
+                            for (var j = 0; j < labelKeywords.length; j++) { if (pnLower.indexOf(labelKeywords[j]) !== -1) { hasLabelKw = true; break; } }
+                            if (!hasLabelKw && !vm.currentPrinter) vm.setPrinter(printerName);
+                            if (hasLabelKw && !vm.currentLabelPrinter) vm.setLabelPrinter(printerName);
                         }
                     }
                 }).catch(moqui.showQzError);
@@ -79,6 +125,8 @@ if (window.qz && window.moqui) {
                         vm.connectionState = "Active"; vm.connectionClass = 'text-success';
                         qz.api.getVersion().then(function(data) { vm.qzVersion = data; }).catch(moqui.showQzError);
                     }).catch(this.handleConnectionError);
+                } else {
+                    this.connectionState = "Active"; this.connectionClass = 'text-success';
                 }
             },
             endConnection: function () {
@@ -88,41 +136,77 @@ if (window.qz && window.moqui) {
                         vm.connectionState = "Inactive"; vm.connectionClass = 'text-muted';
                         vm.qzVersion = null;
                     }).catch(this.handleConnectionError);
+                } else {
+                    this.connectionState = "Inactive"; this.connectionClass = 'text-muted';
                 }
             }
         },
         computed: {
-            isReady: function () { return this.connectionState === 'Active' && (this.currentPrinter || this.currentLabelPrinter); },
-            readyStyleBtn: function () { return this.connectionState === 'Active' ? (this.currentPrinter || this.currentLabelPrinter ? "btn-success" : "btn-warning") : "btn-danger"; }
+            isMainReady: function () { return this.connectionState === 'Active' && this.currentPrinter; },
+            isLabelReady: function () { return this.connectionState === 'Active' && this.currentLabelPrinter; },
+            readyStyleBtn: function () { return this.connectionState === 'Active' ? (this.currentPrinter ? (this.currentLabelPrinter ? "btn-success" : "btn-primary") : (this.currentLabelPrinter ? "btn-info" : "btn-warning")) : "btn-danger"; }
         },
         mounted: function() {
+            var vm = this;
+
             $('#qz-print-modal-link').tooltip({ placement:'bottom', trigger:'hover' });
             this.startConnection();
-            // TODO: AJAX calls or something to get preferences: qz.printer.main.active, qz.printer.label.active
+
+            // AJAX call get preferences: qz.printer.main.active, qz.printer.label.active
+            $.ajax({ type:'GET', url:(this.$root.appRootPath + '/apps/getPreferences'), error:moqui.handleAjaxError,
+                data:{ keyRegexp:'qz\\.print.*' }, dataType:"json", success: function(prefMap) {
+                    var mainPrinter = prefMap["qz.printer.main.active"];
+                    if (mainPrinter && mainPrinter.length) vm.currentPrinter = mainPrinter;
+                    var labelPrinter = prefMap["qz.printer.label.active"];
+                    if (labelPrinter && labelPrinter.length) vm.currentLabelPrinter = labelPrinter;
+                } });
         }
-    };
+    });
     moqui.isQzActive = function() { return qz.websocket.isActive(); };
-    moqui.getQzMainConfig = function() {
-        // TODO
+    // NOTE useful options: jobName, copies, scaleContent, rasterize, rotation, etc; see https://qz.io/wiki/2.0-Pixel-Printing#advanced-printing
+    moqui.getQzConfig = function(printer, userOptions, jobOptions) {
+        var cfgOptions = { copies:1, jobName:null };
+        if (moqui.isPlainObject(userOptions)) cfgOptions = $.extend(cfgOptions, userOptions);
+        if (moqui.isPlainObject(jobOptions)) cfgOptions = $.extend(cfgOptions, jobOptions);
+        // console.log("Combined options " + JSON.stringify(cfgOptions));
+
+        var cfg = qz.configs.create(printer, cfgOptions);
+        cfg.reconfigure(cfgOptions);
+        console.log("QZ Config: " + JSON.stringify(cfg));
+        return cfg;
     };
-    moqui.getQzLabelConfig = function() {
-        // TODO
-    };
-    moqui.showQzError = function(error) { moqui.notifyGrowl({type:"danger", title:error}); };
-    moqui.printFile = function(config, urlOrData, type, format) {
+    moqui.getQzMainConfig = function(options) { return moqui.getQzConfig(moqui.webrootVue.$refs.qzVue.currentPrinter, moqui.webrootVue.$refs.qzVue.mainOptions, options); };
+    moqui.getQzLabelConfig = function(options) { return moqui.getQzConfig(moqui.webrootVue.$refs.qzVue.currentLabelPrinter, moqui.webrootVue.$refs.qzVue.labelOptions, options); };
+    moqui.showQzError = function(error) { console.log(error); moqui.notifyGrowl({type:"danger", title:error}); };
+
+    moqui.printUrlFile = function(config, url, type) {
+        console.log(config);
         if (!type || !type.length) type = "pdf";
+        console.log("type " + type + " URL " + url);
         if (!moqui.isQzActive()) {
             moqui.notifyGrowl({type:"warning", title:"Cannot print, QZ is not active"});
             console.warn("Tried to print type " + type + " at URL " + url + " but QZ is not active");
             return;
         }
-        var config = moqui.getQzConfig();
-        var printDataObj = { type:type, data:urlOrData };
-        if (format) printDataObj.format = format;
-        qz.print(config, [printDataObj]).catch(moqui.showQzError);
+        // pre-fetch the file, if we let QZ Tray do it the request won't be in the same session so there are authc/authz issues
+        var oReq = new XMLHttpRequest();
+        oReq.open("GET", url, true);
+        oReq.responseType = "blob";
+        oReq.onload = function(oEvent) {
+            var blob = oReq.response;
+            var reader = new FileReader();
+            reader.onloadend = function() {
+                var base64data = reader.result;
+                var base64Only = base64data.substr(base64data.indexOf(',')+1);
+                var printDataObj = { type:type, format:"base64", data:base64Only };
+                qz.print(config, [printDataObj]).catch(moqui.showQzError);
+            };
+            reader.readAsDataURL(blob);
+        };
+        oReq.send();
     };
-    moqui.printMain = function(urlOrData, type, format) { moqui.printFile(moqui.getQzMainConfig(), urlOrData, type, format); };
-    moqui.printLabel = function(urlOrData, type, format) { moqui.printFile(moqui.getQzLabelConfig(), urlOrData, type, format); };
+    moqui.printUrlMain = function(url, type) { moqui.printUrlFile(moqui.getQzMainConfig(), url, type); };
+    moqui.printUrlLabel = function(url, type) { moqui.printUrlFile(moqui.getQzLabelConfig(), url, type); };
 } else {
     console.info("Not creating QZ component, qz: " + window.qz + ", moqui: " + window.moqui)
 }
