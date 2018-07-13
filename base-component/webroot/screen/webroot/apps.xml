@@ -32,6 +32,11 @@ along with this software (see the LICENSE.md file). If not, see
         <actions><script>ec.web.sendJsonResponse(ec.user.getPreferences(keyRegexp))</script></actions>
         <default-response type="none"/>
     </transition>
+    <transition name="qzSign" read-only="true">
+        <parameter name="message"/>
+        <actions><script>ec.web.sendQzSignedResponse(message)</script></actions>
+        <default-response type="none"/>
+    </transition>
 
     <subscreens default-item="AppList"/>
 

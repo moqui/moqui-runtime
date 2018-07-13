@@ -1,4 +1,5 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
+/* To setup signatures: put qz-private-key.pem file on classpath AND add certificate hosted at path "/qz-tray/digital-certificate.txt" */
 if (window.qz && window.moqui) {
     console.info("Creating QZ component");
     moqui.qzVue = Vue.extend({
@@ -152,6 +153,16 @@ if (window.qz && window.moqui) {
             $('#qz-print-modal-link').tooltip({ placement:'bottom', trigger:'hover' });
             this.startConnection();
 
+            qz.security.setCertificatePromise(function(resolve, reject) {
+                $.ajax(vm.$root.appRootPath + "/qz-tray/digital-certificate.txt").then(resolve, reject);
+                //Alternate method: resolve(); OR resolve("---...---");
+            });
+            qz.security.setSignaturePromise(function(toSign) { return function(resolve, reject) {
+                // NOTE: using inline function that calls resolve() instead of using reject method, otherwise won't even show user warning and allow print/etc
+                $.ajax(vm.$root.appRootPath + '/apps/qzSign?message=' + toSign).then(resolve, function() { resolve(); });
+                // Alternate method - unsigned: resolve();
+            }; });
+
             // AJAX call get preferences: qz.printer.main.active, qz.printer.label.active
             $.ajax({ type:'GET', url:(this.$root.appRootPath + '/apps/getPreferences'), error:moqui.handleAjaxError,
                 data:{ keyRegexp:'qz\\.print.*' }, dataType:"json", success: function(prefMap) {
@@ -180,9 +191,9 @@ if (window.qz && window.moqui) {
     moqui.showQzError = function(error) { console.log(error); moqui.notifyGrowl({type:"danger", title:error}); };
 
     moqui.printUrlFile = function(config, url, type) {
-        console.log(config);
         if (!type || !type.length) type = "pdf";
-        console.log("type " + type + " URL " + url);
+        console.log("printing type " + type + " URL " + url);
+        console.log(config);
         if (!moqui.isQzActive()) {
             moqui.notifyGrowl({type:"warning", title:"Cannot print, QZ is not active"});
             console.warn("Tried to print type " + type + " at URL " + url + " but QZ is not active");
