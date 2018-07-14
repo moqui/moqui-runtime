@@ -1,5 +1,18 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
-/* To setup signatures: put qz-private-key.pem file on classpath AND add certificate hosted at path "/qz-tray/digital-certificate.txt" */
+/*
+You can get a key and certificate from QZ.io with a paid support agreement, or you can generate a single domain key for more restricted clients.
+
+Generate Key and Cert:
+$ openssl req -x509 -newkey rsa:2048 -keyout qz-private-key.pem -out digital-certificate.txt -days 11499 -nodes
+- NOTE: make sure 'Common Name' is hostname like *.moqui.org ('localhost' works for local testing)
+
+- add line to /opt/qz-tray/qz-tray.properties like: authcert.override=/opt/qz-tray/auth/digital-certificate.txt
+- kill current process then restart or: java -Xms512m -jar /opt/qz-tray/qz-tray.jar
+
+Add Files to Moqui:
+- put qz-private-key.pem file on classpath (like runtime/classes or <component>/classes)
+- add certificate hosted at path "/qz-tray/digital-certificate.txt" (in component use screen called qz-tray.xml and mount under webroot)
+*/
 if (window.qz && window.moqui) {
     console.info("Creating QZ component");
     moqui.qzVue = Vue.extend({
