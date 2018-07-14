@@ -1,7 +1,8 @@
 
-# downloaded lib files
+# downloaded lib, generated, etc files
 /base-component/webroot/screen/webroot/libs
 /base-component/webroot/screen/webroot/js/*.min.js
+/base-component/webroot/screen/webroot/qz-tray
 
 # runtime generated files
 /db/derby/moqui/
@@ -19,6 +20,7 @@
 /txlog/
 
 # common runtime added files
+/classes/*.pem
 /lib/*.jar
 /component/
 /ecomponent/
