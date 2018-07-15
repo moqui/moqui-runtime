@@ -31,6 +31,7 @@ if (window.qz && window.moqui) {
                         '</div><div class="col-xs-4 text-right">' +
                             '<button v-if="connectionState !== \'Active\'" type="button" class="btn btn-success btn-sm" @click="startConnection()">Connect</button>' +
                             '<button v-if="connectionState === \'Active\'" type="button" class="btn btn-warning btn-sm" @click="endConnection()">Disconnect</button>' +
+                            '<button v-if="connectionState === \'Inactive\' || connectionState === \'Error\'" type="button" class="btn btn-info btn-sm" @click="launchQZ()">Launch QZ</button>' +
                         '</div></div>' +
                         '<p v-if="connectionState !== \'Active\'">Don\'t have QZ Tray installed? <a href="https://qz.io/download/" target="_blank">Download from QZ.io</a></p>' +
                         '<div class="panel panel-default">' +
@@ -128,6 +129,12 @@ if (window.qz && window.moqui) {
                     }
                 } else {
                     moqui.notifyGrowl({type:"danger", title:err});
+                }
+            },
+            launchQZ: function () {
+                if (!qz.websocket.isActive()) {
+                    window.location.assign("qz:launch");
+                    this.startConnection();
                 }
             },
             startConnection: function () {
