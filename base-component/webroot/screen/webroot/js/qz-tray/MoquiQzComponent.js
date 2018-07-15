@@ -204,6 +204,7 @@ if (window.qz && window.moqui) {
     moqui.showQzError = function(error) { console.log(error); moqui.notifyGrowl({type:"danger", title:error}); };
 
     moqui.printUrlFile = function(config, url, type) {
+        if (!url || !url.length) { console.warn("Called printUrlFile with no url array or string, printing nothing"); return; }
         if (!type || !type.length) type = "pdf";
         console.log("printing type " + type + " URL " + url);
         console.log(config);
@@ -212,9 +213,17 @@ if (window.qz && window.moqui) {
             console.warn("Tried to print type " + type + " at URL " + url + " but QZ is not active");
             return;
         }
+
+        var urlArray = moqui.isArray(url) ? url : [url];
+        moqui.internalChainPrintFile(config, type, urlArray, 0);
+    };
+    moqui.internalChainPrintFile = function(config, type, urlArray, urlIndex) {
+        if (!urlIndex) urlIndex = 0;
+        if (urlIndex >= urlArray.length) return;
+        var curUrl = urlArray[urlIndex];
         // pre-fetch the file, if we let QZ Tray do it the request won't be in the same session so there are authc/authz issues
         var oReq = new XMLHttpRequest();
-        oReq.open("GET", url, true);
+        oReq.open("GET", curUrl, true);
         oReq.responseType = "blob";
         oReq.onload = function(oEvent) {
             var blob = oReq.response;
@@ -223,7 +232,10 @@ if (window.qz && window.moqui) {
                 var base64data = reader.result;
                 var base64Only = base64data.substr(base64data.indexOf(',')+1);
                 var printDataObj = { type:type, format:"base64", data:base64Only };
-                qz.print(config, [printDataObj]).catch(moqui.showQzError);
+                qz.print(config, [printDataObj]).catch(moqui.showQzError).then(function () {
+                    var nextIndex = urlIndex + 1;
+                    if (nextIndex < urlArray.length) { moqui.internalChainPrintFile(config, type, urlArray, nextIndex); }
+                });
             };
             reader.readAsDataURL(blob);
         };
