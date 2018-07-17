@@ -1420,8 +1420,6 @@ moqui.webrootVue = new Vue({
         this.setUrl(window.location.pathname + window.location.search);
         // init the NotificationClient and register 'displayNotify' as the default listener
         this.notificationClient.registerListener("ALL");
-        // set the qzVue component if present
-        if (moqui.qzVue) this.qzVue = moqui.qzVue;
 
         $("#screen-document-dialog").on("hidden.bs.modal", function () { var jqEl = $("#screen-document-dialog-body");
                 jqEl.empty(); jqEl.append('<div class="spinner"><div>Loading…</div></div>'); });

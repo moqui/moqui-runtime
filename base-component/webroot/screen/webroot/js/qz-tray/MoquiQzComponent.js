@@ -13,9 +13,9 @@ Add Files to Moqui:
 - put qz-private-key.pem file on classpath (like runtime/classes or <component>/classes)
 - add certificate hosted at path "/qz-tray/digital-certificate.txt" (in component use screen called qz-tray.xml and mount under webroot)
 */
-if (window.qz && window.moqui) {
+if (window.qz && window.moqui && moqui.webrootVue) {
     console.info("Creating QZ component");
-    moqui.qzVue = Vue.extend({
+    moqui.webrootVue.qzVue = Vue.extend({
         template:
         '<span>' +
             '<button id="qz-print-modal-link" type="button" class="btn btn-sm navbar-btn navbar-right" :class="readyStyleBtn" data-toggle="modal" data-target="#qz-print-modal" title="Print Options"><i class="glyphicon glyphicon-print"></i></button>' +
@@ -193,6 +193,7 @@ if (window.qz && window.moqui) {
                 } });
         }
     });
+
     moqui.isQzActive = function() { return qz.websocket.isActive(); };
     // NOTE useful options: jobName, copies, scaleContent, rasterize, rotation, etc; see https://qz.io/wiki/2.0-Pixel-Printing#advanced-printing
     moqui.getQzConfig = function(printer, userOptions, jobOptions) {

@@ -30,13 +30,6 @@ along with this software (see the LICENSE.md file). If not, see
         if (validateScriptsOut.messagesLocation) html_scripts.add(validateScriptsOut.messagesLocation)
         if (validateScriptsOut.methodsLocation) html_scripts.add(validateScriptsOut.methodsLocation)
 
-        // conditional QZ Tray scripts, only include if enabled
-        if (ec.user.getPreference("qz.print.enabled") == "true") {
-            footer_scripts.add('/js/qz-tray/sha-256.min.js')
-            footer_scripts.add('/js/qz-tray/qz-tray.min.js')
-            footer_scripts.add('/js/qz-tray/MoquiQzComponent.js')
-        }
-
         String instancePurpose = System.getProperty("instance_purpose")
         if (!instancePurpose || instancePurpose == 'production') {
             /* ========== Production Mode ========== */
@@ -44,9 +37,16 @@ along with this software (see the LICENSE.md file). If not, see
         } else {
             /* ========== Dev Mode ========== */
             // Vue JS
-            html_scripts.add('/libs/vue/vue.js')
-            // Vue instance, in footer so runs after page loaded
+            footer_scripts.add('/libs/vue/vue.js')
+            // Webroot Vue instance, in footer so runs after page loaded
             footer_scripts.add('/js/WebrootVue.js')
+        }
+
+        // conditional QZ Tray scripts, only include if enabled
+        if (ec.user.getPreference("qz.print.enabled") == "true") {
+            footer_scripts.add('/js/qz-tray/sha-256.min.js')
+            footer_scripts.add('/js/qz-tray/qz-tray.min.js')
+            footer_scripts.add('/js/qz-tray/MoquiQzComponent.js')
         }
     ]]></script></pre-actions>
 
