@@ -116,10 +116,11 @@ along with this software (see the LICENSE.md file). If not, see
     <#list .node["text"] as textNode><#if textNode["@type"]?has_content && textNode["@type"]?split(",")?seq_contains(sri.getRenderMode())><#local textToUse = textNode></#if></#list>
     <#if textToUse??>
         <#if textToUse["@location"]?has_content>
-    <#if sri.doBoundaryComments() && !(textToUse["@no-boundary-comment"]! == "true")><!-- BEGIN render-mode.text[@location=${textToUse["@location"]}][@template=${textToUse["@template"]!"true"}] --></#if>
-    <#-- NOTE: this still won't encode templates that are rendered to the writer -->
-    <#lt><#if .node["@encode"]! == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else>${sri.renderText(textToUse["@location"], textToUse["@template"]!)}</#if>
-    <#if sri.doBoundaryComments()><!-- END   render-mode.text[@location=${textToUse["@location"]}][@template=${textToUse["@template"]!"true"}] --></#if>
+          <#assign textLocation = ec.getResource().expandNoL10n(textToUse["@location"], "")>
+          <#if sri.doBoundaryComments() && !(textToUse["@no-boundary-comment"]! == "true")><!-- BEGIN render-mode.text[@location=${textLocation}][@template=${textToUse["@template"]!"true"}] --></#if>
+          <#-- NOTE: this still won't encode templates that are rendered to the writer -->
+          <#lt><#if .node["@encode"]! == "true">${sri.renderText(textLocation, textToUse["@template"]!)?html}<#else>${sri.renderText(textLocation, textToUse["@template"]!)}</#if>
+          <#if sri.doBoundaryComments()><!-- END   render-mode.text[@location=${textLocation}][@template=${textToUse["@template"]!"true"}] --></#if>
         </#if>
         <#assign inlineTemplateSource = textToUse?string/>
         <#if inlineTemplateSource?has_content>
