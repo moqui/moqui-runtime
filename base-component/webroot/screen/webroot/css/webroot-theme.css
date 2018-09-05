@@ -74,8 +74,12 @@ label.is-changed { text-decoration: underline; text-decoration-color: #0097cf; t
 
 ul.float-box li { background: #EEEEEE; box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 0 1px #CCCCCC;
     -webkit-box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 0 1px #CCCCCC; }
-.bg-dark ul.float-box li { background: #333; box-shadow: 0 0 0 1px #080808 inset, 0 0 0 1px #333;
+ul.float-box li.active { box-shadow: 0 0 0 1px #337ab7 inset, 0 0 0 1px #CCCCCC;
+    -webkit-box-shadow: 0 0 0 1px #337ab7 inset, 0 0 0 1px #CCCCCC; }
+.bg-dark ul.float-box li { background: #333; box-shadow: 0 0 0 1px #337ab7 inset, 0 0 0 1px #333;
     -webkit-box-shadow: 0 0 0 1px #080808 inset, 0 0 0 1px #333; }
+.bg-dark ul.float-box li.active { box-shadow: 0 0 0 1px #080808 inset, 0 0 0 1px #333;
+    -webkit-box-shadow: 0 0 0 1px #337ab7 inset, 0 0 0 1px #333; }
 
 .bg-light .shaded-area { background: #EEE; box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 0 1px #CCC;
     -webkit-box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 0 1px #CCC; }
