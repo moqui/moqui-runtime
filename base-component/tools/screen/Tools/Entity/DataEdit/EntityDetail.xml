@@ -42,6 +42,7 @@ along with this software (see the LICENSE.md file). If not, see
                 if (rules) secas.addAll(rules)
             }
         ]]></script>
+        <set field="entityDescription" from="entityNode.first('description')?.text"/>
     </actions>
     <widgets>
         <container>
@@ -51,19 +52,20 @@ along with this software (see the LICENSE.md file). If not, see
         </container>
         <container><label text="Entity Detail for '${entityDefinition.fullEntityName}'" type="h3"/></container>
         <container-row>
-            <row-col md="3" lg="3"><label text="View Entity? ${entityDefinition.isViewEntity}" type="strong"/></row-col>
-            <row-col md="3" lg="3"><label text="Short Alias: ${entityInfo.shortAlias ?: 'N/A'}" type="strong"/></row-col>
-            <row-col md="3" lg="3"><label text="Table Name: ${entityInfo.fullTableName ?: 'N/A'}" type="strong"/></row-col>
-            <row-col md="3" lg="3"><label text="Entity Group: ${entityNode.attribute('group-name') ?: '(default)'}" type="strong"/></row-col>
+            <row-col md="3"><label text="View Entity? ${entityDefinition.isViewEntity}" type="strong"/></row-col>
+            <row-col md="3"><label text="Short Alias: ${entityInfo.shortAlias ?: 'N/A'}" type="strong"/></row-col>
+            <row-col md="3"><label text="Table Name: ${entityInfo.fullTableName ?: 'N/A'}" type="strong"/></row-col>
+            <row-col md="3"><label text="Entity Group: ${entityNode.attribute('group-name') ?: '(default)'}" type="strong"/></row-col>
         </container-row>
         <container-row>
-            <row-col md="3" lg="3"><label text="Needs Encrypt? ${entityInfo.needsEncrypt}" type="strong"/></row-col>
-            <row-col md="3" lg="3"><label text="Create Only? ${entityInfo.createOnly}" type="strong"/></row-col>
+            <row-col md="3"><label text="Needs Encrypt? ${entityInfo.needsEncrypt}" type="strong"/></row-col>
+            <row-col md="3"><label text="Create Only? ${entityInfo.createOnly}" type="strong"/></row-col>
         </container-row>
         <container-row>
-            <row-col md="3" lg="3"><label text="Needs Audit Log? ${entityInfo.needsAuditLog}" type="strong"/></row-col>
-            <row-col md="3" lg="3"><label text="Entity Audit Default: ${entityNode.attribute('enable-audit-log') ?: 'false'}" type="strong"/></row-col>
+            <row-col md="3"><label text="Needs Audit Log? ${entityInfo.needsAuditLog}" type="strong"/></row-col>
+            <row-col md="3"><label text="Entity Audit Default: ${entityNode.attribute('enable-audit-log') ?: 'false'}" type="strong"/></row-col>
         </container-row>
+        <label text="${entityDescription}" condition="entityDescription"/>
 
         <form-list name="FieldList" list="fieldInfos" list-entry="fieldInfo">
             <field name="fieldName" from="fieldInfo.name"><default-field><display/></default-field></field>
@@ -74,6 +76,7 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="encrypt" from="fieldInfo.encrypt"><default-field><display/></default-field></field>
             <field name="localize" from="fieldInfo.enableLocalization"><default-field><display/></default-field></field>
             <field name="default" from="fieldInfo.defaultStr"><default-field><display/></default-field></field>
+            <field name="description" from="fieldInfo.fieldNode.first('description')?.text ?: ''"><default-field><display/></default-field></field>
         </form-list>
         <form-list name="RelatedEntities" list="relationshipInfoList" list-entry="relInfo">
             <field name="prettyName"><default-field><display/></default-field></field>
