@@ -38,6 +38,11 @@ along with this software (see the LICENSE.md file). If not, see
                 <header-field title="Group ID" show-order-by="true"><text-find size="10" hide-options="true"/></header-field>
                 <default-field><link text="${userGroupId}" url="userGroupDetail" link-type="anchor"/></default-field>
             </field>
+            <field name="groupTypeEnumId">
+                <header-field title="Group Type" show-order-by="true"><widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
+                    <set field="enumTypeId" value="UserGroupType"/><set field="allowEmpty" value="true"/></widget-template-include></header-field>
+                <default-field><display-entity entity-name="moqui.basic.Enumeration"/></default-field>
+            </field>
             <field name="description">
                 <header-field show-order-by="true"><text-find size="20" hide-options="true"/></header-field>
                 <default-field><display/></default-field>
