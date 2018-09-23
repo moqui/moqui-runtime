@@ -73,6 +73,8 @@ along with this software (see the LICENSE.md file). If not, see
                     <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
                         <set field="enumTypeId" value="UserGroupType"/><set field="allowEmpty" value="true"/></widget-template-include>
                 </default-field></field>
+                <field name="ipAllowed"><default-field title="IPs Allowed" tooltip="Comma separated IP4 patterns, each may use '*' for wildcard or '-' separated min/max numbers">
+                    <text-line size="80"/></default-field></field>
 
                 <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
             </form-single>
