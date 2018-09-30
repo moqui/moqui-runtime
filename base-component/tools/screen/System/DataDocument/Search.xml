@@ -38,7 +38,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </drop-down>
             </default-field></field>
             <field name="queryString"><default-field title="">
-                <text-line size="40"/>
+                <text-line size="100"/>
                 <!-- TODO: at some point impl this, once we figure out how to get suggest results from ElasticSearch:
                     <text-line ac-transition="searchSuggest" ac-min-length="3" size="40"/> -->
             </default-field></field>
