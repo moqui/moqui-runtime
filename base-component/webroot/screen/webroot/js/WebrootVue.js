@@ -71,8 +71,7 @@ moqui.searchToObj = function(search) {
     }
     return newParams;
 };
-moqui.decodeHtml = function(html) { var txt = document.createElement("textarea"); txt.innerHTML = html; return txt.value; };
-Vue.filter('decodeHtml', moqui.decodeHtml);
+Vue.filter('decodeHtml', moqui.htmlDecode);
 moqui.format = function(value, format, type) {
     // console.log('format ' + value + ' with ' + format + ' of type ' + type);
     // number formatting: http://numeraljs.com/ https://github.com/andrewgp/jsNumberFormatter http://www.asual.com/jquery/format/
@@ -154,16 +153,16 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
                 var messageItem = messages[mi];
                 if (moqui.isPlainObject(messageItem)) {
                     var msgType = messageItem.type; if (!msgType || !msgType.length) msgType = 'info';
-                    $.notify({message:messageItem.message}, $.extend({}, moqui.notifyOptsInfo, { type:msgType }));
+                    $.notify(new moqui.NotifyOptions(messageItem.message, null, msgType, null), $.extend({}, moqui.notifyOptsInfo, { type:msgType }));
                     moqui.webrootVue.addNotify(messageItem.message, msgType);
                 } else {
-                    $.notify({message:messageItem}, moqui.notifyOptsInfo);
+                    $.notify(new moqui.NotifyOptions(messageItem, null, 'info', null), moqui.notifyOptsInfo);
                     moqui.webrootVue.addNotify(messageItem, 'info');
                 }
                 notified = true;
             }
         } else {
-            $.notify({message:messages}, moqui.notifyOptsInfo);
+            $.notify(new moqui.NotifyOptions(messages, null, 'info', null), moqui.notifyOptsInfo);
             moqui.webrootVue.addNotify(messages, 'info');
             notified = true;
         }
@@ -171,12 +170,12 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
     if (errors) {
         if (moqui.isArray(errors)) {
             for (var ei=0; ei < errors.length; ei++) {
-                $.notify({message:errors[ei]}, moqui.notifyOptsError);
+                $.notify(new moqui.NotifyOptions(errors[ei], null, 'info', null), moqui.notifyOptsError);
                 moqui.webrootVue.addNotify(errors[ei], 'danger');
                 notified = true;
             }
         } else {
-            $.notify({message:errors}, moqui.notifyOptsError);
+            $.notify(new moqui.NotifyOptions(errors, null, 'info', null), moqui.notifyOptsError);
             moqui.webrootVue.addNotify(errors, 'danger');
             notified = true;
         }
@@ -194,7 +193,7 @@ moqui.notifyValidationError = function(valError) {
         message = valError.message;
         if (valError.fieldPretty && valError.fieldPretty.length) message = message + " (for field " + valError.fieldPretty + ")";
     }
-    $.notify({message:message}, moqui.notifyOptsError);
+    $.notify(new moqui.NotifyOptions(message, null, 'info', null), moqui.notifyOptsError);
     moqui.webrootVue.addNotify(message, 'danger');
 
 };
@@ -209,11 +208,12 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     else if (resp && moqui.isString(resp) && resp.length) { notified = moqui.notifyMessages(resp); }
 
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
-    if (jqXHR.status === 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); }
+    if (jqXHR.status === 401) {
+        if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); }
     } else if (jqXHR.status === 0) { if (errorThrown.indexOf('abort') < 0) { var msg = 'Could not connect to server';
-        $.notify({ message:msg }, moqui.notifyOptsError); moqui.webrootVue.addNotify(msg, 'danger'); }
+        $.notify(new moqui.NotifyOptions(msg, null, 'danger', null), moqui.notifyOptsError); moqui.webrootVue.addNotify(msg, 'danger'); }
     } else if (!notified) { var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
-        $.notify({ message:errMsg }, moqui.notifyOptsError); moqui.webrootVue.addNotify(errMsg, 'danger');
+        $.notify(new moqui.NotifyOptions(errMsg, null, 'danger', null), moqui.notifyOptsError); moqui.webrootVue.addNotify(errMsg, 'danger');
     }
 };
 
@@ -574,10 +574,10 @@ Vue.component('m-form', {
             if (subMsg && subMsg.length) {
                 var responseText = resp; // this is set for backward compatibility in case message relies on responseText as in old JS
                 var message = eval('"' + subMsg + '"');
-                $.notify({ message:message }, moqui.notifyOpts);
+                $.notify(new moqui.NotifyOptions(message, null, 'success', null), moqui.notifyOpts);
                 moqui.webrootVue.addNotify(message, 'success');
             } else if (!notified) {
-                $.notify({ message:"Form data saved" }, moqui.notifyOpts);
+                $.notify(new moqui.NotifyOptions("Submit successful", null, 'success', null), moqui.notifyOpts);
             }
         },
         fieldChange: function (evt) {
