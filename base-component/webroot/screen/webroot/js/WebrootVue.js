@@ -783,7 +783,7 @@ Vue.component('form-list', {
         '<form-link v-if="!skipHeader && headerForm && !headerDialog" :name="idVal+\'_header\'" :id="idVal+\'_header\'" :action="$root.currentLinkPath">' +
             '<input v-if="searchObj && searchObj.orderByField" type="hidden" name="orderByField" :value="searchObj.orderByField">' +
             '<slot name="headerForm"  :search="searchObj"></slot></form-link>' +
-        '<table class="table table-striped table-hover table-condensed" :id="idVal+\'_table\'"><thead>' +
+        '<div class="table-scroll-wrapper"><table class="table table-striped table-hover table-condensed" :id="idVal+\'_table\'"><thead>' +
             '<tr class="form-list-nav-row"><th :colspan="columns?columns:\'100\'"><nav class="form-list-nav">' +
                 '<button v-if="savedFinds || headerDialog" :id="idVal+\'_hdialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_hdialog\'" data-original-title="Find Options" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Find Options</button>' +
                 '<button v-if="selectColumns" :id="idVal+\'_SelColsDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_SelColsDialog\'" data-original-title="Columns" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Columns</button>' +
@@ -796,7 +796,7 @@ Vue.component('form-list', {
             '</nav></th></tr>' +
             '<slot name="header" :search="searchObj"></slot>' +
         '</thead><tbody><tr v-for="(fields, rowIndex) in rowList"><slot name="row" :fields="fields" :row-index="rowIndex" :moqui="moqui"></slot></tr>' +
-        '</tbody></table>' +
+        '</tbody></table></div>' +
     '</div>',
     computed: {
         idVal: function() { if (this.id && this.id.length > 0) { return this.id; } else { return this.name; } },

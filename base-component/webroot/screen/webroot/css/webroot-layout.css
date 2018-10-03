@@ -88,6 +88,7 @@ td span.form-display { display: inline-block; width: 100%; }
 td .Long, td .Double, td .Float, td .Integer { text-align: center; }
 td .BigDecimal, td .currency { text-align: right; }
 
+.table-scroll-wrapper { overflow-x: auto; overflow-y: visible; }
 .table-condensed .form-group { margin-bottom: 0; }
 td.form-list-sub-row-cell { padding: 0 !important; }
 .form-list-sub-rows { margin-left: 23px; padding-left: 8px; border-left: 1px dashed #8c8c8c; }
