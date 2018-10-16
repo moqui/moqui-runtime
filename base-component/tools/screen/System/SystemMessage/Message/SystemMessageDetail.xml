@@ -22,8 +22,9 @@ along with this software (see the LICENSE.md file). If not, see
 
     <transition name="sendMessage"><service-call name="org.moqui.impl.SystemMessageServices.send#ProducedSystemMessage"/>
         <default-response url="."/></transition>
-    <transition name="consumeMessage" begin-transaction="false">
-        <service-call name="org.moqui.impl.SystemMessageServices.consume#ReceivedSystemMessage"/>
+    <transition name="consumeMessage">
+        <service-call name="org.moqui.impl.SystemMessageServices.consume#ReceivedSystemMessage" async="true"/>
+        <actions><message>Consume started in background</message></actions>
         <default-response url="."/>
     </transition>
     <transition name="queueAckMessage"><service-call name="org.moqui.impl.SystemMessageServices.queue#AckSystemMessage"/>
