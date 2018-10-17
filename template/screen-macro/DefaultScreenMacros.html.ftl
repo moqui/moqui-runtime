@@ -1301,7 +1301,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#assign curUrlInstance = sri.getCurrentScreenUrl()>
                     <form name="${headerFormId}" id="${headerFormId}" method="post" action="${curUrlInstance.url}">
                         <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
-                        <button id="quickClear_button" type="submit" name="clearParameters" style="float:left; padding: 0px 5px 0px 4px; margin-top: 1px;" class="btn btn-primary btn-sm"><i class="fa fa-remove"></i></button>
+                        <button id="${headerFormId}-quick-clear" type="submit" name="clearParameters" style="float:left; padding: 0 5px 0 5px; margin: 0 4px 0 0;" class="btn btn-primary btn-sm"><i class="fa fa-remove"></i></button>
                     </form>
                 </#if>
             </th></tr>
