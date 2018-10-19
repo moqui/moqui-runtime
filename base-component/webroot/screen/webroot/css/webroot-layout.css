@@ -75,7 +75,10 @@ td span.form-display { display: inline-block; width: 100%; }
 td .Long, td .Double, td .Float, td .Integer { text-align: center; }
 td .BigDecimal, td .currency { text-align: right; }
 
-.table-scroll-wrapper { overflow-x: auto; overflow-y: visible; }
+/* by CSS spec either x or y not visible changes the visible to auto, this breaks bootstrap-datetimepicker, select2 still works:
+.table-scroll-wrapper { overflow-x: auto; overflow-y: visible; } */
+/* this fixes bootstrap-datetimepicker but causes horizontal scroll bar to overlap elements below, and for some reason breaks find screens like FindOrder
+.table-scroll-wrapper { overflow-x: auto; overflow-y: visible; padding-bottom: 300px; margin-bottom: -300px; padding-top: 300px; margin-top: -300px; } */
 .table-condensed .form-group { margin-bottom: 0; }
 td.form-list-sub-row-cell { padding: 0 !important; }
 .form-list-sub-rows { margin-left: 23px; padding-left: 8px; border-left: 1px dashed #8c8c8c; }
