@@ -107,7 +107,7 @@ along with this software (see the LICENSE.md file). If not, see
             </form-single>
         </container-dialog>
         <link url="dropForeignKeys" text="Drop FKs" confirmation="Really drop all known foreign keys?"/>
-        <link url="createForeignKeys" text="Create FKs" confirmation="Really create all foreign keys?"/>
+        <link url="createForeignKeys" text="Create FKs" confirmation="Really create all missing foreign keys?"/>
 
         <label text="Current Snapshot Files" type="h4"/>
         <section-iterate name="SnapshotListSection" list="snapshotList" entry="sfile"><widgets>
