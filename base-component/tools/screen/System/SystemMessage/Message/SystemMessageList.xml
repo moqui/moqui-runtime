@@ -35,9 +35,6 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/></transition>
 
     <actions>
-        <entity-find entity-name="moqui.service.message.SystemMessage" list="smList">
-            <search-form-inputs default-order-by="initDate"/></entity-find>
-
         <entity-find-count entity-name="moqui.service.message.SystemMessage" count-field="outgoingCount">
             <econdition field-name="statusId" value="SmsgProduced"/>
             <econdition field-name="isOutgoing" value="Y"/>
@@ -96,6 +93,12 @@ along with this software (see the LICENSE.md file). If not, see
         </container-row>
 
         <form-list name="SystemMessageList" list="smList" skip-form="true" header-dialog="true" select-columns="true" saved-finds="true">
+            <entity-find entity-name="moqui.service.message.SystemMessage" list="smList">
+                <search-form-inputs default-order-by="initDate">
+                    <default-parameters statusId="SmsgProduced,SmsgReceived,SmsgError" statusId_op="in" initDate_poffset="-1" initDate_period="30d"/>
+                </search-form-inputs>
+            </entity-find>
+
             <field name="systemMessageId">
                 <header-field title="ID" show-order-by="true"><text-find hide-options="true" size="8"/></header-field>
                 <default-field><link text="${systemMessageId}" url="messageDetail" link-type="anchor"/></default-field>
@@ -106,40 +109,54 @@ along with this software (see the LICENSE.md file). If not, see
             </field>
 
             <field name="statusId">
-                <header-field title="Status">
-                    <drop-down allow-empty="true">
-                        <entity-options key="${statusId}" text="${description}">
-                            <entity-find entity-name="moqui.basic.StatusItem">
-                                <econdition field-name="statusTypeId" value="SystemMessage"/>
-                                <order-by field-name="description"/></entity-find>
-                        </entity-options>
-                    </drop-down>
-                </header-field>
+                <header-field title="Status"><drop-down allow-multiple="true">
+                    <entity-options key="${statusId}" text="${description}">
+                        <entity-find entity-name="moqui.basic.StatusItem">
+                            <econdition field-name="statusTypeId" value="SystemMessage"/>
+                            <order-by field-name="description"/></entity-find>
+                    </entity-options>
+                </drop-down></header-field>
                 <default-field><display-entity entity-name="moqui.basic.StatusItem"/></default-field>
             </field>
-            <field name="initDate">
-                <header-field show-order-by="true"><date-period allow-empty="true"/></header-field>
-                <default-field><display/></default-field>
-            </field>
-            <field name="processedDate">
-                <header-field show-order-by="true"><date-period allow-empty="true"/></header-field>
-                <default-field><display/></default-field>
-            </field>
-            <field name="lastAttemptDate">
-                <header-field show-order-by="true"><date-period allow-empty="true"/></header-field>
-                <default-field><display/></default-field>
-            </field>
-            <field name="failCount">
-                <header-field show-order-by="true"><range-find size="3"/></header-field>
-                <default-field><display/></default-field>
-            </field>
-
             <field name="isOutgoing">
                 <header-field>
                     <drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down>
                 </header-field>
                 <default-field><display/></default-field>
             </field>
+
+            <field name="systemMessageTypeId">
+                <header-field title="Type"><drop-down allow-empty="true">
+                    <entity-options key="${systemMessageTypeId}" text="${description?:''} [${systemMessageTypeId}]">
+                        <entity-find entity-name="moqui.service.message.SystemMessageType">
+                            <order-by field-name="description,systemMessageTypeId"/></entity-find>
+                    </entity-options>
+                </drop-down></header-field>
+                <default-field><display-entity entity-name="moqui.service.message.SystemMessageType"
+                        text="${systemMessageTypeId}: ${description?:''}"/></default-field>
+            </field>
+            <field name="systemMessageRemoteId">
+                <header-field title="Remote">
+                    <drop-down allow-empty="true">
+                        <entity-options key="${systemMessageRemoteId}" text="${description?:''} [${systemMessageRemoteId}]">
+                            <entity-find entity-name="moqui.service.message.SystemMessageRemote">
+                                <order-by field-name="description,systemMessageRemoteId"/></entity-find>
+                        </entity-options>
+                    </drop-down>
+                </header-field>
+                <default-field><display-entity entity-name="moqui.service.message.SystemMessageRemote"
+                        text="${systemMessageRemoteId}: ${description?:''}"/></default-field>
+            </field>
+
+
+            <field name="initDate"><header-field show-order-by="true"><date-period/></header-field>
+                <default-field><display/></default-field></field>
+            <field name="processedDate"><header-field show-order-by="true"><date-period/></header-field>
+                <default-field><display/></default-field></field>
+            <field name="lastAttemptDate"><header-field show-order-by="true"><date-period/></header-field>
+                <default-field><display/></default-field></field>
+            <field name="failCount"><header-field show-order-by="true"><range-find size="3"/></header-field>
+                <default-field><display/></default-field></field>
 
             <field name="senderId">
                 <header-field show-order-by="true"><text-find hide-options="true" size="8"/></header-field>
@@ -171,31 +188,6 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><display/></default-field>
             </field>
 
-            <field name="systemMessageTypeId">
-                <header-field title="Type">
-                    <drop-down allow-empty="true">
-                        <entity-options key="${systemMessageTypeId}" text="${description?:''} [${systemMessageTypeId}]">
-                            <entity-find entity-name="moqui.service.message.SystemMessageType">
-                                <order-by field-name="description,systemMessageTypeId"/></entity-find>
-                        </entity-options>
-                    </drop-down>
-                </header-field>
-                <default-field><display-entity entity-name="moqui.service.message.SystemMessageType"
-                        text="${description?:''} [${systemMessageTypeId}]"/></default-field>
-            </field>
-            <field name="systemMessageRemoteId">
-                <header-field title="Remote">
-                    <drop-down allow-empty="true">
-                        <entity-options key="${systemMessageRemoteId}" text="${description?:''} [${systemMessageRemoteId}]">
-                            <entity-find entity-name="moqui.service.message.SystemMessageRemote">
-                                <order-by field-name="description,systemMessageRemoteId"/></entity-find>
-                        </entity-options>
-                    </drop-down>
-                </header-field>
-                <default-field><display-entity entity-name="moqui.service.message.SystemMessageRemote"
-                        text="${description?:''} [${systemMessageRemoteId}]"/></default-field>
-            </field>
-
             <field name="find">
                 <header-field title="Find"><submit/></header-field>
                 <conditional-field condition="isOutgoing == 'Y' &amp;&amp; (statusId == 'SmsgProduced' || statusId == 'SmsgError')">
@@ -208,9 +200,9 @@ along with this software (see the LICENSE.md file). If not, see
             
             <form-list-column><field-ref name="systemMessageId"/><field-ref name="remoteMessageId"/></form-list-column>
             <form-list-column><field-ref name="statusId"/><field-ref name="isOutgoing"/></form-list-column>
+            <form-list-column><field-ref name="systemMessageTypeId"/><field-ref name="systemMessageRemoteId"/></form-list-column>
             <form-list-column><field-ref name="initDate"/><field-ref name="processedDate"/></form-list-column>
             <form-list-column><field-ref name="lastAttemptDate"/><field-ref name="failCount"/></form-list-column>
-            <form-list-column><field-ref name="systemMessageTypeId"/><field-ref name="systemMessageRemoteId"/></form-list-column>
             <form-list-column><field-ref name="senderId"/><field-ref name="receiverId"/></form-list-column>
             <form-list-column><field-ref name="messageId"/><field-ref name="messageDate"/></form-list-column>
             <form-list-column><field-ref name="docType"/><field-ref name="docSubType"/><field-ref name="docVersion"/></form-list-column>
