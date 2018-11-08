@@ -56,7 +56,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="../DataDocument/Edit" text="Edit and Report Builder"/>
             </box-body></container-box>
             <container-box><box-header><label text="Data Admin" type="h5"/></box-header><box-body>
-                <link url="../Localization" text="Localization"/>
+                <link url="../Localization/Messages" text="L10n: Messages"/>
+                <link url="../Localization/EntityFields" text="L10n: Entity Fields"/>
                 <link url="../Resource" text="Resource Finder"/>
             </box-body></container-box>
             <container-box><box-header><label text="Integration Admin" type="h5"/></box-header><box-body>
