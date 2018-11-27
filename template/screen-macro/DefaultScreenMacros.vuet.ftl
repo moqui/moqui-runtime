@@ -765,8 +765,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if currentFindUrlParms?has_content><#list currentFindUrlParms.keySet() as parmName>
                     <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
                 </#list></#if>
-                <input type="submit" name="SaveColumns" value="${ec.getL10n().localize("Save Columns")}" class="btn btn-primary btn-sm"/>
-                <input type="submit" name="ResetColumns" value="${ec.getL10n().localize("Reset to Default")}" class="btn btn-primary btn-sm"/>
+                <input type="submit" name="SaveColumns" value="${ec.getL10n().localize("Save Columns")}" class="btn btn-success btn-sm"/>
+                <input type="submit" name="ResetColumns" value="${ec.getL10n().localize("Reset to Default")}" class="btn btn-danger btn-sm"/>
             </m-form>
         </container-dialog>
         <m-script>$('#${selectColumnsDialogId}').on('shown.bs.modal', function() {
