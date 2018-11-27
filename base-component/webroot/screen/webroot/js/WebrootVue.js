@@ -371,7 +371,7 @@ Vue.component('container-dialog', {
         jqEl.on("shown.bs.modal", function() { vm.isHidden = false;
             jqEl.find(":not(.noResetSelect2)>select:not(.noResetSelect2)").select2({ });
             var defFocus = jqEl.find(".default-focus");
-            if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
+            if (defFocus.length) { defFocus.focus(); } else { jqEl.find("form :input:visible:not([type='submit']):first").focus(); }
         });
         if (this.openDialog) { jqEl.modal('show'); }
     }
@@ -510,7 +510,7 @@ Vue.component('m-editable', {
 Vue.component('m-form', {
     props: { action:{type:String,required:true}, method:{type:String,'default':'POST'},
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean },
-    data: function() { return { fields:{}, fieldsChanged:{} }},
+    data: function() { return { fields:{}, fieldsChanged:{}, buttonClicked:null }},
     template: '<form @submit.prevent="submitForm"><slot></slot></form>',
     methods: {
         submitForm: function submitForm() {
@@ -518,7 +518,7 @@ Vue.component('m-form', {
             if (this.noValidate || jqEl.valid()) {
                 // get button pressed value and disable ASAP to avoid double submit
                 var btnName = null, btnValue = null;
-                var $btn = $(document.activeElement);
+                var $btn = $(this.buttonClicked || document.activeElement);
                 if ($btn.length && jqEl.has($btn) && $btn.is('button[type="submit"], input[type="submit"], input[type="image"]')) {
                     if ($btn.is('[name]')) { btnName = $btn.attr('name'); btnValue = $btn.val(); }
                     $btn.prop('disabled', true);
@@ -620,6 +620,7 @@ Vue.component('m-form', {
         }
     },
     mounted: function() {
+        var vm = this;
         var jqEl = $(this.$el);
         if (!this.noValidate) jqEl.validate({ errorClass: 'help-block', errorElement: 'span',
             highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
@@ -631,6 +632,8 @@ Vue.component('m-form', {
         jqEl.find(':input').on('change', this.fieldChange);
         // special case for date-time using bootstrap-datetimepicker
         jqEl.find('div.input-group.date').on('change', this.fieldChange);
+        // watch button clicked
+        jqEl.find('button[type="submit"], input[type="submit"], input[type="image"]').on('click', function() { vm.buttonClicked = this; });
     }
 });
 Vue.component('form-link', {
