@@ -35,9 +35,26 @@ along with this software (see the LICENSE.md file). If not, see
                 <field-ref name="submitButton"/></field-row-big></field-layout>
         </form-single>
         <form-list name="QueryStatsList" list="queryStatsList" skip-form="true">
+            <row-actions>
+                <set field="artifactInfoList" from="[]"/>
+                <iterate list="artifactCounts" entry="count" key="artifact">
+                    <script>artifactInfoList.add([artifact:artifact, count:count])</script></iterate>
+                <order-map-list list="artifactInfoList"><order-by field-name="-count"/></order-map-list>
+            </row-actions>
             <field name="entityName"><header-field show-order-by="true"/><default-field><display/></default-field></field>
-            <field name="sql"><header-field title="SQL" show-order-by="true"/><default-field><display/></default-field></field>
-            <field name="artifactCounts"><default-field><display/></default-field></field>
+            <field name="sql">
+                <header-field title="SQL" show-order-by="true"/>
+                <conditional-field condition="sql != null &amp;&amp; sql.length() &gt; 500">
+                    <display text="${sql.substring(0, 500)} "/>
+                    <container-dialog id="ViewSql" button-text="All" width="800"><label text="${sql}"/></container-dialog>
+                </conditional-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="artifactCounts"><default-field>
+                <section-iterate name="ArtifactCounts" list="artifactInfoList" entry="artifactInfo"><widgets>
+                    <label text="${artifactInfo.artifact} - ${artifactInfo.count}" type="div"/>
+                </widgets></section-iterate>
+            </default-field></field>
             <field name="hitCount"><header-field title="Hits" show-order-by="true"/><default-field><display/></default-field></field>
             <field name="errorCount"><header-field title="Errors" show-order-by="true"/><default-field><display/></default-field></field>
 
