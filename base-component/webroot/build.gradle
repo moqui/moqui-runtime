@@ -21,7 +21,7 @@ def webrootPath = "screen/webroot"
 def libsPath = webrootPath + "/libs"
 def downloadBase = "http://cdnjs.cloudflare.com/ajax/libs/"
 def fileMap = [
-    "rsvp/4.8.3/rsvp.min.js":"",
+    "rsvp/4.8.4/rsvp.min.js":"",
 
     "twitter-bootstrap/3.3.7/css/bootstrap.min.css":"",
     "twitter-bootstrap/3.3.7/js/bootstrap.min.js":"",
