@@ -1254,10 +1254,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if formNode["@show-all-button"]! == "true" && (context[listName + 'Count'] < 500)>
                     <#if context["pageNoLimit"]?has_content>
                         <#assign allLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageNoLimit")>
-                        <a href="${allLinkUrl.getUrlWithParams()}" class="btn btn-default">Paginate</a>
+                        <a href="${allLinkUrl.getUrlWithParams()}" class="btn btn-default">${ec.getL10n().localize("Paginate")}</a>
                     <#else>
                         <#assign allLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageNoLimit", "true")>
-                        <a href="${allLinkUrl.getUrlWithParams()}" class="btn btn-default">Show All</a>
+                        <a href="${allLinkUrl.getUrlWithParams()}" class="btn btn-default">${ec.getL10n().localize("Show All")}</a>
                     </#if>
                 </#if>
             </#if>
