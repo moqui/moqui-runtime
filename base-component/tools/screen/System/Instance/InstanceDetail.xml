@@ -111,6 +111,9 @@ along with this software (see the LICENSE.md file). If not, see
             <container-dialog id="MoquiServerDetail" button-text="Moqui Server Detail">
                 <label text="${groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(moquiStatusMap))}" type="pre" style="pre-plain"/>
             </container-dialog>
+            <container-dialog id="InstanceLog" button-text="Instance Log" width="900">
+                <label text="${instanceLog}" type="pre" style="pre-plain"/>
+            </container-dialog>
             <link url="http://${appInstance.hostName}" url-type="plain" text="http://${appInstance.hostName}" link-type="anchor-button" target-window="_blank"/>
 
             <form-single name="UpdateInstance" transition="updateAppInstance" map="appInstance">
