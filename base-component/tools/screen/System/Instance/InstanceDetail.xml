@@ -114,6 +114,7 @@ along with this software (see the LICENSE.md file). If not, see
             <link url="http://${appInstance.hostName}" url-type="plain" text="http://${appInstance.hostName}" link-type="anchor-button" target-window="_blank"/>
 
             <form-single name="UpdateInstance" transition="updateAppInstance" map="appInstance">
+                <field name="appInstanceId"><default-field><hidden/></default-field></field>
                 <field name="instanceName"><default-field><text-line size="50"/></default-field></field>
                 <field name="instanceUuid"><default-field title="Instance UUID"><display/></default-field></field>
                 <field name="hostName"><default-field tooltip="Hostname for access to the instance, generally a virtual host name">
