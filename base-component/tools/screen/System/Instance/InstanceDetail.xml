@@ -150,7 +150,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="networkMode"><default-field><text-line size="30"/></default-field></field>
                 <field name="jsonConfig"><default-field title="JSON Config"><text-area cols="50" rows="5"/></default-field></field>
 
-                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
             </form-single>
         </box-body></container-box>
     </row-col><row-col md="5">
