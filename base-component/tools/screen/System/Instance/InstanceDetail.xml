@@ -179,7 +179,7 @@ along with this software (see the LICENSE.md file). If not, see
         </box-body-nopad></container-box>
         <container-box><box-header><label text="Volumes" type="h5"/></box-header><box-toolbar>
             <container-dialog id="AddVolDialog" button-text="Add Volume">
-                <form-single name="AddVol" transition="createAppInstanceVolume">
+                <form-single name="AddVol" transition="createAppInstanceVol">
                     <field name="appInstanceId"><default-field><hidden/></default-field></field>
                     <field name="mountPoint"><default-field title="Mountpoint"><text-line size="30"/></default-field></field>
                     <field name="volumeName"><default-field title="Name"><text-line size="30"/></default-field></field>
