@@ -139,7 +139,8 @@ form.editable-form button { background: white; color: #333; border: 1px solid; b
 /* ================ Flatten, visually simplify bootstrap.min.css =============== */
 /* Comment or delete these for the default backgrounds, etc */
 
-.panel-default>.panel-heading, .panel-info>.panel-heading, .panel-success>.panel-heading, .panel-warning>.panel-heading, .bg-dark .panel-default>.panel-heading
+.panel-default>.panel-heading, .panel-info>.panel-heading, .panel-success>.panel-heading, .panel-warning>.panel-heading,
+  .panel-danger>.panel-heading, .bg-dark .panel-default>.panel-heading
 { background-color: transparent; border-bottom-color: transparent; }
 
 nav.form-list-nav, table.table>thead>tr>th, .bg-dark nav.form-list-nav, .bg-dark table.table>thead>tr>th
