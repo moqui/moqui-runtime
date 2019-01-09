@@ -175,7 +175,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
     <#assign ajaxParms = ajaxUrlInfo.getParameterMap()>
     <tree-top id="${.node["@name"]}" items="${itemsUrl}" open-path="${ec.getResource().expandNoL10n(.node["@open-path"], "")}"
-              :parameters="{<#list ajaxParms.keySet() as pKey>'${pKey}':'${ajaxParms.get(pKey)!""}'<#sep>,</#list>}"></tree-top>
+              :parameters="{<#list ajaxParms.keySet() as pKey>'${pKey}':'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(ajaxParms.get(pKey)!"")}'<#sep>,</#list>}"></tree-top>
 </#macro>
 <#macro "tree-node"><#-- shouldn't be called directly, but just in case --></#macro>
 <#macro "tree-sub-node"><#-- shouldn't be called directly, but just in case --></#macro>
