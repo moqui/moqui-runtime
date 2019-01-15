@@ -340,7 +340,9 @@ Vue.component('container-box', {
     data: function() { return { isBodyOpen:this.initialOpen }},
     template:
     '<div :class="\'panel panel-\' + type"><div class="panel-heading" @click.self="toggleBody">' +
-            '<h5 v-if="title && title.length" @click="toggleBody">{{title}}</h5><slot name="header"></slot>' +
+            '<h5 v-if="title && title.length" @click="toggleBody">' +
+            '<li :class="[isBodyOpen?\'glyphicon glyphicon-chevron-down\':\'glyphicon glyphicon-chevron-right\']"/>' +
+            '{{title}}</h5><slot name="header"></slot>' +
             '<div class="panel-toolbar"><slot name="toolbar"></slot></div></div>' +
         '<div class="panel-collapse collapse" :class="{in:isBodyOpen}"><slot></slot></div>' +
     '</div>',
