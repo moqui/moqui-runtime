@@ -1,17 +1,4 @@
-/*
- * This software is in the public domain under CC0 1.0 Universal plus a
- * Grant of Patent License.
- *
- * To the extent possible under law, the author(s) have dedicated all
- * copyright and related and neighboring rights to this software to the
- * public domain worldwide. This software is distributed without any
- * warranty.
- *
- * You should have received a copy of the CC0 Public Domain Dedication
- * along with this software (see the LICENSE.md file). If not, see
- * <http://creativecommons.org/publicdomain/zero/1.0/>.
- */
-
+/* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 /* ========================== body, etc ========================== */
 
@@ -88,6 +75,10 @@ td span.form-display { display: inline-block; width: 100%; }
 td .Long, td .Double, td .Float, td .Integer { text-align: center; }
 td .BigDecimal, td .currency { text-align: right; }
 
+/* by CSS spec either x or y not visible changes the visible to auto, this breaks bootstrap-datetimepicker, select2 still works:
+.table-scroll-wrapper { overflow-x: auto; overflow-y: visible; } */
+/* this fixes bootstrap-datetimepicker but causes horizontal scroll bar to overlap elements below, and for some reason breaks find screens like FindOrder
+.table-scroll-wrapper { overflow-x: auto; overflow-y: visible; padding-bottom: 300px; margin-bottom: -300px; padding-top: 300px; margin-top: -300px; } */
 .table-condensed .form-group { margin-bottom: 0; }
 td.form-list-sub-row-cell { padding: 0 !important; }
 .form-list-sub-rows { margin-left: 23px; padding-left: 8px; border-left: 1px dashed #8c8c8c; }
@@ -137,7 +128,7 @@ table .form-group > div > a:not(.btn), table .form-group > div > span.text-inlin
 
 nav.form-list-nav .pagination { margin: 6px 6px 0 6px; }
 nav.form-list-nav>form.form-inline { display: inline-block; margin: 2px 6px 0 0; float: left; }
-nav.form-list-nav>.btn { display: inline-block; margin: 6px 6px 0 6px; float: left; }
+nav.form-list-nav>.btn { display: inline-block; margin: 6px 8px 0 0; float: left; }
 nav.form-list-nav>span.select2-container { float: left; margin: 6px 0 6px 0; min-width: 100px; max-width: 160px; }
 
 /* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */

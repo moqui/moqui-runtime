@@ -1,17 +1,4 @@
-/*
- * This software is in the public domain under CC0 1.0 Universal plus a 
- * Grant of Patent License.
- * 
- * To the extent possible under law, the author(s) have dedicated all
- * copyright and related and neighboring rights to this software to the
- * public domain worldwide. This software is distributed without any
- * warranty.
- * 
- * You should have received a copy of the CC0 Public Domain Dedication
- * along with this software (see the LICENSE.md file). If not, see
- * <http://creativecommons.org/publicdomain/zero/1.0/>.
- */
-
+/* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 /* ========================== body, etc ========================== */
 
@@ -81,9 +68,9 @@ ul.float-box li.active { box-shadow: 0 0 0 1px #337ab7 inset, 0 0 0 1px #CCCCCC;
 .bg-dark ul.float-box li.active { box-shadow: 0 0 0 1px #080808 inset, 0 0 0 1px #333;
     -webkit-box-shadow: 0 0 0 1px #337ab7 inset, 0 0 0 1px #333; }
 
-.bg-light .shaded-area { background: #EEE; box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 0 1px #CCC;
+.bg-light .shaded-area { background: #f8f8f8; box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 0 1px #CCC;
     -webkit-box-shadow: 0 0 0 1px #F8F8F8 inset, 0 0 0 1px #CCC; }
-.bg-dark .shaded-area { background: #333; box-shadow: 0 0 0 1px #080808 inset, 0 0 0 1px #333;
+.bg-dark .shaded-area { background: #3f3f3f; box-shadow: 0 0 0 1px #080808 inset, 0 0 0 1px #333;
     -webkit-box-shadow: 0 0 0 1px #080808 inset, 0 0 0 1px #333;}
 
 /* ================ Extensions for bootstrap.min.css =============== */
@@ -102,13 +89,13 @@ body.test #content { background: #f0fff0; }
 .pagination > li > span { color: inherit; }
 .bg-dark ul.pagination > li { color: #222222 }
 
-.bg-dark .panel-heading { background-color: #333; color: inherit; }
+.bg-dark .panel-default>.panel-heading { background-color: #333; color: inherit; }
 .bg-dark .panel, .bg-dark .panel-heading { border-color: #222; }
 
 /* Variations on Bootstrap default table styles */
 .table .table { background-color: transparent; }
-.table-hover>tbody>tr:hover { background-color: #f0f0f0; }
-.bg-dark .table-striped th, .bg-dark .table-striped td { border-color: transparent; }
+.table-hover>tbody>tr:hover, .table-striped>tbody>tr:nth-of-type(odd):hover { background-color: #f0f0f0; }
+.bg-dark .table-striped th, .bg-dark .table-striped td { border-color: #222222; }
 .bg-dark .table-striped>tbody>tr:nth-child(odd):not(.danger):not(.info):not(.warning):not(.success) { background-color: #303030; }
 .bg-dark .table-hover>tbody>tr:hover>td { background-color: #444444; }
 .bg-dark .modal-content .table-striped>tbody>tr:nth-child(odd):not(.danger):not(.info):not(.warning):not(.success) { background-color: #f9f9f9; }
@@ -148,3 +135,18 @@ form.editable-form button { background: white; color: #333; border: 1px solid; b
 
 .bg-light.Login { background: url("../images/pattern/cream_pixels.png") repeat #444; }
 .bg-dark.Login { background: url("../images/pattern/irongrip.png") repeat #444; }
+
+/* ================ Flatten, visually simplify bootstrap.min.css =============== */
+/* Comment or delete these for the default backgrounds, etc */
+
+.panel-default>.panel-heading, .panel-info>.panel-heading, .panel-success>.panel-heading, .panel-warning>.panel-heading,
+  .panel-danger>.panel-heading, .bg-dark .panel-default>.panel-heading
+{ background-color: transparent; border-bottom-color: transparent; }
+
+nav.form-list-nav, table.table>thead>tr>th, .bg-dark nav.form-list-nav, .bg-dark table.table>thead>tr>th
+{ background-color: transparent; }
+
+.table-striped>tbody>tr:nth-of-type(odd), .bg-dark .table-striped>tbody>tr:nth-child(odd):not(.danger):not(.info):not(.warning):not(.success)
+{ background-color: transparent; }
+
+ul.float-box li, .bg-dark ul.float-box li { background-color: transparent; }

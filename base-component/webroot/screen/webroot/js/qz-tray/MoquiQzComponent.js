@@ -171,6 +171,8 @@ if (window.qz && window.moqui && moqui.webrootVue) {
             var vm = this;
 
             $('#qz-print-modal-link').tooltip({ placement:'bottom', trigger:'hover' });
+            // move modal to just under body to avoid issues with header CSS/etc
+            $('#qz-print-modal').appendTo("body");
             this.startConnection();
 
             qz.security.setCertificatePromise(function(resolve, reject) {

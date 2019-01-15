@@ -15,6 +15,27 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-index="99" default-menu-title="Thread List">
 
+    <transition name="interruptThread">
+        <parameter name="threadName"/>
+        <actions><script><![CDATA[
+            boolean found = false
+            for (Thread thread in Thread.getAllStackTraces().keySet()) {
+                if (thread.name == threadName) {
+                    found = true
+                    try {
+                        thread.interrupt()
+                        ec.message.addMessage("Interrupted thread ${threadName}", "success")
+                    } catch (Throwable t) {
+                        ec.logger.log(300, "Error interrupting thread ${thread.id}:${thread.name}", t)
+                        ec.message.addMessage("Error interrupting thread ${thread.id}:${thread.name}: ${t.toString()}", "danger")
+                    }
+                }
+            }
+            if (!found) ec.message.addMessage("Could not find thread with name ${threadName}", "warning")
+        ]]></script></actions>
+        <default-response url="."/>
+    </transition>
+
     <actions>
         <set field="orderByField" from="orderByField ?: '-cpuTime'"/>
 
@@ -27,7 +48,8 @@ along with this software (see the LICENSE.md file). If not, see
             threadMapList.add([threadName:thread.threadName, threadId:thread.threadId, threadState:thread.threadState.name(),
                     cpuTime:threadMXBean.getThreadCpuTime(thread.threadId), userTime:threadMXBean.getThreadUserTime(thread.threadId),
                     lockName:thread.lockName, lockOwnerName:thread.lockOwnerName, lockOwnerId:thread.lockOwnerId,
-                    blockedTime:thread.blockedTime, waitedTime:thread.waitedTime])
+                    blockedTime:thread.blockedTime, waitedTime:thread.waitedTime,
+                    stackList:Arrays.asList(thread.getStackTrace()).collect({ it.toString() })])
         }
         orderMapList(threadMapList, [orderByField])
         </script>
@@ -53,11 +75,22 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="blockedTime"><header-field title="Blocked Total" show-order-by="true"/><default-field><display/></default-field></field>
             <field name="waitedTime"><header-field title="Waited Total" show-order-by="true"/><default-field><display/></default-field></field>
 
+            <field name="stack"><default-field title="">
+                <container-dialog id="StackListDialog" button-text="Stack" type="default" width="960">
+                    <label text="${stackList.join('\n')}" type="pre"/>
+                </container-dialog>
+            </default-field></field>
+            <field name="interrupt"><default-field title="">
+                <link url="interruptThread" text="Interrupt" confirmation="Really interrupt thread ${threadName}?" btn-type="danger"/>
+            </default-field></field>
+
             <form-list-column><field-ref name="threadName"/></form-list-column>
             <form-list-column><field-ref name="threadId"/></form-list-column>
             <form-list-column><field-ref name="threadState"/></form-list-column>
             <form-list-column><field-ref name="cpuTime"/></form-list-column>
             <form-list-column><field-ref name="userTime"/></form-list-column>
+            <form-list-column><field-ref name="stack"/></form-list-column>
+            <form-list-column><field-ref name="interrupt"/></form-list-column>
         </form-list>
     </widgets>
 </screen>

@@ -23,6 +23,8 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="heapPercent" from="(smap.Utilization.HeapPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
         <set field="diskPercent" from="(smap.Utilization.DiskPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
         <set field="componentInfoList" from="orderMapList(ec.factory.getComponentInfoList(), ['^name'])"/>
+
+        <set field="runtimeVersionMap" from="ec.factory.versionMap"/>
     </actions>
     <widgets>
         <container-row><row-col md="6">
@@ -54,7 +56,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="../DataDocument/Edit" text="Edit and Report Builder"/>
             </box-body></container-box>
             <container-box><box-header><label text="Data Admin" type="h5"/></box-header><box-body>
-                <link url="../Localization" text="Localization"/>
+                <link url="../Localization/Messages" text="L10n: Messages"/>
+                <link url="../Localization/EntityFields" text="L10n: Entity Fields"/>
                 <link url="../Resource" text="Resource Finder"/>
             </box-body></container-box>
             <container-box><box-header><label text="Integration Admin" type="h5"/></box-header><box-body>
@@ -145,11 +148,17 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="database"><default-field><display/></default-field></field>
                 <field name="detail"><default-field><display/></default-field></field>
             </form-list>
+            <label text="Framework: ${runtimeVersionMap.framework.toString()}" condition="runtimeVersionMap?.framework" type="div"/>
+            <label text="Runtime: ${runtimeVersionMap.runtime.toString()}" condition="runtimeVersionMap?.runtime" type="div"/>
             <form-list name="ComponentInfoList" list="componentInfoList" skip-form="true">
                 <field name="name"><default-field title="Component Name"><display/></default-field></field>
                 <field name="version"><default-field><display/></default-field></field>
                 <field name="location"><default-field><display/></default-field></field>
+                <field name="versionMap"><default-field title="Version Detail"><display/></default-field></field>
                 <field name="dependsOnNames"><default-field><display/></default-field></field>
+                <form-list-column><field-ref name="name"/><field-ref name="version"/></form-list-column>
+                <form-list-column><field-ref name="location"/><field-ref name="versionMap"/></form-list-column>
+                <form-list-column><field-ref name="dependsOnNames"/></form-list-column>
             </form-list>
         </box-body-nopad></container-box>
     </widgets>

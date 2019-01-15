@@ -71,8 +71,7 @@ moqui.searchToObj = function(search) {
     }
     return newParams;
 };
-moqui.decodeHtml = function(html) { var txt = document.createElement("textarea"); txt.innerHTML = html; return txt.value; };
-Vue.filter('decodeHtml', moqui.decodeHtml);
+Vue.filter('decodeHtml', moqui.htmlDecode);
 moqui.format = function(value, format, type) {
     // console.log('format ' + value + ' with ' + format + ' of type ' + type);
     // number formatting: http://numeraljs.com/ https://github.com/andrewgp/jsNumberFormatter http://www.asual.com/jquery/format/
@@ -154,16 +153,16 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
                 var messageItem = messages[mi];
                 if (moqui.isPlainObject(messageItem)) {
                     var msgType = messageItem.type; if (!msgType || !msgType.length) msgType = 'info';
-                    $.notify({message:messageItem.message}, $.extend({}, moqui.notifyOptsInfo, { type:msgType }));
+                    $.notify(new moqui.NotifyOptions(messageItem.message, null, msgType, null), $.extend({}, moqui.notifyOptsInfo, { type:msgType }));
                     moqui.webrootVue.addNotify(messageItem.message, msgType);
                 } else {
-                    $.notify({message:messageItem}, moqui.notifyOptsInfo);
+                    $.notify(new moqui.NotifyOptions(messageItem, null, 'info', null), moqui.notifyOptsInfo);
                     moqui.webrootVue.addNotify(messageItem, 'info');
                 }
                 notified = true;
             }
         } else {
-            $.notify({message:messages}, moqui.notifyOptsInfo);
+            $.notify(new moqui.NotifyOptions(messages, null, 'info', null), moqui.notifyOptsInfo);
             moqui.webrootVue.addNotify(messages, 'info');
             notified = true;
         }
@@ -171,12 +170,12 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
     if (errors) {
         if (moqui.isArray(errors)) {
             for (var ei=0; ei < errors.length; ei++) {
-                $.notify({message:errors[ei]}, moqui.notifyOptsError);
+                $.notify(new moqui.NotifyOptions(errors[ei], null, 'info', null), moqui.notifyOptsError);
                 moqui.webrootVue.addNotify(errors[ei], 'danger');
                 notified = true;
             }
         } else {
-            $.notify({message:errors}, moqui.notifyOptsError);
+            $.notify(new moqui.NotifyOptions(errors, null, 'info', null), moqui.notifyOptsError);
             moqui.webrootVue.addNotify(errors, 'danger');
             notified = true;
         }
@@ -194,7 +193,7 @@ moqui.notifyValidationError = function(valError) {
         message = valError.message;
         if (valError.fieldPretty && valError.fieldPretty.length) message = message + " (for field " + valError.fieldPretty + ")";
     }
-    $.notify({message:message}, moqui.notifyOptsError);
+    $.notify(new moqui.NotifyOptions(message, null, 'info', null), moqui.notifyOptsError);
     moqui.webrootVue.addNotify(message, 'danger');
 
 };
@@ -209,11 +208,12 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     else if (resp && moqui.isString(resp) && resp.length) { notified = moqui.notifyMessages(resp); }
 
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
-    if (jqXHR.status === 401) { if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); }
+    if (jqXHR.status === 401) {
+        if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); }
     } else if (jqXHR.status === 0) { if (errorThrown.indexOf('abort') < 0) { var msg = 'Could not connect to server';
-        $.notify({ message:msg }, moqui.notifyOptsError); moqui.webrootVue.addNotify(msg, 'danger'); }
+        $.notify(new moqui.NotifyOptions(msg, null, 'danger', null), moqui.notifyOptsError); moqui.webrootVue.addNotify(msg, 'danger'); }
     } else if (!notified) { var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
-        $.notify({ message:errMsg }, moqui.notifyOptsError); moqui.webrootVue.addNotify(errMsg, 'danger');
+        $.notify(new moqui.NotifyOptions(errMsg, null, 'danger', null), moqui.notifyOptsError); moqui.webrootVue.addNotify(errMsg, 'danger');
     }
 };
 
@@ -371,7 +371,7 @@ Vue.component('container-dialog', {
         jqEl.on("shown.bs.modal", function() { vm.isHidden = false;
             jqEl.find(":not(.noResetSelect2)>select:not(.noResetSelect2)").select2({ });
             var defFocus = jqEl.find(".default-focus");
-            if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
+            if (defFocus.length) { defFocus.focus(); } else { jqEl.find("form :input:visible:not([type='submit']):first").focus(); }
         });
         if (this.openDialog) { jqEl.modal('show'); }
     }
@@ -510,7 +510,7 @@ Vue.component('m-editable', {
 Vue.component('m-form', {
     props: { action:{type:String,required:true}, method:{type:String,'default':'POST'},
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean },
-    data: function() { return { fields:{}, fieldsChanged:{} }},
+    data: function() { return { fields:{}, fieldsChanged:{}, buttonClicked:null }},
     template: '<form @submit.prevent="submitForm"><slot></slot></form>',
     methods: {
         submitForm: function submitForm() {
@@ -518,7 +518,7 @@ Vue.component('m-form', {
             if (this.noValidate || jqEl.valid()) {
                 // get button pressed value and disable ASAP to avoid double submit
                 var btnName = null, btnValue = null;
-                var $btn = $(document.activeElement);
+                var $btn = $(this.buttonClicked || document.activeElement);
                 if ($btn.length && jqEl.has($btn) && $btn.is('button[type="submit"], input[type="submit"], input[type="image"]')) {
                     if ($btn.is('[name]')) { btnName = $btn.attr('name'); btnValue = $btn.val(); }
                     $btn.prop('disabled', true);
@@ -574,10 +574,10 @@ Vue.component('m-form', {
             if (subMsg && subMsg.length) {
                 var responseText = resp; // this is set for backward compatibility in case message relies on responseText as in old JS
                 var message = eval('"' + subMsg + '"');
-                $.notify({ message:message }, moqui.notifyOpts);
+                $.notify(new moqui.NotifyOptions(message, null, 'success', null), moqui.notifyOpts);
                 moqui.webrootVue.addNotify(message, 'success');
             } else if (!notified) {
-                $.notify({ message:"Form data saved" }, moqui.notifyOpts);
+                $.notify(new moqui.NotifyOptions("Submit successful", null, 'success', null), moqui.notifyOpts);
             }
         },
         fieldChange: function (evt) {
@@ -620,6 +620,7 @@ Vue.component('m-form', {
         }
     },
     mounted: function() {
+        var vm = this;
         var jqEl = $(this.$el);
         if (!this.noValidate) jqEl.validate({ errorClass: 'help-block', errorElement: 'span',
             highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
@@ -631,6 +632,8 @@ Vue.component('m-form', {
         jqEl.find(':input').on('change', this.fieldChange);
         // special case for date-time using bootstrap-datetimepicker
         jqEl.find('div.input-group.date').on('change', this.fieldChange);
+        // watch button clicked
+        jqEl.find('button[type="submit"], input[type="submit"], input[type="image"]').on('click', function() { vm.buttonClicked = this; });
     }
 });
 Vue.component('form-link', {
@@ -783,7 +786,7 @@ Vue.component('form-list', {
         '<form-link v-if="!skipHeader && headerForm && !headerDialog" :name="idVal+\'_header\'" :id="idVal+\'_header\'" :action="$root.currentLinkPath">' +
             '<input v-if="searchObj && searchObj.orderByField" type="hidden" name="orderByField" :value="searchObj.orderByField">' +
             '<slot name="headerForm"  :search="searchObj"></slot></form-link>' +
-        '<table class="table table-striped table-hover table-condensed" :id="idVal+\'_table\'"><thead>' +
+        '<div class="table-scroll-wrapper"><table class="table table-striped table-hover table-condensed" :id="idVal+\'_table\'"><thead>' +
             '<tr class="form-list-nav-row"><th :colspan="columns?columns:\'100\'"><nav class="form-list-nav">' +
                 '<button v-if="savedFinds || headerDialog" :id="idVal+\'_hdialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_hdialog\'" data-original-title="Find Options" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Find Options</button>' +
                 '<button v-if="selectColumns" :id="idVal+\'_SelColsDialog_button\'" type="button" data-toggle="modal" :data-target="\'#\'+idVal+\'_SelColsDialog\'" data-original-title="Columns" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> Columns</button>' +
@@ -796,7 +799,7 @@ Vue.component('form-list', {
             '</nav></th></tr>' +
             '<slot name="header" :search="searchObj"></slot>' +
         '</thead><tbody><tr v-for="(fields, rowIndex) in rowList"><slot name="row" :fields="fields" :row-index="rowIndex" :moqui="moqui"></slot></tr>' +
-        '</tbody></table>' +
+        '</tbody></table></div>' +
     '</div>',
     computed: {
         idVal: function() { if (this.id && this.id.length > 0) { return this.id; } else { return this.name; } },
@@ -928,11 +931,12 @@ moqui.datePeriods = [{id:'day',text:'Day'},{id:'7d',text:'7 Days'},{id:'30d',tex
     {id:'month',text:'Month'},{id:'months',text:'Months'},{id:'quarter',text:'Quarter'},{id:'year',text:'Year'},{id:'7r',text:'+/-7d'},{id:'30r',text:'+/-30d'}];
 moqui.emptyOpt = {id:'',text:'\u00a0'};
 Vue.component('date-period', {
-    props: { name:{type:String,required:true}, id:String, allowEmpty:Boolean, offset:String, period:String, date:String, fromDate:String, thruDate:String, form:String },
+    props: { name:{type:String,required:true}, id:String, allowEmpty:Boolean, offset:String, period:String, date:String,
+        fromDate:String, thruDate:String, fromThruType:{type:String,'default':'date'}, form:String },
     data: function() { return { fromThruMode:false, dateOffsets:moqui.dateOffsets.slice(), datePeriods:moqui.datePeriods.slice() } },
     template:
-    '<div v-if="fromThruMode"><date-time :name="name+\'_from\'" :id="id+\'_from\'" :form="form" type="date" :value="fromDate"/> - ' +
-        '<date-time :name="name+\'_thru\'" :id="id+\'_thru\'" :form="form" type="date" :value="thruDate"/>' +
+    '<div v-if="fromThruMode"><date-time :name="name+\'_from\'" :id="id+\'_from\'" :form="form" :type="fromThruType" :value="fromDate"/> - ' +
+        '<date-time :name="name+\'_thru\'" :id="id+\'_thru\'" :form="form" :type="fromThruType" :value="thruDate"/>' +
         ' <i @click="toggleMode" class="glyphicon glyphicon-resize-vertical"></i></div>' +
     '<div v-else class="date-period" :id="id">' +
         '<drop-down :name="name+\'_poffset\'" :options="dateOffsets" :value="offset" :allow-empty="allowEmpty" :form="form"></drop-down> ' +

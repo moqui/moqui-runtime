@@ -30,19 +30,18 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
-        <entity-find entity-name="moqui.basic.LocalizedEntityField" list="localizedEntityFieldList" offset="0" limit="50">
-            <search-form-inputs default-order-by="entityName,fieldName,locale"/>
-        </entity-find>
+        <entity-find entity-name="moqui.basic.LocalizedEntityField" list="localizedEntityFieldList">
+            <search-form-inputs default-order-by="entityName,fieldName,locale"/></entity-find>
     </actions>
     <widgets>
         <container>
             <container-dialog id="CreateEntityFieldDialog" button-text="New Field L10n">
                 <form-single name="CreateLocalizedEntityField" transition="createLocalizedEntityField">
-                    <field name="entityName"><default-field><text-line size="15"/></default-field></field>
-                    <field name="fieldName"><default-field><text-line size="15"/></default-field></field>
+                    <field name="entityName"><default-field><text-line size="80"/></default-field></field>
+                    <field name="fieldName"><default-field><text-line size="30"/></default-field></field>
                     <field name="pkValue"><default-field><text-line size="20"/></default-field></field>
                     <field name="locale"><default-field><text-line size="5"/></default-field></field>
-                    <field name="localized"><default-field><text-area rows="5" cols="60"/></default-field></field>
+                    <field name="localized"><default-field><text-area rows="5" cols="80"/></default-field></field>
                     <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
                 </form-single>
             </container-dialog>

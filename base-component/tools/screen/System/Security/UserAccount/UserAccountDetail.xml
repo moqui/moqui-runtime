@@ -125,6 +125,8 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="successiveFailedLogins"><default-field title="Failed Logins"><display/></default-field></field>
                     <field name="disabled"><default-field><display text="${disabled ?: 'N'}"/></default-field></field>
                     <field name="disabledDateTime"><default-field title="Disabled Date"><display/></default-field></field>
+                    <field name="ipAllowed"><default-field title="IPs Allowed" tooltip="Comma separated IP4 patterns, each may use '*' for wildcard or '-' separated min/max numbers">
+                        <text-line size="80"/></default-field></field>
 
                     <field name="locale"><default-field>
                         <drop-down allow-empty="true"><list-options list="localeStringList" key="${locale}" text="${locale} - ${name}"/></drop-down>

@@ -43,25 +43,33 @@ along with this software (see the LICENSE.md file). If not, see
 
             if (checkOnly) {
                 List messages = edl.check()
-                if (messages) {
-                    for (String msg in messages) ec.message.addMessage(msg)
-                } else {
-                    ec.message.addMessage(ec.l10n.localize("No differences found in check"))
-                }
-            } else {
-                long recordsLoaded = edl.load()
+                if (!messages) ec.message.addMessage(ec.l10n.localize("No differences found in check"))
+                ec.web.session.setAttribute("DataImport.messages", messages)
+            } else if (onlyCreate) {
+                edl.onlyCreate(true)
+                List<String> messages = new LinkedList<>()
+                long recordsLoaded = edl.load(messages)
                 ec.message.addMessage("Loaded ${recordsLoaded} records from [${source}]")
+                ec.web.session.setAttribute("DataImport.messages", messages)
+            } else {
+                List<String> messages = new LinkedList<>()
+                long recordsLoaded = edl.load(messages)
+                ec.message.addMessage("Loaded ${recordsLoaded} records from [${source}]")
+                ec.web.session.setAttribute("DataImport.messages", messages)
             }
         ]]></script></actions>
         <default-response url="."/>
     </transition>
 
+    <actions>
+        <set field="messages" from="ec.web.session.getAttribute('DataImport.messages')"/>
+        <script>if (messages) ec.web.session.removeAttribute('DataImport.messages')</script>
+    </actions>
     <widgets>
         <form-single name="ImportData" transition="load">
             <field name="timeout"><default-field title="Timeout Seconds"><text-line size="5" default-value="60"/></default-field></field>
             <field name="dummyFks"><default-field title=""><check><option key="true" text="Dummy FKs?"/></check></default-field></field>
             <field name="useTryInsert"><default-field title=""><check><option key="true" text="Use Try Insert?"/></check></default-field></field>
-            <field name="checkOnly"><default-field title=""><check><option key="true" text="Check Only"/></check></default-field></field>
 
             <field name="types"><default-field tooltip="Comma Separated (from entity-facade-xml.@type)">
                 <text-line size="60"/></default-field></field>
@@ -79,11 +87,15 @@ along with this software (see the LICENSE.md file). If not, see
                 <text-area rows="10" cols="80" default-value=""/>
             </default-field></field>
 
-            <field name="submitButton"><default-field title="Import"><submit/></default-field></field>
+            <field name="checkOnly"><default-field title="Check Data"><submit/></default-field></field>
+            <field name="onlyCreate"><default-field title="Import Data - Create Only">
+                <submit confirmation="Are you sure you want to load data, only creating missing records?"/></default-field></field>
+            <field name="importButton"><default-field title="Import Data - Create or Update">
+                <submit confirmation="Are you sure you want to load data, creating new and updating existing records? If in doubt, cancel this and double check."/></default-field></field>
 
             <field-layout>
                 <field-ref name="timeout"/>
-                <field-row-big><field-ref name="dummyFks"/><field-ref name="useTryInsert"/><field-ref name="checkOnly"/></field-row-big>
+                <field-row-big><field-ref name="dummyFks"/><field-ref name="useTryInsert"/></field-row-big>
                 <field-accordion>
                     <field-group title="By Data Types"><field-ref name="types"/><field-ref name="components"/></field-group>
                     <field-group title="Resource Location"><field-ref name="location"/></field-group>
@@ -91,8 +103,18 @@ along with this software (see the LICENSE.md file). If not, see
                     <field-group title="JSON Text"><field-ref name="jsonText"/></field-group>
                     <field-group title="CSV Text"><field-ref name="csvText"/></field-group>
                 </field-accordion>
-                <field-ref name="submitButton"/>
+                <field-col-row><field-col md="4">
+                    <field-ref name="checkOnly"/>
+                </field-col><field-col md="4">
+                    <field-ref name="onlyCreate"/>
+                </field-col><field-col md="4">
+                    <field-ref name="importButton"/>
+                </field-col></field-col-row>
             </field-layout>
         </form-single>
+
+        <section-iterate name="MessageList" list="messages" entry="message"><widgets>
+            <label text="${(message_index+1).toString().padLeft(3,'0')}: ${message}" type="div"/>
+        </widgets></section-iterate>
     </widgets>
 </screen>

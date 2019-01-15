@@ -34,6 +34,13 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="deleteAppInstanceLink"><service-call name="delete#moqui.server.instance.AppInstanceLink"/>
         <default-response url="."/></transition>
 
+    <transition name="createAppInstanceVol"><service-call name="create#moqui.server.instance.AppInstanceVolume"/>
+        <default-response url="."/></transition>
+    <transition name="updateAppInstanceVol"><service-call name="update#moqui.server.instance.AppInstanceVolume"/>
+        <default-response url="."/></transition>
+    <transition name="deleteAppInstanceVol"><service-call name="delete#moqui.server.instance.AppInstanceVolume"/>
+        <default-response url="."/></transition>
+
     <transition name="provisionAppInstance"><service-call name="org.moqui.impl.InstanceServices.provision#AppInstance"/>
         <default-response url="."/></transition>
     <transition name="createAppDatabase"><service-call name="org.moqui.impl.InstanceServices.create#AppDatabase"/>
@@ -52,6 +59,7 @@ along with this software (see the LICENSE.md file). If not, see
         <entity-find-one entity-name="moqui.server.instance.AppInstance" value-field="appInstance"/>
         <set field="envList" from="appInstance.envs"/>
         <set field="linkList" from="appInstance.links"/>
+        <set field="volumeList" from="appInstance.vols"/>
 
         <service-call name="org.moqui.impl.InstanceServices.check#AppInstance" in-map="[appInstanceId:appInstanceId]" out-map="context"/>
         <service-call name="org.moqui.impl.InstanceServices.check#AppDatabase" in-map="[appInstanceId:appInstanceId]" out-map="context"/>
@@ -103,9 +111,13 @@ along with this software (see the LICENSE.md file). If not, see
             <container-dialog id="MoquiServerDetail" button-text="Moqui Server Detail">
                 <label text="${groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(moquiStatusMap))}" type="pre" style="pre-plain"/>
             </container-dialog>
+            <container-dialog id="InstanceLog" button-text="Instance Log" width="900">
+                <label text="${instanceLog}" type="pre" style="pre-plain"/>
+            </container-dialog>
             <link url="http://${appInstance.hostName}" url-type="plain" text="http://${appInstance.hostName}" link-type="anchor-button" target-window="_blank"/>
 
             <form-single name="UpdateInstance" transition="updateAppInstance" map="appInstance">
+                <field name="appInstanceId"><default-field><hidden/></default-field></field>
                 <field name="instanceName"><default-field><text-line size="50"/></default-field></field>
                 <field name="instanceUuid"><default-field title="Instance UUID"><display/></default-field></field>
                 <field name="hostName"><default-field tooltip="Hostname for access to the instance, generally a virtual host name">
@@ -138,7 +150,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="networkMode"><default-field><text-line size="30"/></default-field></field>
                 <field name="jsonConfig"><default-field title="JSON Config"><text-area cols="50" rows="5"/></default-field></field>
 
-                <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
+                <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
             </form-single>
         </box-body></container-box>
     </row-col><row-col md="5">
@@ -162,6 +174,29 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="deleteLink"><default-field title="">
                     <link url="deleteAppInstanceEnv" text="X" parameter-map="[appInstanceId:appInstanceId, envName:envName]"
                           confirmation="Really delete env ${envName}?"/>
+                </default-field></field>
+            </form-list>
+        </box-body-nopad></container-box>
+        <container-box><box-header><label text="Volumes" type="h5"/></box-header><box-toolbar>
+            <container-dialog id="AddVolDialog" button-text="Add Volume">
+                <form-single name="AddVol" transition="createAppInstanceVol">
+                    <field name="appInstanceId"><default-field><hidden/></default-field></field>
+                    <field name="mountPoint"><default-field title="Mountpoint"><text-line size="30"/></default-field></field>
+                    <field name="volumeName"><default-field title="Name"><text-line size="30"/></default-field></field>
+                    <field name="submitButton"><default-field title="Add Volume"><submit/></default-field></field>
+                </form-single>
+            </container-dialog>
+        </box-toolbar><box-body>
+            <label text="After updating volumes the instance must be removed and re-initialized for them to take effect, note that these operations may result in loss of data"/>
+        </box-body><box-body-nopad>
+            <form-list name="VolList" list="volumeList" transition="updateAppInstanceVol">
+                <field name="appInstanceId"><default-field><hidden/></default-field></field>
+                <field name="mountPoint"><default-field title="Mountpoint"><display/></default-field></field>
+                <field name="volumeName"><default-field title="Volume Name"><text-line size="30"/></default-field></field>
+                <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                <field name="deleteLink"><default-field title="">
+                    <link url="deleteAppInstanceVol" text="X" parameter-map="[appInstanceId:appInstanceId, mountPoint:mountPoint]"
+                            confirmation="Really delete volume ${volumeName}?"/>
                 </default-field></field>
             </form-list>
         </box-body-nopad></container-box>

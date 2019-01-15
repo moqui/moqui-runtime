@@ -32,6 +32,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#-- ================ Section ================ -->
 <#macro section>${sri.renderSection(.node["@name"])}</#macro>
 <#macro "section-iterate">${sri.renderSection(.node["@name"])}</#macro>
+<#macro "section-include">${sri.renderSection(.node["@name"])}</#macro>
 
 <#-- ================ Containers ================ -->
 <#macro container><#recurse></#macro>
@@ -46,7 +47,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#t><#if .node["panel-right"]?has_content><#recurse .node["panel-right"][0]></#if>
     <#t><#if .node["panel-footer"]?has_content><#recurse .node["panel-footer"][0]></#if>
 </#macro>
-<#macro "container-dialog"><#recurse></#macro>
+<#macro "container-dialog"><#-- do nothing, don't pull from container-dialog for CSV output --></#macro>
 
 <#-- ==================== Includes ==================== -->
 <#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}</#macro>

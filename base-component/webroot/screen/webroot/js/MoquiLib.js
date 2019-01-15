@@ -8,6 +8,9 @@ var moqui = {
     isFunction: function(obj) { return Object.prototype.toString.call(obj) === '[object Function]'; },
     isPlainObject: function(obj) { return obj != null && typeof obj == 'object' && Object.prototype.toString.call(obj) === '[object Object]'; },
 
+    htmlEncode: function(value) { return $('<div/>').text(value).html(); },
+    htmlDecode: function(value) { return $('<div/>').html(value).text(); },
+
     // return a function that delay the execution
     debounce: function(func, wait) {
         var timeout, result;
@@ -98,7 +101,9 @@ var moqui = {
     },
 
     NotifyOptions: function(message, url, type, icon) {
-        this.message = message; if (url) this.url = url;
+        // console.warn("notify options message: [" + message + "] encoded: " + moqui.htmlEncode(message));
+        this.message = moqui.htmlEncode(message);
+        if (url) this.url = url;
         if (icon) { this.icon = icon; }
         else {
             if (type === 'success') this.icon = 'glyphicon glyphicon-ok-sign';

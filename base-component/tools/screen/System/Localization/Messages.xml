@@ -30,22 +30,21 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
-        <entity-find entity-name="moqui.basic.LocalizedMessage" list="localizedMessageList" offset="0" limit="50">
-            <search-form-inputs default-order-by="^original,locale"/>
-        </entity-find>
+        <entity-find entity-name="moqui.basic.LocalizedMessage" list="localizedMessageList">
+            <search-form-inputs default-order-by="^original,locale"/></entity-find>
     </actions>
     <widgets>
         <container>
             <container-dialog id="CreateMessageDialog" button-text="New Message">
                 <form-single name="CreateLocalizedMessage" transition="createLocalizedMessage">
                     <field name="original">
-                        <default-field><text-line size="15"/></default-field>
+                        <default-field><text-line size="80" maxlength="255"/></default-field>
                     </field>
                     <field name="locale">
                         <default-field><text-line size="5"/></default-field>
                     </field>
                     <field name="localized">
-                        <default-field><text-area rows="5" cols="60"/></default-field>
+                        <default-field><text-area rows="5" cols="80"/></default-field>
                     </field>
                     <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
                 </form-single>

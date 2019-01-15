@@ -2,7 +2,7 @@
 
 [![license](http://img.shields.io/badge/license-CC0%201.0%20Universal-blue.svg)](https://github.com/moqui/moqui-runtime/blob/master/LICENSE.md)
 [![release](http://img.shields.io/github/release/moqui/moqui-runtime.svg)](https://github.com/moqui/moqui-runtime/releases)
-[![commits since release](http://img.shields.io/github/commits-since/moqui/moqui-runtime/v2.1.0.svg)](https://github.com/moqui/moqui-runtime/commits/master)
+[![commits since release](http://img.shields.io/github/commits-since/moqui/moqui-runtime/v2.1.1.svg)](https://github.com/moqui/moqui-runtime/commits/master)
 
 [![LinkedIn Group](https://img.shields.io/badge/linked%20in%20group-moqui-blue.svg)](https://www.linkedin.com/groups/4640689)
 [![Google Group](https://img.shields.io/badge/google%20group-moqui-blue.svg)](https://groups.google.com/d/forum/moqui)
