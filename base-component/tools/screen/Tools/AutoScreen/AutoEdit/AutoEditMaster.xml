@@ -33,10 +33,14 @@ along with this software (see the LICENSE.md file). If not, see
                 import org.moqui.context.ExecutionContext
                 import org.moqui.entity.EntityDataWriter
 
+                Map pkMap = entityValue.getPrimaryKeys()
+                if (!filename) filename = (aen.contains(".") ? aen.substring(aen.lastIndexOf(".") + 1) : aen) + "_" +
+                        pkMap.values().join("_") + "." + (fileType == 'JSON' ? 'json' : 'xml')
+
                 ExecutionContext ec = context.ec
                 EntityDataWriter edw = ec.entity.makeDataWriter().dependentLevels((dependentLevels ?: '2') as int)
                         .fileType(fileType == 'JSON' ? EntityDataWriter.JSON : EntityDataWriter.XML)
-                        .entityName(aen).filterMap(entityValue.getPrimaryKeys())
+                        .entityName(aen).filterMap(pkMap)
                 if (masterName) edw.master(masterName)
                 noResponse = false
                 if (context.output == "file") {
@@ -46,12 +50,13 @@ along with this software (see the LICENSE.md file). If not, see
                     def response = ec.web.response
                     response.setContentType(fileType == 'JSON' ? 'application/json' : 'text/xml')
                     response.setCharacterEncoding("UTF-8")
+                    response.addHeader("Content-Disposition", "attachment; filename=\"${filename}\";")
                     response.addHeader("Cache-Control", "no-cache, must-revalidate, private")
                     edw.writer(response.getWriter())
                     noResponse = true
                 }
 
-                ]]></script>
+            ]]></script>
         </actions>
         <conditional-response url="." parameter-map="ec.entity.getEntityDefinition(aen).getPrimaryKeys(context)">
             <condition><expression>!noResponse</expression></condition></conditional-response>
