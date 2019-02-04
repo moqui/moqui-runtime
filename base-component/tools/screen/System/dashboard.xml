@@ -28,20 +28,20 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <container-row><row-col md="6">
-            <container-box><box-header><label text="Server Admin" type="h5"/></box-header><box-body>
+            <container-box><box-header title="Server Admin"/><box-body>
                 <link url="../Cache" text="Cache Stats and Mgmt"/>
                 <link url="../Instance" text="Instance Mgmt"/>
                 <link url="../Print/Printer" text="Printers"/>
                 <link url="../Print/PrintJob" text="Print Jobs"/>
                 <link url="../ServiceJob" text="Service Jobs"/>
             </box-body></container-box>
-            <container-box><box-header><label text="Security" type="h5"/></box-header><box-body>
+            <container-box><box-header title="Security"/><box-body>
                 <link url="../Security/UserAccount" text="Users"/>
                 <link url="../Security/UserGroup" text="User Groups"/>
                 <link url="../Security/ArtifactGroup" text="Artifact Groups"/>
                 <link url="../Security/ActiveUsers" text="Active Users"/>
             </box-body></container-box>
-            <container-box><box-header><label text="Usage" type="h5"/></box-header><box-body>
+            <container-box><box-header title="Usage"/><box-body>
                 <link url="../ArtifactHitSummary" text="Artifact Hit Summary"/>
                 <link url="../ArtifactHitBins" text="Artifact Hit Bins"/>
                 <link url="../AuditLog" text="Audit Log"/>
@@ -49,25 +49,25 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="../LogViewer" text="Log Viewer"/>
             </box-body></container-box>
         </row-col><row-col md="6">
-            <container-box><box-header><label text="Data Documents and Feeds" type="h5"/></box-header><box-body>
+            <container-box><box-header title="Data Documents and Feeds"/><box-body>
                 <link url="../DataDocument/Search" text="Search"/>
                 <link url="../DataDocument/Export" text="Export"/>
                 <link url="../DataDocument/Index" text="Feed Index"/>
                 <link url="../DataDocument/Edit" text="Edit and Report Builder"/>
             </box-body></container-box>
-            <container-box><box-header><label text="Data Admin" type="h5"/></box-header><box-body>
+            <container-box><box-header title="Data Admin"/><box-body>
                 <link url="../Localization/Messages" text="L10n: Messages"/>
                 <link url="../Localization/EntityFields" text="L10n: Entity Fields"/>
                 <link url="../Resource" text="Resource Finder"/>
             </box-body></container-box>
-            <container-box><box-header><label text="Integration Admin" type="h5"/></box-header><box-body>
+            <container-box><box-header title="Integration Admin"/><box-body>
                 <link url="../EntitySync" text="Entity Data Sync"/>
                 <link url="../SystemMessage/Message" text="System Messages"/>
                 <link url="../SystemMessage/Remote" text="Message Remotes"/>
                 <link url="../SystemMessage/Type" text="Message Types"/>
             </box-body></container-box>
         </row-col></container-row>
-        <container-box><box-header><label text="System Information" type="h5"/></box-header><box-toolbar>
+        <container-box><box-header title="System Information"/><box-toolbar>
             <link url="threadList" text="Thread List"/>
         </box-toolbar><box-body>
             <container-row><row-col sm="4">

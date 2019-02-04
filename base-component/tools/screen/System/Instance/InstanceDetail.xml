@@ -74,7 +74,7 @@ along with this software (see the LICENSE.md file). If not, see
         </if>
     </actions>
     <widgets><container-row><row-col md="7">
-        <container-box><box-header><label text="App Instance ${appInstance.appInstanceId}" type="h5"/></box-header><box-toolbar>
+        <container-box><box-header title="App Instance ${appInstance.appInstanceId}"/><box-toolbar>
             <link url="provisionAppInstance" text="Provision App" parameter-map="[appInstanceId:appInstanceId]"
                   condition="!instanceExists &amp;&amp; !databaseExists"/>
 
@@ -154,7 +154,7 @@ along with this software (see the LICENSE.md file). If not, see
             </form-single>
         </box-body></container-box>
     </row-col><row-col md="5">
-        <container-box><box-header><label text="Environment Variables" type="h5"/></box-header><box-toolbar>
+        <container-box><box-header title="Environment Variables"/><box-toolbar>
             <container-dialog id="AddEnvDialog" button-text="Add Env Var">
                 <form-single name="AddEnv" transition="createAppInstanceEnv">
                     <field name="appInstanceId"><default-field><hidden/></default-field></field>
@@ -177,7 +177,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </default-field></field>
             </form-list>
         </box-body-nopad></container-box>
-        <container-box><box-header><label text="Volumes" type="h5"/></box-header><box-toolbar>
+        <container-box><box-header title="Volumes"/><box-toolbar>
             <container-dialog id="AddVolDialog" button-text="Add Volume">
                 <form-single name="AddVol" transition="createAppInstanceVol">
                     <field name="appInstanceId"><default-field><hidden/></default-field></field>
@@ -200,7 +200,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </default-field></field>
             </form-list>
         </box-body-nopad></container-box>
-        <container-box><box-header><label text="Instance (Container) Links" type="h5"/></box-header><box-toolbar>
+        <container-box><box-header title="Instance (Container) Links"/><box-toolbar>
             <container-dialog id="AddLinkDialog" button-text="Add Link">
                 <form-single name="AddLink" transition="createAppInstanceLink">
                     <field name="appInstanceId"><default-field><hidden/></default-field></field>

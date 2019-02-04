@@ -52,7 +52,7 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <container-row><row-col md="6">
-            <container-box><box-header><label text="Job Run Info" type="h5"/></box-header><box-toolbar>
+            <container-box><box-header title="Job Run Info"/><box-toolbar>
                 <link url="runJob" text="Run Job" confirmation="Run job now with current parameters?"/>
                 <link url="jobRunList" text="Job Runs" parameter-map="[jobName:jobName, startTime_poffset:'0', startTime_period:'Month']"/>
             </box-toolbar><box-body>
@@ -72,7 +72,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </fail-widgets></section>
             </box-body></container-box>
 
-            <container-box><box-header><label text="Job Settings" type="h5"/></box-header><box-body>
+            <container-box><box-header title="Job Settings"/><box-body>
                 <form-single name="ServiceJobForm" map="serviceJob" transition="updateJob">
                     <field name="jobName"><default-field><display/></default-field></field>
                     <auto-fields-entity entity-name="moqui.service.job.ServiceJob" field-type="edit" include="nonpk"/>
@@ -88,7 +88,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </form-single>
             </box-body></container-box>
         </row-col><row-col md="6">
-            <container-box><box-header><label text="Parameters" type="h5"/></box-header><box-toolbar>
+            <container-box><box-header title="Parameters"/><box-toolbar>
                 <container-dialog id="AddParameterDialog" button-text="Add Parameter">
                     <form-single name="CreateJobParameter" transition="createJobParameter">
                         <field name="jobName"><default-field><hidden/></default-field></field>
@@ -109,7 +109,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </form-list>
             </box-body></container-box>
 
-            <container-box><box-header><label text="Users" type="h5"/></box-header><box-toolbar>
+            <container-box><box-header title="Users"/><box-toolbar>
                 <container-dialog id="AddUserDialog" button-text="Add User">
                     <form-single name="CreateJobUser" transition="createJobUser">
                         <field name="jobName"><default-field><hidden/></default-field></field>

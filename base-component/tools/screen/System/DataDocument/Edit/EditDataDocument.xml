@@ -71,7 +71,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
             </form-single>
         </row-col><row-col lg="7">
-            <container-box><box-header><label text="User Groups" type="h5"/></box-header><box-toolbar>
+            <container-box><box-header title="User Groups"/><box-toolbar>
                 <container-dialog id="AddGroupDialog" button-text="Add Group">
                     <form-single name="AddUserGroup" transition="createDataDocumentUserGroup">
                         <field name="dataDocumentId"><default-field><hidden/></default-field></field>
@@ -98,7 +98,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </form-list>
             </box-body-nopad></container-box>
 
-            <container-box><box-header><label text="Data Feeds" type="h5"/></box-header><box-toolbar>
+            <container-box><box-header title="Data Feeds"/><box-toolbar>
                 <container-dialog id="AddFeedDialog" button-text="Add Feed">
                     <form-single name="AddDataFeed" transition="createDataFeedDocument">
                         <field name="dataDocumentId"><default-field><hidden/></default-field></field>
@@ -125,7 +125,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </form-list>
             </box-body-nopad></container-box>
         </row-col></container-row>
-        <container-box><box-header><label text="Links" type="h5"/></box-header><box-toolbar>
+        <container-box><box-header title="Links"/><box-toolbar>
             <container-dialog id="AddLinkDialog" button-text="Add Link">
                 <form-single name="AddLink" transition="createDataDocumentLink">
                     <field name="dataDocumentId"><default-field><hidden/></default-field></field>
