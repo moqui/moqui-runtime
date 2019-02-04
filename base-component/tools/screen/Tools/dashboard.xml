@@ -26,7 +26,7 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <container-row><row-col lg="6" md="6">
             <container-box>
-                <box-header><label text="General Tools" type="h5"/></box-header>
+                <box-header title="General Tools"/>
                 <box-body>
                     <link url="../AutoScreen" text="Auto Screens"/>
                     <link url="../ArtifactStats" text="Artifact Stats"/>
@@ -39,7 +39,7 @@ along with this software (see the LICENSE.md file). If not, see
 
                 <set field="masterEntityNameList" from="ec.entity.getAllEntityNamesWithMaster()"/>
             </actions><widgets>
-                <container-box><box-header><label text="REST API: Swagger UI" type="h5"/></box-header><box-body>
+                <container-box><box-header title="REST API: Swagger UI"/><box-body>
                     <section-iterate name="RootResourcesSection" list="rootResources" entry="resource"><widgets>
                         <section name="RootResourceChildren" condition="resource.childMethods &gt; 100"><widgets>
                             <container-dialog id="RootResourceSwaggerDialog" button-text="${resource.displayName ?: resource.name} (${resource.childMethods})">
@@ -70,7 +70,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </box-body></container-box>
             </widgets></section>
         </row-col><row-col lg="6" md="6">
-            <container-box><box-header><label text="Entity Tools" type="h5"/></box-header><box-body>
+            <container-box><box-header title="Entity Tools"/><box-body>
                 <container>
                     <link url="../Entity/DataImport" text="Data Import"/>
                     <link url="../Entity/DataExport" text="Data Export"/>

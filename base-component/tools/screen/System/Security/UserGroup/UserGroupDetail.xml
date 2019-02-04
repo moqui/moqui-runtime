@@ -79,7 +79,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
             </form-single>
 
-            <container-box><box-header><label text="Permissions" type="h5"/></box-header><box-toolbar>
+            <container-box><box-header title="Permissions"/><box-toolbar>
                 <container-dialog id="AddAdHocPermissionDialog" button-text="Apply Ad-hoc Permission">
                     <form-single name="CreateAdHocUserGroupPermission" transition="createUserGroupPermission">
                         <field name="userGroupId"><default-field><hidden/></default-field></field>
@@ -127,7 +127,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </form-list>
             </box-body></container-box>
         </row-col><row-col lg="6">
-            <container-box><box-header><label text="Preferences" type="h5"/></box-header><box-toolbar>
+            <container-box><box-header title="Preferences"/><box-toolbar>
                 <container-dialog id="AddPreferenceDialog" button-text="Add Existing Preference">
                     <form-single name="CreateUserPreference" transition="createUserGroupPreference">
                         <field name="userGroupId"><default-field><hidden/></default-field></field>
@@ -164,7 +164,7 @@ along with this software (see the LICENSE.md file). If not, see
             </box-body></container-box>
         </row-col></container-row>
 
-        <container-box><box-header><label text="Authorizations" type="h5"/></box-header><box-toolbar>
+        <container-box><box-header title="Authorizations"/><box-toolbar>
             <container-dialog id="AddAuthzDialog" button-text="Add Authorization">
                 <form-single name="CreateArtifactAuthz" transition="createArtifactAuthz"
                         extends="component://tools/screen/System/Security/ArtifactGroup/ArtifactGroupDetail.xml#CreateArtifactAuthz">
@@ -190,7 +190,7 @@ along with this software (see the LICENSE.md file). If not, see
             </form-list>
         </box-body></container-box>
 
-        <container-box><box-header><label text="Tarpits (Use Velocity Limits)" type="h5"/></box-header><box-toolbar>
+        <container-box><box-header title="Tarpits (Use Velocity Limits)"/><box-toolbar>
             <container-dialog id="AddTarpitDialog" button-text="Add Tarpit">
                 <form-single name="CreateArtifactTarpit" transition="createArtifactTarpit"
                         extends="component://tools/screen/System/Security/ArtifactGroup/ArtifactGroupDetail.xml#CreateArtifactTarpit">

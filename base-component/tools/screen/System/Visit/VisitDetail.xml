@@ -31,7 +31,7 @@ along with this software (see the LICENSE.md file). If not, see
         </entity-find>
     </actions>
     <widgets>
-        <container-box><box-header><label text="Visit #${visitId}" type="h5"/></box-header><box-toolbar>
+        <container-box><box-header title="Visit #${visitId}"/><box-toolbar>
             <section name="ClientIpLinkSection" condition="visit != null &amp;&amp; !visit.clientIpIspName"><widgets>
                 <link url="getVisitClientIpData" text="Get Client IP Data"/></widgets></section>
         </box-toolbar><box-body>
@@ -75,7 +75,7 @@ along with this software (see the LICENSE.md file). If not, see
             </row-col></container-row>
         </box-body></container-box>
         <section name="ClientIpSection" condition="visit.clientIpIspName"><widgets>
-            <container-box><box-header><label text="Client IP ${visit.clientIpAddress} Data" type="h5"/></box-header><box-body>
+            <container-box><box-header title="Client IP ${visit.clientIpAddress} Data"/><box-body>
                 <container-row><row-col md="6">
                     <label text="ISP: ${visit.clientIpIspName}" type="div" condition="visit.clientIpIspName"/>
                     <label text="Latitude: ${visit.clientIpLatitude}" type="div" condition="visit.clientIpLatitude"/>
