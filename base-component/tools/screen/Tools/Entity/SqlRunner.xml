@@ -39,9 +39,9 @@ along with this software (see the LICENSE.md file). If not, see
                     stmt = con.createStatement()
 
                     for(int i=0; i< 100; i++) {
-                        // try get 100 resultsets, avoid infinit loop
+                        // try get 100 ResultSets, avoid infinite loop
                         boolean isResultSet = i == 0 ? stmt.execute(sql as String) : stmt.getMoreResults()
-                        ec.logger.info("$isResultSet")
+                        // ec.logger.info("$isResultSet")
 
                         SQLWarning w = stmt.getWarnings()
                         for (int j = 0; j < 100 && w != null; j++) {
@@ -88,6 +88,7 @@ along with this software (see the LICENSE.md file). If not, see
                     }
                 } catch (Exception e) {
                     messageList.add(e.toString())
+                    ec.logger.log(200, "Error running SQL query in SqlRunner", e)
                 } finally {
                     if (stmt != null) { try { stmt.close() } catch (Exception e) { /* Ignore */ } }
                     if (con != null) { try { con.close() } catch (Exception e) { /* Ignore */ } }
