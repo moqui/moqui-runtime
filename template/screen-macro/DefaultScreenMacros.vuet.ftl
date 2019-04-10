@@ -942,6 +942,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign showPdfDialogId = formId + "_PdfDialog">
                 <button id="${showPdfDialogId}_button" type="button" data-toggle="modal" data-target="#${showPdfDialogId}" data-original-title="${ec.getL10n().localize("PDF")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("PDF")}</button>
             </#if>
+
+            <#if (context[listName + "Count"]!0) == 0>
+                <#assign entityFindNode = (formNode["entity-find"][0])!>
+                <#assign sfiNode = (entityFindNode["search-form-inputs"][0])!>
+                <#if (sfiNode["@require-parameters"]!) == "true">
+                    <h4 class="text-warning" style="display:inline-block;padding-top:2px;">${ec.getL10n().localize("Select Find Options to view results")}</h4>
+                </#if>
+            </#if>
         </nav>
         </th></tr>
 
