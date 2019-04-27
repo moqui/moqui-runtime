@@ -7,6 +7,8 @@
 
     <default-property name="instance_purpose" value="dev"/>
 
+    <default-property name="webapp_allow_origins" value="*"/>
+
     <tools empty-db-load="all"/>
 
     <cache-list warm-on-start="false">
