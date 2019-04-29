@@ -99,6 +99,8 @@ along with this software (see the LICENSE.md file). If not, see
                 </search-form-inputs>
             </entity-find>
 
+            <auto-fields-entity entity-name="moqui.service.message.SystemMessage" field-type="find-display"/>
+
             <field name="systemMessageId">
                 <header-field title="ID" show-order-by="true"><text-find hide-options="true" size="8"/></header-field>
                 <default-field><link text="${systemMessageId}" url="messageDetail" link-type="anchor"/></default-field>
