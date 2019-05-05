@@ -35,6 +35,8 @@ along with this software (see the LICENSE.md file). If not, see
 
     <transition name="resetError"><service-call name="org.moqui.impl.SystemMessageServices.reset#SystemMessageInError"/>
         <default-response url="."/></transition>
+    <transition name="cancelMessage"><service-call name="org.moqui.impl.SystemMessageServices.cancel#SystemMessage"/>
+        <default-response url="."/></transition>
 
     <actions>
         <entity-find-one entity-name="moqui.service.message.SystemMessage" value-field="systemMessage"/>
@@ -57,8 +59,8 @@ along with this software (see the LICENSE.md file). If not, see
                 condition="systemMessage.isOutgoing == 'N' &amp;&amp; (systemMessage.statusId == 'SmsgReceived' || systemMessage.statusId == 'SmsgError')"/>
         <link url="queueAckMessage" text="Send Ack Message" parameter-map="[systemMessageId:systemMessageId]"
                 condition="systemMessage.isOutgoing == 'N' &amp;&amp; (systemMessage.statusId in ['SmsgConsumed', 'SmsgRejected', 'SmsgError'])"/>
-        <link url="updateMessage" text="Cancel Message" parameter-map="[systemMessageId:systemMessageId, statusId:'SmsgCancelled']"
-                condition="systemMessage.statusId in ['SmsgProduced', 'SmsgReceived', 'SmsgError']"/>
+        <link url="cancelMessage" text="Cancel Message" parameter-map="[systemMessageId:systemMessageId]"
+                condition="systemMessage.statusId in ['SmsgProduced', 'SmsgReceived', 'SmsgError', 'SmsgRejected']"/>
 
         <section name="ResetErrorSection" condition="systemMessage.statusId == 'SmsgError'">
             <widgets><link url="resetError" text="Reset from Error" parameter-map="[systemMessageId:systemMessageId]"/></widgets></section>
