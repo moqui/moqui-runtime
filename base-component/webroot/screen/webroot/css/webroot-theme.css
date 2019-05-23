@@ -82,6 +82,7 @@ ul.float-box li.active { box-shadow: 0 0 0 1px #337ab7 inset, 0 0 0 1px #CCCCCC;
 body.dev #top nav { background: #0c1b29; }
 body.test #top nav { background: #224422; }
 body.test #content { background: #f0fff0; }
+body.test.bg-dark #content { background: #003300; }
 
 .navbar-inverse .navbar-nav > li > a { font-size: 1.1em; color: #BBB; }
 .navbar-inverse .navbar-nav > li > a:hover, .navbar-inverse .navbar-nav > li > a:focus { color: #fff; background-color: transparent; }

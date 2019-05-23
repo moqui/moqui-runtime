@@ -15,31 +15,30 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-title="Audit Log" default-menu-index="4">
 
-    <actions>
-        <entity-find entity-name="moqui.entity.EntityAuditLog" list="entityAuditLogList" limit="50">
-            <search-form-inputs default-order-by="-changedDate"/>
-        </entity-find>
-    </actions>
     <widgets>
-        <form-list name="EntityAuditLogList" list="entityAuditLogList">
+        <form-list name="EntityAuditLogList" list="entityAuditLogList" header-dialog="true">
+            <entity-find entity-name="moqui.entity.EntityAuditLog" list="entityAuditLogList" limit="50">
+                <search-form-inputs default-order-by="-changedDate" require-parameters="true"/>
+            </entity-find>
+
             <field name="changedDate">
-                <header-field title="Date" show-order-by="true"><text-find hide-options="true" size="12"/></header-field>
+                <header-field title="Date" show-order-by="true"><date-period time="true"/></header-field>
                 <default-field><display also-hidden="false"/></default-field>
             </field>
             <field name="changedEntityName">
-                <header-field title="Entity" show-order-by="true"><text-find hide-options="true" size="6"/></header-field>
+                <header-field title="Entity" show-order-by="true"><text-find size="80" default-operator="equals"/></header-field>
                 <default-field><display also-hidden="false"/></default-field>
             </field>
             <field name="changedFieldName">
-                <header-field title="Field" show-order-by="true"><text-find hide-options="true" size="6"/></header-field>
+                <header-field title="Field" show-order-by="true"><text-find size="30" default-operator="equals"/></header-field>
                 <default-field><display also-hidden="false"/></default-field>
             </field>
             <field name="pkPrimaryValue">
-                <header-field title="PK 1" show-order-by="true"><text-find hide-options="true" size="6"/></header-field>
+                <header-field title="PK 1" show-order-by="true"><text-find size="30" default-operator="equals"/></header-field>
                 <default-field><display also-hidden="false"/></default-field>
             </field>
             <field name="pkSecondaryValue">
-                <header-field title="PK 2"><text-find hide-options="true" size="4"/></header-field>
+                <header-field title="PK 2"><text-find size="30" default-operator="equals"/></header-field>
                 <default-field><display also-hidden="false"/></default-field>
             </field>
             <!--
@@ -49,19 +48,19 @@ along with this software (see the LICENSE.md file). If not, see
             </field>
             -->
             <field name="oldValueText">
-                <header-field title="Old" show-order-by="true"><text-find hide-options="true" size="10"/></header-field>
+                <header-field title="Old" show-order-by="true"><text-find size="60" default-operator="begins"/></header-field>
                 <default-field><display also-hidden="false"/></default-field>
             </field>
             <field name="newValueText">
-                <header-field title="New" show-order-by="true"><text-find hide-options="true" size="10"/></header-field>
+                <header-field title="New" show-order-by="true"><text-find size="60" default-operator="begins"/></header-field>
                 <default-field><display also-hidden="false"/></default-field>
             </field>
             <field name="changedByUserId">
-                <header-field title="User" show-order-by="true"><text-find hide-options="true" size="6"/></header-field>
+                <header-field title="User" show-order-by="true"><text-find size="20" default-operator="begins"/></header-field>
                 <default-field><display also-hidden="false"/></default-field>
             </field>
             <field name="changedInVisitId">
-                <header-field title="Visit" show-order-by="true"><text-find hide-options="true" size="6"/></header-field>
+                <header-field title="Visit" show-order-by="true"><text-find size="20" default-operator="begins"/></header-field>
                 <default-field><display also-hidden="false"/></default-field>
             </field>
             <field name="find"><header-field title="Find"><submit/></header-field>

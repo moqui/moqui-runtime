@@ -48,7 +48,7 @@ along with this software (see the LICENSE.md file). If not, see
         </iterate>
     </actions>
     <widgets>
-        <container-box><box-header><label text="Conditions" type="h5"/></box-header><box-toolbar>
+        <container-box><box-header title="Conditions"/><box-toolbar>
             <container-dialog id="AddConditionDialog" button-text="Add Condition">
                 <form-single name="AddCondition" transition="createDataDocumentCondition">
                     <field name="dataDocumentId"><default-field><hidden/></default-field></field>
@@ -86,7 +86,7 @@ along with this software (see the LICENSE.md file). If not, see
             </form-list>
         </box-body-nopad></container-box>
 
-        <container-box><box-header><label text="Fields" type="h5"/></box-header><box-toolbar>
+        <container-box><box-header title="Fields"/><box-toolbar>
             <container-dialog id="AddFieldDialog" button-text="Add Field Manual">
                 <form-single name="AddField" transition="createDataDocumentField">
                     <field name="dataDocumentId"><default-field><hidden/></default-field></field>

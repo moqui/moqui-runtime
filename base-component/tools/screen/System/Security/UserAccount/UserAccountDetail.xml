@@ -139,7 +139,7 @@ along with this software (see the LICENSE.md file). If not, see
                 </form-single>
             </row-col>
             <row-col lg="7">
-                <container-box><box-header><label text="Groups" type="h5"/></box-header><box-toolbar>
+                <container-box><box-header title="Groups"/><box-toolbar>
                     <container-dialog id="AddGroupMemberDialog" button-text="Add Group">
                         <form-single name="CreateUserGroupMember" transition="createUserGroupMember">
                             <field name="userId"><default-field><hidden/></default-field></field>
@@ -174,7 +174,7 @@ along with this software (see the LICENSE.md file). If not, see
                     </form-list>
                 </box-body-nopad></container-box>
 
-                <container-box><box-header><label text="Preferences" type="h5"/></box-header><box-toolbar>
+                <container-box><box-header title="Preferences"/><box-toolbar>
                     <container-dialog id="AddPreferenceDialog" button-text="Add Existing Preference">
                         <form-single name="CreateUserPreference" transition="createUserPreference">
                             <field name="userId"><default-field><hidden/></default-field></field>

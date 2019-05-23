@@ -61,7 +61,7 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
         </form-single>
         <container-box>
-            <box-header><label text="Artifact Members" type="h5"/></box-header>
+            <box-header title="Artifact Members"/>
             <box-toolbar>
                 <container-dialog id="AddMemberDialog" button-text="Add Any Artifact/Pattern">
                     <form-single name="CreateArtifactGroupMember" transition="createArtifactGroupMember">
@@ -113,7 +113,7 @@ along with this software (see the LICENSE.md file). If not, see
         </container-box>
 
         <container-box>
-            <box-header><label text="Authorizations" type="h5"/></box-header>
+            <box-header title="Authorizations"/>
             <box-toolbar>
                 <container-dialog id="AddAuthzDialog" button-text="Add Authorization">
                     <form-single name="CreateArtifactAuthz" transition="createArtifactAuthz">
@@ -194,7 +194,7 @@ along with this software (see the LICENSE.md file). If not, see
         </container-box>
 
         <container-box>
-            <box-header><label text="Tarpits (Use Velocity Limits)" type="h5"/></box-header>
+            <box-header title="Tarpits (Use Velocity Limits)"/>
             <box-toolbar>
                 <container-dialog id="AddTarpitDialog" button-text="Add Tarpit">
                     <form-single name="CreateArtifactTarpit" transition="createArtifactTarpit">
