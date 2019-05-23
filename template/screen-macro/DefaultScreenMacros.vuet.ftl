@@ -129,9 +129,11 @@ ${sri.renderSection(.node["@name"])}
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
         <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
+        <#assign title = ec.getResource().expand(.node["@title"], "")>
+        <#if !title?has_content><#assign title = buttonText></#if>
         <#assign cdDivId><@nodeId .node/></#assign>
         <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="${iconClass}"></i> ${buttonText}</button>
-        <container-dialog id="${cdDivId}" width="${.node["@width"]!"760"}" title="${buttonText}"<#if _openDialog! == cdDivId> :openDialog="true"</#if>>
+        <container-dialog id="${cdDivId}" width="${.node["@width"]!"760"}" title="${title}"<#if _openDialog! == cdDivId> :openDialog="true"</#if>>
             <#recurse>
         </container-dialog>
     </#if>
