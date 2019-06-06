@@ -25,8 +25,7 @@ along with this software (see the LICENSE.md file). If not, see
     </always-actions>
     <transition name="status">
         <actions>
-            <set field="allowed_ips" from="['127.0.0.1']"/>
-            <if condition="System.getenv('DOCKER_HOST_IPS')"><script>allowed_ips.addAll(System.getenv('DOCKER_HOST_IPS').replaceAll("\\s", "").split(","))</script></if>
+            <set field="allowed_ips" from="System.getProperty('instance_docker_host_ips')? System.getProperty('instance_docker_host_ips').replaceAll('\\s', '').split(',')+['127.0.0.1']: ['127.0.0.1']"/>
             <if condition="ec.web.getRequest().getRemoteAddr() in allowed_ips"><then>
                 <script>ec.web.sendJsonResponse(ec.factory.getStatusMap())</script>
             </then><else>
