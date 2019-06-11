@@ -23,13 +23,13 @@ def downloadBase = "http://cdnjs.cloudflare.com/ajax/libs/"
 def fileMap = [
     "rsvp/4.8.3/rsvp.min.js":"",
 
-    "twitter-bootstrap/3.3.7/css/bootstrap.min.css":"",
-    "twitter-bootstrap/3.3.7/js/bootstrap.min.js":"",
-    "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.eot":"",
-    "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.svg":"",
-    "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.ttf":"",
-    "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff":"",
-    "twitter-bootstrap/3.3.7/fonts/glyphicons-halflings-regular.woff2":"",
+    "twitter-bootstrap/3.4.1/css/bootstrap.min.css":"",
+    "twitter-bootstrap/3.4.1/js/bootstrap.min.js":"",
+    "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.eot":"",
+    "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.svg":"",
+    "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.ttf":"",
+    "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.woff":"",
+    "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.woff2":"",
 
     "bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css":"",
     // js/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js 4.17.47 has a small change so that keyBinds are handled properly
@@ -47,7 +47,7 @@ def fileMap = [
 
     "jeditable.js/1.7.3/jeditable.min.js":"",
 
-    "jquery/3.2.1/jquery.min.js":"",
+    "jquery/3.4.1/jquery.min.js":"",
 
     "jquery.form/4.2.1/jquery.form.min.js":"",
     "jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js":"",
@@ -57,13 +57,13 @@ def fileMap = [
     "jquery-validate/1.17.0/jquery.validate.min.js":"",
     "jquery-validate/1.17.0/additional-methods.min.js":"",
 
-    "jstree/3.3.3/jstree.min.js":"",
-    "jstree/3.3.3/themes/default/style.min.css":"",
-    "jstree/3.3.3/themes/default/32px.png":"",
-    "jstree/3.3.3/themes/default/40px.png":"",
-    "jstree/3.3.3/themes/default/throbber.gif":"",
+    "jstree/3.3.8/jstree.min.js":"",
+    "jstree/3.3.8/themes/default/style.min.css":"",
+    "jstree/3.3.8/themes/default/32px.png":"",
+    "jstree/3.3.8/themes/default/40px.png":"",
+    "jstree/3.3.8/themes/default/throbber.gif":"",
 
-    "moment.js/2.18.1/moment-with-locales.min.js":"",
+    "moment.js/2.24.0/moment-with-locales.min.js":"",
 
     // js/select2/select2.min.js 4.0.3 has small changes so that widths are handled properly, so not in download list
     "select2/4.0.3/css/select2.min.css":"",
@@ -74,8 +74,8 @@ def fileMap = [
 
     "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
-    "vue/2.4.4/vue.js":"",
-    "vue/2.4.4/vue.min.js":""
+    "vue/2.6.10/vue.js":"",
+    "vue/2.6.10/vue.min.js":""
 ]
 
 String getTargetPath(String sourcePath, String targetPath) {
