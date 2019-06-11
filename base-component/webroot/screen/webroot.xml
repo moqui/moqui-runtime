@@ -23,12 +23,17 @@ along with this software (see the LICENSE.md file). If not, see
         <!-- See WebrootThemeData.xml for CSS references -->
         <set field="html_stylesheets" from="new LinkedHashSet()"/>
     </always-actions>
-    <!-- needs to be secured, require authc and a permission:
     <transition name="status">
-        <actions><script>ec.web.sendJsonResponse(ec.factory.getStatusMap())</script></actions>
+        <actions>
+            <set field="allowed_ips" from="System.getProperty('webapp_status_ips')? System.getProperty('webapp_status_ips').replaceAll('\\s', '').split(',')+['127.0.0.1']: ['127.0.0.1']"/>
+            <if condition="ec.web.getRequest().getRemoteAddr() in allowed_ips"><then>
+                <script>ec.web.sendJsonResponse(ec.factory.getStatusMap())</script>
+            </then><else>
+                <log message="Rejecting /status from ${ec.web.getRequest().getRemoteAddr()}"/>
+            </else></if>
+        </actions>
         <default-response type="none"/>
     </transition>
-    -->
     <transition name="menuData" read-only="true" begin-transaction="false">
         <actions><script><![CDATA[
             List menuDataList = sri.getMenuData(sri.screenUrlInfo.extraPathNameList)
