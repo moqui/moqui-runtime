@@ -61,10 +61,10 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="../Resource" text="Resource Finder"/>
             </box-body></container-box>
             <container-box><box-header title="Integration Admin"/><box-body>
-                <link url="../EntitySync" text="Entity Data Sync"/>
                 <link url="../SystemMessage/Message" text="System Messages"/>
                 <link url="../SystemMessage/Remote" text="Message Remotes"/>
                 <link url="../SystemMessage/Type" text="Message Types"/>
+                <link url="../EntitySync" text="Entity Data Sync"/>
             </box-body></container-box>
         </row-col></container-row>
         <container-box><box-header title="System Information"/><box-toolbar>
