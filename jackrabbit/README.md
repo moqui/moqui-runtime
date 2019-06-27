@@ -23,14 +23,14 @@ Please refer framework/build.gradle, uncomment the below lines or include them e
 6. Define the Jackrabbit repositories, no JCR repository is defined by default.  
 Please refer framework/src/main/resources/MoquiDefaultConf.xml  
 ``
-  <repository name="main" workspace="default" username="admin" password="admin">   
-    <init-param name="org.apache.jackrabbit.repository.uri" value="http://localhost:8081/rmi"/>
-  </repository>
+    <repository name="main" workspace="default" username="admin" password="admin">   
+        <init-param name="org.apache.jackrabbit.repository.uri" value="http://localhost:8081/rmi"/>
+    </repository>
 ``  
 ``  
-  <repository name="main" workspace="default" username="admin" password="admin">
-    <init-param name="org.apache.jackrabbit.spi2davex.uri" value="http://localhost:8081/server"/>
-  </repository>
+    <repository name="main" workspace="default" username="admin" password="admin">
+        <init-param name="org.apache.jackrabbit.spi2davex.uri" value="http://localhost:8081/server"/>
+    </repository>
 ``
 
 ## Optional configuration 
