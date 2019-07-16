@@ -88,7 +88,11 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="link">
                 <default-field title="">
                     <link text="Detail" url="." link-type="anchor"><parameter name="selectedEntity" from="relInfo.relatedEntityName"/></link>
-                    <link text="Find" url="find" link-type="anchor"><parameter name="selectedEntity" from="relInfo.relatedEntityName"/></link>
+                    <link text="Find" url="find" link-type="anchor">
+                        <parameter name="enumTypeId" value="${(relInfo.relatedEntityName == &quot;moqui.basic.Enumeration&quot;)? relInfo.title : &quot;&quot;}"/> <!-- optional parameter. only assigns a value if relInfo is an Enumeration -->
+                        <parameter name="statusTypeId" value="${(relInfo.relatedEntityName == &quot;moqui.basic.StatusItem&quot;)? relInfo.title : &quot;&quot;}"/> <!-- optional parameter. only assigns a value if relInfo is a StatusItem -->
+                        <parameter name="selectedEntity" from="relInfo.relatedEntityName"/>
+                    </link>
                 </default-field>
             </field>
         </form-list>
