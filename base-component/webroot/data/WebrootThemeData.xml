@@ -56,4 +56,8 @@ along with this software (see the LICENSE.md file). If not, see
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="201" resourceTypeEnumId="STRT_FOOTER_ITEM">
         <resourceValue><![CDATA[<p><a href="/apps/ScreenTree">${ec.l10n.localize('Site Map')}</a></p>]]></resourceValue>
     </moqui.screen.ScreenThemeResource>
+
+    <!-- Icon resource location -->
+    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="301" resourceTypeEnumId="STRT_SHORTCUT_ICON_LOCATION"
+            resourceValue="component://webroot/screen/webroot/favicon.ico"/>
 </entity-facade-xml>
