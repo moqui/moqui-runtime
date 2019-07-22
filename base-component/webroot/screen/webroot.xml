@@ -58,6 +58,18 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response type="none"/>
     </transition>
 
+    <transition name="favicon.ico">
+        <actions>
+            <!-- change the location in the ScreenThemeResource of type STRT_SHORTCUT_ICON_LOCATION to the location of whatever favicon you would like -->
+            <script>
+                resourceLocation = sri.getThemeValues("STRT_SHORTCUT_ICON_LOCATION")
+                if (resourceLocation) ec.web.sendResourceResponse(resourceLocation)
+                else ec.web.sendResourceResponse("component://webroot/screen/webroot/favicon.ico")
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
     <subscreens default-item="vapps">
         <subscreens-item name="toolstatic" location="component://tools/screen/toolstatic.xml" menu-include="false"/>
         <!-- add UNDECORATED (or self-decorating) app roots here -->
