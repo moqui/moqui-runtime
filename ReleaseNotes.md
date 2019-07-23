@@ -1,7 +1,7 @@
 
 # Moqui Runtime Release Notes
 
-## Release 2.1.2 - Not Yet Released
+## Release 2.1.2 - 23 July 2019
 
 Moqui Runtime 2.1.2 is a patch level new feature and bug fix release, in parallel with the release of Moqui Framework.
 
@@ -10,7 +10,7 @@ This was done mainly for security reasons and updates to JS code in this reposit
 
 There are various improvements to System and Tools app screens for usability and to better handle larger databases.
 
-There are only minor changes and fixes in this release. For a complete list of commits see:
+There are only minor changes and fixes in this release. For a complete list of changes see:
 
 https://github.com/moqui/moqui-runtime/compare/v2.1.1...v2.1.2
 
