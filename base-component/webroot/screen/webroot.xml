@@ -58,13 +58,13 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response type="none"/>
     </transition>
 
+    <!-- Force custom favicon, if set in the "STRT_SHORTCUT_ICON" ScreenThemeResource. -->
     <transition name="favicon.ico">
         <actions>
-            <!-- change the location in the ScreenThemeResource of type STRT_SHORTCUT_ICON_LOCATION to the location of whatever favicon you would like -->
             <script>
-                resourceLocation = sri.getThemeValues("STRT_SHORTCUT_ICON_LOCATION")
-                if (resourceLocation) ec.web.sendResourceResponse(resourceLocation)
-                else ec.web.sendResourceResponse("component://webroot/screen/webroot/favicon.ico")
+                iconList = sri.getThemeValues("STRT_SHORTCUT_ICON")
+                if (!iconList || iconList[0] == "") iconList = ["/favicon.ico"]
+                ec.web.sendResourceResponse("component://webroot/screen/webroot" + iconList[0])
             </script>
         </actions>
         <default-response type="none"/>
