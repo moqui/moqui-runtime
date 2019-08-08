@@ -39,7 +39,8 @@ along with this software (see the LICENSE.md file). If not, see
         </container>
         <!-- not yet, not fully implemented but simple test case: server-static="vuet" -->
         <form-list name="ArtifactHitSummaryList" list="artifactHitReportList" skip-form="true"
-                   show-csv-button="true" show-text-button="true" show-pdf-button="true" header-dialog="true" saved-finds="true" select-columns="true">
+                   show-csv-button="true" show-xlsx-button="true" show-text-button="true" show-pdf-button="true"
+                   header-dialog="true" saved-finds="true" select-columns="true">
             <entity-find entity-name="moqui.server.ArtifactHitReport" list="artifactHitReportList" limit="50">
                 <search-form-inputs default-order-by="artifactType,artifactName"/>
                 <select-field field-name="totalSquaredTime"/>
