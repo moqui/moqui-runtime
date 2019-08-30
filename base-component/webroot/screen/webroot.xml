@@ -58,6 +58,18 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response type="none"/>
     </transition>
 
+    <!-- Force custom favicon, if set in the "STRT_SHORTCUT_ICON" ScreenThemeResource. -->
+    <transition name="favicon.ico">
+        <actions>
+            <script>
+                iconList = sri.getThemeValues("STRT_SHORTCUT_ICON")
+                if (!iconList || iconList[0] == "") iconList = ["/favicon.ico"]
+                ec.web.sendResourceResponse("component://webroot/screen/webroot" + iconList[0])
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
     <subscreens default-item="vapps">
         <subscreens-item name="toolstatic" location="component://tools/screen/toolstatic.xml" menu-include="false"/>
         <!-- add UNDECORATED (or self-decorating) app roots here -->
