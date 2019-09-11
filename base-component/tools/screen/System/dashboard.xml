@@ -25,6 +25,8 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="componentInfoList" from="orderMapList(ec.factory.getComponentInfoList(), ['^name'])"/>
 
         <set field="runtimeVersionMap" from="ec.factory.versionMap"/>
+
+        <set field="workerPool" from="ec.factory.workerPool"/>
     </actions>
     <widgets>
         <container-row><row-col md="6">
@@ -132,14 +134,22 @@ along with this software (see the LICENSE.md file). If not, see
                 <label text="Java Statistics" type="strong"/>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="GC" type="strong"/></row-col>
                     <row-col xs="7"><label text="${smap.JavaStats.GcCount}, ${ec.l10n.format(smap.JavaStats.GcTimeSeconds, '#,##0.00')}s total"/></row-col></container-row>
-                <container-row><row-col xs="1"/><row-col xs="4"><label text="JIT" type="strong"/></row-col>
-                    <row-col xs="7"><label text="${smap.JavaStats.JIT}"/></row-col></container-row>
+                <!-- <container-row><row-col xs="1"/><row-col xs="4"><label text="JIT" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${smap.JavaStats.JIT}"/></row-col></container-row> -->
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Compile Time" type="strong"/></row-col>
                     <row-col xs="7"><label text="${ec.l10n.format(smap.JavaStats.CompileTimeSeconds, '#,##0.00')}s total"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Loaded Classes" type="strong"/></row-col>
                     <row-col xs="7"><label text="${smap.JavaStats.ClassesLoaded} (${smap.JavaStats.ClassesTotalLoaded} tot, ${smap.JavaStats.ClassesUnloaded} unl)"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Threads" type="strong"/></row-col>
                     <row-col xs="7"><label text="${smap.JavaStats.ThreadCount} (${smap.JavaStats.PeakThreadCount} peak)"/></row-col></container-row>
+
+                <label text="Worker Pool" type="strong"/>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Threads" type="strong"/></row-col>
+                    <row-col xs="7"><label text="Active: ${workerPool.getActiveCount()} Cur: ${workerPool.getPoolSize()} Max: ${workerPool.getMaximumPoolSize()}"
+                            style="${workerPool.getActiveCount() == workerPool.getMaximumPoolSize() ? 'text-warning' : ''}"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Queue" type="strong"/></row-col>
+                    <row-col xs="7"><label text="Cur: ${workerPool.queue.size()} Rem: ${workerPool.queue.remainingCapacity()}"
+                            style="workerPool.queue.remainingCapacity() == 0 ? 'text-danger' : (workerPool.queue.size() &gt; workerPool.queue.remainingCapacity() ? 'text-warning' : '')"/></row-col></container-row>
             </row-col></container-row>
         </box-body><box-body-nopad>
             <form-list name="DatasourceList" list="smap.DataSources" skip-form="true">
