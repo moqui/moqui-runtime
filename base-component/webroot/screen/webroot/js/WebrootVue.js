@@ -221,6 +221,10 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
 moqui.componentCache = new moqui.LruMap(50);
 
 moqui.handleLoadError = function (jqXHR, textStatus, errorThrown) {
+    if (textStatus === 'abort') {
+        console.warn('load aborted: ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown);
+        return;
+    }
     moqui.webrootVue.loading = 0;
     moqui.handleAjaxError(jqXHR, textStatus, errorThrown);
 };
@@ -237,13 +241,20 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
         bodyParameters = urlInfo.bodyParameters; renderModes = urlInfo.renderModes;
     }
 
+    /* CACHE DISABLED: issue with more recent Vue JS where cached components don't re-render when assigned so screens don't load
+     * to reproduce: make a screen like a dashboad slow loading with a Thread.sleep(5000), from another screen select it
+     * in the menu and before it loads click on a link for another screen, won't load and gets into a bad state where
+     * nothing in the same path will load, need to somehow force it to re-render;
+     * note that vm.$forceUpdate() in subscreens-active component before return false did not work
     // check cache
     // console.info('component lru ' + JSON.stringify(moqui.componentCache.lruList));
     var cachedComp = moqui.componentCache.get(path);
     if (cachedComp) {
-        console.info('found cached component for path ' + path);
-        callback(cachedComp); return;
+        console.info('found cached component for path ' + path + ': ' + JSON.stringify(cachedComp));
+        callback(cachedComp);
+        return;
     }
+    */
 
     // prep url
     var url = path;
@@ -1204,9 +1215,9 @@ Vue.component('subscreens-active', {
         console.info('subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
         root.loading++;
         root.currentLoadRequest = moqui.loadComponent(urlInfo, function(comp) {
+            root.currentLoadRequest = null;
             vm.activeComponent = comp;
             root.loading--;
-            root.currentLoadRequest = null;
         });
         return true;
     }},
@@ -1219,16 +1230,17 @@ moqui.webrootVue = new Vue({
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null },
     methods: {
         setUrl: function(url, bodyParameters) {
-            // always set bodyParameters, setting to null when not specified to clear out previous
-            this.bodyParameters = bodyParameters;
             // make sure any open modals are closed before setting current URL
             $('.modal.in').modal('hide');
             // cancel current load if needed
             if (this.currentLoadRequest) {
-                console.log("Aborting current page load");
+                console.log("Aborting current page load currentLinkUrl " + this.currentLinkUrl + " url " + url);
                 this.currentLoadRequest.abort();
+                this.currentLoadRequest = null;
                 this.loading = 0;
             }
+            // always set bodyParameters, setting to null when not specified to clear out previous
+            this.bodyParameters = bodyParameters;
             url = this.getLinkPath(url);
             // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
             if (this.currentLinkUrl === url && url !== this.linkBasePath) {
@@ -1287,7 +1299,7 @@ moqui.webrootVue = new Vue({
             this.activeSubscreens.push(saComp);
         },
         reloadSubscreens: function() {
-            // console.info('reloadSubscreens currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
+            // console.info('reloadSubscreens path ' + JSON.stringify(this.currentPathList) + ' currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
             var fullPathList = this.currentPathList;
             var activeSubscreens = this.activeSubscreens;
             console.info("reloadSubscreens currentPathList " + JSON.stringify(this.currentPathList));
