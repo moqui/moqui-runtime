@@ -292,7 +292,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
         } else { callback(moqui.NotFound); }
     }};
     if (bodyParameters && !$.isEmptyObject(bodyParameters)) { ajaxSettings.type = "POST"; ajaxSettings.data = bodyParameters; }
-    $.ajax(ajaxSettings);
+    return $.ajax(ajaxSettings);
 };
 
 /* ========== placeholder components ========== */
@@ -306,8 +306,15 @@ Vue.component('m-link', {
     methods: { go: function(event) {
         if (event.button !== 0) { return; }
         if (this.confirmation && this.confirmation.length) { if (!window.confirm(this.confirmation)) { return; } }
-        if (this.loadId && this.loadId.length > 0) { this.$root.loadContainer(this.loadId, this.href); }
-        else { if (event.ctrlKey || event.metaKey) { window.open(this.linkHref, "_blank"); } else { this.$root.setUrl(this.linkHref); } }
+        if (this.loadId && this.loadId.length > 0) {
+            this.$root.loadContainer(this.loadId, this.href);
+        } else {
+            if (event.ctrlKey || event.metaKey) {
+                window.open(this.linkHref, "_blank");
+            } else {
+                this.$root.setUrl(this.linkHref);
+            }
+        }
     }},
     computed: { linkHref: function () { return this.$root.getLinkPath(this.href); } }
 });
@@ -1166,7 +1173,10 @@ Vue.component('subscreens-active', {
     template: '<component :is="activeComponent"></component>',
     // method instead of a watch on pathName so that it runs even when newPath is the same for non-static reloading
     methods: { loadActive: function() {
-        var vm = this; var root = vm.$root; var pathIndex = vm.pathIndex; var curPathList = root.currentPathList;
+        var vm = this;
+        var root = vm.$root;
+        var pathIndex = vm.pathIndex;
+        var curPathList = root.currentPathList;
         var newPath = curPathList[pathIndex];
         var pathChanged = (this.pathName !== newPath);
         this.pathName = newPath;
@@ -1193,7 +1203,11 @@ Vue.component('subscreens-active', {
         if (navMenuItem && navMenuItem.renderModes) urlInfo.renderModes = navMenuItem.renderModes;
         console.info('subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
         root.loading++;
-        moqui.loadComponent(urlInfo, function(comp) { vm.activeComponent = comp; root.loading--; });
+        root.currentLoadRequest = moqui.loadComponent(urlInfo, function(comp) {
+            vm.activeComponent = comp;
+            root.loading--;
+            root.currentLoadRequest = null;
+        });
         return true;
     }},
     mounted: function() { this.$root.addSubscreen(this); }
@@ -1201,7 +1215,7 @@ Vue.component('subscreens-active', {
 moqui.webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
-        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[], lastNavTime:Date.now(), loading:0, activeContainers:{},
+        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[], lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{},
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null },
     methods: {
         setUrl: function(url, bodyParameters) {
@@ -1209,6 +1223,12 @@ moqui.webrootVue = new Vue({
             this.bodyParameters = bodyParameters;
             // make sure any open modals are closed before setting current URL
             $('.modal.in').modal('hide');
+            // cancel current load if needed
+            if (this.currentLoadRequest) {
+                console.log("Aborting current page load");
+                this.currentLoadRequest.abort();
+                this.loading = 0;
+            }
             url = this.getLinkPath(url);
             // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
             if (this.currentLinkUrl === url && url !== this.linkBasePath) {
@@ -1244,7 +1264,10 @@ moqui.webrootVue = new Vue({
                     var outerList = null;
                     // console.log("menu response " + outerListText);
                     try { outerList = JSON.parse(outerListText); } catch (e) { console.info("Error parson menu list JSON: " + e); }
-                    if (outerList && moqui.isArray(outerList)) { vm.navMenuList = outerList; /* console.info('navMenuList ' + JSON.stringify(outerList)); */ }
+                    if (outerList && moqui.isArray(outerList)) {
+                        vm.navMenuList = outerList;
+                        /* console.info('navMenuList ' + JSON.stringify(outerList)); */
+                    }
                 }});
 
                 // set the window URL
@@ -1265,9 +1288,14 @@ moqui.webrootVue = new Vue({
         },
         reloadSubscreens: function() {
             // console.info('reloadSubscreens currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
-            var fullPathList = this.currentPathList; var activeSubscreens = this.activeSubscreens;
+            var fullPathList = this.currentPathList;
+            var activeSubscreens = this.activeSubscreens;
             console.info("reloadSubscreens currentPathList " + JSON.stringify(this.currentPathList));
-            if (fullPathList.length === 0 && activeSubscreens.length > 0) { activeSubscreens.splice(1); activeSubscreens[0].loadActive(); return; }
+            if (fullPathList.length === 0 && activeSubscreens.length > 0) {
+                activeSubscreens.splice(1);
+                activeSubscreens[0].loadActive();
+                return;
+            }
             for (var i=0; i<activeSubscreens.length; i++) {
                 if (i >= fullPathList.length) break;
                 // always try loading the active subscreen and see if actually loaded
