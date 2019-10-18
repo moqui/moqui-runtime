@@ -42,6 +42,10 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="cacheElements">
         <default-response url="../CacheElements"/>
     </transition>
+    <transition name="runGc">
+        <actions><script>System.gc()</script></actions>
+        <default-response url="."/>
+    </transition>
 
     <actions>
         <set field="cacheList" from="ec.cache.getAllCachesInfo(orderByField?:'+name', filterRegexp)"/>
@@ -61,6 +65,7 @@ along with this software (see the LICENSE.md file). If not, see
         <container-row><row-col lg="6" md="6">
             <link text="Clear All" url="clearAllCaches"/>
             <link text="Clear All Artifact" url="clearArtifactCaches"/>
+            <link text="Run GC" url="runGc" btn-type="warning" confirmation="Run Java garbage collection? This may take some time and pause other running threads."/>
         </row-col><row-col lg="6" md="6">
             <form-single name="FilterForm" transition=".">
                 <field name="filterRegexp"><default-field><text-line size="30"/></default-field></field>

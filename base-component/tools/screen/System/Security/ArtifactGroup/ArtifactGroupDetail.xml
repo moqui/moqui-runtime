@@ -181,8 +181,11 @@ along with this software (see the LICENSE.md file). If not, see
                     </default-field></field>
                     <field name="authzServiceName"><default-field><text-line size="30"/></default-field></field>
                     <field name="entityFilterSets"><default-field>
-                        <section-iterate name="EntityFilterSetSection" list="entityFilterSetList" entry="entityFilterSet">
-                            <widgets><label text="${entityFilterSet.description}"/></widgets></section-iterate>
+                        <section-iterate name="EntityFilterSetSection" list="entityFilterSetList" entry="entityFilterSet"><widgets>
+                            <label text="${entityFilterSet.description}"/>
+                            <label text="Authz Cond: ${entityFilterSet.authzApplyCond}" condition="entityFilterSet.authzApplyCond" type="div"/>
+                            <label text="Filter Cond: ${entityFilterSet.applyCond}" condition="entityFilterSet.applyCond" type="div"/>
+                        </widgets></section-iterate>
                     </default-field></field>
                     <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
                     <field name="deleteLink"><default-field title="">

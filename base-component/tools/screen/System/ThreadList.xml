@@ -35,9 +35,15 @@ along with this software (see the LICENSE.md file). If not, see
         ]]></script></actions>
         <default-response url="."/>
     </transition>
+    <transition name="setWorkerPoolSize">
+        <actions><script>ec.factory.workerPool.setCorePoolSize(coreSize as int); ec.factory.workerPool.setMaximumPoolSize(maxSize as int)</script></actions>
+        <default-response url="."/>
+    </transition>
 
     <actions>
-        <set field="orderByField" from="orderByField ?: '-cpuTime'"/>
+        <set field="workerPool" from="ec.factory.workerPool"/>
+
+        <set field="orderByField" from="orderByField ?: 'threadName'"/>
 
         <set field="threadMXBean" from="java.lang.management.ManagementFactory.getThreadMXBean()"/>
         <set field="deadlockedList" from="threadMXBean.findDeadlockedThreads()"/>
@@ -57,6 +63,25 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <label text="Threads: ${threadMXBean.getThreadCount()}, Peak: ${threadMXBean.getPeakThreadCount()}"/>
         <label text="Deadlocked Threads: ${deadlockedList}" style="text-danger" condition="deadlockedList"/>
+
+        <container>
+            <label text="Worker Pool" type="strong"/>
+            <label text="Threads" type="strong"/>
+            <label text="Active: ${workerPool.getActiveCount()} Cur: ${workerPool.getPoolSize()} Max: ${workerPool.getMaximumPoolSize()}"
+                    style="${workerPool.getActiveCount() == workerPool.getMaximumPoolSize() ? 'text-warning' : ''}"/>
+            <label text="Queue" type="strong"/>
+            <label text="Cur: ${workerPool.queue.size()} Rem: ${workerPool.queue.remainingCapacity()}"
+                    style="workerPool.queue.remainingCapacity() == 0 ? 'text-danger' : (workerPool.queue.size() &gt; workerPool.queue.remainingCapacity() ? 'text-warning' : '')"/>
+
+            <container-dialog id="SetWorkerPoolDialog" button-text="Set Pool Size">
+                <label text="NOTE: Max Size must be greater than or equal to Core Size" type="p"/>
+                <form-single name="SetWorkerPoolForm" transition="setWorkerPoolSize">
+                    <field name="coreSize" from="workerPool.getCorePoolSize()"><default-field><text-line size="5"/></default-field></field>
+                    <field name="maxSize" from="workerPool.getMaximumPoolSize()"><default-field><text-line size="5"/></default-field></field>
+                    <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
+                </form-single>
+            </container-dialog>
+        </container>
 
         <form-list name="ThreadList" list="threadMapList" skip-form="true" select-columns="true">
             <field name="threadName"><header-field title="Name" show-order-by="case-insensitive"/><default-field><display/></default-field></field>
