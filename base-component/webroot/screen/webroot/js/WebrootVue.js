@@ -308,7 +308,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
 
 /* ========== placeholder components ========== */
 moqui.NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
-moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>Loading…</div></div></div>' });
+moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' });
 
 /* ========== inline components ========== */
 Vue.component('m-link', {
