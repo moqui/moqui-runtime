@@ -46,9 +46,6 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <set field="aenDef" from="ec.entity.getEntityDefinition(aen)"/>
         <if condition="aenDef == null"><message error="true">Could not find entity with name: ${aen}</message><return/></if>
-
-        <entity-find entity-name="${aen}" list="entityValueList" offset="0" limit="50" cache="false">
-            <search-form-inputs/></entity-find>
     </actions>
     <widgets>
         <container>
@@ -69,6 +66,9 @@ along with this software (see the LICENSE.md file). If not, see
             </container-dialog>
         </container>
         <form-list name="ListEntityValue" list="entityValueList" list-entry="entityValue" header-dialog="true" skip-form="true" dynamic="true">
+            <entity-find entity-name="${aen}" list="entityValueList" offset="0" limit="50" cache="false">
+                <search-form-inputs require-parameters="true"/></entity-find>
+
             <field name="aen"><header-field><hidden/></header-field><default-field><hidden/></default-field></field>
             <field name="edit">
                 <header-field title="Find"><submit/></header-field>

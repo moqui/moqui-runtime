@@ -18,7 +18,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <parameter name="userId" required="true" from="userId ?: userId_0"/>
 
-    <transition name="updateUserAccount"><service-call name="update#moqui.security.UserAccount"/>
+    <transition name="updateUserAccount"><service-call name="org.moqui.impl.UserServices.update#UserAccount"/>
         <default-response url="."/></transition>
     <transition name="updatePassword"><service-call name="org.moqui.impl.UserServices.update#Password"/>
         <default-response url="."/></transition>

@@ -71,8 +71,8 @@ along with this software (see the LICENSE.md file). If not, see
                 </widgets>
             </section-iterate>
             <render-mode>
-                <text type="html"><![CDATA[<a href="/vapps">Use the new dynamic interface</a>]]></text>
-                <text type="vuet"><![CDATA[<div>You are using the new dynamic interface</div><a href="/apps">Switch back to the standard interface</a>]]></text>
+                <text type="html"><![CDATA[<div>You are using the <strong>standard</strong> UI</div><a href="/vapps">Switch to the dynamic UI</a>]]></text>
+                <text type="vuet"><![CDATA[<div>You are using the <strong>dynamic</strong> UI</div><a href="/apps">Switch to the standard UI</a>]]></text>
             </render-mode>
         </container>
     </widgets>

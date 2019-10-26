@@ -30,18 +30,16 @@ along with this software (see the LICENSE.md file). If not, see
         </default-response>
     </transition>
 
-    <actions>
-        <entity-find entity-name="moqui.server.ArtifactHitBin" list="artifactHitBinList" limit="50">
-            <search-form-inputs default-order-by="-binStartDateTime"/>
-        </entity-find>
-    </actions>
     <widgets>
         <container>
             <link url="ArtifactHitBinStats.csv" text="Get as CSV"/>
             <link url="ArtifactHitBinStats.xml" text="Get as XML" target-window="_blank"/>
             <link url="ArtifactHitBinStats.pdf" text="Get as PDF" target-window="_blank"/>
         </container>
-        <form-list name="ArtifactHitBins" list="artifactHitBinList" skip-form="true">
+        <form-list name="ArtifactHitBins" list="artifactHitBinList" skip-form="true" header-dialog="true" saved-finds="true">
+            <entity-find entity-name="moqui.server.ArtifactHitBin" list="artifactHitBinList" limit="50">
+                <search-form-inputs default-order-by="-binStartDateTime" require-parameters="true"/>
+            </entity-find>
             <row-actions>
                 <set field="averageTime" from="hitCount ? totalTimeMillis/hitCount : null"/>
                 <set field="stdDev" from="totalSquaredTime &amp;&amp; hitCount > 1 ? Math.sqrt((totalSquaredTime - ((totalTimeMillis*totalTimeMillis) / hitCount)).abs() / (hitCount - 1)) : null"/>
@@ -68,7 +66,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><display text="${artifactSubType}"/></default-field>
             </field>
             <field name="artifactName">
-                <header-field show-order-by="true"><text-find hide-options="true" size="30"/></header-field>
+                <header-field show-order-by="true"><text-find hide-options="true" size="80"/></header-field>
                 <!-- NOTE: these replace() calls are to add spaces so that longer artifactNames can wrap instead of making the table super-wide: ?.replace('/',' / ')?.replace(' /  / ', '//')?.replace('.',' . ') -->
                 <default-field><display text="${artifactName}"/></default-field>
             </field>

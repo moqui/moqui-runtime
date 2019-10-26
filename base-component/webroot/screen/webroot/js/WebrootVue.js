@@ -139,11 +139,11 @@ moqui.retryInlineScript = function(src, count) {
 };
 
 /* ========== notify and error handling ========== */
-moqui.notifyOpts = { delay:1500, timer:250, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'success',
+moqui.notifyOpts = { delay:1500, timer:500, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'success',
     animate:{ enter:'animated fadeInDown', exit:'' } }; // no animate on exit: animated fadeOutUp
-moqui.notifyOptsInfo = { delay:3000, timer:250, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'info',
+moqui.notifyOptsInfo = { delay:5000, timer:500, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'info',
     animate:{ enter:'animated fadeInDown', exit:'' } }; // no animate on exit: animated fadeOutUp
-moqui.notifyOptsError = { delay:5000, timer:250, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'danger',
+moqui.notifyOptsError = { delay:15000, timer:500, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'danger',
     animate:{ enter:'animated fadeInDown', exit:'' } }; // no animate on exit: animated fadeOutUp
 moqui.notifyMessages = function(messages, errors, validationErrors) {
     var notified = false;
@@ -221,6 +221,10 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
 moqui.componentCache = new moqui.LruMap(50);
 
 moqui.handleLoadError = function (jqXHR, textStatus, errorThrown) {
+    if (textStatus === 'abort') {
+        console.warn('load aborted: ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown);
+        return;
+    }
     moqui.webrootVue.loading = 0;
     moqui.handleAjaxError(jqXHR, textStatus, errorThrown);
 };
@@ -237,13 +241,20 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
         bodyParameters = urlInfo.bodyParameters; renderModes = urlInfo.renderModes;
     }
 
+    /* CACHE DISABLED: issue with more recent Vue JS where cached components don't re-render when assigned so screens don't load
+     * to reproduce: make a screen like a dashboad slow loading with a Thread.sleep(5000), from another screen select it
+     * in the menu and before it loads click on a link for another screen, won't load and gets into a bad state where
+     * nothing in the same path will load, need to somehow force it to re-render;
+     * note that vm.$forceUpdate() in subscreens-active component before return false did not work
     // check cache
     // console.info('component lru ' + JSON.stringify(moqui.componentCache.lruList));
     var cachedComp = moqui.componentCache.get(path);
     if (cachedComp) {
-        console.info('found cached component for path ' + path);
-        callback(cachedComp); return;
+        console.info('found cached component for path ' + path + ': ' + JSON.stringify(cachedComp));
+        callback(cachedComp);
+        return;
     }
+    */
 
     // prep url
     var url = path;
@@ -292,12 +303,12 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
         } else { callback(moqui.NotFound); }
     }};
     if (bodyParameters && !$.isEmptyObject(bodyParameters)) { ajaxSettings.type = "POST"; ajaxSettings.data = bodyParameters; }
-    $.ajax(ajaxSettings);
+    return $.ajax(ajaxSettings);
 };
 
 /* ========== placeholder components ========== */
 moqui.NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
-moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>Loading…</div></div></div>' });
+moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' });
 
 /* ========== inline components ========== */
 Vue.component('m-link', {
@@ -306,8 +317,15 @@ Vue.component('m-link', {
     methods: { go: function(event) {
         if (event.button !== 0) { return; }
         if (this.confirmation && this.confirmation.length) { if (!window.confirm(this.confirmation)) { return; } }
-        if (this.loadId && this.loadId.length > 0) { this.$root.loadContainer(this.loadId, this.href); }
-        else { if (event.ctrlKey || event.metaKey) { window.open(this.linkHref, "_blank"); } else { this.$root.setUrl(this.linkHref); } }
+        if (this.loadId && this.loadId.length > 0) {
+            this.$root.loadContainer(this.loadId, this.href);
+        } else {
+            if (event.ctrlKey || event.metaKey) {
+                window.open(this.linkHref, "_blank");
+            } else {
+                this.$root.setUrl(this.linkHref);
+            }
+        }
     }},
     computed: { linkHref: function () { return this.$root.getLinkPath(this.href); } }
 });
@@ -853,11 +871,11 @@ Vue.component('date-time', {
         size:String, format:String, tooltip:String, form:String, required:String, autoYear:String },
     template:
     '<div v-if="type==\'time\'" class="input-group time" :id="id">' +
-        '<input type="text" class="form-control" :pattern="timePattern" :id="id?(id+\'_itime\'):\'\'" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form">' +
+        '<input type="text" class="form-control" :pattern="timePattern" :id="id?(id+\'_itime\'):\'\'" :name="name" :value="value" :size="sizeVal" :form="form">' +
         '<span class="input-group-addon"><span class="glyphicon glyphicon-time"></span></span>' +
     '</div>' +
     '<div v-else class="input-group date" :id="id">' +
-        '<input ref="dateInput" @focus="focusDate" @blur="blurDate" type="text" class="form-control" :id="id?(id+\'_idate\'):\'\'" :name="name" :value="value" :size="sizeVal" :data-toggle="{tooltip:(tooltip&&tooltip.length>0)}" :title="tooltip" :form="form" :required="required == \'required\' ? true : false">' +
+        '<input ref="dateInput" @focus="focusDate" @blur="blurDate" type="text" class="form-control" :id="id?(id+\'_idate\'):\'\'" :name="name" :value="value" :size="sizeVal" :form="form" :required="required == \'required\' ? true : false">' +
         '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>' +
     '</div>',
     methods: {
@@ -901,15 +919,15 @@ Vue.component('date-time', {
                 extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
                 keyBinds: {up: function () { if(this.date()) this.date(this.date().clone().add(1, 'H')); },
                            down: function () { if(this.date()) this.date(this.date().clone().subtract(1, 'H')); },
-                           'control up': null,
-                           'control down': null,
+                           'control up': null, 'control down': null,
                            'shift up': function () { if(this.date()) this.date(this.date().clone().add(this.stepping(), 'm')); },
                            'shift down': function () { if(this.date()) this.date(this.date().clone().subtract(this.stepping(), 'm')); }}});
             jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
 
             jqEl.val(jqEl.find("input").first().val());
-        }
-        else {
+
+            if (this.tooltip && this.tooltip.length) jqEl.tooltip({ title: this.tooltip, placement: "auto" });
+        } else {
             jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
                 extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
@@ -917,13 +935,14 @@ Vue.component('date-time', {
                            down: function () { if(this.date()) this.date(this.date().clone().subtract(1, 'd')); },
                            'alt up': function () { if(this.date()) this.date(this.date().clone().add(1, 'M')); },
                            'alt down': function () { if(this.date()) this.date(this.date().clone().subtract(1, 'M')); },
-                           'control up': null,
-                           'control down': null,
+                           'control up': null, 'control down': null,
                            'shift up': function () { if(this.date()) this.date(this.date().clone().add(1, 'y')); },
                            'shift down': function () { if(this.date()) this.date(this.date().clone().subtract(1, 'y')); } }});
             jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
 
             jqEl.val(jqEl.find("input").first().val());
+
+            if (this.tooltip && this.tooltip.length) jqEl.tooltip({ title: this.tooltip, placement: "auto" });
         }
         if (format === "YYYY-MM-DD") { jqEl.find('input').inputmask("yyyy-mm-dd", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
         if (format === "YYYY-MM-DD HH:mm") { jqEl.find('input').inputmask("yyyy-mm-dd hh:mm", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
@@ -1165,7 +1184,10 @@ Vue.component('subscreens-active', {
     template: '<component :is="activeComponent"></component>',
     // method instead of a watch on pathName so that it runs even when newPath is the same for non-static reloading
     methods: { loadActive: function() {
-        var vm = this; var root = vm.$root; var pathIndex = vm.pathIndex; var curPathList = root.currentPathList;
+        var vm = this;
+        var root = vm.$root;
+        var pathIndex = vm.pathIndex;
+        var curPathList = root.currentPathList;
         var newPath = curPathList[pathIndex];
         var pathChanged = (this.pathName !== newPath);
         this.pathName = newPath;
@@ -1192,7 +1214,11 @@ Vue.component('subscreens-active', {
         if (navMenuItem && navMenuItem.renderModes) urlInfo.renderModes = navMenuItem.renderModes;
         console.info('subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
         root.loading++;
-        moqui.loadComponent(urlInfo, function(comp) { vm.activeComponent = comp; root.loading--; });
+        root.currentLoadRequest = moqui.loadComponent(urlInfo, function(comp) {
+            root.currentLoadRequest = null;
+            vm.activeComponent = comp;
+            root.loading--;
+        });
         return true;
     }},
     mounted: function() { this.$root.addSubscreen(this); }
@@ -1200,14 +1226,21 @@ Vue.component('subscreens-active', {
 moqui.webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
-        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[], lastNavTime:Date.now(), loading:0, activeContainers:{},
+        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[], lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{},
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null },
     methods: {
         setUrl: function(url, bodyParameters) {
-            // always set bodyParameters, setting to null when not specified to clear out previous
-            this.bodyParameters = bodyParameters;
             // make sure any open modals are closed before setting current URL
             $('.modal.in').modal('hide');
+            // cancel current load if needed
+            if (this.currentLoadRequest) {
+                console.log("Aborting current page load currentLinkUrl " + this.currentLinkUrl + " url " + url);
+                this.currentLoadRequest.abort();
+                this.currentLoadRequest = null;
+                this.loading = 0;
+            }
+            // always set bodyParameters, setting to null when not specified to clear out previous
+            this.bodyParameters = bodyParameters;
             url = this.getLinkPath(url);
             // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
             if (this.currentLinkUrl === url && url !== this.linkBasePath) {
@@ -1243,7 +1276,10 @@ moqui.webrootVue = new Vue({
                     var outerList = null;
                     // console.log("menu response " + outerListText);
                     try { outerList = JSON.parse(outerListText); } catch (e) { console.info("Error parson menu list JSON: " + e); }
-                    if (outerList && moqui.isArray(outerList)) { vm.navMenuList = outerList; /* console.info('navMenuList ' + JSON.stringify(outerList)); */ }
+                    if (outerList && moqui.isArray(outerList)) {
+                        vm.navMenuList = outerList;
+                        /* console.info('navMenuList ' + JSON.stringify(outerList)); */
+                    }
                 }});
 
                 // set the window URL
@@ -1263,10 +1299,15 @@ moqui.webrootVue = new Vue({
             this.activeSubscreens.push(saComp);
         },
         reloadSubscreens: function() {
-            // console.info('reloadSubscreens currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
-            var fullPathList = this.currentPathList; var activeSubscreens = this.activeSubscreens;
+            // console.info('reloadSubscreens path ' + JSON.stringify(this.currentPathList) + ' currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
+            var fullPathList = this.currentPathList;
+            var activeSubscreens = this.activeSubscreens;
             console.info("reloadSubscreens currentPathList " + JSON.stringify(this.currentPathList));
-            if (fullPathList.length === 0 && activeSubscreens.length > 0) { activeSubscreens.splice(1); activeSubscreens[0].loadActive(); return; }
+            if (fullPathList.length === 0 && activeSubscreens.length > 0) {
+                activeSubscreens.splice(1);
+                activeSubscreens[0].loadActive();
+                return;
+            }
             for (var i=0; i<activeSubscreens.length; i++) {
                 if (i >= fullPathList.length) break;
                 // always try loading the active subscreen and see if actually loaded

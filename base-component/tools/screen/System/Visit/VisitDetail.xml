@@ -93,14 +93,14 @@ along with this software (see the LICENSE.md file). If not, see
             </box-body></container-box>
         </widgets></section>
 
-        <form-list name="VisitArtifactHitList" list="artifactHitList" skip-form="true">
-            <field name="visitId"><header-field><hidden/></header-field></field>
-            <field name="startDateTime"><header-field show-order-by="true"/>
+        <form-list name="VisitArtifactHitList" list="artifactHitList" skip-form="true" header-dialog="true" select-columns="true">
+            <hidden-parameters><parameter name="visitId"/></hidden-parameters>
+            <field name="startDateTime"><header-field show-order-by="true"><date-period time="true"/></header-field>
                 <default-field><display/></default-field></field>
             <field name="userId"><default-field><display/></default-field></field>
 
             <field name="artifactType">
-                <header-field show-order-by="true"><drop-down allow-empty="true">
+                <header-field show-order-by="true"><drop-down allow-multiple="true">
                     <option key="AT_XML_SCREEN"/><option key="AT_XML_SCREEN_CONTENT"/><option key="AT_XML_SCREEN_TRANS"/>
                     <option key="AT_SERVICE"/><option key="AT_ENTITY"/>
                 </drop-down></header-field>
@@ -108,21 +108,25 @@ along with this software (see the LICENSE.md file). If not, see
             </field>
             <field name="artifactSubType"><default-field title="Sub Type"><display/></default-field></field>
 
-            <field name="artifactName"><header-field show-order-by="true"/>
+            <field name="artifactName"><header-field show-order-by="true"><text-find/></header-field>
                 <default-field><display/></default-field></field>
-            <field name="parameterString"><default-field><display text="${parameterString?.replace(',',' , ') ?: 'N/A'}"/></default-field></field>
+            <field name="parameterString"><header-field><text-find/></header-field>
+                <default-field><display text="${parameterString?.replace(',',' , ') ?: 'N/A'}"/></default-field></field>
 
             <field name="runningTimeMillis"><header-field title="Time" show-order-by="true"/>
                 <default-field><display text="${ec.l10n.format(runningTimeMillis, '0.00')}ms"/></default-field></field>
             <field name="isSlowHit">
-                <header-field title="Slow" show-order-by="true">
-                    <drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></header-field>
+                <header-field title="Slow" show-order-by="true"><drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></header-field>
                 <default-field><display/></default-field>
             </field>
             <field name="outputSize"><default-field title="Size"><display text="${outputSize ?: 'Unknown'}"/></default-field></field>
 
-            <field name="wasError"><default-field title="Error"><display/></default-field></field>
-            <field name="errorMessage"><default-field title="Message"><display/></default-field></field>
+            <field name="wasError">
+                <header-field title="Error" show-order-by="true"><drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="errorMessage"><header-field><text-find/></header-field>
+                <default-field title="Message"><display/></default-field></field>
 
             <field name="requestUrl"><header-field show-order-by="true"/>
                 <default-field><display/></default-field></field>
@@ -131,9 +135,7 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="serverIpAddress"><default-field><display/></default-field></field>
             <field name="serverHostName"><default-field><display/></default-field></field>
 
-            <field name="findButton"><header-field title="Find"><submit/></header-field>
-                <default-field><display text=" "/></default-field>
-            </field>
+            <field name="findButton"><header-field title="Find"><submit/></header-field></field>
 
             <!-- NOTE: maybe go to 3-4 rows per record instead of two -->
             <form-list-column><field-ref name="startDateTime"/><field-ref name="userId"/></form-list-column>

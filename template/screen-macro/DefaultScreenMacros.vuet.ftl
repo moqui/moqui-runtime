@@ -129,9 +129,11 @@ ${sri.renderSection(.node["@name"])}
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
         <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
+        <#assign title = ec.getResource().expand(.node["@title"], "")>
+        <#if !title?has_content><#assign title = buttonText></#if>
         <#assign cdDivId><@nodeId .node/></#assign>
         <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="${iconClass}"></i> ${buttonText}</button>
-        <container-dialog id="${cdDivId}" width="${.node["@width"]!"760"}" title="${buttonText}"<#if _openDialog! == cdDivId> :openDialog="true"</#if>>
+        <container-dialog id="${cdDivId}" width="${.node["@width"]!"760"}" title="${title}"<#if _openDialog! == cdDivId> :openDialog="true"</#if>>
             <#recurse>
         </container-dialog>
     </#if>
@@ -670,7 +672,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if isHeaderDialog>
                 <#-- Find Parameters Form -->
                 <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}"><template scope="props">
+                <#assign skipFormSave = skipForm!false>
+                <#assign skipForm = false>
+                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}"><template slot-scope="props">
                     <#if formListFindId?has_content><input type="hidden" name="formListFindId" value="${formListFindId}"></#if>
                     <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
                     <fieldset class="form-horizontal">
@@ -727,6 +731,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#t>${sri.popContext()}<#-- context was pushed so pop here at the end -->
                     </fieldset>
                 </template></form-link>
+                <#assign skipForm = skipFormSave>
             </#if>
         </container-dialog>
     </#if>
@@ -934,6 +939,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         .addParameter("pageNoLimit", "true").addParameter("lastStandalone", "true").addParameter("saveFilename", formNode["@name"] + ".csv")>
                 <a href="${csvLinkUrl.getUrlWithParams()}" class="btn btn-default">${ec.getL10n().localize("CSV")}</a>
             </#if>
+            <#if formNode["@show-xlsx-button"]! == "true" && ec.screen.isRenderModeValid("xlsx")>
+                <#assign xlsxLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("renderMode", "xlsx")
+                        .addParameter("pageNoLimit", "true").addParameter("lastStandalone", "true").addParameter("saveFilename", formNode["@name"] + ".xlsx")>
+                <a href="${xlsxLinkUrl.getUrlWithParams()}" class="btn btn-default">${ec.getL10n().localize("XLS")}</a>
+            </#if>
             <#if formNode["@show-text-button"]! == "true">
                 <#assign showTextDialogId = formId + "_TextDialog">
                 <button id="${showTextDialogId}_button" type="button" data-toggle="modal" data-target="#${showTextDialogId}" data-original-title="${ec.getL10n().localize("Text")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("Text")}</button>
@@ -941,6 +951,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if formNode["@show-pdf-button"]! == "true">
                 <#assign showPdfDialogId = formId + "_PdfDialog">
                 <button id="${showPdfDialogId}_button" type="button" data-toggle="modal" data-target="#${showPdfDialogId}" data-original-title="${ec.getL10n().localize("PDF")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("PDF")}</button>
+            </#if>
+
+            <#if (context[listName + "Count"]!0) == 0>
+                <#assign entityFindNode = (formNode["entity-find"][0])!>
+                <#assign sfiNode = (entityFindNode["search-form-inputs"][0])!>
+                <#if (sfiNode["@require-parameters"]!) == "true">
+                    <h4 class="text-warning" style="display:inline-block;padding-top:2px;">${ec.getL10n().localize("Select Find Options to view results")}</h4>
+                </#if>
             </#if>
         </nav>
         </th></tr>
@@ -1020,14 +1038,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#t> :select-columns="${(formNode["@select-columns"]! == "true")?c}" :all-button="${(formNode["@show-all-button"]! == "true")?c}"
             <#t> :csv-button="${(formNode["@show-csv-button"]! == "true")?c}" :text-button="${(formNode["@show-text-button"]! == "true")?c}"
             <#lt> :pdf-button="${(formNode["@show-pdf-button"]! == "true")?c}" columns="${numColumns}">
-        <template slot="headerForm" scope="header">
+        <template slot="headerForm" slot-scope="header">
             <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#assign fieldsJsName = "header.search">
             <#assign hiddenFieldList = formListInfo.getListHeaderHiddenFieldList()>
             <#list hiddenFieldList as hiddenField><#recurse hiddenField["header-field"][0]/></#list>
             <#assign fieldsJsName = "">
         </template>
-        <template slot="header" scope="header">
+        <template slot="header" slot-scope="header">
             <#assign fieldsJsName = "header.search"><#assign ownerForm = headerFormId>
             <tr><#list mainColInfoList as columnFieldList>
                 <th><#list columnFieldList as fieldNode>
@@ -1046,7 +1064,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign fieldsJsName = ""><#assign ownerForm = "">
         </template>
         <#-- for adding more to form-list nav bar <template slot="nav"></template> -->
-        <template slot="rowForm" scope="row">
+        <template slot="rowForm" slot-scope="row">
             <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
@@ -1054,7 +1072,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign fieldsJsName = ""><#assign ownerForm = "">
         </template>
         <#-- TODO: add first-row, second-row, last-row forms and rows, here and in form-list Vue component; support add from first, second (or last?) row with add to client list and server submit -->
-        <template slot="row" scope="row">
+        <template slot="row" slot-scope="row">
             <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
             <#list mainColInfoList as columnFieldList>
                 <td><#list columnFieldList as fieldNode>
@@ -1759,7 +1777,7 @@ a => A, d => D, y => Y
     <#else>
         <#assign tlAlign = tlFieldNode["@align"]!"left">
         <#t><input id="${tlId}" <#--v-model="fields.${name}"--> type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>"
-            <#t> name="${name}" <#if fieldValue?html == fieldValue>value="${fieldValue}"<#else>:value="'${fieldValue?html}'|decodeHtml"</#if>
+            <#t> name="${name}" <#if fieldValue?html == fieldValue>value="${fieldValue}"<#else>:value="'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(fieldValue)}'"</#if>
             <#t> <#if .node.@size?has_content>size="${.node.@size}"<#else>style="width:100%;"</#if><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
             <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if>
             <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
@@ -1809,7 +1827,7 @@ a => A, d => D, y => Y
         </select>
     </#if>
     <input type="text" class="form-control" name="${curFieldName}" value="${sri.getFieldValueString(.node)?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if> id="<@fieldId .node/>"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-    <#assign ignoreCase = (ec.getWeb().parameters.get(curFieldName + "_ic")! == "Y") || !(.node["@ignore-case"]?has_content) || (.node["ignore-case"] == "true")>
+    <#assign ignoreCase = (ec.getWeb().parameters.get(curFieldName + "_ic")! == "Y") || !(.node["@ignore-case"]?has_content) || (.node["@ignore-case"] == "true")>
     <#if .node["@hide-options"]! == "true" || .node["@hide-options"]! == "ignore-case">
         <input type="hidden" name="${curFieldName}_ic" value="Y"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
     <#else>
@@ -1821,7 +1839,8 @@ a => A, d => D, y => Y
 <#macro widgetTextValue widgetNode alwaysGet=false valueField="label">
     <#assign widgetType = widgetNode?node_name>
     <#assign curFieldName><@fieldName widgetNode/></#assign>
-    <#assign noDisplay = ["display", "display-entity", "hidden", "ignored", "password", "reset", "submit", "text-area", "link", "label"]>
+    <#-- NOTE: noDisplay used to include: "display", "display-entity", -->
+    <#assign noDisplay = ["hidden", "ignored", "password", "reset", "submit", "text-area", "link", "label"]>
     <#t><#if !alwaysGet && noDisplay?seq_contains(widgetType)><#return></#if>
     <#t><#if widgetType == "drop-down">
         <#assign ddFieldNode = widgetNode?parent?parent>
@@ -1909,6 +1928,9 @@ a => A, d => D, y => Y
         <#else>
             <#t><#if fieldValue?has_content>${fieldValue}</#if>
         </#if><#t>
+    <#elseif widgetType == "display-entity">
+        <#assign fieldValue = sri.getFieldEntityValue(widgetNode)!"">
+        <#t><#if fieldValue?has_content>${fieldValue}</#if>
     <#else>
         <#-- handles text-find, ... -->
         <#t>${sri.getFieldValueString(widgetNode)}

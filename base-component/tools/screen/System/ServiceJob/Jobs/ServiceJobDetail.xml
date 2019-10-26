@@ -78,7 +78,9 @@ along with this software (see the LICENSE.md file). If not, see
                     <auto-fields-entity entity-name="moqui.service.job.ServiceJob" field-type="edit" include="nonpk"/>
                     <field name="description"><default-field><text-line size="60"/></default-field></field>
                     <field name="serviceName"><default-field><text-line size="60"/></default-field></field>
-                    <field name="expireLockTime"><default-field title="Expire Lock Minutes" tooltip="Defaults to 1440 (24 hours)">
+                    <field name="expireLockTime"><default-field title="Expire Lock Minutes" tooltip="After this time job run locks are ignored, defaults to 1440 minutes (24 hours)">
+                        <text-line size="4"/></default-field></field>
+                    <field name="minRetryTime"><default-field title="Min Retry Minutes" tooltip="Min time to retry after error, defaults to 5 minutes">
                         <text-line size="4"/></default-field></field>
                     <field name="submitButton"><default-field title="Update Job"><submit/></default-field></field>
                     <field-layout>
