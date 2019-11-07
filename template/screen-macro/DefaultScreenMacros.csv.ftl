@@ -106,7 +106,16 @@ along with this software (see the LICENSE.md file). If not, see
 </#if></#macro>
 
 <#macro image><#-- do nothing for image, most likely part of screen and is funny in csv file: <@csvValue .node["@alt"]!"image"/> --></#macro>
-<#macro label><#-- do nothing for label, most likely part of screen and is funny in csv file: <#assign labelValue = ec.resource.expand(.node["@text"], "")><@csvValue labelValue/> --></#macro>
+<#macro label>
+    <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
+    <#if conditionResult>
+        <#assign textMap = "">
+        <#if .node["@text-map"]?has_content><#assign textMap = ec.getResource().expression(.node["@text-map"], "")!></#if>
+        <#if textMap?has_content><#assign labelValue = ec.getResource().expand(.node["@text"], "", textMap)>
+        <#else><#assign labelValue = ec.getResource().expand(.node["@text"], "")/></#if>
+        <@csvValue labelValue/><#t>
+    </#if>
+</#macro>
 <#macro parameter><#-- do nothing, used directly in other elements --></#macro>
 
 
