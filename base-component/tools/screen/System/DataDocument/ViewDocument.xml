@@ -17,21 +17,16 @@ along with this software (see the LICENSE.md file). If not, see
         default-menu-include="false" standalone="true">
 
     <parameter name="_index" required="true"/>
-    <parameter name="_type" required="true"/>
     <parameter name="_id" required="true"/>
     
     <actions><script>
         import groovy.json.JsonOutput
-        import org.elasticsearch.action.get.GetRequest
-        import org.elasticsearch.action.get.GetResponse
         import org.moqui.context.ExecutionContext
-        import org.moqui.elasticsearch.EsClient
 
         ExecutionContext ec = context.ec
-        EsClient esClient = ec.getTool("ElasticSearch", EsClient.class)
-        GetResponse docGr = esClient.get(new GetRequest(_index, _type, _id))
-        sourceMap = docGr.getSource()
-        documentString = JsonOutput.prettyPrint(docGr.getSourceAsString())
+        def elasticClient = ec.factory.elastic.getDefault()
+        sourceMap = elasticClient.get((String) _index, (String) _id)?._source
+        documentString = JsonOutput.prettyPrint(elasticClient.objectToJson(sourceMap))
         flattenedDocumentMap = flattenNestedMap(sourceMap)
     </script></actions>
     <widgets>
