@@ -6,10 +6,8 @@
 <moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-2.1.xsd">
 
     <default-property name="instance_purpose" value="dev"/>
-
     <default-property name="webapp_allow_origins" value="*"/>
-
-    <tools empty-db-load="all"/>
+    <default-property name="entity_empty_db_load" value="all"/>
 
     <cache-list warm-on-start="false">
         <!-- Development Mode - expires artifact cache entries; don't use these for production, load testing, etc -->

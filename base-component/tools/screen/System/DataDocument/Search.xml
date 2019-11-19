@@ -72,8 +72,7 @@ along with this software (see the LICENSE.md file). If not, see
             </default-field></field>
             <field name="viewDocument"><default-field>
                 <dynamic-dialog id="ViewDocument" button-text="View Document" transition="viewDocument" width="800">
-                    <parameter name="_index"/><parameter name="_type"/><parameter name="_id"/>
-                </dynamic-dialog>
+                    <parameter name="_index"/><parameter name="_id"/></dynamic-dialog>
             </default-field></field>
         </form-list>
     </widgets>
