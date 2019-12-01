@@ -44,7 +44,7 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="email"><path-parameter name="emailMessageId"/><actions><script>ec.web.viewEmailMessage()</script></actions>
         <default-response type="none"/></transition>
 
-    <transition name="robots.txt">
+    <transition name="robots.txt" read-only="true">
         <!-- TODO: get fancier with this, crawl screen tree looking for screens that don't require authc, maybe some sort of setting to allow robots or not -->
         <!-- TODO: also generate sitemap XML with paths we want crawled, based on ? -->
         <actions><script><![CDATA[
