@@ -206,7 +206,7 @@ ${sri.renderSection(.node["@name"])}
     <#if !boxType?has_content><#assign boxType = "default"></#if>
     <div class="panel panel-${boxType}"<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if>>
         <div class="panel-heading">
-            <#if boxHeader["@title"]?has_content><h5>${ec.getResource().expand(boxHeader["@title"]!"", "")}</h5></#if>
+            <#if boxHeader["@title"]?has_content><h5>${ec.getResource().expand(boxHeader["@title"]!"", "")?html}</h5></#if>
             <#recurse boxHeader>
             <#if .node["box-toolbar"]?has_content>
                 <div class="panel-toolbar">
