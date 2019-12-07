@@ -1,7 +1,7 @@
 
 # Moqui Runtime Release Notes
 
-## Release 2.1.3 - Not Yet Released
+## Release 2.1.3 - 07 Dec 2019
 
 Moqui Runtime 2.1.2 is a patch level new feature and bug fix release, in parallel with the release of Moqui Framework.
 
