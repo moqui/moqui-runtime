@@ -149,8 +149,8 @@
     </network>
     <storages>
         <!-- Default in-memory storage. Data are not saved permanently. -->
-        <storage name="temp" path="memory:temp" userName="admin" userPassword="admin" loaded-at-startup="true"/>
-        <storage name="MoquiNoSql" path="plocal:${ORIENTDB_HOME}/databases/MoquiNoSql"
+        <storage name="temp" path="memory:temp" userName="admin" userPassword="admin" loaded-at-startup="false"/>
+        <storage name="MoquiNoSql" path="plocal:runtime/db/orientdb/databases/MoquiNoSql"
                 userName="admin" userPassword="admin" loaded-at-startup="true"/>
     </storages>
     <users>
@@ -160,11 +160,12 @@
         <entry name="db.pool.min" value="1"/>
         <entry name="db.pool.max" value="50"/>
 
-        <!-- LEVEL1 AND 2 CACHE: enable/disable and set the size as number of entries -->
+        <!-- as of 3.0.26 no longer supported, must have other names now:
         <entry name="cache.level1.enabled" value="false"/>
         <entry name="cache.level1.size" value="1000"/>
         <entry name="cache.level2.enabled" value="false"/>
         <entry name="cache.level2.size" value="0"/>
+        -->
 
         <!-- PROFILER: configures the profiler as <seconds-for-snapshot>,<archive-snapshot-size>,<summary-size> -->
         <entry name="profiler.enabled" value="true"/>
