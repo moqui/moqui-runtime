@@ -16,6 +16,10 @@ along with this software (see the LICENSE.md file). If not, see
         default-menu-index="1" menu-image="glyphicon glyphicon-dashboard" menu-image-type="icon">
 
     <transition name="threadList"><default-response url="../ThreadList"/></transition>
+    <transition name="reInitElasticFacade">
+        <actions><script>ec.elastic.init()</script></actions>
+        <default-response url="."/>
+    </transition>
 
     <actions>
         <set field="smap" from="ec.factory.getStatusMap()"/>
@@ -27,6 +31,17 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="runtimeVersionMap" from="ec.factory.versionMap"/>
 
         <set field="workerPool" from="ec.factory.workerPool"/>
+
+        <set field="esClientList" from="ec.elastic.getClientList()"/>
+        <set field="esServerInfoList" from="[]"/>
+        <iterate list="esClientList" entry="esClient">
+            <set field="esServerInfo" from="esClient.getServerInfo()"/>
+            <if condition="esServerInfo">
+                <set field="esServerInfo.clientClusterName" from="esClient.getClusterName()"/>
+                <set field="esServerInfo.clusterLocation" from="esClient.getClusterLocation()"/>
+                <script>esServerInfoList.add(esServerInfo)</script>
+            </if>
+        </iterate>
     </actions>
     <widgets>
         <container-row><row-col md="6">
@@ -71,6 +86,7 @@ along with this software (see the LICENSE.md file). If not, see
             </box-body></container-box>
         </row-col></container-row>
         <container-box><box-header title="System Information"/><box-toolbar>
+            <link url="reInitElasticFacade" text="Re-Init Elastic" confirmation="Try again to initialize configured Elastic Search Clients?"/>
             <link url="threadList" text="Thread List"/>
         </box-toolbar><box-body>
             <container-row><row-col sm="4">
@@ -159,6 +175,18 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="database"><default-field><display/></default-field></field>
                 <field name="detail"><default-field><display/></default-field></field>
             </form-list>
+
+            <form-list name="EsServerInfoList" list="esServerInfoList" skip-form="true">
+                <field name="clientClusterName"><default-field title="Elastic Facade Cluster"><display/></default-field></field>
+                <field name="clusterLocation"><default-field title="Location"><display/></default-field></field>
+                <field name="esVersion" from="version?.number"><default-field title="ES Version"><display/></default-field></field>
+                <field name="name"><default-field title="ES Name"><display/></default-field></field>
+                <field name="cluster_name"><default-field title="ES Cluster"><display/></default-field></field>
+                <field name="esFlavor" from="version?.build_flavor"><default-field title="ES Flavor"><display/></default-field></field>
+                <field name="esMinWireCompat" from="version?.minimum_wire_compatibility_version"><default-field title="Wire Compat"><display/></default-field></field>
+                <field name="esMinIndexCompat" from="version?.minimum_index_compatibility_version"><default-field title="Index Compat"><display/></default-field></field>
+            </form-list>
+
             <label text="Framework: ${runtimeVersionMap.framework.toString()}" condition="runtimeVersionMap?.framework" type="div"/>
             <label text="Runtime: ${runtimeVersionMap.runtime.toString()}" condition="runtimeVersionMap?.runtime" type="div"/>
             <form-list name="ComponentInfoList" list="componentInfoList" skip-form="true">
