@@ -66,7 +66,7 @@ along with this software (see the LICENSE.md file). If not, see
             </container-dialog>
         </container>
         <form-list name="ListEntityValue" list="entityValueList" list-entry="entityValue" header-dialog="true" skip-form="true" dynamic="true">
-            <entity-find entity-name="${aen}" list="entityValueList" offset="0" limit="50" cache="false">
+            <entity-find entity-name="${aen}" list="entityValueList" offset="0" limit="50" cache="false" use-clone="true">
                 <search-form-inputs require-parameters="true"/></entity-find>
 
             <field name="aen"><header-field><hidden/></header-field><default-field><hidden/></default-field></field>

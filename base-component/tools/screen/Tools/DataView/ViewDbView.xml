@@ -34,7 +34,7 @@ along with this software (see the LICENSE.md file). If not, see
         <if condition="masterDef == null"><message error="true">Could not find master entity with name: ${masterMember.entityName}</message><return/></if>
 
         <entity-find-one entity-name="moqui.entity.view.DbViewEntity" value-field="fieldValues"/>
-        <entity-find entity-name="${dbViewEntityName}" list="dbViewList">
+        <entity-find entity-name="${dbViewEntityName}" list="dbViewList" use-clone="true">
             <search-form-inputs/>
         </entity-find>
     </actions>
