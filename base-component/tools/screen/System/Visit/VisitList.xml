@@ -19,7 +19,7 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="userAccountDetail"><default-response url="//system/Security/UserAccountDetail"/></transition>
 
     <actions>
-        <entity-find entity-name="moqui.server.Visit" list="visitList">
+        <entity-find entity-name="moqui.server.Visit" list="visitList" use-clone="true">
             <search-form-inputs default-order-by="-fromDate"/>
         </entity-find>
     </actions>

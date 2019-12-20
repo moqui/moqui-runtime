@@ -93,7 +93,7 @@ along with this software (see the LICENSE.md file). If not, see
         </container-row>
 
         <form-list name="SystemMessageList" list="smList" skip-form="true" header-dialog="true" select-columns="true" saved-finds="true">
-            <entity-find entity-name="moqui.service.message.SystemMessage" list="smList">
+            <entity-find entity-name="moqui.service.message.SystemMessage" list="smList" use-clone="true">
                 <search-form-inputs default-order-by="initDate">
                     <default-parameters statusId="SmsgProduced,SmsgReceived,SmsgError" statusId_op="in" initDate_poffset="-1" initDate_period="30d"/>
                 </search-form-inputs>

@@ -20,7 +20,7 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="userAccountDetail"><default-response url="../../../Security/UserAccount/UserAccountDetail"/></transition>
 
     <actions>
-        <entity-find entity-name="moqui.service.job.ServiceJobRun" list="jobRunList">
+        <entity-find entity-name="moqui.service.job.ServiceJobRun" list="jobRunList" use-clone="true">
             <search-form-inputs default-order-by="startTime">
                 <default-parameters startTime_poffset="0" startTime_period="Week"/></search-form-inputs>
         </entity-find>

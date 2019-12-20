@@ -25,7 +25,7 @@ along with this software (see the LICENSE.md file). If not, see
         <entity-find-one entity-name="moqui.server.Visit" value-field="visit"/>
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
             <field-map field-name="userId" from="visit.userId"/></entity-find-one>
-        <entity-find entity-name="moqui.server.ArtifactHit" list="artifactHitList">
+        <entity-find entity-name="moqui.server.ArtifactHit" list="artifactHitList" use-clone="true">
             <search-form-inputs default-order-by="startDateTime"/>
             <econdition field-name="visitId"/>
         </entity-find>
