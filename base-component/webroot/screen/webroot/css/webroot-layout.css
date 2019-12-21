@@ -235,6 +235,7 @@ body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
     #footer, .nav, .form-order-by, .form-list-nav-row { display: none; }
     body { padding-top: 0; } /* don't do body padding-top for nav bar */
     #content { min-height: 100%; } /* make body content full height, no -50px for footer */
+    #top { height: 0; }
 
     .modal { background: white !important; }
     body.modal-open { visibility: hidden; }
