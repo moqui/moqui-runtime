@@ -151,3 +151,8 @@ nav.form-list-nav, table.table>thead>tr>th, .bg-dark nav.form-list-nav, .bg-dark
 { background-color: transparent; }
 
 ul.float-box li, .bg-dark ul.float-box li { background-color: transparent; }
+
+#navbar-buttons .navbar-btn { border-color: transparent; background-color: transparent; color: #ffffff; }
+#navbar-buttons .navbar-btn:hover { border-color: #3a3a3a; background-color: #3a3a3a; }
+#navbar-buttons .navbar-btn.btn-danger { color: #d9534f; }
+#navbar-buttons .navbar-btn.btn-info { color: #46b8da; }
