@@ -4,16 +4,21 @@
 
 html, body, #apps-root { height: 100%; }
 /* body { padding-top: 51px; } /* this is the initial load setting, will get set dynamically for navbar-fixed-top */
+#top { height: 51px; }
 #top .navbar { margin-bottom: 0; border-radius: 0; }
+/* note that with fixed height for #top .navbar if overflow hidden drop-down menus don't show; would be nice to have some way for icons to disappear instead of wrapping below... */
+@media (min-width: 768px) { #top .navbar { height: 51px; overflow-y: visible; } .navbar-text { margin-left: 8px; } }
 /* #top, #content>.inner, #footer are the main page structure elements */
-#content { overflow: visible; background: transparent; min-height: calc(100% - 50px); }
+#content { overflow: visible; background: transparent; min-height: calc(100% - 101px); }
 /* inner contains a bootstrap container-fluid div which has 16px left/right padding */
-.inner { overflow: visible; background: transparent; border: 0; padding: 67px 0 58px 0; /* padding bottom is footer height (48) plus 10px */ }
+.inner { overflow: visible; background: transparent; border: 0; padding: 16px 0 58px 0; /* padding bottom is footer height (48) plus 10px */ }
 #footer { width: 100%; position: relative; height: 50px; margin: 0 auto 0 auto; /* negative value of footer height */ }
 #footer p { padding: 0.2em 0 0 0; font-size: 0.9em; margin: 0; text-align: center; }
 
 #apps-footer-content { margin-top: 4px; text-align: center; }
 
+#dynamic-menus .glyphicon { top: 0; font-size: 10px; }
+#navbar-buttons .btn .label { top: -2px; }
 #notify-history-menu ul { min-width: 500px; }
 #notify-history-menu li { padding: 8px; }
 #notify-history-menu li div { margin-bottom: 0; }

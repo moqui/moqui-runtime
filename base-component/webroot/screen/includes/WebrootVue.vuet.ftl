@@ -40,8 +40,9 @@ along with this software (see the LICENSE.md file). If not, see
             <ul id="dynamic-menus" class="nav navbar-nav">
                 <li v-for="(navMenuItem, menuIndex) in navMenuList" class="dropdown">
                     <template v-if="menuIndex < (navMenuList.length - 1)">
-                        <m-link v-if="navMenuItem.hasTabMenu" :href="getNavHref(menuIndex)">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></m-link>
+                        <m-link v-if="navMenuItem.hasTabMenu" :href="getNavHref(menuIndex)">{{navMenuItem.title}} <i class="glyphicon glyphicon-menu-right"></i></m-link>
                         <template v-else-if="navMenuItem.subscreens && navMenuItem.subscreens.length > 1">
+                            <#-- use chevron-right if has subscreens menu, thicker arrow to distinguish -->
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></a>
                             <ul class="dropdown-menu">
                                 <li v-for="subscreen in navMenuItem.subscreens" :class="{active:subscreen.active}">
@@ -54,7 +55,7 @@ along with this software (see the LICENSE.md file). If not, see
                                         {{subscreen.title}}</m-link></li>
                             </ul>
                         </template>
-                        <m-link v-else :href="getNavHref(menuIndex)">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></m-link>
+                        <m-link v-else :href="getNavHref(menuIndex)">{{navMenuItem.title}} <i class="glyphicon glyphicon-menu-right"></i></m-link>
                     </template>
                 </li>
             </ul>
@@ -79,8 +80,10 @@ along with this software (see the LICENSE.md file). If not, see
                 </ul>
             </div>
             <#-- screen history previous screen -->
+            <#-- disable this for now to save space, not commonly used and limited value vs browser back:
             <a href="#" @click.prevent="goPreviousScreen()" data-toggle="tooltip" data-original-title="${ec.l10n.localize("Previous Screen")}"
                data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-menu-left"></i></a>
+            -->
             <#-- notify history -->
             <div id="notify-history-menu" class="nav navbar-right dropdown">
                 <a id="notify-history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="${ec.l10n.localize("Messages")}">
