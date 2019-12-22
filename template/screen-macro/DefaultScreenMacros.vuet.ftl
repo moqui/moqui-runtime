@@ -991,7 +991,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
                 <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
                 <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}">
+                <form-link name="${headerFormId}_clr" id="${headerFormId}_clr" action="${curUrlInstance.path}">
                     <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
                     <button id="${headerFormId}-quick-clear" type="submit" name="clearParameters" style="float:left; padding: 0 5px 0 5px; margin: 0 4px 0 0;" class="btn btn-primary btn-sm"><i class="fa fa-remove"></i></button>
                 </form-link>
