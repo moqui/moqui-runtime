@@ -954,10 +954,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#if>
 
             <#if (context[listName + "Count"]!0) == 0>
-                <#assign entityFindNode = (formNode["entity-find"][0])!>
-                <#assign sfiNode = (entityFindNode["search-form-inputs"][0])!>
-                <#if (ec.resource.expand(sfiNode["@require-parameters"]!, "")) == "true">
-                    <h4 class="text-warning" style="display:inline-block;padding-top:2px;">${ec.getL10n().localize("Select Find Options to view results")}</h4>
+                <#if context.getSharedMap().get("_entityListNoSearchParms")!false == true>
+                    <h4 class="text-warning" style="display:inline-block;padding-top:2px;">${ec.getL10n().localize("Find Options required to view results")}</h4>
+                <#else>
+                    <h4 class="text-warning" style="display:inline-block;padding-top:2px;">${ec.getL10n().localize("No results found")}</h4>
                 </#if>
             </#if>
         </nav>
