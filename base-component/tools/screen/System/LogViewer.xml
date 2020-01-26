@@ -57,6 +57,16 @@ along with this software (see the LICENSE.md file). If not, see
             Map queryMap = [query_string:[query:actualQuery, lenient:true]]
             Map searchMap = [query:queryMap, from:fromOffset, size:sizeLimit, track_total_hits:true, sort:[['@timestamp':'desc']]]
 
+            // validate the query
+            // TODO: consider pulling error message from ElasticSearch, but they are pretty ugly
+            Map validateRespMap = elasticClient.validateQuery((String) indexName, queryMap, true)
+            if (validateRespMap != null) {
+                ec.message.addMessage("Invalid search: ${queryString}", "danger")
+                List explanations = (List) validateRespMap.explanations
+                if (explanations) for (Map explanation in explanations) ec.message.addMessage(explanation.error, "danger")
+                return
+            }
+
             // get the search hits
             Map resultMap = elasticClient.search((String) indexName, searchMap)
             Map hitsMap = (Map) resultMap.hits
@@ -96,6 +106,11 @@ along with this software (see the LICENSE.md file). If not, see
         </form-single>
         <label text="Date Range: ${ec.l10n.format(tsList.get(0), 'yyyy-MM-dd HH:mm:ss') ?: '*'} to ${ec.l10n.format(tsList.get(1), 'yyyy-MM-dd HH:mm:ss') ?: '*'}" type="p"/>
         <label text="Full query: ${actualQuery}" type="p"/>
+
+        <!-- show messages, mainly for 'Invalid search...' message -->
+        <section-iterate name="messageInfos" list="ec.message.messageInfos" entry="messageInfo"><widgets>
+            <container><label text="${messageInfo.message}" type="strong" style="text-${messageInfo.typeString}"/></container>
+        </widgets></section-iterate>
 
         <form-list name="LogMessageDocuments" list="documentList" paginate="true" paginate-always-show="true" skip-form="true">
             <row-actions>
