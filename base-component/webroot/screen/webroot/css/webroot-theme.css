@@ -160,3 +160,10 @@ ul.float-box li, .bg-dark ul.float-box li { background-color: transparent; }
 #navbar-buttons .navbar-btn.btn-success { color: #449d44; }
 #navbar-buttons .navbar-btn.btn-primary { color: #2e6da4; }
 #navbar-buttons .navbar-btn.btn-warning { color: #985f0d; }
+
+#navbar-buttons .navbar-btn .label-default { background-color: #9d9d9d; }
+#navbar-buttons .navbar-btn .label-danger { background-color: #d9534f; }
+#navbar-buttons .navbar-btn .label-info { background-color: #46b8da; }
+#navbar-buttons .navbar-btn .label-success { background-color: #449d44; }
+#navbar-buttons .navbar-btn .label-primary { background-color: #2e6da4; }
+#navbar-buttons .navbar-btn .label-warning { background-color: #985f0d; }
