@@ -125,7 +125,9 @@ var moqui = {
     },
     notifyGrowl: function (jsonObj) {
         if (!jsonObj) return;
-        $.notify(new moqui.NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), new moqui.NotifySettings(jsonObj.type));
+        var notifySettings = new moqui.NotifySettings(jsonObj.type);
+        if (jsonObj.alertNoAutoHide === true) { notifySettings.delay = 0; }
+        $.notify(new moqui.NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), notifySettings);
         if (moqui.webrootVue) { moqui.webrootVue.addNotify(jsonObj.title, jsonObj.type); }
     },
 
