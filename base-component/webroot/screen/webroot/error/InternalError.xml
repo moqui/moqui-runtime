@@ -35,7 +35,7 @@ along with this software (see the LICENSE.md file). If not, see
                       </div>
                       <div class="modal-body">
 <pre>
-${errorThrowable.message!"No Message"}
+${(errorThrowable.message!"No Message")?html}
 <#list stackList as stackElement>
 at ${stackElement.toString()}
 </#list>

@@ -20,7 +20,7 @@ along with this software (see the LICENSE.md file). If not, see
             <p>&nbsp;</p>
             <div class="jumbotron">
                 <h1><i class="glyphicon glyphicon-user text-danger"></i> Login Required (${errorCode})</h1>
-                <p class="text-danger">${errorMessage!""}</p>
+                <p class="text-danger">${(errorMessage!"")?html}</p>
                 <a href="${sri.buildUrl("/").url}" class="btn btn-primary btn-lg" role="button">Go Home</a>
                 <a href="javascript:window.history.back();" class="btn btn-primary btn-lg" role="button">Go Back</a>
                 <a href="${sri.buildUrl("/Login").url}" class="btn btn-primary btn-lg" role="button">Login</a>
