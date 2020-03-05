@@ -135,6 +135,8 @@ table .form-group > div > a:not(.btn), table .form-group > div > span.text-inlin
 nav.form-list-nav .pagination { margin: 6px 6px 0 6px; }
 nav.form-list-nav>form.form-inline { display: inline-block; margin: 2px 6px 0 0; float: left; }
 nav.form-list-nav>.btn { display: inline-block; margin: 6px 8px 0 0; float: left; }
+nav.form-list-nav>.btn-group { display: inline-block; margin: 6px 8px 0 0; float: left; }
+nav.form-list-nav>.btn-group>.btn { margin: 0; }
 nav.form-list-nav>span.select2-container { float: left; margin: 6px 0 6px 0; min-width: 100px; max-width: 160px; }
 
 /* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */
