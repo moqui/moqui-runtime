@@ -917,38 +917,32 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if isSavedFinds>
                 <#assign userFindInfoList = formListInfo.getUserFormListFinds(ec)>
                 <#if userFindInfoList?has_content>
-                    <#assign quickSavedFindId = formId + "_QuickSavedFind">
-                    <select id="${quickSavedFindId}" name="${quickSavedFindId}">
-                        <option></option><#-- empty option for placeholder -->
-                        <option value="_clear" data-action="${sri.buildUrl(sri.getScreenUrlInstance().path).pathWithParams}">${ec.getL10n().localize("Clear Current Find")}</option>
+                    <#assign activeUserFindName = ""/>
+                    <#if ec.getContext().formListFindId?has_content>
+                        <#list userFindInfoList as userFindInfo>
+                            <#if formListFind.formListFindId == ec.getContext().formListFindId>
+                                <#assign activeUserFindName = userFindInfo.description/></#if></#list>
+                    </#if>
+                    <div class="btn-group">
+                      <button type="button" class="btn <#if activeUserFindName?has_content>btn-info<#else>btn-default</#if> dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <#if activeUserFindName?has_content>${activeUserFindName?html}<#else>${ec.getL10n().localize("Saved Finds")}</#if> <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li><m-link href="${sri.buildUrl(sri.getScreenUrlInstance().path).pathWithParams}">${ec.getL10n().localize("Clear Current Find")}</m-link></li>
                         <#list userFindInfoList as userFindInfo>
                             <#assign formListFind = userFindInfo.formListFind>
                             <#assign findParameters = userFindInfo.findParameters>
                             <#-- use only formListFindId now that ScreenRenderImpl picks it up and auto adds configured parameters:
                                 <#assign doFindUrl = sri.buildUrl(sri.getScreenUrlInstance().path).addParameters(findParameters)> -->
                             <#assign doFindUrl = sri.buildUrl(sri.getScreenUrlInstance().path).addParameter("formListFindId", formListFind.formListFindId)>
-                            <option value="${formListFind.formListFindId}"<#if formListFind.formListFindId == ec.getContext().formListFindId!> selected="selected"</#if> data-action="${doFindUrl.pathWithParams}">${userFindInfo.description?html}</option>
+                            <li><m-link href="${doFindUrl.pathWithParams}">${userFindInfo.description?html}</m-link></li>
                         </#list>
-                    </select>
-                    <m-script>
-                        $("#${quickSavedFindId}").select2({ placeholder:'${ec.getL10n().localize("Saved Finds")}' });
-                        $("#${quickSavedFindId}").on('select2:select', function(evt) {
-                            var dataAction = $(evt.params.data.element).attr("data-action");
-                            if (dataAction) moqui.webrootVue.setUrl(dataAction);
-                        } );
-                    </m-script>
+                      </ul>
+                    </div>
                 </#if>
             </#if>
             <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}_button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
             <#if isSelectColumns><button id="${selectColumnsDialogId}_button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.getL10n().localize("Columns")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("Columns")}</button></#if>
-
-            <#if isPaginated>
-                <#assign curPageMaxIndex = context[listName + "PageMaxIndex"]>
-                <form-paginate :paginate="{ count:${context[listName + "Count"]?c}, pageIndex:${context[listName + "PageIndex"]?c},<#rt>
-                    <#t> pageSize:${context[listName + "PageSize"]?c}, pageMaxIndex:${context[listName + "PageMaxIndex"]?c},
-                    <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></form-paginate>
-                <#if (curPageMaxIndex > 4)><form-go-page id-val="${formId}" :max-index="${curPageMaxIndex?c}"></form-go-page></#if>
-            </#if>
 
             <#if formNode["@show-csv-button"]! == "true">
                 <#assign csvLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("renderMode", "csv")
@@ -994,6 +988,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                       </ul>
                     </div>
                 </#if>
+
+                <#assign curPageMaxIndex = context[listName + "PageMaxIndex"]>
+                <#if (curPageMaxIndex > 4)><form-go-page id-val="${formId}" :max-index="${curPageMaxIndex?c}"></form-go-page></#if>
+                <form-paginate :paginate="{ count:${context[listName + "Count"]?c}, pageIndex:${context[listName + "PageIndex"]?c},<#rt>
+                    <#t> pageSize:${context[listName + "PageSize"]?c}, pageMaxIndex:${context[listName + "PageMaxIndex"]?c},
+                    <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></form-paginate>
             </#if>
 
             <#if (context[listName + "Count"]!0) == 0>
@@ -1337,20 +1337,26 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
         <#-- footer pagination control -->
         <#if isPaginated>
-            <#assign curPageMaxIndex = context[listName + "PageMaxIndex"]>
-            <form-paginate :paginate="{ count:${context[listName + "Count"]?c}, pageIndex:${context[listName + "PageIndex"]?c},<#rt>
-                <#t> pageSize:${context[listName + "PageSize"]?c}, pageMaxIndex:${context[listName + "PageMaxIndex"]?c},
-                <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></form-paginate>
-            <#if (curPageMaxIndex > 4)><form-go-page id-val="${formId}" :max-index="${curPageMaxIndex?c}"></form-go-page></#if>
-            <#if formNode["@show-all-button"]! == "true" && (context[listName + 'Count'] < 500)>
-                <#if context["pageNoLimit"]?has_content>
-                    <#assign allLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageNoLimit")>
-                    <m-link href="${allLinkUrl.pathWithParams}" class="btn btn-default">${ec.getL10n().localize("Paginate")}</m-link>
-                <#else>
-                    <#assign allLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageNoLimit", "true")>
-                    <m-link href="${allLinkUrl.pathWithParams}" class="btn btn-default">${ec.getL10n().localize("Show All")}</m-link>
+            <tr class="form-list-nav-row"><th colspan="${numColumns}"><nav class="form-list-nav">
+                <#if formNode["@show-all-button"]! == "true" || formNode["@show-page-size"]! == "true">
+                    <div class="btn-group">
+                      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        ${context[listName + "PageSize"]?c} <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <#list [10,20,50,100,200,500] as curPageSize>
+                            <#assign pageSizeUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageSize", curPageSize?c)>
+                            <li><m-link href="${pageSizeUrl.pathWithParams}">${curPageSize?c}</m-link></li>
+                        </#list>
+                      </ul>
+                    </div>
                 </#if>
-            </#if>
+                <#assign curPageMaxIndex = context[listName + "PageMaxIndex"]>
+                <#if (curPageMaxIndex > 4)><form-go-page id-val="${formId}" :max-index="${curPageMaxIndex?c}"></form-go-page></#if>
+                <form-paginate :paginate="{ count:${context[listName + "Count"]?c}, pageIndex:${context[listName + "PageIndex"]?c},<#rt>
+                    <#t> pageSize:${context[listName + "PageSize"]?c}, pageMaxIndex:${context[listName + "PageMaxIndex"]?c},
+                    <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></form-paginate>
+            </nav></td></tr>
         </#if>
         <#if !isServerStatic></tbody></#if>
         <#assign ownerForm = "">
