@@ -1336,7 +1336,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </td></tr>
         </#if>
         <#-- footer pagination control -->
-        <#if isPaginated>
+        <#if isPaginated?? && isPaginated>
             <tr class="form-list-nav-row"><th colspan="${numColumns}"><nav class="form-list-nav">
                 <#if formNode["@show-all-button"]! == "true" || formNode["@show-page-size"]! == "true">
                     <div class="btn-group">
