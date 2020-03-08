@@ -88,6 +88,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><display text=" "/></default-field>
             </field>
             <auto-fields-entity entity-name="${den}" field-type="find-display"/>
+            <field name="lastUpdatedStamp"><default-field title="Last Updated"><display format="yyyy-MM-dd HH:mm:ss"/></default-field></field>
         </form-list>
         <link url="getFormXml" text="Get Forms XML" link-type="anchor"/>
     </widgets>

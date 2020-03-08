@@ -118,6 +118,7 @@ along with this software (see the LICENSE.md file). If not, see
             <auto-fields-entity entity-name="${aen}" include="pk" field-type="display"/>
             <auto-fields-entity entity-name="${aen}" include="nonpk" field-type="edit"/>
             <field name="aen"><default-field><hidden/></default-field></field>
+            <field name="lastUpdatedStamp"><default-field title="Last Updated"><display format="yyyy-MM-dd HH:mm:ss.SSS z"/></default-field></field>
             <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
         </form-single>
         <link url="getFormXml" text="Get Form XML" link-type="anchor"/>
