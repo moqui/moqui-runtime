@@ -996,7 +996,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></form-paginate>
             </#if>
 
-            <#if (context[listName + "Count"]!0) == 0>
+            <#if (context[listName + "Count"]!(context[listName].size())!0) == 0>
                 <#if context.getSharedMap().get("_entityListNoSearchParms")!false == true>
                     <h4 class="text-warning" style="display:inline-block;padding-top:2px;">${ec.getL10n().localize("Find Options required to view results")}</h4>
                 <#else>
