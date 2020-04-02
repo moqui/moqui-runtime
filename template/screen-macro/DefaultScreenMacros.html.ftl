@@ -1908,7 +1908,7 @@ a => A, d => D, y => Y
         <script>
             $('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true,
                 useStrict:true, defaultDate: '${fieldValue?html}' && moment('${fieldValue?html}','${datepickerFormat}'),
-                format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}",
+                format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:${.node["@minute-stepping"]!"5"}, locale:"${ec.getUser().locale.toLanguageTag()}",
                 keyBinds: {t: function() {this.date(moment());}, up: function () { this.date(this.date().clone().add(1, 'd')); }, down: function () { this.date(this.date().clone().subtract(1, 'd')); }, 'control up': function () { this.date(this.date().clone().add(1, 'd')); }, 'control down': function () { this.date(this.date().clone().subtract(1, 'd')); }}});
             $('#${id}').on("dp.change", function() { var jqEl = $('#${id}'); jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); });
         </script>

@@ -873,7 +873,7 @@ Vue.component('form-list', {
 /* ========== form field widget components ========== */
 Vue.component('date-time', {
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'},
-        size:String, format:String, tooltip:String, form:String, required:String, autoYear:String },
+        size:String, format:String, tooltip:String, form:String, required:String, autoYear:String, minuteStep:{type:Number,'default':5} },
     template:
     '<div v-if="type==\'time\'" class="input-group time" :id="id">' +
         '<input type="text" class="form-control" :pattern="timePattern" :id="id?(id+\'_itime\'):\'\'" :name="name" :value="value" :size="sizeVal" :form="form">' +
@@ -921,7 +921,7 @@ Vue.component('date-time', {
         if (this.type === "time") {
             jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
-                extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
+                extraFormats:this.extraFormatsVal, stepping:this.minuteStep, locale:this.$root.locale,
                 keyBinds: {up: function () { if(this.date()) this.date(this.date().clone().add(1, 'H')); },
                            down: function () { if(this.date()) this.date(this.date().clone().subtract(1, 'H')); },
                            'control up': null, 'control down': null,
@@ -935,7 +935,7 @@ Vue.component('date-time', {
         } else {
             jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
-                extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
+                extraFormats:this.extraFormatsVal, stepping:this.minuteStep, locale:this.$root.locale,
                 keyBinds: {up: function () { if(this.date()) this.date(this.date().clone().add(1, 'd')); },
                            down: function () { if(this.date()) this.date(this.date().clone().subtract(1, 'd')); },
                            'alt up': function () { if(this.date()) this.date(this.date().clone().add(1, 'M')); },
