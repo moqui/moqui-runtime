@@ -10,6 +10,45 @@ var moqui = {
 
     htmlEncode: function(value) { return $('<div/>').text(value).html(); },
     htmlDecode: function(value) { return $('<div/>').html(value).text(); },
+    format: function(value, format, type) {
+        // console.log('format ' + value + ' with ' + format + ' of type ' + type);
+        // number formatting: http://numeraljs.com/ https://github.com/andrewgp/jsNumberFormatter http://www.asual.com/jquery/format/
+        if (format && format.length) { format = format.replace(/a/,'A').replace(/d/,'D').replace(/y/,'Y'); } // change java date/time format to moment
+        if (type && type.length) {
+            type = type.toLowerCase();
+            if (type === "date") {
+                if (!format || format.length === 0) format = "YYYY-MM-DD";
+                return moment(value).format(format);
+            } else if (type === "time") {
+                if (!format || format.length === 0) format = "HH:mm:ss";
+                return moment(value).format(format);
+            } else if (type === "timestamp") {
+                if (!format || format.length === 0) format = "YYYY-MM-DD HH:mm";
+                return moment(value).format(format);
+            } else if (type === "bigdecimal" || type === "currency") {
+                // TODO format numbers with format string, localize
+                return value.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+            } else if (type === "long" || type === "integer" || type === "double" || type === "float") {
+                // TODO format numbers with format string, localize
+                return value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+            } else {
+                console.warn('format type unknown: ' + type);
+            }
+        }
+        if (moqui.isNumber(value)) {
+            // TODO format numbers with format string, localize
+            return value.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+        } else {
+            // is it a number or any sort of date/time that moment supports? if anything else return as-is
+            var momentVal = moment(value);
+            if (momentVal.isValid()) {
+                if (!format || format.length === 0) format = "YYYY-MM-DD HH:mm";
+                return momentVal.format(format);
+            }
+            // TODO
+            return value;
+        }
+    },
 
     // return a function that delay the execution
     debounce: function(func, wait) {
@@ -344,3 +383,13 @@ if (window.Inputmask) {
         }
     });
 }
+
+/* doesn't work because Chart.js is loaded as needed on screens, and after this loads, leaving commented here as would be nice:
+if (window.Chart) {
+    Chart.defaults.global.tooltips.callbacks.label = function(tooltipItem, data) {
+        var dataset = data.datasets[tooltipItem.datasetIndex];
+        var datasetLabel = dataset.label || '';
+        return datasetLabel + ": " + moqui.format(dataset.data[tooltipItem.index], null, "BigDecimal");
+    };
+}
+*/

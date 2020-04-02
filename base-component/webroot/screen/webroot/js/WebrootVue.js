@@ -72,40 +72,6 @@ moqui.searchToObj = function(search) {
     return newParams;
 };
 Vue.filter('decodeHtml', moqui.htmlDecode);
-moqui.format = function(value, format, type) {
-    // console.log('format ' + value + ' with ' + format + ' of type ' + type);
-    // number formatting: http://numeraljs.com/ https://github.com/andrewgp/jsNumberFormatter http://www.asual.com/jquery/format/
-    if (format && format.length) { format = format.replace(/a/,'A').replace(/d/,'D').replace(/y/,'Y'); } // change java date/time format to moment
-    if (type && type.length) {
-        type = type.toLowerCase();
-        if (type === "date") {
-            if (!format || format.length === 0) format = "YYYY-MM-DD";
-            return moment(value).format(format);
-        } else if (type === "time") {
-            if (!format || format.length === 0) format = "HH:mm:ss";
-            return moment(value).format(format);
-        } else if (type === "timestamp") {
-            if (!format || format.length === 0) format = "YYYY-MM-DD HH:mm";
-            return moment(value).format(format);
-        } else if (type === "bigdecimal" || type === "long" || type === "integer" || type === "double" || type === "float") {
-            return value; // TODO format numbers
-        } else {
-            console.warn('format type unknown: ' + type);
-        }
-    }
-    if (moqui.isNumber(value)) {
-        return value; // TODO format numbers
-    } else {
-        // is it a number or any sort of date/time that moment supports? if anything else return as-is
-        var momentVal = moment(value);
-        if (momentVal.isValid()) {
-            if (!format || format.length === 0) format = "YYYY-MM-DD HH:mm";
-            return momentVal.format(format);
-        }
-        // TODO
-        return value;
-    }
-};
 Vue.filter('format', moqui.format);
 
 /* ========== script and stylesheet handling methods ========== */
