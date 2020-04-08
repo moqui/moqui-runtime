@@ -39,3 +39,7 @@ Add the following line:
 2017-08-31:
 Added additional logic to more naturally handle (Shift) Tab keypresses,
 causing focus to move to the next/previous element immediately.
+
+2020-04-08 DEJ:
+If no options and/or options are loading ignore ENTER.
+This avoids certain user error and makes it possible to use
