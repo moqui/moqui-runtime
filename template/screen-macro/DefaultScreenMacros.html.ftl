@@ -859,7 +859,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#if currentFindUrlParms?has_content>
                         <div><form class="form-inline" id="${formId}_NewFind" method="post" action="${formSaveFindUrl}">
                             <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
-                            <input type="hidden" name="formLocation" value="${formInstance.getFormLocation()}">
+                            <input type="hidden" name="formLocation" value="${formListInfo.getSavedFindFullLocation()}">
                             <#list currentFindUrlParms.keySet() as parmName>
                                 <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
                             </#list>
@@ -882,7 +882,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         <#if currentFindUrlParms?has_content>
                             <form class="form-inline" id="${saveFindFormId}" method="post" action="${formSaveFindUrl}">
                                 <input type="hidden" name="moquiSessionToken" value="${(ec.getWeb().sessionToken)!}">
-                                <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
+                                <input type="hidden" name="formLocation" value="${formListInfo.getSavedFindFullLocation()}">
                                 <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
                                 <#list currentFindUrlParms.keySet() as parmName>
                                     <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
