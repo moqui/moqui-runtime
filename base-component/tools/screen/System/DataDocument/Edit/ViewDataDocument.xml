@@ -61,7 +61,7 @@ along with this software (see the LICENSE.md file). If not, see
             </form-single>
         </container-dialog>
         <form-list name="DataViewList" list="entityValueList" skip-form="true" dynamic="true" header-dialog="true"
-                show-csv-button="true" show-xlsx-button="true" show-all-button="true">
+                show-csv-button="true" show-xlsx-button="true" show-page-size="true" saved-finds="true">
             <entity-find entity-name="${entityName}" list="entityValueList" cache="false" use-clone="true">
                 <search-form-inputs/></entity-find>
             <field name="dataDocumentId"><header-field><hidden/></header-field></field>
