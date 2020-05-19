@@ -30,7 +30,7 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
-        <entity-find entity-name="moqui.basic.LocalizedEntityField" list="localizedEntityFieldList">
+        <entity-find entity-name="moqui.basic.LocalizedEntityField" list="localizedEntityFieldList" use-clone="true">
             <search-form-inputs default-order-by="entityName,fieldName,locale"/></entity-find>
     </actions>
     <widgets>

@@ -38,7 +38,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <actions>
         <set field="entityDefinition" from="ec.entity.getEntityDefinition(selectedEntity)"/>
-        <entity-find entity-name="${selectedEntity}" list="entityValueList" offset="0" limit="50">
+        <entity-find entity-name="${selectedEntity}" list="entityValueList" offset="0" limit="50" use-clone="true">
             <search-form-inputs/>
         </entity-find>
     </actions>

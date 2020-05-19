@@ -17,10 +17,6 @@ along with this software (see the LICENSE.md file). If not, see
         require-authentication="false" track-artifact-hit="false" default-menu-include="false">
     <!-- NOTE: require-authentication=false is required to allow transitions to decide. -->
 
-    <transition name="xml">
-        <actions><script>ec.web.handleXmlRpcServiceCall()</script></actions>
-        <default-response type="none"/>
-    </transition>
     <transition name="json">
         <actions><script>ec.web.handleJsonRpcServiceCall()</script></actions>
         <default-response type="none"/>

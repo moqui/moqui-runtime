@@ -72,40 +72,6 @@ moqui.searchToObj = function(search) {
     return newParams;
 };
 Vue.filter('decodeHtml', moqui.htmlDecode);
-moqui.format = function(value, format, type) {
-    // console.log('format ' + value + ' with ' + format + ' of type ' + type);
-    // number formatting: http://numeraljs.com/ https://github.com/andrewgp/jsNumberFormatter http://www.asual.com/jquery/format/
-    if (format && format.length) { format = format.replace(/a/,'A').replace(/d/,'D').replace(/y/,'Y'); } // change java date/time format to moment
-    if (type && type.length) {
-        type = type.toLowerCase();
-        if (type === "date") {
-            if (!format || format.length === 0) format = "YYYY-MM-DD";
-            return moment(value).format(format);
-        } else if (type === "time") {
-            if (!format || format.length === 0) format = "HH:mm:ss";
-            return moment(value).format(format);
-        } else if (type === "timestamp") {
-            if (!format || format.length === 0) format = "YYYY-MM-DD HH:mm";
-            return moment(value).format(format);
-        } else if (type === "bigdecimal" || type === "long" || type === "integer" || type === "double" || type === "float") {
-            return value; // TODO format numbers
-        } else {
-            console.warn('format type unknown: ' + type);
-        }
-    }
-    if (moqui.isNumber(value)) {
-        return value; // TODO format numbers
-    } else {
-        // is it a number or any sort of date/time that moment supports? if anything else return as-is
-        var momentVal = moment(value);
-        if (momentVal.isValid()) {
-            if (!format || format.length === 0) format = "YYYY-MM-DD HH:mm";
-            return momentVal.format(format);
-        }
-        // TODO
-        return value;
-    }
-};
 Vue.filter('format', moqui.format);
 
 /* ========== script and stylesheet handling methods ========== */
@@ -893,7 +859,7 @@ Vue.component('form-list', {
 /* ========== form field widget components ========== */
 Vue.component('date-time', {
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'},
-        size:String, format:String, tooltip:String, form:String, required:String, autoYear:String },
+        size:String, format:String, tooltip:String, form:String, required:String, autoYear:String, minuteStep:{type:Number,'default':5} },
     template:
     '<div v-if="type==\'time\'" class="input-group time" :id="id">' +
         '<input type="text" class="form-control" :pattern="timePattern" :id="id?(id+\'_itime\'):\'\'" :name="name" :value="value" :size="sizeVal" :form="form">' +
@@ -941,7 +907,7 @@ Vue.component('date-time', {
         if (this.type === "time") {
             jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
-                extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
+                extraFormats:this.extraFormatsVal, stepping:this.minuteStep, locale:this.$root.locale,
                 keyBinds: {up: function () { if(this.date()) this.date(this.date().clone().add(1, 'H')); },
                            down: function () { if(this.date()) this.date(this.date().clone().subtract(1, 'H')); },
                            'control up': null, 'control down': null,
@@ -955,7 +921,7 @@ Vue.component('date-time', {
         } else {
             jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
-                extraFormats:this.extraFormatsVal, stepping:5, locale:this.$root.locale,
+                extraFormats:this.extraFormatsVal, stepping:this.minuteStep, locale:this.$root.locale,
                 keyBinds: {up: function () { if(this.date()) this.date(this.date().clone().add(1, 'd')); },
                            down: function () { if(this.date()) this.date(this.date().clone().subtract(1, 'd')); },
                            'alt up': function () { if(this.date()) this.date(this.date().clone().add(1, 'M')); },
@@ -1356,6 +1322,11 @@ moqui.webrootVue = new Vue({
         loadContainer: function(contId, url) { var contComp = this.activeContainers[contId];
             if (contComp) { contComp.load(url); } else { console.error("Container with ID " + contId + " not found, not loading url " + url); }},
         addNavPlugin: function(url) { var vm = this; moqui.loadComponent(this.appRootPath + url, function(comp) { vm.navPlugins.push(comp); }) },
+        addNavPluginsWait: function(urlList, urlIndex) { if (urlList && urlList.length > urlIndex) {
+            this.addNavPlugin(urlList[urlIndex]);
+            var vm = this;
+            if (urlList.length > (urlIndex + 1)) { setTimeout(function(){ vm.addNavPluginsWait(urlList, urlIndex + 1); }, 500); }
+        } },
         addNotify: function(message, type) {
             var histList = this.notifyHistoryList.slice(0);
             var nowDate = new Date();
@@ -1476,7 +1447,15 @@ moqui.webrootVue = new Vue({
         },
         currentLinkUrl: function() { var srch = this.currentSearch; return this.currentLinkPath + (srch.length > 0 ? '?' + srch : ''); },
         basePathSize: function() { return this.basePath.split('/').length - this.appRootPath.split('/').length; },
-        ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; }
+        ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; },
+        documentMenuList: function() {
+            var docList = [];
+            for (var i = 0; i < this.navMenuList.length; i++) {
+                var screenDocList = this.navMenuList[i].screenDocList;
+                if (screenDocList && screenDocList.length) { screenDocList.forEach(function(el) { docList.push(el);}); }
+            }
+            return docList;
+        }
     },
     created: function() {
         this.moquiSessionToken = $("#confMoquiSessionToken").val();
@@ -1484,8 +1463,11 @@ moqui.webrootVue = new Vue({
         this.basePath = $("#confBasePath").val(); this.linkBasePath = $("#confLinkBasePath").val();
         this.userId = $("#confUserId").val();
         this.locale = $("#confLocale").val(); if (moqui.localeMap[this.locale]) this.locale = moqui.localeMap[this.locale];
-        var vm = this; $('.confNavPluginUrl').each(function(idx, el) { vm.addNavPlugin($(el).val()); });
         this.notificationClient = new moqui.NotificationClient((location.protocol === 'https:' ? 'wss://' : 'ws://') + this.appHost + this.appRootPath + "/notws");
+
+        var navPluginUrlList = [];
+        $('.confNavPluginUrl').each(function(idx, el) { navPluginUrlList.push($(el).val()); });
+        this.addNavPluginsWait(navPluginUrlList, 0);
     },
     mounted: function() {
         var jqEl = $(this.$el);

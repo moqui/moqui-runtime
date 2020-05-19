@@ -37,7 +37,7 @@ along with this software (see the LICENSE.md file). If not, see
             <link url="ArtifactHitBinStats.pdf" text="Get as PDF" target-window="_blank"/>
         </container>
         <form-list name="ArtifactHitBins" list="artifactHitBinList" skip-form="true" header-dialog="true" saved-finds="true">
-            <entity-find entity-name="moqui.server.ArtifactHitBin" list="artifactHitBinList" limit="50">
+            <entity-find entity-name="moqui.server.ArtifactHitBin" list="artifactHitBinList" limit="50" use-clone="true">
                 <search-form-inputs default-order-by="-binStartDateTime" require-parameters="true"/>
             </entity-find>
             <row-actions>

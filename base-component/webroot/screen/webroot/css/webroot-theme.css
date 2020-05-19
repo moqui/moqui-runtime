@@ -151,3 +151,19 @@ nav.form-list-nav, table.table>thead>tr>th, .bg-dark nav.form-list-nav, .bg-dark
 { background-color: transparent; }
 
 ul.float-box li, .bg-dark ul.float-box li { background-color: transparent; }
+
+#navbar-buttons .navbar-btn { border-color: transparent; background-color: transparent; color: #9d9d9d; }
+#navbar-buttons .navbar-btn:hover { border-color: #3a3a3a; background-color: #3a3a3a; }
+#navbar-buttons .navbar-btn.btn-default { color: #9d9d9d; }
+#navbar-buttons .navbar-btn.btn-danger { color: #d9534f; }
+#navbar-buttons .navbar-btn.btn-info { color: #46b8da; }
+#navbar-buttons .navbar-btn.btn-success { color: #449d44; }
+#navbar-buttons .navbar-btn.btn-primary { color: #2e6da4; }
+#navbar-buttons .navbar-btn.btn-warning { color: #985f0d; }
+
+#navbar-buttons .navbar-btn .label-default { background-color: #9d9d9d; }
+#navbar-buttons .navbar-btn .label-danger { background-color: #d9534f; }
+#navbar-buttons .navbar-btn .label-info { background-color: #46b8da; }
+#navbar-buttons .navbar-btn .label-success { background-color: #449d44; }
+#navbar-buttons .navbar-btn .label-primary { background-color: #2e6da4; }
+#navbar-buttons .navbar-btn .label-warning { background-color: #985f0d; }

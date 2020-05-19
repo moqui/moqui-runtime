@@ -22,6 +22,13 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="pageIndex" from="(pageIndex?:'0') as int"/>
         <set field="pageSize" from="(pageSize?:'100') as int"/>
 
+        <!-- default to last 7 days, always have a time range to avoid massive and slow results -->
+        <if condition="!tsPeriod_period &amp;&amp; !tsPeriod_from &amp;&amp; !tsPeriod_thru">
+            <set field="tsPeriod_period" from="tsPeriod_period ?: '7d'"/>
+            <set field="tsPeriod_poffset" from="tsPeriod_poffset ?: '-1'"/>
+        </if>
+        <set field="tsList" from="ec.user.getPeriodRange('tsPeriod', context)"/>
+
         <script><![CDATA[
             /* useful docs for query API: https://www.elastic.co/guide/reference/api/search/uri-request/ */
 
@@ -38,18 +45,27 @@ along with this software (see the LICENSE.md file). If not, see
             int sizeLimit = pageSize
 
             // build query string
-            ArrayList<Timestamp> tsList = ec.user.getPeriodRange("tsPeriod", context)
-            if (tsList != null && (tsList[0] != null || tsList[1] != null)) {
-                actualQuery = '@timestamp:[' + (tsList[0] != null ? tsList[0].time : '*') + ' TO ' + (tsList[1] != null ? tsList[1].time : '*') + ']'
+            if (tsList != null && (tsList.get(0) != null || tsList.get(1) != null)) {
+                actualQuery = '@timestamp:[' + (tsList.get(0) != null ? tsList.get(0).time : '*') + ' TO ' + (tsList.get(1) != null ? tsList.get(1).time : '*') + ']'
                 if (queryString) actualQuery = actualQuery + ' AND (' + queryString + ')'
             } else {
                 actualQuery = queryString ?: '*'
             }
 
-
             // query string: https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html
-            Map queryMap = [query_string:[query:actualQuery, lenient:true, time_zone:TimeZone.default.getID()]]
+            // had time_zone but shouldn't matter using epoch_millis format and causes issues sometimes: time_zone:TimeZone.default.getID()
+            Map queryMap = [query_string:[query:actualQuery, lenient:true]]
             Map searchMap = [query:queryMap, from:fromOffset, size:sizeLimit, track_total_hits:true, sort:[['@timestamp':'desc']]]
+
+            // validate the query
+            // TODO: consider pulling error message from ElasticSearch, but they are pretty ugly
+            Map validateRespMap = elasticClient.validateQuery((String) indexName, queryMap, true)
+            if (validateRespMap != null) {
+                ec.message.addMessage("Invalid search: ${queryString}", "danger")
+                List explanations = (List) validateRespMap.explanations
+                if (explanations) for (Map explanation in explanations) ec.message.addMessage(explanation.error, "danger")
+                return
+            }
 
             // get the search hits
             Map resultMap = elasticClient.search((String) indexName, searchMap)
@@ -88,7 +104,13 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="submitButton"><default-field title="Search"><submit/></default-field></field>
             <field-layout><field-row-big><field-ref name="indexName"/><field-ref name="queryString"/><field-ref name="tsPeriod"/><field-ref name="submitButton"/></field-row-big></field-layout>
         </form-single>
+        <label text="Date Range: ${ec.l10n.format(tsList.get(0), 'yyyy-MM-dd HH:mm:ss') ?: '*'} to ${ec.l10n.format(tsList.get(1), 'yyyy-MM-dd HH:mm:ss') ?: '*'}" type="p"/>
         <label text="Full query: ${actualQuery}" type="p"/>
+
+        <!-- show messages, mainly for 'Invalid search...' message -->
+        <section-iterate name="messageInfos" list="ec.message.messageInfos" entry="messageInfo"><widgets>
+            <container><label text="${messageInfo.message}" type="strong" style="text-${messageInfo.typeString}"/></container>
+        </widgets></section-iterate>
 
         <form-list name="LogMessageDocuments" list="documentList" paginate="true" paginate-always-show="true" skip-form="true">
             <row-actions>

@@ -4,16 +4,21 @@
 
 html, body, #apps-root { height: 100%; }
 /* body { padding-top: 51px; } /* this is the initial load setting, will get set dynamically for navbar-fixed-top */
+#top { height: 51px; }
 #top .navbar { margin-bottom: 0; border-radius: 0; }
+/* note that with fixed height for #top .navbar if overflow hidden drop-down menus don't show; would be nice to have some way for icons to disappear instead of wrapping below... */
+@media (min-width: 768px) { #top .navbar { height: 51px; overflow-y: visible; } .navbar-text { margin-left: 8px; } }
 /* #top, #content>.inner, #footer are the main page structure elements */
-#content { overflow: visible; background: transparent; min-height: calc(100% - 50px); }
+#content { overflow: visible; background: transparent; min-height: calc(100% - 101px); }
 /* inner contains a bootstrap container-fluid div which has 16px left/right padding */
 .inner { overflow: visible; background: transparent; border: 0; padding: 16px 0 58px 0; /* padding bottom is footer height (48) plus 10px */ }
-#footer { width: 100%; position: relative; height: 50px; margin: -50px auto 0 auto; /* negative value of footer height */ }
+#footer { width: 100%; position: relative; height: 50px; margin: 0 auto 0 auto; /* negative value of footer height */ }
 #footer p { padding: 0.2em 0 0 0; font-size: 0.9em; margin: 0; text-align: center; }
 
 #apps-footer-content { margin-top: 4px; text-align: center; }
 
+#dynamic-menus .glyphicon { top: 0; font-size: 10px; }
+#navbar-buttons .btn .label { top: -2px; }
 #notify-history-menu ul { min-width: 500px; }
 #notify-history-menu li { padding: 8px; }
 #notify-history-menu li div { margin-bottom: 0; }
@@ -122,13 +127,16 @@ table .form-group > div > a:not(.btn), table .form-group > div > span.text-inlin
 /* Bootstrap by default has a 20px height for this, for 30px height shift up 5px */
 .navbar-brand>img { height: 30px; margin-top: -5px; }
 /* Bootstrap has no margin for a.navbar-btn so add them; note margin-right in bootstrap is -15px because of other styles, so for a margin of 10px set to -5px */
-.navbar-right.btn, .navbar-right.dropdown { margin-right: 0; margin-left: 4px; }
+.navbar-right.btn, .navbar-right .btn { margin-right: 0; margin-left: 0; }
 .navbar-right.btn-group { margin-right: 0; margin-left: 0; }
 .nav>li>a { padding-left: 6px; padding-right: 6px; }
+.navbar-collapse { padding-right: 0; }
 
 nav.form-list-nav .pagination { margin: 6px 6px 0 6px; }
 nav.form-list-nav>form.form-inline { display: inline-block; margin: 2px 6px 0 0; float: left; }
 nav.form-list-nav>.btn { display: inline-block; margin: 6px 8px 0 0; float: left; }
+nav.form-list-nav>.btn-group { display: inline-block; margin: 6px 8px 0 0; float: left; }
+nav.form-list-nav>.btn-group>.btn { margin: 0; }
 nav.form-list-nav>span.select2-container { float: left; margin: 6px 0 6px 0; min-width: 100px; max-width: 160px; }
 
 /* Extend the Bootstrap panel, add support for a panel-toolbar, treat h5 and span just like bootstrap panel-title */
@@ -144,7 +152,8 @@ nav.form-list-nav>span.select2-container { float: left; margin: 6px 0 6px 0; min
 .btn-group { margin-right: 4px; margin-left: 4px; }
 
 /* nav .btn-group { padding-left: 4px; } */
-.btn-group-condensed>.btn:not(:first-child):not(:last-child):not(.dropdown-toggle) {
+/* was: .btn-group-condensed>.btn:not(:first-child):not(:last-child):not(.dropdown-toggle) */
+.btn-group-condensed>.btn:not(.dropdown-toggle) {
     padding-left: 4px; padding-right: 4px; border-left: 0; border-right: 0; }
 .btn-group-condensed>.btn:first-child { padding-right: 4px; border-right: 0; }
 .btn-group-condensed>.btn:last-child { padding-left: 4px; border-left: 0; }
@@ -228,6 +237,7 @@ body.hide-nav { padding-top: 0; } /* don't do body padding-top for nav bar */
     #footer, .nav, .form-order-by, .form-list-nav-row { display: none; }
     body { padding-top: 0; } /* don't do body padding-top for nav bar */
     #content { min-height: 100%; } /* make body content full height, no -50px for footer */
+    #top { height: 0; }
 
     .modal { background: white !important; }
     body.modal-open { visibility: hidden; }

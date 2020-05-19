@@ -59,6 +59,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <form-list name="ScreenInfoList" list="screenInfoList" list-entry="screenInfo" skip-form="true">
                     <field name="name" from="screenInfo.getIndentedName()">
                         <default-field><display/></default-field></field>
+                    <field name="title">
+                        <default-field><label text="${'- ' * screenInfo.level}* ${screenInfo.ssi?.menuTitle?:'Root'}"/></default-field></field>
                     <field name="subscreens" from="screenInfo.allSubscreens">
                         <default-field><display/></default-field></field>
                     <field name="subscreensNonPlaceholder" from="screenInfo.allSubscreensNonPlaceholder">

@@ -17,7 +17,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <widgets>
         <form-list name="EntityAuditLogList" list="entityAuditLogList" header-dialog="true">
-            <entity-find entity-name="moqui.entity.EntityAuditLog" list="entityAuditLogList" limit="50">
+            <entity-find entity-name="moqui.entity.EntityAuditLog" list="entityAuditLogList" limit="50" use-clone="true">
                 <search-form-inputs default-order-by="-changedDate" require-parameters="true"/>
             </entity-find>
 

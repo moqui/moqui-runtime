@@ -25,7 +25,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <#assign aeii = errorThrowable.getArtifactInfo()>
                     <p class="text-danger">User <code>${(ec.user.username)!ec.l10n.localize("N/A")}</code> is not authorized for ${aeii.getActionDescription()} on ${aeii.getTypeDescription()} <code>${aeii.getName()}</code></p>
                 <#else>
-                    <p class="text-danger">${errorMessage!""}</p>
+                    <p class="text-danger">${(errorMessage!"")?html}</p>
                 </#if>
                 <a href="${sri.buildUrl("/").url}" class="btn btn-primary btn-lg" role="button">Go Home</a>
                 <a href="javascript:window.history.back();" class="btn btn-primary btn-lg" role="button">Go Back</a>
@@ -52,10 +52,10 @@ along with this software (see the LICENSE.md file). If not, see
                                     <p>${curInfo.toString()}</p></#list>
                             </#if>
 <pre>
-${errorThrowable.message}
+${errorThrowable.message?html}
 
 <#list stackList as stackElement>
-at ${stackElement.toString()}
+at ${stackElement.toString()?html}
 </#list>
 </pre>
                         </div>

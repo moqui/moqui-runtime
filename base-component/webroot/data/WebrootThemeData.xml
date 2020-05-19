@@ -51,9 +51,9 @@ along with this software (see the LICENSE.md file). If not, see
 
     <!-- Footer items -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="200" resourceTypeEnumId="STRT_FOOTER_ITEM">
-        <resourceValue><![CDATA[<p><a href="http://www.moqui.org/" target="_blank">${ec.resource.expand('Built on Moqui Framework ${ec.factory.moquiVersion}', '')}</a></p>]]></resourceValue>
+        <resourceValue><![CDATA[<p><a href="https://www.moqui.org/" target="_blank">${ec.resource.expand('Built on Moqui Framework ${ec.factory.moquiVersion}', '')}</a></p>]]></resourceValue>
     </moqui.screen.ScreenThemeResource>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="201" resourceTypeEnumId="STRT_FOOTER_ITEM">
-        <resourceValue><![CDATA[<p><a href="/apps/ScreenTree">${ec.l10n.localize('Site Map')}</a></p>]]></resourceValue>
+        <resourceValue><![CDATA[<p><a href="/vapps/ScreenTree">${ec.l10n.localize('Site Map')}</a></p>]]></resourceValue>
     </moqui.screen.ScreenThemeResource>
 </entity-facade-xml>

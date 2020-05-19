@@ -25,8 +25,8 @@ along with this software (see the LICENSE.md file). If not, see
             ExecutionContext ec = context.ec
 
             def rs = null
-            allColumns = new ArrayList<ArrayList<String>>()
-            allRecords = new ArrayList<ArrayList<ArrayList>>()
+            outerColumnsList = new ArrayList<ArrayList<String>>()
+            outerRecordsList = new ArrayList<ArrayList<ArrayList>>()
 
             int limitInt = (limit?:"500") as int
 
@@ -54,8 +54,8 @@ along with this software (see the LICENSE.md file). If not, see
                         if (isResultSet) {
                             columns = new ArrayList<String>()
                             records = new ArrayList<ArrayList>()
-                            allColumns.add(columns)
-                            allRecords.add(records)
+                            outerColumnsList.add(columns)
+                            outerRecordsList.add(records)
                             rs = stmt.getResultSet()
                             if (rs != null) {
                                 rsmd = rs.getMetaData()
@@ -110,11 +110,11 @@ along with this software (see the LICENSE.md file). If not, see
 
         <label text="Query Results" type="h4"/>
         <render-mode><text type="html,vuet"><![CDATA[
-            <#if allColumns?has_content>
-                <#list allColumns as columns>
-                    <#assign records = allRecords[columns?index] />
+            <#if outerColumnsList?has_content>
+                <#list outerColumnsList as columns>
+                    <#assign records = outerRecordsList[columns?index] />
                     <div style="margin-bottom: 2em;">
-                    <h3>Result: ${columns?index + 1}</h3>
+                    <h3>Result Set ${columns?index + 1}</h3>
                     <#if columns?has_content>
                         <table class="table table-striped table-hover">
                             <tr class="header-row"><#list columns as column><td style="padding-right: 1em;">${column}</td></#list></tr>

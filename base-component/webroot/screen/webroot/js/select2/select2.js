@@ -3485,6 +3485,9 @@ S2.define('select2/data/ajax',[
     }
 
     function request () {
+      // DEJ 20200408 next line: if no options and/or options are loading ignore ENTER
+      self.options.set('ajaxResultsLoading', true);
+
       var $request = options.transport(options, function (data) {
         var results = self.processResults(data, params);
 
@@ -3499,6 +3502,8 @@ S2.define('select2/data/ajax',[
         }
 
         callback(results);
+        // DEJ 20200408 next line: if no options and/or options are loading ignore ENTER
+        self.options.set('ajaxResultsLoading', false);
       }, function () {
         // Attempt to detect if a request was aborted
         // Only works if the transport exposes a status property
@@ -5439,6 +5444,10 @@ S2.define('select2/core',[
 
           evt.preventDefault();
         } else if (key === KEYS.ENTER) {
+          // DEJ 20200408 next 2 lines: if no options and/or options are loading ignore ENTER
+          if (self.results.getHighlightedResults().length < 1) { return; }
+          if (self.options.get('ajaxResultsLoading')) { return; }
+
           // self.trigger('results:select', {});
 
           // evt.preventDefault();

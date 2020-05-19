@@ -10,7 +10,7 @@
 /db/h2/
 /db/orientdb/databases/
 /db/snapshot/
-/elasticsearch/
+/elasticsearch*/
 /jackrabbit/jackrabbit/
 /log/
 /sessions/
