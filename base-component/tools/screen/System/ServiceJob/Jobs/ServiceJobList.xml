@@ -21,9 +21,6 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <set field="jobRunner" from="ec.service.getJobRunner()"/>
 
-        <entity-find entity-name="moqui.service.job.ServiceJob" list="serviceJobList">
-            <search-form-inputs default-order-by="jobName"/></entity-find>
-
         <entity-find-count entity-name="moqui.service.message.SystemMessage" count-field="outgoingCount">
             <econdition field-name="statusId" value="SmsgProduced"/>
             <econdition field-name="isOutgoing" value="Y"/>
@@ -42,9 +39,12 @@ along with this software (see the LICENSE.md file). If not, see
             <label text="No Service Job Runner active (generally because scheduled-job-check-time is set to 0)"/>
         </fail-widgets></section>
 
-        <form-list name="ServiceJobList" list="serviceJobList" skip-form="true">
+        <form-list name="ServiceJobList" list="serviceJobList" skip-form="true" show-page-size="true">
+            <entity-find entity-name="moqui.service.job.ServiceJob" list="serviceJobList">
+                <search-form-inputs default-order-by="^jobName"/></entity-find>
+
             <field name="jobName">
-                <header-field show-order-by="true"><text-find hide-options="true" size="20"/></header-field>
+                <header-field show-order-by="case-insensitive"><text-find hide-options="true" size="20"/></header-field>
                 <default-field><link text="${jobName}" url="serviceJobDetail" link-type="anchor"/></default-field>
             </field>
             <field name="description">
