@@ -1443,6 +1443,14 @@ moqui.webrootVue = new Vue({
         this.basePath = $("#confBasePath").val(); this.linkBasePath = $("#confLinkBasePath").val();
         this.userId = $("#confUserId").val();
         this.locale = $("#confLocale").val(); if (moqui.localeMap[this.locale]) this.locale = moqui.localeMap[this.locale];
+
+        var confOuterStyle = $("#confOuterStyle").val();
+        if (confOuterStyle) {
+            var jqBody = $("body");
+            var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
+            if (currentStyle !== confOuterStyle) { jqBody.removeClass(currentStyle); jqBody.addClass(confOuterStyle); }
+        }
+
         this.notificationClient = new moqui.NotificationClient((location.protocol === 'https:' ? 'wss://' : 'ws://') + this.appHost + this.appRootPath + "/notws");
 
         var navPluginUrlList = [];
