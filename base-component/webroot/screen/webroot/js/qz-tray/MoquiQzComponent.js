@@ -18,7 +18,7 @@ if (window.qz && window.moqui && moqui.webrootVue) {
     moqui.webrootVue.qzVue = Vue.extend({
         template:
         '<span>' +
-            '<button id="qz-print-modal-link" type="button" class="btn btn-sm navbar-btn navbar-right" :class="readyStyleBtn" data-toggle="modal" data-target="#qz-print-modal" title="Print Options"><i class="glyphicon glyphicon-print"></i></button>' +
+            '<button id="qz-print-modal-link" type="button" class="btn btn-sm navbar-btn navbar-right" :class="readyStyleBtn" data-toggle="modal" data-target="#qz-print-modal" title="Print Options"><i class="fa fa-print"></i></button>' +
             '<div class="modal fade" id="qz-print-modal" tabindex="-1" role="dialog" aria-labelledby="qz-print-modal-label">' +
                 '<div class="modal-dialog" role="document"><div class="modal-content">' +
                     '<div class="modal-header">' +

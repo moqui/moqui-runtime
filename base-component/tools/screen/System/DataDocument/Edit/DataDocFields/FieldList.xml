@@ -81,7 +81,7 @@ along with this software (see the LICENSE.md file). If not, see
 
                 <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
                 <field name="deleteButton"><default-field title="">
-                    <link url="deleteDataDocumentCondition" text=" " icon="glyphicon glyphicon-trash" confirmation="Really remove?">
+                    <link url="deleteDataDocumentCondition" text=" " icon="fa fa-trash" confirmation="Really remove?">
                         <parameter name="dataDocumentId"/><parameter name="conditionSeqId"/><parameter name="fieldNameAlias"/></link></default-field></field>
             </form-list>
         </box-body-nopad></container-box>
@@ -128,7 +128,7 @@ along with this software (see the LICENSE.md file). If not, see
 
                 <field name="submitButton"><default-field title="Update All"><submit/></default-field></field>
                 <field name="deleteButton"><default-field title="">
-                    <link url="deleteDataDocumentField" text=" " icon="glyphicon glyphicon-trash" confirmation="Really remove?">
+                    <link url="deleteDataDocumentField" text=" " icon="fa fa-trash" confirmation="Really remove?">
                         <parameter name="dataDocumentId"/><parameter name="fieldSeqId"/><parameter name="fieldPath"/></link></default-field></field>
             </form-list>
         </box-body-nopad></container-box>

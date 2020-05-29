@@ -46,7 +46,7 @@ along with this software (see the LICENSE.md file). If not, see
                                             <img src="${sri.buildUrl(currentUrlInstance.sui.menuImage).url}" height="18" style="padding-right: 4px;"/>
                                         </#if>
                                     <#else>
-                                        <i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                                        <i class="fa fa-link" style="padding-right: 8px;"></i>
                                     </#if>
                                     ${ec.resource.expand(currentSubscreensItem.menuTitle, "")}
                                 </a>
@@ -61,7 +61,7 @@ along with this software (see the LICENSE.md file). If not, see
                                             <img src="${sri.buildUrl(currentUrlInstance.sui.menuImage).url}" height="18" style="padding-right: 4px;"/>
                                         </#if>
                                     <#else>
-                                        <i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                                        <i class="fa fa-link" style="padding-right: 8px;"></i>
                                     </#if>
                                     ${ec.resource.expand(currentSubscreensItem.menuTitle, "")}
                                 </m-link>

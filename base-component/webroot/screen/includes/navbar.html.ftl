@@ -24,13 +24,13 @@
         <a class="navbar-text" href="${sri.getScreenUrlInstance().getUrlWithParams()}">${html_title!(ec.resource.expand(sri.screenUrlInfo.targetScreen.getDefaultMenuName()!"Page", ""))}</a>
         <#-- logout button -->
         <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="${ec.l10n.localize("Logout")} ${(ec.getUser().getUserAccount().userFullName)!}" data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right">
-            <i class="glyphicon glyphicon-off"></i>
+            <i class="fa fa-power-off"></i>
         </a>
         <#-- screen documentation/help -->
         <#if screenDocList?has_content>
             <div id="document-menu" class="nav navbar-right dropdown">
                 <a id="document-menu-link" href="#" class="dropdown-toggle btn btn-info btn-sm navbar-btn" data-toggle="dropdown" title="Documentation">
-                    <i class="glyphicon glyphicon-question-sign"></i></a>
+                    <i class="fa fa-question-circle"></i></a>
                 <ul class="dropdown-menu"><#list screenDocList as screenDoc>
                     <li><a href="#" onclick="showScreenDocDialog('${screenDoc.index}')">${screenDoc.title}</a></li>
                 </#list></ul>
@@ -38,7 +38,7 @@
         </#if>
         <#-- dark/light switch -->
         <a href="#" onclick="switchDarkLight();" data-toggle="tooltip" data-original-title="${ec.l10n.localize("Switch Dark/Light")}" data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right">
-            <i class="glyphicon glyphicon-adjust"></i>
+            <i class="fa fa-adjust"></i>
         </a>
         <#-- header navbar items from the theme -->
         <#assign navbarItemList = sri.getThemeValues("STRT_HEADER_NAVBAR_ITEM")>
@@ -51,7 +51,7 @@
         <#assign screenHistoryList = ec.web.getScreenHistory()>
         <div id="history-menu" class="nav navbar-right dropdown">
             <a id="history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="${ec.l10n.localize("History")}">
-                <i class="glyphicon glyphicon-list"></i></a>
+                <i class="fa fa-list"></i></a>
             <ul class="dropdown-menu"><#list screenHistoryList as screenHistory><#if (screenHistory_index >= 25)><#break></#if>
                 <li><a href="${screenHistory.url}">
                     <#if screenHistory.image?has_content>
@@ -63,7 +63,7 @@
                             <img src="${sri.buildUrl(screenHistory.image).url}" alt="${screenHistory.name}" height="18" style="padding-right: 4px;"/>
                         </#if>
                     <#else>
-                        <i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                        <i class="fa fa-link" style="padding-right: 8px;"></i>
                     </#if>
                     ${screenHistory.name}
                 </a></li>

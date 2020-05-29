@@ -35,7 +35,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#assign menuTitle = .node["@title"]!sri.getActiveScreenDef().getDefaultMenuName()!"Menu">
     <#if .node["@type"]! == "popup">
         <li id="${menuId}" class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">${ec.getResource().expand(menuTitle, "")} <i class="fa fa-chevron-right"></i></a>
             <ul class="dropdown-menu">
                 <#list sri.getActiveScreenDef().getMenuSubscreensItems() as subscreensItem>
                     <#assign urlInstance = sri.buildUrl(subscreensItem.name)>
@@ -51,7 +51,7 @@ along with this software (see the LICENSE.md file). If not, see
                                     <#t><img src="${sri.buildUrl(urlInstance.sui.menuImage).url}" alt="${expandedMenuTitle}" height="18" style="padding-right: 4px;"/>
                                 </#if><#rt>
                             <#else><#rt>
-                                <#t><i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                                <#t><i class="fa fa-link" style="padding-right: 8px;"></i>
                             </#if><#rt>
                             <#t>${expandedMenuTitle}
                         <#lt></a></li>
@@ -75,7 +75,7 @@ along with this software (see the LICENSE.md file). If not, see
             </ul>
         </#if>
         <#-- add to navbar bread crumbs too -->
-        <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
+        <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.getResource().expand(menuTitle, "")} <i class="fa fa-chevron-right"></i></a>
         <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
     </#if>
 </#if></#macro>
@@ -93,7 +93,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#if .node["@type"]! == "popup">
         <#if hideNav! != "true">
         <li id="${menuId}" class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">${ec.getResource().expand(menuTitle, "")} <i class="fa fa-chevron-right"></i></a>
             <ul class="dropdown-menu">
                 <#list sri.getActiveScreenDef().getMenuSubscreensItems() as subscreensItem>
                     <#assign urlInstance = sri.buildUrl(subscreensItem.name)>
@@ -109,7 +109,7 @@ along with this software (see the LICENSE.md file). If not, see
                                     <#t><img src="${sri.buildUrl(urlInstance.sui.menuImage).url}" alt="${expandedMenuTitle}" height="18" style="padding-right: 4px;"/>
                                 </#if><#rt>
                             <#else><#rt>
-                                <#t><i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                                <#t><i class="fa fa-link" style="padding-right: 8px;"></i>
                             </#if><#rt>
                             <#t>${expandedMenuTitle}
                         <#lt></a></li>
@@ -150,7 +150,7 @@ along with this software (see the LICENSE.md file). If not, see
             </#if>
             <#if hideNav! != "true">
                 <#-- add to navbar bread crumbs too -->
-                <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.getResource().expand(menuTitle, "")} <i class="glyphicon glyphicon-chevron-right"></i></a>
+                <a id="${menuId}-crumb" class="navbar-text" href="${sri.buildUrl(".")}">${ec.getResource().expand(menuTitle, "")} <i class="fa fa-chevron-right"></i></a>
                 <script>$("#navbar-menu-crumbs").append($("#${menuId}-crumb"));</script>
             </#if>
             <#if !dynamic || !displayMenu>
@@ -264,7 +264,7 @@ ${sri.renderSection(.node["@name"])}
 </#macro>
 
 <#macro "container-dialog">
-    <#assign iconClass = "glyphicon glyphicon-share">
+    <#assign iconClass = "fa fa-share">
     <#if .node["@icon"]?has_content><#assign iconClass = .node["@icon"]></#if>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
@@ -305,7 +305,7 @@ ${sri.renderSection(.node["@name"])}
 </#macro>
 
 <#macro "dynamic-dialog">
-    <#assign iconClass = "glyphicon glyphicon-share">
+    <#assign iconClass = "fa fa-share">
     <#if .node["@icon"]?has_content><#assign iconClass = .node["@icon"]></#if>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
@@ -1187,8 +1187,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </script>
                 </#if>
             </#if>
-            <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}_button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${headerFormButtonText}</button></#if>
-            <#if isSelectColumns><button id="${selectColumnsDialogId}_button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.getL10n().localize("Columns")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("Columns")}</button></#if>
+            <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}_button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-default"><i class="fa fa-share"></i> ${headerFormButtonText}</button></#if>
+            <#if isSelectColumns><button id="${selectColumnsDialogId}_button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.getL10n().localize("Columns")}" data-placement="bottom" class="btn btn-default"><i class="fa fa-share"></i> ${ec.getL10n().localize("Columns")}</button></#if>
 
             <#if isPaginated>
                 <#assign curPageIndex = context[listName + "PageIndex"]>
@@ -1200,11 +1200,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if (curPageIndex > 0)>
                     <#assign firstUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", 0)>
                     <#assign previousUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", (curPageIndex - 1))>
-                    <li><a href="${firstUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-fast-backward"></i></a></li>
-                    <li><a href="${previousUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-backward"></i></a></li>
+                    <li><a href="${firstUrlInfo.getUrlWithParams()}"><i class="fa fa-fast-backward"></i></a></li>
+                    <li><a href="${previousUrlInfo.getUrlWithParams()}"><i class="fa fa-backward"></i></a></li>
                 <#else>
-                    <li><span><i class="glyphicon glyphicon-fast-backward"></i></span></li>
-                    <li><span><i class="glyphicon glyphicon-backward"></i></span></li>
+                    <li><span><i class="fa fa-fast-backward"></i></span></li>
+                    <li><span><i class="fa fa-backward"></i></span></li>
                 </#if>
 
                 <#if (prevPageIndexMax >= 0)><#list prevPageIndexMin..prevPageIndexMax as pageLinkIndex>
@@ -1222,11 +1222,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if (curPageIndex < curPageMaxIndex)>
                     <#assign lastUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", curPageMaxIndex)>
                     <#assign nextUrlInfo = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageIndex", curPageIndex + 1)>
-                    <li><a href="${nextUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-forward"></i></a></li>
-                    <li><a href="${lastUrlInfo.getUrlWithParams()}"><i class="glyphicon glyphicon-fast-forward"></i></a></li>
+                    <li><a href="${nextUrlInfo.getUrlWithParams()}"><i class="fa fa-forward"></i></a></li>
+                    <li><a href="${lastUrlInfo.getUrlWithParams()}"><i class="fa fa-fast-forward"></i></a></li>
                 <#else>
-                    <li><span><i class="glyphicon glyphicon-forward"></i></span></li>
-                    <li><span><i class="glyphicon glyphicon-fast-forward"></i></span></li>
+                    <li><span><i class="fa fa-forward"></i></span></li>
+                    <li><span><i class="fa fa-fast-forward"></i></span></li>
                 </#if>
                 </ul>
                 <#if (curPageMaxIndex > 4)>
@@ -1274,11 +1274,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#if>
             <#if formNode["@show-text-button"]! == "true">
                 <#assign showTextDialogId = formId + "_TextDialog">
-                <button id="${showTextDialogId}_button" type="button" data-toggle="modal" data-target="#${showTextDialogId}" data-original-title="${ec.getL10n().localize("Text")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("Text")}</button>
+                <button id="${showTextDialogId}_button" type="button" data-toggle="modal" data-target="#${showTextDialogId}" data-original-title="${ec.getL10n().localize("Text")}" data-placement="bottom" class="btn btn-default"><i class="fa fa-share"></i> ${ec.getL10n().localize("Text")}</button>
             </#if>
             <#if formNode["@show-pdf-button"]! == "true">
                 <#assign showPdfDialogId = formId + "_PdfDialog">
-                <button id="${showPdfDialogId}_button" type="button" data-toggle="modal" data-target="#${showPdfDialogId}" data-original-title="${ec.getL10n().localize("PDF")}" data-placement="bottom" class="btn btn-default"><i class="glyphicon glyphicon-share"></i> ${ec.getL10n().localize("PDF")}</button>
+                <button id="${showPdfDialogId}_button" type="button" data-toggle="modal" data-target="#${showPdfDialogId}" data-original-title="${ec.getL10n().localize("PDF")}" data-placement="bottom" class="btn btn-default"><i class="fa fa-share"></i> ${ec.getL10n().localize("PDF")}</button>
             </#if>
         </nav>
         </th></tr>
@@ -1629,8 +1629,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#if ascActive><#assign ascOrderByUrlInfo = descOrderByUrlInfo></#if>
             <#if descActive><#assign descOrderByUrlInfo = ascOrderByUrlInfo></#if>
             <span class="form-order-by">
-                <a href="${ascOrderByUrlInfo.getUrlWithParams()}"<#if ascActive> class="active"</#if>><i class="glyphicon glyphicon-triangle-top"></i></a>
-                <a href="${descOrderByUrlInfo.getUrlWithParams()}"<#if descActive> class="active"</#if>><i class="glyphicon glyphicon-triangle-bottom"></i></a>
+                <a href="${ascOrderByUrlInfo.getUrlWithParams()}"<#if ascActive> class="active"</#if>><i class="fa fa-caret-up"></i></a>
+                <a href="${descOrderByUrlInfo.getUrlWithParams()}"<#if descActive> class="active"</#if>><i class="fa fa-caret-down"></i></a>
             </span>
         </#if>
     <#t></div>
@@ -1778,7 +1778,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if .node["@type"]! != "time">
         <div class="input-group date" id="${id}_from">
             <input type="text" class="form-control" name="${curFieldName}_from" value="${fieldValueFrom?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
         </div>
         <script>$('#${id}_from').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, useStrict:true, showTodayButton:true, defaultDate:'${fieldValueFrom?html}' && moment('${fieldValueFrom?html}','${datepickerFormat}'), format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}", keyBinds: {t: function() {this.date(moment());}, up: function () { this.date(this.date().clone().add(1, 'd')); }, down: function () { this.date(this.date().clone().subtract(1, 'd')); }, 'control up': function () { this.date(this.date().clone().add(1, 'd')); }, 'control down': function () { this.date(this.date().clone().subtract(1, 'd')); }}});</script>
     <#else>
@@ -1791,7 +1791,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if .node["@type"]! != "time">
         <div class="input-group date" id="${id}_thru">
             <input type="text" class="form-control" name="${curFieldName}_thru" value="${fieldValueThru?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-            <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
         </div>
         <script>$('#${id}_thru').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, useStrict:true, showTodayButton:true, defaultDate:'${fieldValueThru?html}' && moment('${fieldValueThru?html}','${datepickerFormat}'), format:'${datepickerFormat}', extraFormats:${extraFormatsVal}, stepping:5, locale:"${ec.getUser().locale.toLanguageTag()}", keyBinds: {t: function() {this.date(moment());}, up: function () { this.date(this.date().clone().add(1, 'd')); }, down: function () { this.date(this.date().clone().subtract(1, 'd')); }, 'control up': function () { this.date(this.date().clone().add(1, 'd')); }, 'control down': function () { this.date(this.date().clone().subtract(1, 'd')); }}});</script>
     <#else>
@@ -1841,7 +1841,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </select>
         <div class="input-group date" id="${id}_pdate">
             <input type="text" class="form-control" name="${curFieldName}_pdate" value="${fvDate?html}" size="10" maxlength="10"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
-            <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+            <span class="input-group-addon"><span class="fa fa-calendar"></span></span>
         </div>
         <script>
             $("#${id}_poffset").select2({ }); $("#${id}_period").select2({ });
@@ -1903,7 +1903,7 @@ a => A, d => D, y => Y
     <#if .node["@type"]! != "time">
         <div class="input-group date" id="${id}">
             <input type="text" class="form-control<#if validationClasses?contains("required")> required</#if>"<#if validationClasses?contains("required")> required="required"</#if> name="<@fieldName .node/>" value="${fieldValue?html}" size="${size}" maxlength="${maxlength}"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-            <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+            <span class="input-group-addon"><span class="fa fa-calendar"></span></span>
         </div>
         <script>
             $('#${id}').datetimepicker({toolbarPlacement:'top', showClose:true, showClear:true, showTodayButton:true,

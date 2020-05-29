@@ -73,11 +73,11 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="edit">
                 <header-field title="Find"><submit/></header-field>
                 <conditional-field title="" condition="entityValue != null">
-                    <link url="../AutoEdit/AutoEditMaster" text="" icon="glyphicon glyphicon-pencil" parameter-map="entityValue.getPrimaryKeys()"/></conditional-field>
+                    <link url="../AutoEdit/AutoEditMaster" text="" icon="fa fa-pencil" parameter-map="entityValue.getPrimaryKeys()"/></conditional-field>
                 <default-field><display text=" "/></default-field>
             </field>
             <field name="delete">
-                <conditional-field title="" condition="entityValue != null"><link url="deleteRecord" text="" icon="glyphicon glyphicon-trash"
+                <conditional-field title="" condition="entityValue != null"><link url="deleteRecord" text="" icon="fa fa-trash"
                     confirmation="Are you sure?" parameter-map="entityValue.getPrimaryKeys()"/></conditional-field>
                 <default-field><display text=" "/></default-field>
             </field>

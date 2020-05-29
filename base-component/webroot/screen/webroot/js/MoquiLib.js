@@ -145,10 +145,10 @@ var moqui = {
         if (url) this.url = url;
         if (icon) { this.icon = icon; }
         else {
-            if (type === 'success') this.icon = 'glyphicon glyphicon-ok-sign';
-            else if (type === 'warning') this.icon = 'glyphicon glyphicon-warning-sign';
-            else if (type === 'danger') this.icon = 'glyphicon glyphicon-exclamation-sign';
-            else this.icon = 'glyphicon glyphicon-info-sign';
+            if (type === 'success') this.icon = 'fa fa-check-circle';
+            else if (type === 'warning') this.icon = 'fa fa-exclamation-triangle';
+            else if (type === 'danger') this.icon = 'fa fa-exclamation-circle';
+            else this.icon = 'fa fa-info-circle';
         }
     },
     NotifySettings: function(type) {
