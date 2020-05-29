@@ -124,7 +124,7 @@ ${sri.renderSection(.node["@name"])}
 </#macro>
 
 <#macro "container-dialog">
-    <#assign iconClass = "fa fa-share">
+    <#assign iconClass = "fa fa-external-link">
     <#if .node["@icon"]?has_content><#assign iconClass = .node["@icon"]></#if>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
@@ -144,7 +144,7 @@ ${sri.renderSection(.node["@name"])}
     <dynamic-container id="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().pathWithParams}"></dynamic-container>
 </#macro>
 <#macro "dynamic-dialog">
-    <#assign iconClass = "fa fa-share">
+    <#assign iconClass = "fa fa-external-link">
     <#if .node["@icon"]?has_content><#assign iconClass = .node["@icon"]></#if>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
