@@ -39,21 +39,22 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
             </form-single>
         </container-dialog>
-        <form-list name="UserAccountList" list="userAccountList" skip-form="true">
+        <form-list name="UserAccountList" list="userAccountList" skip-form="true" header-dialog="true" saved-finds="true"
+                select-columns="true" show-xlsx-button="true" show-csv-button="true" show-page-size="true">
             <field name="userId">
-                <header-field title="ID" show-order-by="true"><text-find size="10" hide-options="true"/></header-field>
+                <header-field title="ID" show-order-by="true"><text-find size="20" default-operator="begins"/></header-field>
                 <default-field><link text="${userId}" url="userAccountDetail" link-type="anchor"/></default-field>
             </field>
             <field name="username">
-                <header-field show-order-by="true"><text-find size="10" hide-options="true"/></header-field>
+                <header-field show-order-by="true"><text-find size="25" default-operator="begins"/></header-field>
                 <default-field><link text="${username}" url="userAccountDetail" link-type="anchor"/></default-field>
             </field>
             <field name="emailAddress">
-                <header-field show-order-by="true"><text-find size="15" hide-options="true"/></header-field>
+                <header-field show-order-by="true"><text-find size="25" default-operator="begins"/></header-field>
                 <default-field><display/></default-field>
             </field>
             <field name="userFullName">
-                <header-field show-order-by="true"><text-find size="15" hide-options="true"/></header-field>
+                <header-field show-order-by="true"><text-find size="25" default-operator="begins"/></header-field>
                 <default-field><display/></default-field>
             </field>
             <!--<field name="passwordSetDate">
@@ -73,11 +74,11 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><display text="${disabled ?: 'N'} ${disabledDateTime ?: ''}"/></default-field>
             </field>
             <field name="locale">
-                <header-field show-order-by="true"><text-find size="6" hide-options="true"/></header-field>
+                <header-field show-order-by="true"><text-find size="6" default-operator="begins"/></header-field>
                 <default-field><display/></default-field>
             </field>
             <field name="timeZone">
-                <header-field show-order-by="true"><text-find size="8" hide-options="true"/></header-field>
+                <header-field show-order-by="true"><text-find size="8" default-operator="begins"/></header-field>
                 <default-field><display/></default-field>
             </field>
             <field name="find"><header-field title="Find"><submit/></header-field>
