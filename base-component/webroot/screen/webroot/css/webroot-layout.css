@@ -106,6 +106,8 @@ span.shaded-area { display: inline-block; white-space: normal; }
 
 /* ================ Extensions for bootstrap.min.css =============== */
 
+.col { display:inline-block; }
+
 .progress { margin-bottom: 8px; }
 
 /* Styles to get around default Bootstrap input width:100%; note margin-right on .input-group is enough for a 14px icon but nothing more! */
