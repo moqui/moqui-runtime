@@ -927,7 +927,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#assign activeUserFindName = ""/>
                     <#if ec.getContext().formListFindId?has_content>
                         <#list userFindInfoList as userFindInfo>
-                            <#if formListFind.formListFindId == ec.getContext().formListFindId>
+                            <#if userFindInfo.formListFind.formListFindId == ec.getContext().formListFindId>
                                 <#assign activeUserFindName = userFindInfo.description/></#if></#list>
                     </#if>
                     <div class="btn-group">
