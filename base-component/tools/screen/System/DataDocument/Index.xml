@@ -20,7 +20,7 @@ along with this software (see the LICENSE.md file). If not, see
         <!-- <service-call name="org.moqui.search.SearchServices.index#DataFeedDocuments" in-map="context"/> -->
         <actions>
             <script>jobRunId = ec.service.job("IndexDataFeedDocuments").parameter("dataFeedId", dataFeedId).parameter("dataDocumentId", dataDocumentId)
-                    .parameter("fromUpdateStamp", fromUpdateStamp).parameter("thruUpdateStamp", thruUpdateStamp).run()</script>
+                    .parameter("fromUpdateStamp", fromUpdateStamp).parameter("thruUpdateStamp", thruUpdateStamp).parameter("batchSize", batchSize).run()</script>
             <message>Started Index DataFeed Documents Job (Job ID ${jobRunId})</message>
         </actions>
         <default-response url="."/>
@@ -40,6 +40,7 @@ along with this software (see the LICENSE.md file). If not, see
             </drop-down></default-field></field>
             <field name="fromUpdateStamp"><default-field><date-time type="timestamp"/></default-field></field>
             <field name="thruUpdateStamp"><default-field><date-time type="timestamp"/></default-field></field>
+            <field name="batchSize"><default-field><text-line size="5" default-value="1000"/></default-field></field>
             <field name="submitButton"><default-field title="Index Feed Documents"><submit/></default-field></field>
         </form-single>
     </widgets>
