@@ -106,7 +106,7 @@ along with this software (see the LICENSE.md file). If not, see
                             <radio><option key="Y"/><option key="N"/></radio>
                         </default-field></field>
                         <field name="emailNotifications" from="notTopicUser?.emailNotifications ?: emailNotifications ?: 'N'">
-                            <conditional-field condition="emailTemplateId"><radio><option key="Y"/><option key="N"/></radio></conditional-field>
+                            <conditional-field condition="emailTemplateId" title="Email"><radio><option key="Y"/><option key="N"/></radio></conditional-field>
                             <default-field title="Email"><display text=""/></default-field>
                         </field>
                         <field name="submitButton"><default-field><submit text="Update"/></default-field></field>
