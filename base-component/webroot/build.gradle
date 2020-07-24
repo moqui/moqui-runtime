@@ -86,6 +86,11 @@ def fileMap = [
     "vue/2.6.10/vue.min.js":""
 ]
 
+/* for future reference, need variation on http-vue-loader to support parse only so not using:
+def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
+def jsdelivrList = ["http-vue-loader@1.4.2/src/httpVueLoader.min.js"]
+ */
+
 String getTargetPath(String sourcePath, String targetPath) {
     if (!targetPath) {
         String[] sourceSplit = sourcePath.split("/")
@@ -106,6 +111,22 @@ task downloadFiles { doLast {
         targetFile.getParentFile().mkdirs()
         ant.get(src: sourceUrl, dest: targetFile)
     }
+
+    /* for future reference, need variation on http-vue-loader to support parse only so not using:
+    for (String jsdPath in jsdelivrList) {
+        String[] sourceSplit = jsdPath.split("/")
+        String libDir = sourceSplit[0].substring(0, sourceSplit[0].indexOf("@"))
+        String targetPath = libDir + '/' + sourceSplit[sourceSplit.length-1]
+
+        File targetFile = file(libsPath + '/' + targetPath)
+        if (targetFile.exists()) continue
+
+        String sourceUrl = jsdelivrBase + jsdPath
+        logger.lifecycle("Downloading ${sourceUrl} to ${targetFile.absolutePath}")
+        targetFile.getParentFile().mkdirs()
+        ant.get(src: sourceUrl, dest: targetFile)
+    }
+     */
 } }
 
 def baseJs = []
@@ -149,7 +170,9 @@ htmlJs.add(libsPath + '/jstree/jstree.min.js')
 def vuetJs = []
 // Vue JS
 vuetJs.add(libsPath + '/vue/vue.min.js')
-// Vue instance, in footer so runs after page loaded
+// http-vue-loader
+vuetJs.add(webrootPath + '/js/http-vue-loader/httpVueLoader.js')
+// Vue root component instance, in footer so runs after page loaded
 vuetJs.add(webrootPath + '/js/WebrootVue.min.js')
 
 

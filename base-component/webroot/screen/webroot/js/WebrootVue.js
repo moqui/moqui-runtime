@@ -44,6 +44,8 @@
    - goal would be to use FTL macros to transform more detailed XML into library specific output
  */
 
+moqui.urlExtensions = { js:'js', vue:'vue', vuet:'vuet' }
+
 // simple stub for define if it doesn't exist (ie no require.js, etc); mimic pattern of require.js define()
 if (!window.define) window.define = function(name, deps, callback) {
     if (!moqui.isString(name)) { callback = deps; deps = name; name = null; }
@@ -210,6 +212,8 @@ moqui.handleLoadError = function (jqXHR, textStatus, errorThrown) {
 // NOTE: this may eventually split to change the activeSubscreens only on currentPathList change (for screens that support it)
 //     and if ever needed some sort of data refresh if currentParameters changes
 moqui.loadComponent = function(urlInfo, callback, divId) {
+    var jsExt = moqui.urlExtensions.js, vueExt = moqui.urlExtensions.vue, vuetExt = moqui.urlExtensions.vuet;
+
     var path, extraPath, search, bodyParameters, renderModes;
     if (typeof urlInfo === 'string') {
         var questIdx = urlInfo.indexOf('?');
@@ -237,13 +241,38 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
 
     // prep url
     var url = path;
-    var isJsPath = (path.slice(-3) === '.js');
-    if (!isJsPath && urlInfo.renderModes && urlInfo.renderModes.indexOf("js") >= 0) {
+
+    // does the screen support vue? use http-vue-loader
+    if (urlInfo.renderModes && urlInfo.renderModes.indexOf(vueExt) >= 0) url += ('.' + vueExt);
+    if (url.slice(-vueExt.length) === vueExt) {
+        console.info("loadComponent vue " + url + (divId ? " id " + divId : ''));
+        var vueAjaxSettings = { type:"GET", url:url, error:moqui.handleLoadError, success: function(resp, status, jqXHR) {
+                if (jqXHR.status === 205) {
+                    var redirectTo = jqXHR.getResponseHeader("X-Redirect-To")
+                    moqui.webrootVue.setUrl(redirectTo);
+                    return;
+                }
+                // console.info(resp);
+                if (!resp) { callback(moqui.NotFound); }
+                var isServerStatic = (jqXHR.getResponseHeader("Cache-Control").indexOf("max-age") >= 0);
+                if (moqui.isString(resp) && resp.length > 0) {
+                    var vueCompObj = httpVueLoader.parse(resp, url.substr(0, url.lastIndexOf('/')+1));
+                    if (isServerStatic) { moqui.componentCache.put(path, vueCompObj); }
+                    callback(vueCompObj);
+                } else { callback(moqui.NotFound); }
+            }};
+        if (bodyParameters && !$.isEmptyObject(bodyParameters)) { vueAjaxSettings.type = "POST"; vueAjaxSettings.data = bodyParameters; }
+        return $.ajax(vueAjaxSettings);
+    }
+
+    // look for JavaScript
+    var isJsPath = (path.slice(-jsExt.length) === jsExt);
+    if (!isJsPath && urlInfo.renderModes && urlInfo.renderModes.indexOf(jsExt) >= 0) {
         // screen supports js explicitly so do that
-        url += '.js';
+        url += ('.' + jsExt);
         isJsPath = true;
     }
-    if (!isJsPath) url += '.vuet';
+    if (!isJsPath) url += ('.' + vuetExt);
     if (extraPath && extraPath.length > 0) url += ('/' + extraPath);
     if (search && search.length > 0) url += ('?' + search);
 
@@ -265,7 +294,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
                     if (isServerStatic) { moqui.componentCache.put(path, jsCompObj); }
                     callback(jsCompObj);
                 } else {
-                    var htmlUrl = (path.slice(-3) === '.js' ? path.slice(0, -3) : path) + '.vuet';
+                    var htmlUrl = (path.slice(-jsExt.length) === jsExt ? path.slice(0, -jsExt.length) : path) + '.' + vuetExt;
                     $.ajax({ type:"GET", url:htmlUrl, error:moqui.handleLoadError, success: function (htmlText) {
                         jsCompObj.template = htmlText;
                         if (isServerStatic) { moqui.componentCache.put(path, jsCompObj); }
@@ -282,8 +311,8 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
                 callback(compObj);
             }
         } else if (moqui.isPlainObject(resp)) {
-            if (resp.screenUrl && resp.screenUrl.length > 0) { moqui.webrootVue.setUrl(resp.screenUrl); }
-            else if (resp.redirectUrl && resp.redirectUrl.length > 0) { window.location.replace(resp.redirectUrl); }
+            if (resp.screenUrl && resp.screenUrl.length) { moqui.webrootVue.setUrl(resp.screenUrl); }
+            else if (resp.redirectUrl && resp.redirectUrl.length) { window.location.replace(resp.redirectUrl); }
         } else { callback(moqui.NotFound); }
     }};
     if (bodyParameters && !$.isEmptyObject(bodyParameters)) { ajaxSettings.type = "POST"; ajaxSettings.data = bodyParameters; }
