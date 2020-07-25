@@ -1101,7 +1101,7 @@ Vue.component('drop-down', {
                     var isInList = false;
                     var setValIsArray = moqui.isArray(setVal);
                     $.each(options, function(idx, curObj) {
-                        if (setValIsArray ? $.inArray(curObj.id, setVal) : curObj.id === setVal) isInList = true; });
+                        if (setValIsArray ? setVal.includes(curObj.id) : curObj.id === setVal) isInList = true; });
                     if (isInList) jqEl.val(setVal);
                 }
                 jqEl.trigger('change');
