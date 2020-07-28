@@ -7,6 +7,13 @@ var moqui = {
     isArray: function(obj) { return Object.prototype.toString.call(obj) === '[object Array]'; },
     isFunction: function(obj) { return Object.prototype.toString.call(obj) === '[object Function]'; },
     isPlainObject: function(obj) { return obj != null && typeof obj == 'object' && Object.prototype.toString.call(obj) === '[object Object]'; },
+    deepCopy: function(inObject) {
+        if (typeof inObject !== "object" || inObject === null) { return inObject; }
+        var outObject = Array.isArray(inObject) ? [] : {};
+        var key, value;
+        for (key in inObject) { value = inObject[key]; outObject[key] = moqui.deepCopy(value); }
+        return outObject
+    },
 
     htmlEncode: function(value) { return $('<div/>').text(value).html(); },
     htmlDecode: function(value) { return $('<div/>').html(value).text(); },
