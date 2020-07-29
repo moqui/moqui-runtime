@@ -233,7 +233,8 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
                 }
                 // console.info(resp);
                 if (!resp) { callback(moqui.NotFound); }
-                var isServerStatic = (jqXHR.getResponseHeader("Cache-Control").indexOf("max-age") >= 0);
+                var cacheControl = jqXHR.getResponseHeader("Cache-Control");
+                var isServerStatic = (cacheControl && cacheControl.indexOf("max-age") >= 0);
                 if (moqui.isString(resp) && resp.length > 0) {
                     var vueCompObj = httpVueLoader.parse(resp, url.substr(0, url.lastIndexOf('/')+1));
                     if (isServerStatic) { moqui.componentCache.put(path, vueCompObj); }
