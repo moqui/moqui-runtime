@@ -1,6 +1,9 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 var moqui = {
+    // map locale to a locale that exists in moment-with-locales.js
+    localeMap: { 'zh':'zh-cn' },
+
     isString: function(obj) { return typeof obj === 'string'; },
     isBoolean: function(obj) { return typeof obj === 'boolean'; },
     isNumber: function(obj) { return typeof obj === 'number'; },
@@ -13,6 +16,67 @@ var moqui = {
         var key, value;
         for (key in inObject) { value = inObject[key]; outObject[key] = moqui.deepCopy(value); }
         return outObject
+    },
+    objToSearch: function(obj) {
+        var search = "";
+        if (moqui.isPlainObject(obj)) $.each(obj, function (key, value) { search = search + (search.length > 0 ? '&' : '') + key + '=' + value; });
+        return search;
+    },
+    searchToObj: function(search) {
+        if (!search || search.length === 0) { return {}; }
+        var newParams = {};
+        var parmList = search.split("&");
+        for (var i=0; i<parmList.length; i++) {
+            var parm = parmList[i]; var ps = parm.split("=");
+            if (ps.length > 1) {
+                var key = ps[0]; var value = ps[1]; var exVal = newParams[key];
+                if (exVal) { if (moqui.isArray(exVal)) { exVal.push(value); } else { newParams[key] = [exVal, value]; } }
+                else { newParams[key] = value; }
+            }
+        }
+        return newParams;
+    },
+    parseHref: function(href) {
+        var result = { protocol:"", host:"", path:"/", query:{}, search:"", hash:"", name:"" }
+        var ssIdx = href.indexOf("://");
+        if (ssIdx >= 0) {
+            result.protocol = href.slice(0, ssIdx);
+            var slIdx = href.indexOf("/", ssIdx+3);
+            if (slIdx === -1) {
+                if (href.length > (ssIdx+3)) result.host = href.slice(ssIdx+3);
+                return result;
+            }
+            result.host = href.slice(ssIdx + 3, slIdx);
+            href = href.slice(slIdx);
+        }
+        var splitHash = href.split("#");
+        if (splitHash.length > 1 && splitHash[1].length) {
+            result.hash = splitHash[1];
+            href = splitHash[0];
+        }
+        var splitQuery = href.split("?");
+        if (splitQuery.length > 1 && splitQuery[1].length) {
+            var search = splitQuery[1];
+            result.search = search;
+            result.query = moqui.searchToObj(search);
+        }
+        var path = splitQuery[0];
+        result.path = path;
+        if (path.length) {
+            var lslIdx = path.lastIndexOf("/");
+            result.name = lslIdx === -1 ? path : path.slice(lslIdx+1);
+        }
+        return result;
+    },
+    makeHref: function(urlInfo) {
+        var href = "";
+        if (urlInfo.protocol && urlInfo.protocol.length) href += urlInfo.protocol + "://";
+        if (urlInfo.host && urlInfo.host.length) href += urlInfo.host;
+        href += urlInfo.path || "/";
+        if (urlInfo.search && urlInfo.search.length) { href += "?" + urlInfo.search; }
+        else if (urlInfo.query && urlInfo.query.length) { href += "?" + moqui.objToSearch(urlInfo.query); }
+        if (urlInfo.hash && urlInfo.hash.length) href += "#" + urlInfo.hash;
+        return href;
     },
 
     htmlEncode: function(value) { return $('<div/>').text(value).html(); },

@@ -52,27 +52,6 @@ if (!window.define) window.define = function(name, deps, callback) {
     if (!moqui.isArray(deps)) { callback = deps; deps = null; }
     if (moqui.isFunction(callback)) { return callback(); } else { return callback }
 };
-// map locale to a locale that exists in moment-with-locales.js
-moqui.localeMap = { 'zh':'zh-cn' };
-moqui.objToSearch = function(obj) {
-    var search = '';
-    if (moqui.isPlainObject(obj)) $.each(obj, function (key, value) { search = search + (search.length > 0 ? '&' : '') + key + '=' + value; });
-    return search;
-};
-moqui.searchToObj = function(search) {
-    if (!search || search.length === 0) { return {}; }
-    var newParams = {};
-    var parmList = search.split("&");
-    for (var i=0; i<parmList.length; i++) {
-        var parm = parmList[i]; var ps = parm.split("=");
-        if (ps.length > 1) {
-            var key = ps[0]; var value = ps[1]; var exVal = newParams[key];
-            if (exVal) { if (moqui.isArray(exVal)) { exVal.push(value); } else { newParams[key] = [exVal, value]; } }
-            else { newParams[key] = value; }
-        }
-    }
-    return newParams;
-};
 Vue.filter('decodeHtml', moqui.htmlDecode);
 Vue.filter('format', moqui.format);
 
