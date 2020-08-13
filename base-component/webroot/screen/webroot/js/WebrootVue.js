@@ -55,36 +55,6 @@ if (!window.define) window.define = function(name, deps, callback) {
 Vue.filter('decodeHtml', moqui.htmlDecode);
 Vue.filter('format', moqui.format);
 
-/* ========== script and stylesheet handling methods ========== */
-moqui.loadScript = function(src) {
-    // make sure the script isn't loaded
-    var loaded = false;
-    $('head script').each(function(i, hscript) { if (hscript.src.indexOf(src) !== -1) loaded = true; });
-    if (loaded) return;
-    // add it to the header
-    var script = document.createElement('script'); script.src = src; script.async = false;
-    document.head.appendChild(script);
-};
-moqui.loadStylesheet = function(href, rel, type) {
-    if (!rel) rel = 'stylesheet'; if (!type) type = 'text/css';
-    // make sure the stylesheet isn't loaded
-    var loaded = false;
-    $('head link').each(function(i, hlink) { if (hlink.href.indexOf(href) !== -1) loaded = true; });
-    if (loaded) return;
-    // add it to the header
-    var link = document.createElement('link'); link.href = href; link.rel = rel; link.type = type;
-    document.head.appendChild(link);
-};
-moqui.retryInlineScript = function(src, count) {
-    try { eval(src); } catch(e) {
-        src = src.trim();
-        var retryTime = count <= 5 ? count*count*100 : 'N/A';
-        console.warn('inline script error ' + count + ' retry ' + retryTime + ' script: ' + src.slice(0, 80) + '...');
-        console.warn(e);
-        if (count <= 5) setTimeout(moqui.retryInlineScript, retryTime, src, count+1);
-    }
-};
-
 /* ========== notify and error handling ========== */
 moqui.notifyOpts = { delay:1500, timer:500, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'success',
     animate:{ enter:'animated fadeInDown', exit:'' } }; // no animate on exit: animated fadeOutUp

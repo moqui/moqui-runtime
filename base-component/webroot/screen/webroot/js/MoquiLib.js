@@ -81,6 +81,45 @@ var moqui = {
 
     htmlEncode: function(value) { return $('<div/>').text(value).html(); },
     htmlDecode: function(value) { return $('<div/>').html(value).text(); },
+
+    /* ========== script and stylesheet handling methods ========== */
+    loadScript: function(src, callback) {
+        // make sure the script isn't loaded
+        var loadedScript = null;
+        $('head script').each(function(i, hscript) { if (hscript.src.indexOf(src) !== -1) loadedScript = hscript; });
+        if (loadedScript) {
+            if (callback) callback(null, loadedScript);
+            return;
+        }
+        // add it to the header
+        var script = document.createElement('script'); script.src = src; script.async = false;
+        if (callback) {
+            script.onload = function() { this.onerror = this.onload = null; callback(null, script); };
+            script.onerror = function () { this.onerror = this.onload = null; callback(new Error('Error loading script ' + this.src), script); };
+        }
+        document.head.appendChild(script);
+    },
+    loadStylesheet: function(href, rel, type) {
+        if (!rel) rel = 'stylesheet'; if (!type) type = 'text/css';
+        // make sure the stylesheet isn't loaded
+        var loaded = false;
+        $('head link').each(function(i, hlink) { if (hlink.href.indexOf(href) !== -1) loaded = true; });
+        if (loaded) return;
+        // add it to the header
+        var link = document.createElement('link'); link.href = href; link.rel = rel; link.type = type;
+        document.head.appendChild(link);
+    },
+    retryInlineScript: function(src, count) {
+        try { eval(src); } catch(e) {
+            src = src.trim();
+            var retryTime = count <= 5 ? count*count*100 : 'N/A';
+            console.warn('inline script error ' + count + ' retry ' + retryTime + ' script: ' + src.slice(0, 80) + '...');
+            console.warn(e);
+            if (count <= 5) setTimeout(moqui.retryInlineScript, retryTime, src, count+1);
+        }
+    },
+
+    /* ========== general format function ========== */
     format: function(value, format, type) {
         // console.log('format ' + value + ' with ' + format + ' of type ' + type);
         // number formatting: http://numeraljs.com/ https://github.com/andrewgp/jsNumberFormatter http://www.asual.com/jquery/format/
