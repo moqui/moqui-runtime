@@ -26,7 +26,7 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- NOTE: using FA 4.7.0 with 'fa' class, for FA 5+ must change all to 'fas' class -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="2" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="/libs/font-awesome/css/font-awesome.min.css"/>
-    <!-- TODO consider using material icons instead of font-awesome - ISSUE: there are many XML Screen files with 'fa-' references
+    <!-- FUTURE consider using material icons instead of font-awesome - ISSUE: there are many XML Screen files with 'fa-' references
         AND material icons requires very different syntax with <i class="material-icons-outlined">invert_colors</i> (2 parts) unlike fa with <i class="fa fa-shopping-cart"></i> (1 part) -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="3" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons"/>
@@ -47,12 +47,6 @@ along with this software (see the LICENSE.md file). If not, see
             resourceValue="/favicon.ico"/>
     <!-- <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="102" resourceTypeEnumId="STRT_BODY_CLASS"
             resourceValue="bg-light"/> -->
-
-    <!-- TODO: move these to SimpleScreensSetupData.xml after this is moved to moqui-runtime (so ScreenTheme record exists) -->
-    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="130" resourceTypeEnumId="STRT_HEADER_NAVBAR_COMP"
-            resourceValue="/ssstatic/lib/ActiveOrgNav.qvue"/>
-    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="135" resourceTypeEnumId="STRT_HEADER_NAVBAR_COMP"
-            resourceValue="/ssstatic/lib/MyAccountNav.qvue"/>
 
     <!-- Footer items -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="200" resourceTypeEnumId="STRT_FOOTER_ITEM">
