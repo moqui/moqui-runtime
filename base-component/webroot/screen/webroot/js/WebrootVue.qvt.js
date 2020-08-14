@@ -340,7 +340,7 @@ Vue.component('m-box-body', {
 });
 Vue.component('m-dialog', {
     name: "mDialog",
-    props: { draggable:{type:Boolean,default:true}, value:{type:Boolean,'default':false}, id:String, color:String, width:{type:String}, title:{type:String} },
+    props: { draggable:{type:Boolean,'default':true}, value:{type:Boolean,'default':false}, id:String, color:String, width:{type:String}, title:{type:String} },
     data: function() { return { isShown:false }; },
     template:
     '<q-dialog v-bind:value="value" v-on:input="$emit(\'input\', $event)" :id="id" @show="onShow" @hide="onHide">' +
@@ -408,9 +408,7 @@ Vue.component('m-container-dialog', {
         '<q-btn dense outline no-caps icon="open_in_new" :label="buttonText" :color="color" :class="buttonClass" @click="isShown = true"></q-btn>' +
         '<m-dialog v-model="isShown" :id="id" :title="title" :color="color" :width="width"><slot></slot></m-dialog>' +
     '</span>',
-    methods: {
-        hide: function() { this.isShown = false; },
-    },
+    methods: { hide: function() { this.isShown = false; } },
     mounted: function() { if (this.openDialog) { this.isShown = true; } }
 });
 Vue.component('m-dynamic-container', {
@@ -607,11 +605,11 @@ Vue.component('m-form', {
             }
             var formData = Object.keys(this.fields).length ? new FormData() : new FormData(this.$refs.qForm.$el);
             $.each(this.fields, function(key, value) { if (value) { formData.set(key, value); } });
-            for (var fieldName of formData.keys()) {
+            for (var fieldName in formData.keys()) {
                 // NOTE: this shouldn't happen as when not getting from FormData q-input with mask should have null value when empty, but just in case skip String values that are unfilled masks
                 // NOTE: with q-input mask place holder is underscore, look for 2; this will cause issues if a valid user input starts with 2 underscores, may need better approach here and in m-form-link
                 var fieldValue = formData.get(fieldName);
-                if (moqui.isString(fieldValue) && fieldValue.startsWith("__")) formData.delete(fieldName);
+                if (moqui.isString(fieldValue) && fieldValue.startsWith("__")) formData["delete"](fieldName);
             }
             formData.set('moquiSessionToken', this.$root.moquiSessionToken);
             if (btnName) { formData.set(btnName, btnValue); }
@@ -642,7 +640,8 @@ Vue.component('m-form', {
             } else if (!notified) {
                 moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOpts, { message:"Submit successful" }));
             }
-        },
+        }
+        /* TODO
         fieldChange: function (evt) {
             var targetDom = evt.delegateTarget; var targetEl = $(targetDom);
             if (targetEl.hasClass("input-group") && targetEl.children("input").length) {
@@ -656,7 +655,6 @@ Vue.component('m-form', {
                     changed = targetDom.checked !== targetDom.defaultChecked; }
                 else { changed = targetDom.value !== targetDom.defaultValue; }
             } else if (targetDom.nodeName === "SELECT") {
-                /* TODO
                 if (targetDom.multiple) {
                     var optLen = targetDom.options.length;
                     for (var i = 0; i < optLen; i++) {
@@ -666,7 +664,6 @@ Vue.component('m-form', {
                 } else {
                     changed = !targetDom.options[targetDom.selectedIndex].defaultSelected;
                 }
-                 */
             }
             // console.log("changed? " + changed + " node " + targetDom.nodeName + " type " + targetEl.attr("type") + " " + targetEl.attr("name") + " to " + targetDom.value + " default " + targetDom.defaultValue);
             // console.log(targetDom.defaultValue);
@@ -682,21 +679,19 @@ Vue.component('m-form', {
                 targetEl.removeClass("is-changed");
             }
         }
+         */
     },
     mounted: function() {
         var vm = this;
         var jqEl = $(this.$el);
-        /* TODO if (!this.noValidate) jqEl.validate({ errorClass: 'help-block', errorElement: 'span',
-            highlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-success').addClass('has-error'); },
-            unhighlight: function(element, errorClass, validClass) { $(element).parents('.form-group').removeClass('has-error').addClass('has-success'); }
-        });*/
-        // TODO jqEl.find('[data-toggle="tooltip"]').tooltip({placement:'auto top'});
-        if (this.focusField && this.focusField.length > 0) jqEl.find('[name^="' + this.focusField + '"]').addClass('default-focus').focus();
-        // TODO: should not need to watch input fields any more
+        if (this.focusField && this.focusField.length) jqEl.find('[name^="' + this.focusField + '"]').addClass('default-focus').focus();
+
+        /* TODO: should not need to watch input fields any more
         // watch changed fields
         jqEl.find(':input').on('change', this.fieldChange);
         // special case for date-time using bootstrap-datetimepicker
         jqEl.find('div.input-group.date').on('change', this.fieldChange);
+        */
         // TODO: find other way to get button clicked (Vue event?)
         // watch button clicked
         jqEl.find('button[type="submit"], input[type="submit"], input[type="image"]').on('click', function() { vm.buttonClicked = this; });
@@ -750,7 +745,7 @@ Vue.component('m-form-link', {
             var plainKeyList = [];
             var parmStr = "";
             var bodyParameters = null;
-            for(var pair of formData.entries()) {
+            for(var pair in formData.entries()) {
                 var key = pair[0]; var value = pair[1];
                 if (value.trim().length === 0 || key === "moquiSessionToken" || key === "moquiFormName" || key.indexOf('[]') > 0) continue;
                 if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0) {
@@ -935,7 +930,7 @@ Vue.component('m-form-column-config', {
             this.$refs.mForm.fields.ResetColumns = "ResetColumns";
             this.$refs.mForm.submitGo();
         },
-        generalFormFields() {
+        generalFormFields: function() {
             var fields = this.$refs.mForm.fields;
             fields.formLocation = this.formLocation;
             if (this.findParameters) for (var curKey in Object.keys(this.findParameters))
@@ -1036,7 +1031,7 @@ Vue.component('m-date-time', {
     // NOTE: tried :fill-mask="formatVal" but results in all Y, only supports single character for mask placeholder... how to show more helpful date mask?
     // TODO: add back @focus="focusDate" @blur="blurDate" IFF needed given different mask/etc behavior
     '<q-input dense outlined stack-label :label="label" v-bind:value="value" v-on:input="$emit(\'input\', $event)"' +
-            ' :mask="inputMask" fill-mask :id="id" :name="name" :form="form" :disable="disable" :size="sizeVal" style="max-width:fit-content;">' +
+            ' :mask="inputMask" fill-mask :id="id" :name="name" :form="form" :disable="disable" :size="sizeVal" style="max-width:max-content;">' +
         '<template v-slot:prepend v-if="type==\'date\' || type==\'date-time\' || !type">' +
             '<q-icon name="event" class="cursor-pointer">' +
                 '<q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">' +
@@ -1091,8 +1086,8 @@ Vue.component('m-date-time', {
         var value = this.value;
         var format = this.formatVal;
         var jqEl = $(this.$el);
+        /* TODO
         if (this.type === "time") {
-            /* TODO
             jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
                 extraFormats:this.extraFormatsVal, stepping:this.minuteStep, locale:this.$root.locale,
@@ -1104,11 +1099,9 @@ Vue.component('m-date-time', {
             jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
 
             jqEl.val(jqEl.find("input").first().val());
-             */
 
             // TODO if (this.tooltip && this.tooltip.length) jqEl.tooltip({ title: this.tooltip, placement: "auto" });
         } else {
-            /* TODO
             jqEl.datetimepicker({toolbarPlacement:'top', debug:false, showClose:true, showClear:true, showTodayButton:true, useStrict:true,
                 defaultDate:(value && value.length ? moment(value,this.formatVal) : null), format:format,
                 extraFormats:this.extraFormatsVal, stepping:this.minuteStep, locale:this.$root.locale,
@@ -1122,10 +1115,10 @@ Vue.component('m-date-time', {
             jqEl.on("dp.change", function() { jqEl.val(jqEl.find("input").first().val()); jqEl.trigger("change"); vm.$emit('input', this.value); })
 
             jqEl.val(jqEl.find("input").first().val());
-             */
 
             // TODO if (this.tooltip && this.tooltip.length) jqEl.tooltip({ title: this.tooltip, placement: "auto" });
         }
+        */
         // TODO if (format === "YYYY-MM-DD") { jqEl.find('input').inputmask("yyyy-mm-dd", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
         // TODO if (format === "YYYY-MM-DD HH:mm") { jqEl.find('input').inputmask("yyyy-mm-dd hh:mm", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
     }
@@ -1152,7 +1145,7 @@ Vue.component('m-date-period', {
         '</m-date-time>' +
     '</div>' +
     '<div v-else class="row"><q-input dense outlined stack-label :label="label" v-model="fields[name+\'_pdate\']"' +
-            ' mask="####-##-##" fill-mask :id="id" :name="name+\'_pdate\'" :form="form" style="max-width:fit-content;">' +
+            ' mask="####-##-##" fill-mask :id="id" :name="name+\'_pdate\'" :form="form" style="max-width:max-content;">' +
         '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
         '<template v-slot:before>' +
             '<q-select class="q-pr-xs" dense outlined options-dense emit-value map-options v-model="fields[name+\'_poffset\']" :name="name+\'_poffset\'"' +
@@ -1256,7 +1249,7 @@ Vue.component('m-display', {
                     vm.curDisplay = newLabel;
                 }
             });
-        },
+        }
     },
     computed: {
         displayValue: function() { return this.curDisplay && this.curDisplay.length ? this.curDisplay : this.value; }
@@ -1279,7 +1272,7 @@ Vue.component('m-display', {
 
 Vue.component('m-drop-down', {
     name: "mDropDown",
-    props: { value:[Array,String], options:{type:Array,'default':()=>[]}, combo:Boolean, allowEmpty:Boolean, multiple:Boolean, optionsUrl:String,
+    props: { value:[Array,String], options:{type:Array,'default':function(){return [];}}, combo:Boolean, allowEmpty:Boolean, multiple:Boolean, optionsUrl:String,
         serverSearch:Boolean, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
         optionsParameters:Object, labelField:{type:String,'default':'label'}, valueField:{type:String,'default':'value'},
         dependsOn:Object, dependsOptional:Boolean, optionsLoadInit:Boolean, form:String, fields:{type:Object},
@@ -1588,7 +1581,7 @@ Vue.component('m-text-line', {
                     if (defaultText && defaultText.length) vm.$emit('input', defaultText);
                 }
             });
-        },
+        }
     },
     mounted: function() {
         if (this.defaultUrl && this.defaultUrl.length) {
@@ -1611,31 +1604,31 @@ Vue.component('m-text-line', {
 Vue.component('m-ck-editor', {
     name: 'mCkEditor',
     template:'<div><textarea ref="area"></textarea></div>',
-    props: { value:{type:String,default:''}, useInline:Boolean, config:Object, readOnly:{type:Boolean,default:null} },
+    props: { value:{type:String,'default':''}, useInline:Boolean, config:Object, readOnly:{type:Boolean,'default':null} },
     data: function() { return { destroyed:false, ckeditor:null } },
     mounted: function() {
-        const vm = this;
+        var vm = this;
         moqui.loadScript('https://cdn.ckeditor.com/4.14.1/standard-all/ckeditor.js', function(err) {
             if (err) return;
             if (vm.destroyed) return;
-            const config = vm.config || {};
+            var config = vm.config || {};
             if (vm.readOnly !== null) config.readOnly = vm.readOnly;
 
             CKEDITOR.dtd.$removeEmpty['i'] = false;
-            const method = vm.useInline ? 'inline' : 'replace';
-            const editor = vm.ckeditor = CKEDITOR[method](vm.$refs.area, config);
+            var method = vm.useInline ? 'inline' : 'replace';
+            var editor = vm.ckeditor = CKEDITOR[method](vm.$refs.area, config);
             editor.on('instanceReady', function() {
-                const data = vm.value;
+                var data = vm.value;
                 editor.fire('lockSnapshot');
                 editor.setData(data, { callback: function() {
                     editor.on('change', function(evt) {
-                        const curData = editor.getData();
+                        var curData = editor.getData();
                         if (vm.value !== curData) vm.$emit('input', curData, evt, editor);
                     });
                     editor.on('focus', function(evt) { vm.$emit('focus', evt, editor); });
                     editor.on('blur', function(evt) { vm.$emit('blur', evt, editor); });
 
-                    const newData = editor.getData();
+                    var newData = editor.getData();
                     // Locking the snapshot prevents the 'change' event. Trigger it manually to update the bound data.
                     if (data !== newData) {
                         vm.$once('input', function() { vm.$emit('ready', editor); });
@@ -1653,41 +1646,41 @@ Vue.component('m-ck-editor', {
         this.destroyed = true;
     },
     watch: {
-        value(val) { if (this.ckeditor && this.ckeditor.getData() !== val) this.ckeditor.setData(val); },
-        readOnly(val) { if (this.ckeditor) this.ckeditor.setReadOnly( val ); }
+        value: function(val) { if (this.ckeditor && this.ckeditor.getData() !== val) this.ckeditor.setData(val); },
+        readOnly: function(val) { if (this.ckeditor) this.ckeditor.setReadOnly( val ); }
     }
 });
 Vue.component('m-simple-mde', {
     name: 'mSimpleMde',
     template:'<div><textarea ref="area"></textarea></div>',
-    props: { value:{type:String,default:''}, config:Object },
+    props: { value:{type:String,'default':''}, config:Object },
     data: function() { return { simplemde:null } },
     mounted: function() {
-        const vm = this;
+        var vm = this;
         moqui.loadStylesheet('https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css');
         moqui.loadScript('https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.js', function(err) {
             if (err) return;
             // needed? forceSync:true
-            const fullConfig = Object.assign({
+            var fullConfig = Object.assign({
                 element: vm.$refs.area,
                 initialValue: vm.value
             }, vm.config);
-            const editor = vm.simplemde = new SimpleMDE(fullConfig);
+            var editor = vm.simplemde = new SimpleMDE(fullConfig);
 
-            editor.codemirror.on('change', (instance, changeObj) => {
+            editor.codemirror.on('change', function(instance, changeObj) {
                 if (changeObj.origin === 'setValue') return;
-                const val = editor.value();
+                var val = editor.value();
                 vm.$emit('input', val);
             });
-            editor.codemirror.on('blur', () => {
-                const val = editor.value();
+            editor.codemirror.on('blur', function() {
+                var val = editor.value();
                 vm.$emit('blur', val);
             });
 
             vm.$nextTick(function() { vm.$emit('initialized', editor); });
         });
     },
-    watch: { value(val) { if (this.simplemde && this.simplemde.value() !== val) this.simplemde.value(val); } }
+    watch: { value: function(val) { if (this.simplemde && this.simplemde.value() !== val) this.simplemde.value(val); } }
 });
 
 
@@ -2121,10 +2114,10 @@ moqui.webrootRouter = {
         return { location:location, route:route, href:moqui.makeHref(location), normalizedTo:location, resolved:route }
     },
     replace: function(location, onComplete, onAbort) { moqui.webrootVue.setUrl(location, null, onComplete); },
-    push: function(location, onComplete, onAbort) { moqui.webrootVue.setUrl(location, null, onComplete); },
+    push: function(location, onComplete, onAbort) { moqui.webrootVue.setUrl(location, null, onComplete); }
 }
 Object.defineProperty(Vue.prototype, '$router', {
-    get: function get() { return moqui.webrootRouter; },
+    get: function get() { return moqui.webrootRouter; }
 });
 Object.defineProperty(Vue.prototype, '$route', {
     get: function get() { return moqui.webrootVue.getRoute(); }

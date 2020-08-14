@@ -24,7 +24,7 @@ along with this software (see the LICENSE.md file). If not, see
         html_scripts.add('/libs/jquery/jquery.min.js')
 
         String instancePurpose = System.getProperty("instance_purpose")
-        if (true || !instancePurpose || instancePurpose == 'production') {
+        if (!instancePurpose || instancePurpose == 'production') {
             /* ========== Production Mode ========== */
             html_scripts.add('/js/MoquiLib.min.js')
             // Vue JS
@@ -34,7 +34,7 @@ along with this software (see the LICENSE.md file). If not, see
             // Quasar
             footer_scripts.add("/libs/quasar/quasar.umd.min.js")
             // Webroot Quasar-Vue instance, in footer so runs after page loaded
-            footer_scripts.add('/js/WebrootVue.qvt.js')
+            footer_scripts.add('/js/WebrootVue.qvt.min.js')
         } else {
             /* ========== Dev Mode ========== */
             html_scripts.add('/js/MoquiLib.js')

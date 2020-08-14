@@ -241,7 +241,7 @@ task build {
     dependsOn combineBaseJs
     // issues seen with this on Windows, disabling for now: dependsOn minifyCombinedBase
     dependsOn combineVuetJs
-    // needs some JS syntax work, disabling for now (when enabled change reference in production section in qapps.xml): dependsOn minifyWebrootVueQvt
+    dependsOn minifyWebrootVueQvt
 }
 task cleanAll { doLast {
     delete file(libsPath)
