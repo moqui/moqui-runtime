@@ -605,10 +605,16 @@ Vue.component('m-form', {
             }
             var formData = Object.keys(this.fields).length ? new FormData() : new FormData(this.$refs.qForm.$el);
             $.each(this.fields, function(key, value) { if (value) { formData.set(key, value); } });
-            for (var fieldName in formData.keys()) {
+            // NOTE: using iterator directly to avoid using 'for of' which requires more recent ES version (for minify, browser compatibility)
+            var formDataIterator = formData.entries()[Symbol.iterator]();
+            while (true) {
+                var iterEntry = formDataIterator.next();
+                if (iterEntry.done) break;
+                var pair = iterEntry.value;
+                var fieldName = pair[0];
+                var fieldValue = pair[1];
                 // NOTE: this shouldn't happen as when not getting from FormData q-input with mask should have null value when empty, but just in case skip String values that are unfilled masks
                 // NOTE: with q-input mask place holder is underscore, look for 2; this will cause issues if a valid user input starts with 2 underscores, may need better approach here and in m-form-link
-                var fieldValue = formData.get(fieldName);
                 if (moqui.isString(fieldValue) && fieldValue.startsWith("__")) formData["delete"](fieldName);
             }
             formData.set('moquiSessionToken', this.$root.moquiSessionToken);
@@ -745,8 +751,15 @@ Vue.component('m-form-link', {
             var plainKeyList = [];
             var parmStr = "";
             var bodyParameters = null;
-            for(var pair in formData.entries()) {
-                var key = pair[0]; var value = pair[1];
+            // NOTE: using iterator directly to avoid using 'for of' which requires more recent ES version (for minify, browser compatibility)
+            var formDataIterator = formData.entries()[Symbol.iterator]();
+            while (true) {
+                var iterEntry = formDataIterator.next();
+                if (iterEntry.done) break;
+                var pair = iterEntry.value;
+                var key = pair[0];
+                var value = pair[1];
+
                 if (value.trim().length === 0 || key === "moquiSessionToken" || key === "moquiFormName" || key.indexOf('[]') > 0) continue;
                 if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0) {
                     extraList.push({name:key, value:value});
