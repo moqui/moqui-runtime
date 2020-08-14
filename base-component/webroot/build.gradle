@@ -86,10 +86,8 @@ def fileMap = [
     "vue/2.6.10/vue.min.js":""
 ]
 
-/* for future reference, need variation on http-vue-loader to support parse only so not using:
 def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
-def jsdelivrList = ["http-vue-loader@1.4.2/src/httpVueLoader.min.js"]
- */
+def jsdelivrList = ["quasar@1.12.13/dist/quasar.min.css", "quasar@1.12.13/dist/quasar.umd.min.js"]
 
 String getTargetPath(String sourcePath, String targetPath) {
     if (!targetPath) {
@@ -112,7 +110,6 @@ task downloadFiles { doLast {
         ant.get(src: sourceUrl, dest: targetFile)
     }
 
-    /* for future reference, need variation on http-vue-loader to support parse only so not using:
     for (String jsdPath in jsdelivrList) {
         String[] sourceSplit = jsdPath.split("/")
         String libDir = sourceSplit[0].substring(0, sourceSplit[0].indexOf("@"))
@@ -126,7 +123,6 @@ task downloadFiles { doLast {
         targetFile.getParentFile().mkdirs()
         ant.get(src: sourceUrl, dest: targetFile)
     }
-     */
 } }
 
 def baseJs = []
@@ -233,12 +229,19 @@ task combineVuetJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dest = file("${webrootPath}/js/CombinedVuet.min.js")
 }
 
+task minifyWebrootVueQvt(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
+    source = file("${webrootPath}/js/WebrootVue.qvt.js")
+    dest = file("${webrootPath}/js/WebrootVue.qvt.min.js")
+    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
+}
+
 task clean { doLast { delete fileTree(dir: "${webrootPath}/js", include: '*.min.js') }}
 task build {
     dependsOn downloadFiles
     dependsOn combineBaseJs
     // issues seen with this on Windows, disabling for now: dependsOn minifyCombinedBase
     dependsOn combineVuetJs
+    // needs some JS syntax work, disabling for now (when enabled change reference in production section in qapps.xml): dependsOn minifyWebrootVueQvt
 }
 task cleanAll { doLast {
     delete file(libsPath)
