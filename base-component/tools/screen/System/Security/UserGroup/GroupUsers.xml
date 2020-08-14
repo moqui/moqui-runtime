@@ -54,7 +54,7 @@ along with this software (see the LICENSE.md file). If not, see
             <form-single name="CreateUserGroupMember" transition="createUserGroupMember">
                 <field name="userGroupId"><default-field><hidden/></default-field></field>
                 <field name="userId"><default-field title="User">
-                    <text-line ac-transition="getUserList" ac-min-length="2" size="60"/>
+                    <drop-down><dynamic-options transition="getUserList" server-search="true" min-length="2"/></drop-down>
                 </default-field></field>
                 <field name="fromDate" from="ec.user.nowTimestamp"><default-field><date-time/></default-field></field>
                 <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
