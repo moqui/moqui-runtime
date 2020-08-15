@@ -405,10 +405,10 @@ Vue.component('m-container-dialog', {
     data: function() { return { isShown:false }},
     template:
     '<span>' +
-        '<q-btn dense outline no-caps icon="open_in_new" :label="buttonText" :color="color" :class="buttonClass" @click="isShown = true"></q-btn>' +
+        '<span @click="show()"><slot name="button"><q-btn dense outline no-caps icon="open_in_new" :label="buttonText" :color="color" :class="buttonClass"></q-btn></slot></span>' +
         '<m-dialog v-model="isShown" :id="id" :title="title" :color="color" :width="width"><slot></slot></m-dialog>' +
     '</span>',
-    methods: { hide: function() { this.isShown = false; } },
+    methods: { show: function() { this.isShown = true; }, hide: function() { this.isShown = false; } },
     mounted: function() { if (this.openDialog) { this.isShown = true; } }
 });
 Vue.component('m-dynamic-container', {
