@@ -83,21 +83,48 @@ var moqui = {
     htmlDecode: function(value) { return $('<div/>').html(value).text(); },
 
     /* ========== script and stylesheet handling methods ========== */
-    loadScript: function(src, callback) {
+    loadScript: function(src, callback, validate) {
         // make sure the script isn't loaded
         var loadedScript = null;
         $('head script').each(function(i, hscript) { if (hscript.src.indexOf(src) !== -1) loadedScript = hscript; });
         if (loadedScript) {
-            if (callback) callback(null, loadedScript);
+            if (callback) {
+                if (validate) {
+                    moqui.retryValidateCallback(function() { callback(null, loadedScript); }, validate)
+                } else {
+                    callback(null, loadedScript);
+                }
+            }
             return;
         }
         // add it to the header
         var script = document.createElement('script'); script.src = src; script.async = false;
         if (callback) {
-            script.onload = function() { this.onerror = this.onload = null; callback(null, script); };
-            script.onerror = function () { this.onerror = this.onload = null; callback(new Error('Error loading script ' + this.src), script); };
+            script.onload = function() {
+                this.onerror = this.onload = null;
+                if (validate) {
+                    moqui.retryValidateCallback(function() { callback(null, script); }, validate)
+                } else {
+                    callback(null, script);
+                }
+            };
+            script.onerror = function() {
+                this.onerror = this.onload = null;
+                var error = new Error('Error loading script ' + this.src);
+                console.error(error);
+                callback(error, script);
+            };
         }
         document.head.appendChild(script);
+    },
+    retryValidateCallback: function(callback, validate, count) {
+        if (!validate || validate()) {
+            callback();
+        } else {
+            if (!count) count = 1;
+            var retryTime = count*count*100;
+            if (count <= 8) setTimeout(moqui.retryValidateCallback, retryTime, callback, validate, count+1);
+        }
     },
     loadStylesheet: function(href, rel, type) {
         if (!rel) rel = 'stylesheet'; if (!type) type = 'text/css';
@@ -112,7 +139,7 @@ var moqui = {
     retryInlineScript: function(src, count) {
         try { eval(src); } catch(e) {
             src = src.trim();
-            var retryTime = count <= 5 ? count*count*100 : 'N/A';
+            var retryTime = count <= 5 ? count*count*100 : -1;
             console.warn('inline script error ' + count + ' retry ' + retryTime + ' script: ' + src.slice(0, 80) + '...');
             console.warn(e);
             if (count <= 5) setTimeout(moqui.retryInlineScript, retryTime, src, count+1);
