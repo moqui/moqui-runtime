@@ -146,6 +146,7 @@ dd { margin-left:0; }
 .dl-horizontal dd:after { clear:both; }
 
 /* ====== Old Handy Styles ====== */
+ul.tree-list, ul.tree-list ul { list-style-type: none; padding: 4px 4px 4px 20px; }
 
 ul.float-box { display: inline-block; list-style: none outside none; margin: 0 0 -8px 0; padding: 0; }
 ul.float-box li { display: inline-block; line-height: 18px; margin: 0 8px 8px 0; padding: 8px; float: left; }

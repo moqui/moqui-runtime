@@ -260,7 +260,7 @@ var moqui = {
         if (!jsonObj) return;
         var notificationOptions = {};
         if (jsonObj.topic && jsonObj.topic.length) notificationOptions.tag = jsonObj.topic;
-        // consider options 'body' and 'icon' (icon URL, any way to use glyphicon class?)
+        // consider options 'body' and 'icon' (icon URL, any way to use icon class?)
         if (window.Notification && Notification.permission === "granted") {
             var notif = new Notification(jsonObj.title, notificationOptions);
             if (jsonObj.link && jsonObj.link.length) notif.onclick = function () { window.open(jsonObj.link); };

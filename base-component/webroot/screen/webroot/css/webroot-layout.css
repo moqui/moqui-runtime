@@ -17,7 +17,7 @@ html, body, #apps-root { height: 100%; }
 
 #apps-footer-content { margin-top: 4px; text-align: center; }
 
-#dynamic-menus .glyphicon { top: 0; font-size: 10px; }
+#dynamic-menus .glyphicon, #dynamic-menus .fa { top: 0; font-size: 10px; }
 #navbar-buttons .btn .label { top: -2px; }
 #notify-history-menu ul { min-width: 500px; }
 #notify-history-menu li { padding: 8px; }

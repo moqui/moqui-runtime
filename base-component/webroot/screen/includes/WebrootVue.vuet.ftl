@@ -83,7 +83,7 @@ along with this software (see the LICENSE.md file). If not, see
             <#-- screen history previous screen -->
             <#-- disable this for now to save space, not commonly used and limited value vs browser back:
             <a href="#" @click.prevent="goPreviousScreen()" data-toggle="tooltip" data-original-title="${ec.l10n.localize("Previous Screen")}"
-               data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-menu-left"></i></a>
+               data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="fa fa-chevron-left"></i></a>
             -->
             <#-- notify history -->
             <div id="notify-history-menu" class="nav navbar-right dropdown">
