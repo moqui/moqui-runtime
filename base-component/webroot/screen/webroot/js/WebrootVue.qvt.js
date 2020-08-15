@@ -1612,6 +1612,20 @@ Vue.component('m-text-line', {
     }
 });
 
+/* Lazy loading Chart JS wrapper component */
+Vue.component('m-chart', {
+    name: 'mChart',
+    props: { config:{type:Object,required:true}, height:{type:String,'default':'400px'}, width:{type:String,'default':'100%'} },
+    template: '<div class="chart-container" style="position:relative;" :style="{height:height,width:width}"><canvas ref="canvas"></canvas></div>',
+    data: function() { return { instance:null } },
+    mounted: function() {
+        var vm = this;
+        moqui.loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js', function(err) {
+            if (err) return;
+            vm.instance = new Chart(vm.$refs.canvas, vm.config);
+        }, function() { return !!window.Chart; });
+    }
+});
 /* Lazy loading CK Editor wrapper component, based on https://github.com/ckeditor/ckeditor4-vue */
 /* see https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_config.html */
 Vue.component('m-ck-editor', {
@@ -1652,7 +1666,7 @@ Vue.component('m-ck-editor', {
                     editor.fire('unlockSnapshot');
                 }});
             });
-        });
+        }, function() { return !!window.CKEDITOR; });
     },
     beforeDestroy: function() {
         if (this.ckeditor) { this.ckeditor.destroy(); }
@@ -1663,6 +1677,7 @@ Vue.component('m-ck-editor', {
         readOnly: function(val) { if (this.ckeditor) this.ckeditor.setReadOnly( val ); }
     }
 });
+/* Lazy loading Simple MDE wrapper component */
 Vue.component('m-simple-mde', {
     name: 'mSimpleMde',
     template:'<div><textarea ref="area"></textarea></div>',
@@ -1691,7 +1706,7 @@ Vue.component('m-simple-mde', {
             });
 
             vm.$nextTick(function() { vm.$emit('initialized', editor); });
-        });
+        }, function() { return !!window.SimpleMDE; });
     },
     watch: { value: function(val) { if (this.simplemde && this.simplemde.value() !== val) this.simplemde.value(val); } }
 });
