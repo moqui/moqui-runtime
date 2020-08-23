@@ -1474,9 +1474,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign curName><@fieldName .node/></#assign>
     <#assign containerStyle = ec.getResource().expandNoL10n(.node["@container-style"]!, "")>
     <#assign fieldLabel><@fieldTitle .node?parent/></#assign>
-    <#assign useWrapper = .node["@no-wrapper"]!"false" != "true">
+    <#assign useWrapper = (.node["@no-wrapper"]!"false") != "true">
     <#if useWrapper>
-    <q-field dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if><#if containerStyle?has_content> class="${containerStyle}"</#if><#if formDisabled!> disable</#if>>
+    <q-field dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if><#if containerStyle?has_content> class="${containerStyle}"</#if><#if formDisabled!false> disable</#if>>
         <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
         <template v-slot:control>
     </#if>
@@ -1620,7 +1620,7 @@ a => A, d => D, y => Y
     </#if>
 
     <m-display name="${dispFieldName}" id="${dispFieldId}_display"<#if fieldLabel?has_content> label="${fieldLabel}"</#if><#if labelWrapper> label-wrapper</#if><#rt>
-            <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${dispFieldName}" :display="${fieldsJsName}.${dispFieldName}_display" :fields="${fieldsJsName}"
+            <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${dispFieldName}" :display="${fieldsJsName}.${dispFieldNameDisplay}" :fields="${fieldsJsName}"
                 <#t><#elseif fieldValue?has_content> display="<#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if>"</#if>
             <#t><#if dispSubFieldNode["@tooltip"]?has_content> tooltip="${ec.getResource().expand(dispSubFieldNode["@tooltip"], "")}"</#if>
             <#if dispDynamic> value-url="${defUrlInfo.url}" <#if .node["@depends-optional"]! == "true"> :depends-optional="true"</#if>
@@ -1651,7 +1651,7 @@ a => A, d => D, y => Y
     <#assign dispHidden = (!.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true") && !(skipForm!false)>
 
     <#if fieldsJsName?has_content>
-        <#assign fieldValue>{{(${fieldsJsName}.${dispFieldName}_display || ${fieldsJsName}.${dispFieldName})}}</#assign>
+        <#assign fieldValue>{{(${fieldsJsName}.<@fieldName .node "_display"/> || ${fieldsJsName}.${dispFieldName})}}</#assign>
     <#else>
         <#assign fieldValue = sri.getFieldEntityValue(.node)!/>
     </#if>
@@ -1668,7 +1668,7 @@ a => A, d => D, y => Y
     <#else>
         <#t><span class="text-inline<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>">
             <#if dispSubFieldNode["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(dispSubFieldNode["@tooltip"], "")}</q-tooltip></#if>
-            <#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue!"&nbsp;"}<#else>${(fieldValue!" ")?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></span>
+            <#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></span>
     </#if>
 
     <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
