@@ -1334,7 +1334,13 @@ moqui.webrootVue = new Vue({
         },
         getLinkPath: function(path) {
             if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
-            if (path.indexOf(this.basePath) === 0) path = path.replace(this.basePath, this.linkBasePath);
+            var pathList = path.split('/');
+            // element 0 in array after split is empty string from leading '/'
+            var wrapperIdx = this.appRootPath ? 2 : 1;
+            if (pathList.length > wrapperIdx) {
+                pathList[wrapperIdx] = this.linkBasePath.slice(1);
+                path = pathList.join("/");
+            }
             return path;
         }
     },

@@ -1873,7 +1873,7 @@ moqui.webrootVue = new Vue({
                 var srch = this.currentSearch;
                 var screenUrl = this.currentPath + (srch.length > 0 ? '?' + srch : '');
                 if (!screenUrl || screenUrl.length === 0) return;
-                console.info("current URL changing to " + screenUrl);
+                console.info("Current URL changing to " + screenUrl);
                 this.lastNavTime = Date.now();
                 // TODO: somehow only clear out activeContainers that are in subscreens actually reloaded? may cause issues if any but last screen have m-dynamic-container
                 this.activeContainers = {};
@@ -1992,7 +1992,13 @@ moqui.webrootVue = new Vue({
         },
         getLinkPath: function(path) {
             if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
-            if (path.indexOf(this.basePath) === 0) path = path.replace(this.basePath, this.linkBasePath);
+            var pathList = path.split('/');
+            // element 0 in array after split is empty string from leading '/'
+            var wrapperIdx = this.appRootPath ? 2 : 1;
+            if (pathList.length > wrapperIdx) {
+                pathList[wrapperIdx] = this.linkBasePath.slice(1);
+                path = pathList.join("/");
+            }
             return path;
         },
         getQuasarColor: function(bootstrapColor) { return moqui.getQuasarColor(bootstrapColor); }
