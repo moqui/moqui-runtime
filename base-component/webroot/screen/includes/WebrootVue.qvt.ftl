@@ -156,7 +156,7 @@ along with this software (see the LICENSE.md file). If not, see
     window.quasarConfig = {
         brand: { // this will NOT work on IE 11
             // primary: '#e46262',
-            // ... or all other brand colors
+            info:'#1e7b8e'
         },
         notify: { progress:true, closeBtn:'X', position:'top-right' }, // default set of options for Notify Quasar plugin
         // loading: {...}, // default set of options for Loading Quasar plugin
