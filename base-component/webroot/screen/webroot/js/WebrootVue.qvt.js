@@ -848,24 +848,19 @@ Vue.component('m-form-paginate', {
 Vue.component('m-form-go-page', {
     name: "mFormGoPage",
     props: { idVal:{type:String,required:true}, maxIndex:Number, formList:Object },
+    data: function() { return { pageIndex:"" } },
     template:
-    '<form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage" class="form-inline" :id="idVal+\'_GoPage\'">' +
-        '<div class="form-group">' +
-            '<label class="sr-only" :for="idVal+\'_GoPage_pageIndex\'">Page Number</label>' +
-            '<input type="text" class="form-control" size="6" name="pageIndex" :id="idVal+\'_GoPage_pageIndex\'" placeholder="Page #">' +
-        '</div><button type="submit" class="btn btn-default">Go</button>' +
-    '</form>',
+    '<q-form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage" :id="idVal+\'_GoPage\'">' +
+        '<q-input dense v-model="pageIndex" type="text" size="4" name="pageIndex" :id="idVal+\'_GoPage_pageIndex\'" placeholder="Page #"' +
+        '   :rules="[val => /^\\d*$/.test(val) || \'digits only\', val => ((formList && +val <= formList.paginate.pageMaxIndex) || (maxIndex && +val < maxIndex)) || \'higher than max\']"></q-input>' +
+        '<q-btn dense flat no-caps type="submit" label="Go"></q-btn>' +
+    '</q-form>',
     methods: { goPage: function() {
         var formList = this.formList;
-        var jqEl = $('#' + this.idVal + '_GoPage_pageIndex');
-        var newIndex = jqEl.val() - 1;
-        if (newIndex < 0 || (formList && newIndex > formList.paginate.pageMaxIndex) || (this.maxIndex && newIndex > this.maxIndex)) {
-            jqEl.parents('.form-group').addClass('has-error');
-        } else {
-            jqEl.parents('.form-group').removeClass('has-error');
-            if (formList) { formList.setPageIndex(newIndex); } else { this.$root.setParameters({pageIndex:newIndex}); }
-            jqEl.val('');
-        }
+        var newIndex = +this.pageIndex - 1;
+        if (formList) { formList.setPageIndex(newIndex); } else { this.$root.setParameters({pageIndex:newIndex}); }
+        var vm = this;
+        this.$nextTick(function() { vm.pageIndex = ""; });
     }}
 });
 Vue.component('m-form-column-config', {
