@@ -66,7 +66,7 @@ along with this software (see the LICENSE.md file). If not, see
         <entity-find entity-name="moqui.security.user.NotificationTopic" list="notificationTopicList">
             <order-by field-name="description"/></entity-find>
 
-        <entity-find entity-name="moqui.security.UserLoginHistory" list="historyList">
+        <entity-find entity-name="moqui.security.UserLoginHistory" list="historyList" limit="20">
             <search-form-inputs default-order-by="-fromDate"/>
             <econdition field-name="userId"/></entity-find>
 
@@ -90,6 +90,28 @@ along with this software (see the LICENSE.md file). If not, see
                 </container-dialog>
                 <link url="enableUserAccount" text="Enable Account" parameter-map="[userId:userId]" condition="userAccount.disabled == 'Y'"/>
                 <link url="disableUserAccount" text="Disable Account" parameter-map="[userId:userId]" condition="userAccount.disabled != 'Y'"/>
+                <container-dialog id="AuditLogDialog" button-text="Audit Log" width="960">
+                    <form-list name="AuditLogList" list="auditLogList" skip-form="true">
+                        <entity-find entity-name="moqui.entity.EntityAuditLog" list="auditLogList">
+                            <econdition field-name="changedEntityName" value="moqui.security.UserAccount"/>
+                            <!-- <econdition field-name="changedFieldName" operator="not-equals" value="statusId"/> -->
+                            <econdition field-name="pkPrimaryValue" from="userId"/>
+                            <select-field field-name="changedEntityName"/>
+                            <order-by field-name="-changedDate,pkSecondaryValue"/>
+                        </entity-find>
+
+                        <field name="changedDate"><default-field title="Date"><display/></default-field></field>
+                        <field name="changedByUserId"><default-field title="User">
+                            <display-entity text="${userFullName?:''} [${username?:userId?:''}]" entity-name="moqui.security.UserAccount" key-field-name="userId"/></default-field></field>
+                        <field name="pkSecondaryValue"><default-field title="Item"><display/></default-field></field>
+                        <field name="changedFieldName"><default-field title="Field">
+                            <display text="${org.moqui.util.StringUtilities.camelCaseToPretty(changedFieldName)}"/></default-field></field>
+                        <field name="oldValueText"><default-field title="From">
+                            <display text="${ec.entity.formatFieldString(changedEntityName, changedFieldName, oldValueText)}"/></default-field></field>
+                        <field name="newValueText"><default-field title="To">
+                            <display text="${ec.entity.formatFieldString(changedEntityName, changedFieldName, newValueText)}"/></default-field></field>
+                    </form-list>
+                </container-dialog>
                 <container-dialog id="TopicUserDialog" button-text="Topic Subscriptions">
                     <form-list name="NotificationTopicList" list="notificationTopicList" transition="topicSubscriptions" multi="true">
                         <row-actions>
@@ -123,8 +145,11 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="requirePasswordChange"><default-field>
                         <drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></default-field></field>
                     <field name="successiveFailedLogins"><default-field title="Failed Logins"><display/></default-field></field>
-                    <field name="disabled"><default-field><display text="${disabled ?: 'N'}"/></default-field></field>
+                    <field name="disabled"><default-field tooltip="Set along with Disabled Date after failed login attempts, auto enabled after configured time if Disabled Date set">
+                        <display text="${disabled ?: 'N'}"/></default-field></field>
                     <field name="disabledDateTime"><default-field title="Disabled Date"><display/></default-field></field>
+                    <field name="terminateDate"><default-field tooltip="After this date user may not login and will not receive notifications" red-when="before-now">
+                        <date-time/></default-field></field>
                     <field name="ipAllowed"><default-field title="IPs Allowed" tooltip="Comma separated IP4 patterns, each may use '*' for wildcard or '-' separated min/max numbers">
                         <text-line size="80"/></default-field></field>
 
@@ -210,7 +235,7 @@ along with this software (see the LICENSE.md file). If not, see
                     </form-list>
                 </box-body-nopad></container-box>
 
-                <!-- TODO: consider moving this to another screen -->
+                <!-- TODO: consider adding full history to another screen (tab); now limited to most recent 20 -->
                 <label text="Login History" type="h5"/>
                 <form-list name="HistoryList" list="historyList" skip-form="true">
                     <field name="fromDate">
