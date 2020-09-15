@@ -1180,7 +1180,11 @@ Vue.component('m-date-period', {
             this.fields[this.name+'_from'] = null; this.fields[this.name+'_thru'] = null;
         }
     },
-    beforeMount: function() { if (((this.fromDate && this.fromDate.length) || (this.thruDate && this.thruDate.length))) this.fromThruMode = true; }
+    mounted: function() {
+        var fromDate = this.fields[this.name+'_from'];
+        var thruDate = this.fields[this.name+'_thru'];
+        if (((fromDate && fromDate.length) || (thruDate && thruDate.length))) this.fromThruMode = true;
+    }
 });
 
 Vue.component('m-display', {
