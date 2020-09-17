@@ -116,7 +116,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <form-single name="CreateJobUser" transition="createJobUser">
                         <field name="jobName"><default-field><hidden/></default-field></field>
                         <field name="userId"><default-field title="User">
-                            <text-line ac-transition="getUserList" ac-min-length="2" size="60"/>
+                            <drop-down><dynamic-options transition="getUserList" server-search="true" min-length="2"/></drop-down>
                         </default-field></field>
                         <field name="receiveNotifications"><default-field>
                             <drop-down><option key="Y"/><option key="N"/></drop-down></default-field></field>

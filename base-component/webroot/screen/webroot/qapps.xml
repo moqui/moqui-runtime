@@ -13,41 +13,46 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
-        require-authentication="false" screen-theme-type-enum-id="STT_INTERNAL" default-menu-title="Applications" allow-extra-path="true">
+        require-authentication="false" screen-theme-type-enum-id="STT_INTERNAL_QUASAR" default-menu-title="Applications" allow-extra-path="true">
     <!-- NOTE: require-authentication=false so no permission required but in pre-actions if no user logged in goes to login screen -->
 
     <pre-actions><script><![CDATA[
         // if user not logged in save current path and params then redirect to Login
         if (!ec.user.userId) { ec.web.saveScreenLastInfo(null, null); sri.sendRedirectAndStopRender('/Login') }
 
-        // jQuery, Bootstrap, Twitter TypeAhead, Form Validation (jquery-validate), Date/Time (Moment, bootstrap-datetimepicker),
-        //      Drop-down (Select2, Selectivity), Notify/Growl (Bootstrap Notify), Inline Editable, Sortable Hierarchical List
-        // Moqui Library (3rd party lib workarounds, NotificationClient, etc)
-        html_scripts.add('/js/CombinedBase.min.js')
-
-        // jquery-validate locale specific scripts
-        Map validateScriptsOut = ec.service.sync().name("webroot.LocaleServices.get#ValidateLocaleScripts").call()
-        if (validateScriptsOut.messagesLocation) html_scripts.add(validateScriptsOut.messagesLocation)
-        if (validateScriptsOut.methodsLocation) html_scripts.add(validateScriptsOut.methodsLocation)
+        html_scripts.add('/libs/moment.js/moment-with-locales.min.js')
+        html_scripts.add('/libs/jquery/jquery.min.js')
 
         String instancePurpose = System.getProperty("instance_purpose")
         if (!instancePurpose || instancePurpose == 'production') {
             /* ========== Production Mode ========== */
-            footer_scripts.add('/js/CombinedVuet.min.js')
+            html_scripts.add('/js/MoquiLib.min.js')
+            // Vue JS
+            footer_scripts.add('/libs/vue/vue.min.js')
+            // http-vue-loader
+            footer_scripts.add('/js/http-vue-loader/httpVueLoader.js')
+            // Quasar
+            footer_scripts.add("/libs/quasar/quasar.umd.min.js")
+            // Webroot Quasar-Vue instance, in footer so runs after page loaded
+            footer_scripts.add('/js/WebrootVue.qvt.min.js')
         } else {
             /* ========== Dev Mode ========== */
+            html_scripts.add('/js/MoquiLib.js')
             // Vue JS
             footer_scripts.add('/libs/vue/vue.js')
             // http-vue-loader
             footer_scripts.add('/js/http-vue-loader/httpVueLoader.js')
-            // Webroot Vue instance, in footer so runs after page loaded
-            footer_scripts.add('/js/WebrootVue.js')
+            // Quasar
+            footer_scripts.add("/libs/quasar/quasar.umd.min.js")
+            // Webroot Quasar-Vue instance, in footer so runs after page loaded
+            footer_scripts.add('/js/WebrootVue.qvt.js')
         }
 
         // conditional QZ Tray scripts, only include if enabled
         if (ec.user.getPreference("qz.print.enabled") == "true") {
             footer_scripts.add('/js/qz-tray/sha-256.min.js')
             footer_scripts.add('/js/qz-tray/qz-tray.min.js')
+            // TODO migrate MoquiQzComponent.js to MoquiQzComponent.qvt.js
             footer_scripts.add('/js/qz-tray/MoquiQzComponent.js')
         }
     ]]></script></pre-actions>
@@ -55,7 +60,7 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <render-mode>
             <!-- for html just render the navbar (Vue page wrapper and nav component) -->
-            <text type="html" location="component://webroot/screen/includes/WebrootVue.vuet.ftl"/>
+            <text type="html" location="component://webroot/screen/includes/WebrootVue.qvt.ftl"/>
             <!-- not meant to be used for anything else, for all other render modes go directly through /apps -->
         </render-mode>
     </widgets>

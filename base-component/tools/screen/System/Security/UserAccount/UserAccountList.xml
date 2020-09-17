@@ -20,11 +20,6 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="createUserAccount"><service-call name="org.moqui.impl.UserServices.create#UserAccount"/>
         <default-response url="."/></transition>
 
-    <actions>
-        <entity-find entity-name="moqui.security.UserAccount" list="userAccountList">
-            <search-form-inputs default-order-by="username"/>
-        </entity-find>
-    </actions>
     <widgets>
         <container-dialog id="CreateUserAccountDialog" button-text="Create User Account">
             <form-single name="CreateUserAccount" transition="createUserAccount">
@@ -39,27 +34,53 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
             </form-single>
         </container-dialog>
-        <form-list name="UserAccountList" list="userAccountList" skip-form="true">
+        <form-list name="UserAccountList" list="userAccountList" skip-form="true" header-dialog="true" saved-finds="true"
+                select-columns="true" show-xlsx-button="true" show-csv-button="true" show-page-size="true">
+            <entity-find entity-name="moqui.security.UserAccountAndGroup" list="userAccountList" distinct="true">
+                <search-form-inputs default-order-by="username"/>
+                <econdition field-name="emailNotifications" value="Y" ignore="!topic"/>
+                <select-field field-name="userId"/>
+            </entity-find>
+
+            <field name="userGroupId"><header-field title="User Group">
+                <drop-down allow-multiple="true" show-not="true">
+                    <entity-options key="${userGroupId}" text="${description}">
+                        <entity-find entity-name="moqui.security.UserGroup">
+                            <econdition field-name="userGroupId" operator="not-equals" value="ALL_USERS"/>
+                            <order-by field-name="description"/></entity-find>
+                    </entity-options>
+                </drop-down>
+            </header-field></field>
+            <field name="loginFromDate"><header-field title="Login Date"><date-period/></header-field></field>
+            <field name="topic"><header-field title="Topic Email">
+                <drop-down allow-multiple="true"><!-- NOTE considered show-not="true" but logic funny as involves topic and emailNotifications fields -->
+                    <entity-options key="${topic}" text="${description}">
+                        <entity-find entity-name="moqui.security.user.NotificationTopic">
+                            <order-by field-name="description"/></entity-find>
+                    </entity-options>
+                </drop-down>
+            </header-field></field>
+
             <field name="userId">
-                <header-field title="ID" show-order-by="true"><text-find size="10" hide-options="true"/></header-field>
+                <header-field title="ID" show-order-by="true"><text-find size="20" default-operator="begins"/></header-field>
                 <default-field><link text="${userId}" url="userAccountDetail" link-type="anchor"/></default-field>
             </field>
             <field name="username">
-                <header-field show-order-by="true"><text-find size="10" hide-options="true"/></header-field>
+                <header-field show-order-by="true"><text-find size="25" default-operator="begins"/></header-field>
                 <default-field><link text="${username}" url="userAccountDetail" link-type="anchor"/></default-field>
             </field>
             <field name="emailAddress">
-                <header-field show-order-by="true"><text-find size="15" hide-options="true"/></header-field>
+                <header-field show-order-by="true"><text-find size="25" default-operator="begins"/></header-field>
                 <default-field><display/></default-field>
             </field>
             <field name="userFullName">
-                <header-field show-order-by="true"><text-find size="15" hide-options="true"/></header-field>
+                <header-field show-order-by="true"><text-find size="25" default-operator="begins"/></header-field>
                 <default-field><display/></default-field>
             </field>
-            <!--<field name="passwordSetDate">
-                <header-field show-order-by="true"><date-period allow-empty="true"/></header-field>
+            <field name="passwordSetDate">
+                <header-field show-order-by="true"><date-period/></header-field>
                 <default-field><display/></default-field>
-            </field>-->
+            </field>
             <field name="requirePasswordChange">
                 <header-field title="Req PW Change" show-order-by="true"><drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></header-field>
                 <default-field><display/></default-field>
@@ -73,11 +94,11 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><display text="${disabled ?: 'N'} ${disabledDateTime ?: ''}"/></default-field>
             </field>
             <field name="locale">
-                <header-field show-order-by="true"><text-find size="6" hide-options="true"/></header-field>
+                <header-field show-order-by="true"><text-find size="6" default-operator="begins"/></header-field>
                 <default-field><display/></default-field>
             </field>
             <field name="timeZone">
-                <header-field show-order-by="true"><text-find size="8" hide-options="true"/></header-field>
+                <header-field show-order-by="true"><text-find size="8" default-operator="begins"/></header-field>
                 <default-field><display/></default-field>
             </field>
             <field name="find"><header-field title="Find"><submit/></header-field>

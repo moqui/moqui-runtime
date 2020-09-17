@@ -14,7 +14,7 @@ along with this software (see the LICENSE.md file). If not, see
 -->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
-        default-menu-title="Edit" default-menu-index="3">
+        default-menu-title="Edit Detail" default-menu-index="3">
 
     <parameter name="aen" required="true"/><!-- Auto Entity Name -->
     <parameter name="den" required="true"/><!-- Detail Entity Name -->
@@ -78,12 +78,12 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="edit">
                 <header-field title="Find"><submit/></header-field>
                 <conditional-field title="" condition="entityValue != null">
-                    <link url="../AutoEditMaster" text="" icon="glyphicon glyphicon-pencil"
+                    <link url="../AutoEditMaster" text="" icon="fa fa-pencil"
                             parameter-map="entityValue.getPrimaryKeys() + [aen:den, den:null]"/></conditional-field>
                 <default-field><display text=" "/></default-field>
             </field>
             <field name="delete">
-                <conditional-field title="" condition="entityValue != null"><link url="deleteRecord" text="" icon="glyphicon glyphicon-trash"
+                <conditional-field title="" condition="entityValue != null"><link url="deleteRecord" text="" icon="fa fa-trash"
                         confirmation="Are you sure?" parameter-map="entityValue.getPrimaryKeys()"/></conditional-field>
                 <default-field><display text=" "/></default-field>
             </field>

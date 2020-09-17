@@ -46,7 +46,7 @@ along with this software (see the LICENSE.md file). If not, see
                                             <img src="${sri.buildUrl(currentUrlInstance.sui.menuImage).url}" height="18" style="padding-right: 4px;"/>
                                         </#if>
                                     <#else>
-                                        <i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                                        <i class="fa fa-link" style="padding-right: 8px;"></i>
                                     </#if>
                                     ${ec.resource.expand(currentSubscreensItem.menuTitle, "")}
                                 </a>
@@ -61,18 +61,34 @@ along with this software (see the LICENSE.md file). If not, see
                                             <img src="${sri.buildUrl(currentUrlInstance.sui.menuImage).url}" height="18" style="padding-right: 4px;"/>
                                         </#if>
                                     <#else>
-                                        <i class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                                        <i class="fa fa-link" style="padding-right: 8px;"></i>
                                     </#if>
                                     ${ec.resource.expand(currentSubscreensItem.menuTitle, "")}
                                 </m-link>
+                            ]]></text><text type="qvt"><![CDATA[
+                                <div class="q-my-sm"><q-btn outline no-caps to="${currentUrlInstance.path}" style="min-width:250px">
+                                    <#if currentUrlInstance.sui.menuImage?has_content>
+                                        <#if currentUrlInstance.sui.menuImageType == "icon">
+                                            <i class="${currentUrlInstance.sui.menuImage}" style="padding-right: 8px;"></i>
+                                        <#elseif currentUrlInstance.sui.menuImageType == "url-plain">
+                                            <img src="${currentUrlInstance.sui.menuImage}" width="18" style="padding-right: 4px;"/>
+                                        <#else>
+                                            <img src="${sri.buildUrl(currentUrlInstance.sui.menuImage).url}" height="18" style="padding-right: 4px;"/>
+                                        </#if>
+                                    <#else>
+                                        <i class="fa fa-link" style="padding-right: 8px;"></i>
+                                    </#if>
+                                    ${ec.resource.expand(currentSubscreensItem.menuTitle, "")}
+                                </q-btn></div>
                             ]]></text></render-mode>
                         </widgets>
                     </section>
                 </widgets>
             </section-iterate>
             <render-mode>
-                <text type="html"><![CDATA[<div>You are using the <strong>standard</strong> UI</div><a href="/vapps">Switch to the dynamic UI</a>]]></text>
-                <text type="vuet"><![CDATA[<div>You are using the <strong>dynamic</strong> UI</div><a href="/apps">Switch to the standard UI</a>]]></text>
+                <text type="html"><![CDATA[<p>&nbsp;</p><div>You are using the <strong>standard</strong> UI</div><div><a href="/vapps">Switch to the dynamic Bootstrap UI</a></div><div><a href="/qapps">Switch to the dynamic Material UI</a></div>]]></text>
+                <text type="vuet"><![CDATA[<p>&nbsp;</p><div>You are using the <strong>dynamic Bootstrap</strong> UI</div><div><a href="/apps">Switch to the standard UI</a></div><div><a href="/qapps">Switch to the dynamic Material UI</a></div>]]></text>
+                <text type="qvt"><![CDATA[<p>&nbsp;</p><div>You are using the <strong>dynamic Material</strong> UI</div><div><a href="/apps">Switch to the standard UI</a></div><div><a href="/vapps">Switch to the dynamic Bootstrap UI</a></div>]]></text>
             </render-mode>
         </container>
     </widgets>

@@ -12,6 +12,8 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 
+<#macro getQuasarColor bootstrapColor><#if bootstrapColor == "success">positive<#elseif bootstrapColor == "danger">negative<#elseif bootstrapColor == "default"><#else>${bootstrapColor}</#if></#macro>
+
 <#macro @element><p>=== Doing nothing for element ${.node?node_name}, not yet implemented. ===</p></#macro>
 
 <#macro screen><#recurse></#macro>
@@ -30,18 +32,18 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro "subscreens-menu"><#if hideNav! != "true">
     <#if .node["@type"]! == "popup"><#-- NOTE: popup menus no longer handled here, how handled dynamically in navbar.html.ftl -->
     <#-- default to type=tab -->
-    <#else><subscreens-tabs/></#if>
+    <#else><m-subscreens-tabs></m-subscreens-tabs></#if>
 </#if></#macro>
-<#macro "subscreens-active"><subscreens-active/></#macro>
+<#macro "subscreens-active"><m-subscreens-active></m-subscreens-active></#macro>
 <#macro "subscreens-panel">
     <#if .node["@type"]! == "popup"><#-- NOTE: popup menus no longer handled here, how handled dynamically in navbar.html.ftl -->
-        <subscreens-active/>
+        <m-subscreens-active></m-subscreens-active>
     <#elseif .node["@type"]! == "stack"><h1>LATER stack type subscreens-panel not yet supported.</h1>
     <#elseif .node["@type"]! == "wizard"><h1>LATER wizard type subscreens-panel not yet supported.</h1>
     <#else><#-- default to type=tab -->
         <div<#if .node["@id"]?has_content> id="${.node["@id"]}-tabpanel"</#if>>
-            <subscreens-tabs/>
-            <subscreens-active/>
+            <m-subscreens-tabs></m-subscreens-tabs>
+            <m-subscreens-active></m-subscreens-active>
         </div>
     </#if>
 </#macro>
@@ -58,9 +60,9 @@ along with this software (see the LICENSE.md file). If not, see
         <#assign listName = .node["@list"]>
         <#assign listObj = context.get(listName)>
         <#assign pagParms = Static["org.moqui.util.CollectionUtilities"].paginateParameters(listObj?size, listName, context)>
-        <form-paginate :paginate="{ count:${context[listName + "Count"]?c}, pageIndex:${context[listName + "PageIndex"]?c},<#rt>
+        <m-form-paginate :paginate="{ count:${context[listName + "Count"]?c}, pageIndex:${context[listName + "PageIndex"]?c},<#rt>
             <#t> pageSize:${context[listName + "PageSize"]?c}, pageMaxIndex:${context[listName + "PageMaxIndex"]?c},
-            <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></form-paginate>
+            <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></m-form-paginate>
     </#if>
     ${sri.renderSection(.node["@name"])}
     <#if sri.doBoundaryComments()><!-- END   section-iterate[@name=${.node["@name"]}] --></#if>
@@ -86,19 +88,24 @@ ${sri.renderSection(.node["@name"])}
     <#assign boxHeader = .node["box-header"][0]!>
     <#assign boxType = ec.resource.expandNoL10n(.node["@type"], "")!>
     <#if !boxType?has_content><#assign boxType = "default"></#if>
-    <container-box<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if> type="${boxType}"<#if boxHeader??> title="${ec.getResource().expand(boxHeader["@title"]!"", "")?html}"</#if> :initial-open="<#if ec.getResource().expandNoL10n(.node["@initial"]!, "") == "closed">false<#else>true</#if>">
-        <#-- NOTE: direct use of the container-box component would not use template elements but rather use the 'slot' attribute directly on the child elements which we can't do here -->
+    <m-container-box<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if> type="${boxType}"<#if boxHeader??> title="${ec.getResource().expand(boxHeader["@title"]!"", "")?html}"</#if> :initial-open="<#if ec.getResource().expandNoL10n(.node["@initial"]!, "") == "closed">false<#else>true</#if>">
+        <#-- NOTE: direct use of the m-container-box component would not use template elements but rather use the 'slot' attribute directly on the child elements which we can't do here -->
         <#if boxHeader??><template slot="header"><#recurse boxHeader></template></#if>
         <#if .node["box-toolbar"]?has_content><template slot="toolbar"><#recurse .node["box-toolbar"][0]></template></#if>
-        <#if .node["box-body"]?has_content><box-body<#if .node["box-body"][0]["@height"]?has_content> height="${.node["box-body"][0]["@height"]}"</#if>><#recurse .node["box-body"][0]></box-body></#if>
+        <#if .node["box-body"]?has_content><m-box-body<#if .node["box-body"][0]["@height"]?has_content> height="${.node["box-body"][0]["@height"]}"</#if>><#recurse .node["box-body"][0]></m-box-body></#if>
         <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
-    </container-box>
+    </m-container-box>
 </#macro>
 <#macro "container-row">
     <#assign contRowDivId><@nodeId .node/></#assign>
+    <#-- was using q-col-gutter-md but causes overlap between rows as uses negative + positive margin approach, one example is Assets link on PopCommerceAdmin/dashboard.xml that gets covered by col in row below it -->
+    <#-- Quasar: xs:<600 sm:600+ md:1024+ lg:1440+ xl:1920+ ==== Bootstrap3: xs:<768 sm:768+ md:992+ lg:1200+ -->
     <div class="row<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"<#if contRowDivId?has_content> id="${contRowDivId}"</#if>>
         <#list .node["row-col"] as rowColNode>
-            <div class="<#if rowColNode["@lg"]?has_content> col-lg-${rowColNode["@lg"]}</#if><#if rowColNode["@md"]?has_content> col-md-${rowColNode["@md"]}</#if><#if rowColNode["@sm"]?has_content> col-sm-${rowColNode["@sm"]}</#if><#if rowColNode["@xs"]?has_content> col-xs-${rowColNode["@xs"]}</#if><#if rowColNode["@style"]?has_content> ${ec.getResource().expandNoL10n(rowColNode["@style"], "")}</#if>">
+            <#assign colHasLg = rowColNode["@lg"]?has_content>
+            <#assign colHasMd = rowColNode["@md"]?has_content>
+            <#assign colHasSm = rowColNode["@sm"]?has_content>
+            <div class="q-px-xs <#if colHasLg> col-lg-${rowColNode["@lg"]}</#if><#if colHasMd> col-md-${rowColNode["@md"]}<#elseif colHasLg> col-md-12</#if><#if colHasSm> col-sm-${rowColNode["@sm"]}<#elseif colHasLg || colHasMd> col-sm-12</#if><#if rowColNode["@xs"]?has_content> col-xs-${rowColNode["@xs"]}<#elseif colHasLg || colHasMd || colHasSm> col-xs-12</#if><#if rowColNode["@style"]?has_content> ${ec.getResource().expandNoL10n(rowColNode["@style"], "")}</#if>">
                 <#recurse rowColNode>
             </div>
         </#list>
@@ -132,7 +139,8 @@ ${sri.renderSection(.node["@name"])}
 </#macro>
 
 <#macro "container-dialog">
-    <#assign iconClass = "fa fa-external-link">
+    <#-- TODO: somehow support at least fa icons backward compatible? won't be doing glyphicons anyway -->
+    <#assign iconClass = "">
     <#if .node["@icon"]?has_content><#assign iconClass = .node["@icon"]></#if>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
@@ -140,30 +148,33 @@ ${sri.renderSection(.node["@name"])}
         <#assign title = ec.getResource().expand(.node["@title"], "")>
         <#if !title?has_content><#assign title = buttonText></#if>
         <#assign cdDivId><@nodeId .node/></#assign>
-        <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${ec.getResource().expandNoL10n(.node["@type"]!"primary", "")} btn-sm ${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}"><i class="${iconClass}"></i> ${buttonText}</button>
-        <container-dialog id="${cdDivId}" width="${.node["@width"]!"760"}" title="${title}"<#if _openDialog! == cdDivId> :openDialog="true"</#if>>
+        <m-container-dialog id="${cdDivId}" color="<@getQuasarColor ec.getResource().expandNoL10n(.node["@type"]!"primary", "")/>" width="${.node["@width"]!""}"
+                button-text="${buttonText}" button-class="${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}" title="${title}"<#if _openDialog! == cdDivId> :openDialog="true"</#if>>
             <#recurse>
-        </container-dialog>
+        </m-container-dialog>
     </#if>
 </#macro>
 <#macro "dynamic-container">
     <#assign dcDivId><@nodeId .node/></#assign>
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", dcDivId)>
-    <dynamic-container id="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().pathWithParams}"></dynamic-container>
+    <m-dynamic-container id="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().pathWithParams}"></m-dynamic-container>
 </#macro>
 <#macro "dynamic-dialog">
-    <#assign iconClass = "fa fa-external-link">
+    <#assign iconClass = "fa fa-share">
     <#if .node["@icon"]?has_content><#assign iconClass = .node["@icon"]></#if>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
     <#if conditionResult>
         <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
         <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
         <#assign ddDivId><@nodeId .node/></#assign>
-        <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm"><i class="${iconClass}"></i> ${buttonText}</button>
+        <m-dynamic-dialog id="${ddDivId}" url="${urlInstance.urlWithParams}" color="<@getQuasarColor ec.getResource().expandNoL10n(.node["@type"]!"primary", "")/>" width="${.node["@width"]!""}"
+                button-text="${buttonText}" button-class="${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}" title="${buttonText}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></m-dynamic-dialog>
+        <#-- used to use afterFormText for m-dynamic-dialog inside another form, needed now?
         <#assign afterFormText>
-        <dynamic-dialog id="${ddDivId}" url="${urlInstance.urlWithParams}" width="${.node["@width"]!"760"}" title="${buttonText}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></dynamic-dialog>
+        <m-dynamic-dialog id="${ddDivId}" url="${urlInstance.urlWithParams}" width="${.node["@width"]!""}" button-text="${buttonText}" title="${buttonText}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></m-dynamic-dialog>
         </#assign>
         <#t>${sri.appendToAfterScreenWriter(afterFormText)}
+        -->
     </#if>
 </#macro>
 
@@ -184,8 +195,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign itemsUrl = ajaxUrlInfo.path + "/" + .node["@name"]>
     </#if>
     <#assign ajaxParms = ajaxUrlInfo.getParameterMap()>
-    <tree-top id="${.node["@name"]}" items="${itemsUrl}" open-path="${ec.getResource().expandNoL10n(.node["@open-path"], "")}"
-              :parameters="{<#list ajaxParms.keySet() as pKey>'${pKey}':'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(ajaxParms.get(pKey)!"")}'<#sep>,</#list>}"></tree-top>
+    <m-tree-top id="${.node["@name"]}" items="${itemsUrl}" open-path="${ec.getResource().expandNoL10n(.node["@open-path"], "")}"
+              :parameters="{<#list ajaxParms.keySet() as pKey>'${pKey}':'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(ajaxParms.get(pKey)!"")}'<#sep>,</#list>}"></m-tree-top>
 </#macro>
 <#macro "tree-node"><#-- shouldn't be called directly, but just in case --></#macro>
 <#macro "tree-sub-node"><#-- shouldn't be called directly, but just in case --></#macro>
@@ -247,8 +258,19 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if !iconClass?has_content && linkNode["@text"]?has_content><#assign iconClass = sri.getThemeIconClass(linkNode["@text"])!></#if>
     <#assign iconClass = ec.getResource().expandNoL10n(iconClass!, "")/>
     <#assign badgeMessage = ec.getResource().expand(linkNode["@badge"]!, "")/>
+
+    <#assign labelWrapper = linkNode["@link-type"]! == "anchor" && linkNode?ancestors("form-single")?has_content>
+    <#if labelWrapper>
+        <#assign fieldLabel><@fieldTitle linkNode?parent/></#assign>
+        <q-field dense outlined readonly<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if>><template v-slot:control>
+    </#if>
+
     <#if urlInstance.disableLink>
-        <a href="#"<#if linkFormId?has_content> id="${linkFormId}"</#if> class="disabled text-muted <#if linkNode["@link-type"]! != "anchor" && linkNode["@link-type"]! != "hidden-form-link">btn btn-${linkNode["@btn-type"]!"primary"} btn-sm</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"><#if iconClass?has_content><i class="${iconClass}"></i></#if><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if></a>
+        <q-btn dense no-caps disabled <#if linkNode["@link-type"]! != "anchor" && linkNode["@link-type"]! != "hidden-form-link">outline<#else>flat</#if><#rt>
+                <#t> class="m-link<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"
+                <#t><#if linkFormId?has_content> id="${linkFormId}"</#if>>
+            <#if iconClass?has_content><i class="${iconClass}"></i></#if><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if>
+        </q-btn>
     <#else>
         <#assign confirmationMessage = ec.getResource().expand(linkNode["@confirmation"]!, "")/>
         <#if sri.isAnchorLink(linkNode, urlInstance)>
@@ -258,36 +280,50 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#else><#assign linkElement = "a">
                 <#if linkNoParam><#assign urlText = urlInstance.url/><#else><#assign urlText = urlInstance.urlWithParams/></#if>
             </#if>
+            <#-- TODO: consider simplifying to use q-btn with 'to' attribute instead of m-link or for anchor type="a" + href, where we want a button (not @link-type=anchor) -->
             <${linkElement} href="${urlText}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#rt>
                 <#t><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>
                 <#t><#if linkNode["@dynamic-load-id"]?has_content> load-id="${linkNode["@dynamic-load-id"]}"</#if>
                 <#t><#if confirmationMessage?has_content><#if linkElement == "m-link"> :confirmation="'${confirmationMessage?js_string}'"<#else> onclick="return confirm('${confirmationMessage?js_string}')"</#if></#if>
-                <#t> class="<#if linkNode["@link-type"]! != "anchor">btn btn-${linkNode["@btn-type"]!"primary"} btn-sm</#if><#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"
-                <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
-                <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if><#rt>
+                <#-- TODO non q-btn approach might simulate styles like old stuff, initial attempt failed though: <#if linkNode["@link-type"]! != "anchor">btn btn-${linkNode["@btn-type"]!"primary"} btn-sm</#if> -->
+                <#if linkNode["@link-type"]! != "anchor">
+                    <#t>>
+                    <q-btn dense outline no-caps color="<@getQuasarColor linkNode["@btn-type"]!"primary"/>"<#rt>
+                        <#t> class="m-link<#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>">
+                <#else>
+                    <#t> class="<#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>">
+                </#if>
+                <#t><#if linkNode["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(linkNode["@tooltip"], "")}</q-tooltip></#if>
+                <#t><#if iconClass?has_content><i class="${iconClass} q-icon<#if linkText?? && linkText?trim?has_content> on-left</#if>"></i> </#if><#rt>
                 <#t><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if>
-                <#t><#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if>
-                <#t></${linkElement}>
+                <#t><#if badgeMessage?has_content> <q-badge class="on-right" transparent>${badgeMessage}</q-badge></#if>
+                <#if linkNode["@link-type"]! != "anchor"></q-btn></#if>
+            <#t></${linkElement}>
         <#else>
             <#if linkFormId?has_content>
-            <#rt><button type="submit" form="${linkFormId}" id="${linkFormId}_button" class="btn btn-${linkNode["@btn-type"]!"primary"} btn-sm<#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"
-                    <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>
-                    <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
-                <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if>
+            <#rt><q-btn dense outline no-caps type="submit" form="${linkFormId}" id="${linkFormId}_button" color="<@getQuasarColor linkNode["@btn-type"]!"primary"/>"
+                    <#t> class="<#if linkNode["@style"]?has_content>${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"
+                    <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>>
+                    <#t><#if linkNode["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(linkNode["@tooltip"], "")}</q-tooltip></#if>
+                <#t><#if iconClass?has_content><i class="${iconClass} q-icon<#if linkText?? && linkText?trim?has_content> on-left</#if>"></i> </#if>
                 <#if linkNode["image"]?has_content>
                     <#t><img src="${sri.makeUrlByType(imageNode["@url"],imageNode["@url-type"]!"content",null,"true")}"<#if imageNode["@alt"]?has_content> alt="${imageNode["@alt"]}"</#if>/>
                 <#else>
                     <#t>${linkText}
                 </#if>
-            <#t><#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if>
-            <#t></button>
+                <#t><#if badgeMessage?has_content> <q-badge class="on-right" transparent>${badgeMessage}</q-badge></#if>
+            <#t></q-btn>
             </#if>
         </#if>
+    </#if>
+
+    <#if labelWrapper>
+        </template></q-field>
     </#if>
 </#macro>
 <#macro linkFormForm linkNode linkFormId linkText urlInstance>
     <#if !urlInstance.disableLink && !sri.isAnchorLink(linkNode, urlInstance)>
-        <#if urlInstance.getTargetTransition()?has_content><#assign linkFormType = "m-form"><#else><#assign linkFormType = "form-link"></#if>
+        <#if urlInstance.getTargetTransition()?has_content><#assign linkFormType = "m-form"><#else><#assign linkFormType = "m-form-link"></#if>
         <${linkFormType} action="${urlInstance.path}" name="${linkFormId!""}"<#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkNode["@target-window"]?has_content> target="${linkNode["@target-window"]}"</#if>><#-- :no-validate="true" -->
             <#assign targetParameters = urlInstance.getParameterMap()>
             <#-- NOTE: using .keySet() here instead of ?keys because ?keys returns all method names with the other keys, not sure why -->
@@ -302,10 +338,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#assign iconClass = linkNode["@icon"]!>
                     <#if !iconClass?has_content && linkNode["@text"]?has_content><#assign iconClass = sri.getThemeIconClass(linkNode["@text"])!></#if>
                     <#assign badgeMessage = ec.getResource().expand(linkNode["@badge"]!, "")/>
-                    <#rt><button type="submit" class="<#if linkNode["@link-type"]! == "hidden-form-link">button-plain<#else>btn btn-${linkNode["@btn-type"]!"primary"} btn-sm</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"
-                        <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>
-                        <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
-                        <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if>${linkText}<#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if></button>
+                    <#rt><q-btn dense no-caps type="submit" <#if linkNode["@link-type"]! == "hidden-form-link">flat<#else>outline</#if>
+                            <#t> color="<@getQuasarColor linkNode["@btn-type"]!"primary"/>" class="m-link<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"
+                            <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>>
+                        <#t><#if linkNode["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(linkNode["@tooltip"], "")}</q-tooltip></#if>
+                        <#t><#if iconClass?has_content><i class="${iconClass} q-icon<#if linkText?? && linkText?trim?has_content> on-left</#if>"></i> </#if>${linkText}
+                        <#t><#if badgeMessage?has_content> <q-badge class="on-right" transparent>${badgeMessage}</q-badge></#if>
+                    <#t></q-btn>
                 </#if>
             </#if>
         </${linkFormType}>
@@ -376,22 +415,24 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if !iconClass?has_content && linkText?has_content><#assign iconClass = sri.getThemeIconClass(linkText)!></#if>
         <#assign badgeMessage = ec.getResource().expand(.node["@badge"]!, "")/>
 
-        <#-- TODO: tooltip, doesn't work when using data-toggle for dropdown! <#if .node["@tooltip"]?has_content>${ec.getResource().expand(.node["@tooltip"], "")}</#if> -->
-        <div class="btn-group">
-            <button type="button" class="btn btn-${.node["@btn-type"]!"primary"} dropdown-toggle<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <#if iconClass?has_content><i class="${iconClass}"></i></#if>
+        <#-- NOTE: do not use auto-close or v-close-popup because it closes dialogs as well as the menu! -->
+        <q-btn-dropdown dense outline no-caps color="<@getQuasarColor .node["@btn-type"]!"primary"/>"<#rt>
+                <#lt><#if .node["@style"]?has_content> class="${ec.getResource().expandNoL10n(.node["@style"], "")}"</#if>>
+            <template v-slot:label>
+                <#if .node["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node["@tooltip"], "")}</q-tooltip></#if>
+                <#if iconClass?has_content><i class="${iconClass} q-icon<#if linkText?? && linkText?trim?has_content> on-left</#if>"></i></#if>
                 <#if .node["image"]?has_content><#visit .node["image"][0]><#else>${linkText}</#if>
-                <#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if>
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" style="padding:8px;">
+                <#if badgeMessage?has_content><q-badge class="on-right" transparent>${badgeMessage}</q-badge></#if>
+            </template>
+
+            <q-list>
             <#list .node?children as childNode>
-                <li>
+                <q-item><q-item-section>
                     <#visit childNode>
-                </li>
+                </q-item-section></q-item>
             </#list>
-            </ul>
-        </div>
+            </q-list>
+        </q-btn-dropdown>
     </#if>
 </#macro>
 
@@ -412,36 +453,35 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign urlInstance = sri.makeUrlByType(formNode["@transition"], "transition", null, "true")>
     <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#if urlInstance.isScreenUrl()>
-        <#if urlInstance.getTargetTransition()?has_content><#assign formSingleType = "m-form"><#else><#assign formSingleType = "form-link"></#if>
-    <#else><#assign formSingleType = "form"></#if>
+        <#if urlInstance.getTargetTransition()?has_content><#assign formSingleType = "m-form"><#else><#assign formSingleType = "m-form-link"></#if>
+        <#assign fieldsJsName = "formProps.fields">
+    <#else>
+        <#assign formSingleType = "form">
+        <#assign fieldsJsName = "">
+    </#if>
+    <#assign formDisabled = urlInstance.disableLink>
+
+    <#-- TODO: handle disabled forms, for Quasar looks like will need to disable each field, maybe with a property on m-form and m-form-link (and something else for plain form?) -->
+    <#--  disabled="disabled"</#if> <#if urlInstance.disableLink> :disabled="true"</#if> -->
     <#if !skipStart>
-    <${formSingleType} name="${formId}" id="${formId}" action="${urlInstance.path}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
+    <div class="q-my-md"><${formSingleType} name="${formId}" id="${formId}" action="${urlInstance.path}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
             <#t><#if formNode["@body-parameters"]?has_content> :body-parameter-names="[<#list formNode["@body-parameters"]?split(",") as bodyParm>'${bodyParm}'<#sep>,</#list>]"</#if>
             <#t><#if formNode["@background-message"]?has_content> submit-message="${formNode["@background-message"]?html}"</#if>
             <#t><#if formNode["@background-reload-id"]?has_content> submit-reload-id="${formNode["@background-reload-id"]}"</#if>
-            <#t><#if formNode["@background-hide-id"]?has_content> submit-hide-id="${formNode["@background-hide-id"]}"</#if>>
-        <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
-        <#assign lastUpdatedString = sri.getNamedValuePlain("lastUpdatedStamp", formNode)>
-        <#if lastUpdatedString?has_content><input type="hidden" name="lastUpdatedStamp" value="${lastUpdatedString}"></#if>
+            <#lt><#if formNode["@background-hide-id"]?has_content> submit-hide-id="${formNode["@background-hide-id"]}"</#if>
+            <#if fieldsJsName?has_content> v-slot:default="formProps" :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.getFormFieldValues(formNode))}"</#if>>
     </#if>
-    <#if formNode["@pass-through-parameters"]! == "true">
-        <#assign currentFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("lastStandalone").removeParameter("formListFindId")>
-        <#assign currentFindUrlParms = currentFindUrl.getParameterMap()>
-        <#list currentFindUrlParms.keySet() as parmName><#if !formInstance.getFieldNode(parmName)??>
-            <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
-        </#if></#list>
+    <#if formNode["field-layout"]?has_content>
+        <#recurse formNode["field-layout"][0]/>
+    <#else>
+        <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode formId/></#list>
     </#if>
-        <fieldset class="form-horizontal"<#if urlInstance.disableLink> disabled="disabled"</#if>>
-        <#if formNode["field-layout"]?has_content>
-            <#recurse formNode["field-layout"][0]/>
-        <#else>
-            <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode formId/></#list>
-        </#if>
-        </fieldset>
-    <#if !skipEnd></${formSingleType}></#if>
+    <#if !skipEnd></${formSingleType}></div></#if>
     <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
     <#if sri.doBoundaryComments()><!-- END   form-single[@name=${.node["@name"]}] --></#if>
     <#assign ownerForm = ""><#-- clear ownerForm so later form fields don't pick it up -->
+    <#assign fieldsJsName = "">
+    <#assign formDisabled = false>
 </#macro>
 <#macro "field-ref">
     <#assign fieldRef = .node["@name"]>
@@ -477,15 +517,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign rowContent = rowContent?trim>
     <#assign fsFieldRow = false><#assign fsBigRow = false>
     <#if rowContent?has_content>
-    <div class="form-group">
+    <div class="q-my-sm big-row"<#if .node["@justify"]?has_content> style="justify-content:${.node["@justify"]};"</#if>>
     <#if .node["@title"]?has_content>
-        <label class="control-label col-sm-2">${ec.getResource().expand(.node["@title"], "")}</label>
-        <div class="col-sm-10">
-    <#else>
-        <div class="col-sm-12">
+        <div class="q-mx-sm q-my-auto big-row-item">${ec.getResource().expand(.node["@title"], "")}</div>
     </#if>
-            ${rowContent}
-        </div><#-- /col-sm-12 bigRow -->
+        ${rowContent}
     </div><#-- /row -->
     </#if>
 </#macro>
@@ -563,29 +599,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign containerStyle = ec.getResource().expandNoL10n(fieldSubNode["@container-style"]!, "")>
     <#assign curFieldTitle><@fieldTitle fieldSubNode/></#assign>
     <#if bigRow>
-        <div class="big-row-item">
-            <div class="form-group">
-                <#if curFieldTitle?has_content && !fieldSubNode["submit"]?has_content>
-                    <label class="control-label" for="${formId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
-                </#if>
+        <div class="q-mx-sm q-my-auto big-row-item">
     <#else>
-        <#-- NOTE: this style is only good for 2 fields in a field-row! in field-row cols are double size because are inside a ${colPrefix}-6 element -->
-        <#if labelCols?has_content>
-            <#assign labelClass = colPrefix + "-" + labelCols>
-            <#assign widgetClass = colPrefix + "-" + (12 - labelCols?number)?c>
-        <#else>
-            <#assign labelClass><#if inFieldRow>${colPrefix}-4<#else>${colPrefix}-2</#if></#assign>
-            <#assign widgetClass><#if inFieldRow>${colPrefix}-8<#else>${colPrefix}-10</#if></#assign>
-        </#if>
-        <#if fieldSubNode["submit"]?has_content>
-        <div class="form-group">
-            <div class="${labelClass} hidden-xs">&nbsp;</div>
-            <div class="${widgetClass}<#if containerStyle?has_content> ${containerStyle}</#if>">
-        <#elseif curFieldTitle?has_content>
-        <div class="form-group">
-            <label class="control-label ${labelClass}" for="${formId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
-            <div class="${widgetClass}<#if containerStyle?has_content> ${containerStyle}</#if>">
-        </#if>
+        <div class="q-ma-sm <#if containerStyle?has_content> ${containerStyle}</#if>">
     </#if>
     <#t>${sri.pushContext()}
     <#assign fieldFormId = formId><#-- set this globally so fieldId macro picks up the proper formId, clear after -->
@@ -620,17 +636,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign fieldFormId = ""><#-- clear after field so nothing else picks it up -->
     <#t>${sri.popContext()}
     <#if bigRow>
-        <#-- <#if curFieldTitle?has_content></#if> -->
-            </div><!-- /form-group -->
-        </div><!-- /field-row-item -->
+        </div><!-- /big-row-item -->
     <#else>
-        <#if fieldSubNode["submit"]?has_content>
-            </div><!-- /col -->
-        </div><!-- /form-group -->
-        <#elseif curFieldTitle?has_content>
-            </div><!-- /col -->
-        </div><!-- /form-group -->
-        </#if>
+        </div>
     </#if>
 </#macro>
 
@@ -638,315 +646,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#-- ======================= Form List ========================= -->
 <#-- =========================================================== -->
 
-<#macro paginationHeaderModals formListInfo formId isHeaderDialog>
-    <#assign formNode = formListInfo.getFormNode()>
-    <#assign allColInfoList = formListInfo.getAllColInfo()>
-    <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
-    <#assign isSelectColumns = formNode["@select-columns"]! == "true">
-    <#assign currentFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("lastStandalone").removeParameter("formListFindId")>
-    <#assign currentFindUrlParms = currentFindUrl.getParameterMap()>
-    <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
-    <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
-    <#if isSavedFinds || isHeaderDialog>
-        <#assign headerFormDialogId = formId + "_hdialog">
-        <#assign headerFormId = formId + "_header">
-        <#assign headerFormButtonText = ec.getL10n().localize("Find Options")>
-        <container-dialog id="${headerFormDialogId}" title="${headerFormButtonText}">
-            <#-- Saved Finds -->
-            <#if isSavedFinds && isHeaderDialog><h4 style="margin-top: 0;">${ec.getL10n().localize("Saved Finds")}</h4></#if>
-            <#if isSavedFinds>
-                <#assign activeFormListFind = formListInfo.getFormInstance().getActiveFormListFind(ec)!>
-                <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").path>
-                <#assign descLabel = ec.getL10n().localize("Description")>
-                <#if activeFormListFind?has_content>
-                    <#assign screenScheduled = formListInfo.getScreenForm().getFormListFindScreenScheduled(activeFormListFind.formListFindId, ec)!>
-                    <div><strong>${ec.getL10n().localize("Active Saved Find:")} ${activeFormListFind.description?html}</strong></div>
-                    <#if screenScheduled?has_content>
-                        <p>(Scheduled for <#if screenScheduled.renderMode! == 'xsl-fo'>PDF<#else>${screenScheduled.renderMode!?upper_case}</#if><#rt>
-                            <#t> ${Static["org.moqui.impl.service.ScheduledJobRunner"].getCronDescription(screenScheduled.cronExpression, ec.user.getLocale(), true)!})</p>
-                    <#else>
-                        <m-form class="form-inline" id="${formId}_SCHED" action="${formSaveFindUrl}">
-                            <input type="hidden" name="formListFindId" value="${activeFormListFind.formListFindId}">
-                            <input type="hidden" name="screenPath" value="${sri.getScreenUrlInstance().path}">
-                            <div class="form-group">
-                                <label class="sr-only" for="${formId}_SCHED_renderMode">${ec.getL10n().localize("Mode")}</label>
-                                <drop-down name="renderMode" id="${formId}_SCHED_renderMode" :options="[{id:'xlsx',text:'XLSX'},{id:'csv',text:'CSV'},{id:'xsl-fo',text:'PDF'}]"></drop-down>
-                            </div>
-                            <div class="form-group">
-                                <label class="sr-only" for="${formId}_SCHED_cronSelected">${ec.getL10n().localize("Schedule")}</label>
-                                <drop-down name="cronSelected" id="${formId}_SCHED_cronSelected" value="" :options="[{id:'0 0 6 ? * MON-FRI',text:'Monday-Friday'},{id:'0 0 6 ? * *',text:'Every Day'},{id:'0 0 6 ? * MON',text:'Monday Only'},{id:'0 0 6 1 * ?',text:'Monthly'}]"></drop-down>
-                            </div>
-
-                            <button type="submit" name="ScheduleFind" class="btn btn-primary btn-sm" onclick="return confirm('${ec.getL10n().localize("Setup a schedule to send this saved find to you by email?")}');">${ec.getL10n().localize("Schedule")}</button>
-                        </m-form>
-                    </#if>
-                </#if>
-                <#if currentFindUrlParms?has_content>
-                    <div><m-form class="form-inline" id="${formId}_NewFind" action="${formSaveFindUrl}">
-                        <input type="hidden" name="formLocation" value="${formListInfo.getSavedFindFullLocation()}">
-                        <#list currentFindUrlParms.keySet() as parmName>
-                            <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
-                        </#list>
-                        <div class="form-group">
-                            <label class="sr-only" for="${formId}_NewFind_description">${descLabel}</label>
-                            <input type="text" size="40" name="_findDescription" id="${formId}_NewFind_description" placeholder="${descLabel}" class="form-control required" required="required">
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-sm">${ec.getL10n().localize("Save New Find")}</button>
-                    </m-form></div>
-                <#else>
-                    <p>${ec.getL10n().localize("No find parameters, choose some to save a new find or update existing")}</p>
-                </#if>
-                <#assign userFindInfoList = formListInfo.getUserFormListFinds(ec)>
-                <#list userFindInfoList as userFindInfo>
-                    <#assign formListFind = userFindInfo.formListFind>
-                    <#assign findParameters = userFindInfo.findParameters>
-                    <#-- use only formListFindId now that ScreenRenderImpl picks it up and auto adds configured parameters:
-                        <#assign doFindUrl = sri.buildUrl(sri.getScreenUrlInstance().path).addParameters(findParameters)> -->
-                    <#assign doFindUrl = sri.buildUrl(sri.getScreenUrlInstance().path).addParameter("formListFindId", formListFind.formListFindId)>
-                    <#assign saveFindFormId = formId + "_SaveFind" + userFindInfo_index>
-                    <div>
-                    <#if currentFindUrlParms?has_content>
-                        <m-form class="form-inline" id="${saveFindFormId}" action="${formSaveFindUrl}">
-                            <input type="hidden" name="formLocation" value="${formListInfo.getSavedFindFullLocation()}">
-                            <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
-                            <#list currentFindUrlParms.keySet() as parmName>
-                                <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
-                            </#list>
-                            <div class="form-group">
-                                <label class="sr-only" for="${saveFindFormId}_description">${descLabel}</label>
-                                <input type="text" size="40" name="_findDescription" id="${saveFindFormId}_description" value="${formListFind.description?html}" class="form-control required" required="required">
-                            </div>
-                            <button type="submit" name="UpdateFind" class="btn btn-primary btn-sm">${ec.getL10n().localize("Update to Current")}</button>
-                            <#if userFindInfo.isByUserId == "true"><button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');">&times;</button></#if>
-                        </m-form>
-                        <m-link href="${doFindUrl.pathWithParams}" class="btn btn-success btn-sm">${ec.getL10n().localize("Do Find")}</m-link>
-                    <#else>
-                        <m-link href="${doFindUrl.pathWithParams}" class="btn btn-success btn-sm">${ec.getL10n().localize("Do Find")}</m-link>
-                        <#if userFindInfo.isByUserId == "true">
-                        <m-form class="form-inline" id="${saveFindFormId}" action="${formSaveFindUrl}" :no-validate="true">
-                            <input type="hidden" name="formListFindId" value="${formListFind.formListFindId}">
-                            <button type="submit" name="DeleteFind" class="btn btn-danger btn-sm" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');">&times;</button>
-                        </m-form>
-                        </#if>
-                        <strong>${formListFind.description?html}</strong>
-                    </#if>
-                    </div>
-                </#list>
-            </#if>
-            <#if isSavedFinds && isHeaderDialog><h4>${ec.getL10n().localize("Find Parameters")}</h4></#if>
-            <#if isHeaderDialog>
-                <#-- Find Parameters Form -->
-                <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-                <#assign skipFormSave = skipForm!false>
-                <#assign skipForm = false>
-                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}"><template slot-scope="props">
-                    <#if formListFindId?has_content><input type="hidden" name="formListFindId" value="${formListFindId}"></#if>
-                    <#if context[listName + "PageSize"]??><input type="hidden" name="pageSize" value="${context[listName + "PageSize"]?c}"></#if>
-                    <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
-                    <fieldset class="form-horizontal">
-                        <div class="form-group"><div class="col-sm-2">&nbsp;</div><div class="col-sm-10">
-                            <button type="button" name="clearParameters" class="btn btn-primary btn-sm" @click.prevent="props.clearForm">${ec.getL10n().localize("Clear Parameters")}</button></div></div>
-
-                        <#-- Always add an orderByField to select one or more columns to order by -->
-                        <div class="form-group">
-                            <label class="control-label col-sm-2" for="${headerFormId}_orderByField">${ec.getL10n().localize("Order By")}</label>
-                            <div class="col-sm-10">
-                                <select name="orderBySelect" id="${headerFormId}_orderBySelect" multiple="multiple" style="width:100%;" class="noResetSelect2">
-                                    <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content>
-                                        <#assign headerFieldNode = fieldNode["header-field"][0]>
-                                        <#assign showOrderBy = (headerFieldNode["@show-order-by"])!>
-                                        <#if showOrderBy?has_content && showOrderBy != "false">
-                                            <#assign caseInsensitive = showOrderBy == "case-insensitive">
-                                            <#assign orderFieldName = fieldNode["@name"]>
-                                            <#assign orderFieldTitle><@fieldTitle headerFieldNode/></#assign>
-                                            <option value="${caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} ${ec.getL10n().localize("(Asc)")}</option>
-                                            <option value="${"-" + caseInsensitive?string("^", "") + orderFieldName}">${orderFieldTitle} ${ec.getL10n().localize("(Desc)")}</option>
-                                        </#if>
-                                    </#if></#list>
-                                </select>
-                                <input type="hidden" id="${headerFormId}_orderByField" name="orderByField" value="${(orderByField!"")?html}">
-                                <m-script>
-                                    $("#${headerFormId}_orderBySelect").selectivity({ positionDropdown: function(dropdownEl, selectEl) { dropdownEl.css("width", "300px"); } })[0].selectivity.filterResults = function(results) {
-                                        // Filter out asc and desc options if anyone selected.
-                                        return results.filter(function(item){return !this._data.some(function(data_item) {return data_item.id.substring(1) === item.id.substring(1);});}, this);
-                                    };
-                                    <#assign orderByJsValue = formListInfo.getOrderByActualJsString(ec.getContext().orderByField)>
-                                    <#if orderByJsValue?has_content>$("#${headerFormId}_orderBySelect").selectivity("value", ${orderByJsValue});</#if>
-                                    $("div#${headerFormId}_orderBySelect").on("change", function(evt) {
-                                        if (evt.value) $("#${headerFormId}_orderByField").val(evt.value.join(","));
-                                    });
-                                </m-script>
-                            </div>
-                        </div>
-                        <#t>${sri.pushSingleFormMapContext("")}
-                        <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
-                            <#assign headerFieldNode = fieldNode["header-field"][0]>
-                            <#assign allHidden = true>
-                            <#list fieldNode?children as fieldSubNode>
-                                <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
-                            </#list>
-
-                            <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") || allHidden ||
-                                    ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                                    (headerFieldNode["hidden"]?has_content || headerFieldNode["ignored"]?has_content)))>
-                                <@formSingleWidget headerFieldNode headerFormId "col-sm" false false/>
-                            <#elseif (headerFieldNode["hidden"])?has_content>
-                                <#recurse headerFieldNode/>
-                            </#if>
-                        </#if></#list>
-                        <#t>${sri.popContext()}<#-- context was pushed so pop here at the end -->
-                    </fieldset>
-                </template></form-link>
-                <#assign skipForm = skipFormSave>
-            </#if>
-        </container-dialog>
-    </#if>
-    <#if isSelectColumns>
-        <#assign selectColumnsDialogId = formId + "_SelColsDialog">
-        <#assign selectColumnsSortableId = formId + "_SelColsSortable">
-        <#assign fieldsNotInColumns = formListInfo.getFieldsNotReferencedInFormListColumn()>
-        <container-dialog id="${selectColumnsDialogId}" title="${ec.l10n.localize("Column Fields")}">
-            <p>${ec.getL10n().localize("Drag fields to the desired column or do not display")}</p>
-            <ul id="${selectColumnsSortableId}">
-                <li id="hidden"><div>${ec.l10n.localize("Do Not Display")}</div>
-                    <#if fieldsNotInColumns?has_content>
-                        <ul>
-                            <#list fieldsNotInColumns as fieldNode>
-                                <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
-                                <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
-                            </#list>
-                        </ul>
-                    </#if>
-                </li>
-                <#list allColInfoList as columnFieldList>
-                    <li id="column_${columnFieldList_index}"><div>${ec.l10n.localize("Column")} ${columnFieldList_index + 1}</div><ul>
-                        <#list columnFieldList as fieldNode>
-                            <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
-                            <li id="${fieldNode["@name"]}"><div><@fieldTitle fieldSubNode/></div></li>
-                        </#list>
-                    </ul></li>
-                </#list>
-                <#list allColInfoList?size..(allColInfoList?size + 2) as ind><#-- always add 3 more columns for flexibility -->
-                    <li id="column_${ind}"><div>${ec.getL10n().localize("Column")} ${ind + 1}</div></li>
-                </#list>
-            </ul>
-            <m-form class="form-inline" id="${formId}_SelColsForm" action="${sri.buildUrl("formSelectColumns").path}">
-                <input type="hidden" name="formLocation" value="${formListInfo.getFormLocation()}">
-                <input type="hidden" id="${formId}_SelColsForm_columnsTree" name="columnsTree" value="">
-                <#if currentFindUrlParms?has_content><#list currentFindUrlParms.keySet() as parmName>
-                    <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
-                </#list></#if>
-                <input type="submit" name="SaveColumns" value="${ec.getL10n().localize("Save Columns")}" class="btn btn-success btn-sm"/>
-                <input type="submit" name="ResetColumns" value="${ec.getL10n().localize("Reset to Default")}" class="btn btn-danger btn-sm"/>
-            </m-form>
-        </container-dialog>
-        <m-script>$('#${selectColumnsDialogId}').on('shown.bs.modal', function() {
-            $("#${selectColumnsSortableId}").sortableLists({
-                isAllowed: function(currEl, hint, target) {
-                    <#-- don't allow hidden and column items to be moved; only allow others to be under hidden or column items -->
-                    if (currEl.attr('id') === 'hidden' || currEl.attr('id').startsWith('column_')) {
-                        if (!target.attr('id') || (target.attr('id') != 'hidden' && !currEl.attr('id').startsWith('column_'))) { hint.css('background-color', '#99ff99'); return true; }
-                        else { hint.css('background-color', '#ff9999'); return false; }
-                    }
-                    if (target.attr('id') && (target.attr('id') === 'hidden' || target.attr('id').startsWith('column_'))) { hint.css('background-color', '#99ff99'); return true; }
-                    else { hint.css('background-color', '#ff9999'); return false; }
-                },
-                placeholderCss: {'background-color':'#999999'}, insertZone: 50,
-                <#-- jquery-sortable-lists currently logs an error if opener.as is not set to html or class -->
-                opener: { active:false, as:'html', close:'', open:'' },
-                onChange: function(cEl) {
-                    var sortableHierarchy = $('#${selectColumnsSortableId}').sortableListsToHierarchy();
-                    // console.log(sortableHierarchy); console.log(JSON.stringify(sortableHierarchy));
-                    $("#${formId}_SelColsForm_columnsTree").val(JSON.stringify(sortableHierarchy));
-                }
-            });
-            $("#${formId}_SelColsForm_columnsTree").val(JSON.stringify($('#${selectColumnsSortableId}').sortableListsToHierarchy()));
-        })</m-script>
-    </#if>
-    <#if formNode["@show-text-button"]! == "true">
-        <#assign showTextDialogId = formId + "_TextDialog">
-        <#assign textLinkUrl = sri.getScreenUrlInstance()>
-        <#assign textLinkUrlParms = textLinkUrl.getParameterMap()>
-        <container-dialog id="${showTextDialogId}" title="${ec.getL10n().localize("Export Fixed-Width Plain Text")}">
-            <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
-            <form id="${formId}_Text" method="post" action="${textLinkUrl.getUrl()}">
-                <input type="hidden" name="renderMode" value="text">
-                <input type="hidden" name="pageNoLimit" value="true">
-                <input type="hidden" name="lastStandalone" value="true">
-                <#list textLinkUrlParms.keySet() as parmName>
-                    <input type="hidden" name="${parmName}" value="${textLinkUrlParms.get(parmName)!?html}"></#list>
-                <fieldset class="form-horizontal">
-                    <div class="form-group">
-                        <label class="control-label col-sm-3" for="${formId}_Text_lineCharacters">${ec.getL10n().localize("Line Characters")}</label>
-                        <div class="col-sm-9">
-                            <input type="text" class="form-control" size="4" name="lineCharacters" id="${formId}_Text_lineCharacters" value="132">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label col-sm-3" for="${formId}_Text_pageLines">${ec.getL10n().localize("Page Lines")}</label>
-                        <div class="col-sm-9">
-                            <input type="text" class="form-control" size="4" name="pageLines" id="${formId}_Text_pageLines" value="88">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label col-sm-3" for="${formId}_Text_lineWrap">${ec.getL10n().localize("Line Wrap?")}</label>
-                        <div class="col-sm-9">
-                            <input type="checkbox" class="form-control" name="lineWrap" id="${formId}_Text_lineWrap" value="true">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label col-sm-3" for="${formId}_Text_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
-                        <div class="col-sm-9">
-                            <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Text_saveFilename" value="${formNode["@name"] + ".txt"}">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-default">${ec.getL10n().localize("Export Text")}</button>
-                </fieldset>
-            </form>
-        </container-dialog>
-    </#if>
-    <#if formNode["@show-pdf-button"]! == "true">
-        <#assign showPdfDialogId = formId + "_PdfDialog">
-        <#assign pdfLinkUrl = sri.getScreenUrlInstance()>
-        <#assign pdfLinkUrlParms = pdfLinkUrl.getParameterMap()>
-        <container-dialog id="${showPdfDialogId}" title="${ec.getL10n().localize("Generate PDF")}">
-            <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
-            <form id="${formId}_Pdf" method="post" action="${ec.web.getWebappRootUrl(false, null)}/fop${pdfLinkUrl.getPath()}">
-                <input type="hidden" name="pageNoLimit" value="true">
-                <#list pdfLinkUrlParms.keySet() as parmName>
-                    <input type="hidden" name="${parmName}" value="${pdfLinkUrlParms.get(parmName)!?html}"></#list>
-                <fieldset class="form-horizontal">
-                    <div class="form-group">
-                        <label class="control-label col-sm-3" for="${formId}_Pdf_layoutMaster">${ec.getL10n().localize("Page Layout")}</label>
-                        <div class="col-sm-9">
-                            <select name="layoutMaster"  id="${formId}_Pdf_layoutMaster" class="form-control">
-                                <option value="letter-landscape">US Letter - Landscape (11x8.5)</option>
-                                <option value="letter-portrait">US Letter - Portrait (8.5x11)</option>
-                                <option value="legal-landscape">US Legal - Landscape (14x8.5)</option>
-                                <option value="legal-portrait">US Legal - Portrait (8.5x14)</option>
-                                <option value="tabloid-landscape">US Tabloid - Landscape (17x11)</option>
-                                <option value="tabloid-portrait">US Tabloid - Portrait (11x17)</option>
-                                <option value="a4-landscape">A4 - Landscape (297x210)</option>
-                                <option value="a4-portrait">A4 - Portrait (210x297)</option>
-                                <option value="a3-landscape">A3 - Landscape (420x297)</option>
-                                <option value="a3-portrait">A3 - Portrait (297x420)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label col-sm-3" for="${formId}_Pdf_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
-                        <div class="col-sm-9">
-                            <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Pdf_saveFilename" value="${formNode["@name"] + ".pdf"}">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-default">${ec.getL10n().localize("Generate PDF")}</button>
-                </fieldset>
-            </form>
-        </container-dialog>
-    </#if>
-</#macro>
 <#macro paginationHeader formListInfo formId isHeaderDialog>
     <#assign formNode = formListInfo.getFormNode()>
+    <#assign listName = formNode["@list"]>
+    <#assign allColInfoList = formListInfo.getAllColInfo()>
     <#assign mainColInfoList = formListInfo.getMainColInfo()>
     <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
@@ -954,8 +657,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
     <#assign isPaginated = (!(formNode["@paginate"]! == "false") && context[listName + "Count"]?? && (context[listName + "Count"]! > 0) &&
             (!formNode["@paginate-always-show"]?has_content || formNode["@paginate-always-show"]! == "true" || (context[listName + "PageMaxIndex"] > 0)))>
+    <#assign currentFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("pageIndex").removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("lastStandalone").removeParameter("formListFindId")>
+    <#assign currentFindUrlParms = currentFindUrl.getParameterMap()>
+    <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
+    <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
     <#if (isHeaderDialog || isSavedFinds || isSelectColumns || isPaginated) && hideNav! != "true">
-        <tr class="form-list-nav-row"><th colspan="${numColumns}"><nav class="form-list-nav">
+        <tr class="form-list-nav-row"><th colspan="${numColumns}"><q-bar>
             <#if isSavedFinds>
                 <#assign userFindInfoList = formListInfo.getUserFormListFinds(ec)>
                 <#if userFindInfoList?has_content>
@@ -965,47 +672,289 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <#if userFindInfo.formListFind.formListFindId == ec.getContext().formListFindId>
                                 <#assign activeUserFindName = userFindInfo.description/></#if></#list>
                     </#if>
-                    <div class="btn-group">
-                      <button type="button" class="btn <#if activeUserFindName?has_content>btn-info<#else>btn-default</#if> dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <#if activeUserFindName?has_content>${activeUserFindName?html}<#else>${ec.getL10n().localize("Saved Finds")}</#if> <span class="caret"></span>
-                      </button>
-                      <ul class="dropdown-menu">
-                        <li><m-link href="${sri.buildUrl(sri.getScreenUrlInstance().path).pathWithParams}">${ec.getL10n().localize("Clear Current Find")}</m-link></li>
+                    <q-btn-dropdown dense outline no-caps label="<#if activeUserFindName?has_content>${activeUserFindName?html}<#else>${ec.getL10n().localize("Saved Finds")}</#if>" color="<#if activeUserFindName?has_content>info</#if>"><q-list dense>
+                        <q-item clickable v-close-popup><q-item-section>
+                            <m-link href="${sri.buildUrl(sri.getScreenUrlInstance().path).pathWithParams}">${ec.getL10n().localize("Clear Current Find")}</m-link>
+                        </q-item-section></q-item>
                         <#list userFindInfoList as userFindInfo>
                             <#assign formListFind = userFindInfo.formListFind>
                             <#assign findParameters = userFindInfo.findParameters>
                             <#-- use only formListFindId now that ScreenRenderImpl picks it up and auto adds configured parameters:
-                                <#assign doFindUrl = sri.buildUrl(sri.getScreenUrlInstance().path).addParameters(findParameters)> -->
+                            <#assign doFindUrl = sri.buildUrl(sri.getScreenUrlInstance().path).addParameters(findParameters)> -->
                             <#assign doFindUrl = sri.buildUrl(sri.getScreenUrlInstance().path).addParameter("formListFindId", formListFind.formListFindId)>
-                            <li><m-link href="${doFindUrl.pathWithParams}">${userFindInfo.description?html}</m-link></li>
+                            <q-item clickable v-close-popup><q-item-section>
+                                <m-link href="${doFindUrl.pathWithParams}">${userFindInfo.description?html}</m-link>
+                            </q-item-section></q-item>
                         </#list>
-                      </ul>
-                    </div>
+                    </q-list></q-btn-dropdown>
                 </#if>
             </#if>
-            <#if isSavedFinds || isHeaderDialog><button id="${headerFormDialogId}_button" type="button" data-toggle="modal" data-target="#${headerFormDialogId}" data-original-title="${headerFormButtonText}" data-placement="bottom" class="btn btn-default"><i class="fa fa-external-link"></i> ${headerFormButtonText}</button></#if>
-            <#if isSelectColumns><button id="${selectColumnsDialogId}_button" type="button" data-toggle="modal" data-target="#${selectColumnsDialogId}" data-original-title="${ec.getL10n().localize("Columns")}" data-placement="bottom" class="btn btn-default"><i class="fa fa-external-link"></i> ${ec.getL10n().localize("Columns")}</button></#if>
+            <#if isSavedFinds || isHeaderDialog>
+                <#assign headerFormDialogId = formId + "_hdialog">
+                <#assign headerFormId = formId + "_header">
+                <#assign headerFormButtonText = ec.getL10n().localize("Find Options")>
+                <m-container-dialog id="${headerFormDialogId}" button-text="${headerFormButtonText}" title="${headerFormButtonText}">
+                    <#-- Saved Finds -->
+                    <#if isSavedFinds && isHeaderDialog><h4 style="margin-top: 0;">${ec.getL10n().localize("Saved Finds")}</h4></#if>
+                    <#if isSavedFinds>
+                        <#assign activeFormListFind = formListInfo.getFormInstance().getActiveFormListFind(ec)!>
+                        <#assign formSaveFindUrl = sri.buildUrl("formSaveFind").path>
+                        <#assign descLabel = ec.getL10n().localize("Description")>
+                        <#if activeFormListFind?has_content>
+                            <#assign screenScheduled = formListInfo.getScreenForm().getFormListFindScreenScheduled(activeFormListFind.formListFindId, ec)!>
+                            <div><strong>${ec.getL10n().localize("Active Saved Find:")} ${activeFormListFind.description?html}</strong></div>
+                            <#if screenScheduled?has_content>
+                                <p>(Scheduled for <#if screenScheduled.renderMode! == 'xsl-fo'>PDF<#else>${screenScheduled.renderMode!?upper_case}</#if><#rt>
+                                    <#t> ${Static["org.moqui.impl.service.ScheduledJobRunner"].getCronDescription(screenScheduled.cronExpression, ec.user.getLocale(), true)!})</p>
+                            <#else>
+                                <m-form class="form-inline" id="${formId}_SCHED" action="${formSaveFindUrl}" v-slot:default="formProps"
+                                        :fields-initial="{formListFindId:'${activeFormListFind.formListFindId}', screenPath:'${sri.getScreenUrlInstance().path}', renderMode:'', cronSelected:''}">
+                                    <m-drop-down v-model="formProps.fields.renderMode" name="renderMode" label="${ec.getL10n().localize("Mode")}" id="${formId}_SCHED_renderMode"
+                                               :options="[{value:'xlsx',label:'XLSX'},{value:'csv',label:'CSV'},{value:'xsl-fo',label:'PDF'}]"></m-drop-down>
+                                    <m-drop-down v-model="formProps.fields.cronSelected" name="cronSelected" label="${ec.getL10n().localize("Schedule")}" id="${formId}_SCHED_cronSelected"
+                                               :options="[{value:'0 0 6 ? * MON-FRI',label:'Monday-Friday'},{value:'0 0 6 ? * *',label:'Every Day'},{value:'0 0 6 ? * MON',label:'Monday Only'},{value:'0 0 6 1 * ?',label:'Monthly'}]"></m-drop-down>
+                                    <q-btn dense outline no-caps type="submit" name="ScheduleFind" onclick="return confirm('${ec.getL10n().localize("Setup a schedule to send this saved find to you by email?")}');" label="${ec.getL10n().localize("Schedule")}"></q-btn>
+                                </m-form>
+                            </#if>
+                        </#if>
+                        <#if currentFindUrlParms?has_content>
+                            <m-form class="form-inline" id="${formId}_NewFind" action="${formSaveFindUrl}" v-slot:default="formProps"
+                                    :fields-initial="{formLocation:'${formListInfo.getSavedFindFullLocation()}',_findDescription:'',<#rt>
+                                    <#t><#list currentFindUrlParms.keySet() as parmName>'${parmName}':'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentFindUrlParms.get(parmName)!)}',</#list>}">
+                                <div class="big-row">
+                                    <div class="q-my-auto big-row-item"><q-input v-model="formProps.fields._findDescription" dense outlined stack-label label="${descLabel}" size="30" name="_findDescription" id="${formId}_NewFind_description" required="required"></q-input></div>
+                                    <div class="on-right q-my-auto big-row-item"><q-btn dense outline no-caps type="submit" label="${ec.getL10n().localize("Save New Find")}"></q-btn></div>
+                                </div>
+                            </m-form>
+                        <#else>
+                            <p>${ec.getL10n().localize("No find parameters, choose some to save a new find or update existing")}</p>
+                        </#if>
+                        <#assign userFindInfoList = formListInfo.getUserFormListFinds(ec)>
+                        <#list userFindInfoList as userFindInfo>
+                            <#assign formListFind = userFindInfo.formListFind>
+                            <#assign findParameters = userFindInfo.findParameters>
+                            <#-- use only formListFindId now that ScreenRenderImpl picks it up and auto adds configured parameters:
+                            <#assign doFindUrl = sri.buildUrl(sri.getScreenUrlInstance().path).addParameters(findParameters)> -->
+                            <#assign doFindUrl = sri.buildUrl(sri.getScreenUrlInstance().path).addParameter("formListFindId", formListFind.formListFindId)>
+                            <#assign saveFindFormId = formId + "_SaveFind" + userFindInfo_index>
+                            <#if currentFindUrlParms?has_content>
+                                <div class="big-row">
+                                    <m-form id="${saveFindFormId}" action="${formSaveFindUrl}" v-slot:default="formProps"
+                                            :fields-initial="{formLocation:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(formListInfo.getSavedFindFullLocation())}', formListFindId:'${formListFind.formListFindId}',<#rt>
+                                            <#t>_findDescription:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(formListFind.description?html)}',
+                                            <#t><#list currentFindUrlParms.keySet() as parmName>'${parmName}':'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentFindUrlParms.get(parmName)!)}',</#list>}">
+                                        <div class="q-my-auto big-row-item"><q-input v-model="formProps.fields._findDescription" dense outlined stack-label label="${descLabel}" size="30" name="_findDescription" id="${saveFindFormId}_description" required="required"></q-input></div>
+                                        <div class="on-right q-my-auto big-row-item"><q-btn dense outline no-caps type="submit" name="UpdateFind" label="${ec.getL10n().localize("Update")}">
+                                            <q-tooltip>Update saved find using description and current find parameters</q-tooltip>
+                                        </q-btn></div>
+                                        <#if userFindInfo.isByUserId == "true">
+                                            <div class="q-my-auto big-row-item"><q-btn dense flat no-caps type="submit" name="DeleteFind" color="negative" icon="delete_forever" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');"></q-btn></div>
+                                        </#if>
+                                        <div class="q-my-auto big-row-item"><q-btn dense outline no-caps to="${doFindUrl.pathWithParams}" label="${ec.getL10n().localize("Do Find")}"></q-btn></div>
+                                    </m-form>
+                                </div>
+                            <#else>
+                                <div>
+                                    <q-btn dense outline no-caps to="${doFindUrl.pathWithParams}" label="${ec.getL10n().localize("Do Find")}"></q-btn>
+                                    <#if userFindInfo.isByUserId == "true">
+                                        <m-form id="${saveFindFormId}" action="${formSaveFindUrl}" :no-validate="true" :fields-initial="{formListFindId:'${formListFind.formListFindId}'}">
+                                            <q-btn dense flat no-caps type="submit" name="DeleteFind" color="negative" icon="delete_forever" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');"></q-btn>
+                                        </m-form>
+                                    </#if>
+                                    <strong>${formListFind.description?html}</strong>
+                                </div>
+                            </#if>
+                        </#list>
+                    </#if>
+                    <#if isSavedFinds && isHeaderDialog><h4>${ec.getL10n().localize("Find Parameters")}</h4></#if>
+                    <#if isHeaderDialog>
+                        <#-- Find Parameters Form -->
+                        <#assign curUrlInstance = sri.getCurrentScreenUrl()>
+                        <#assign skipFormSave = skipForm!false>
+                        <#assign skipForm = false>
+                        <#assign fieldsJsName = "formProps.fields">
+                        <#assign orderByOptions>
+                            <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content>
+                                <#assign headerFieldNode = fieldNode["header-field"][0]>
+                                <#assign showOrderBy = (headerFieldNode["@show-order-by"])!>
+                                <#if showOrderBy?has_content && showOrderBy != "false">
+                                    <#assign caseInsensitive = showOrderBy == "case-insensitive">
+                                    <#assign orderFieldName = fieldNode["@name"]>
+                                    <#assign orderFieldTitle><@fieldTitle headerFieldNode/></#assign>
+                                    <#t>{value:'${caseInsensitive?string("^", "") + orderFieldName}',label:'${orderFieldTitle} ${ec.getL10n().localize("(Asc)")}'},
+                                    <#t>{value:'${"-" + caseInsensitive?string("^", "") + orderFieldName}',label:'${orderFieldTitle} ${ec.getL10n().localize("(Desc)")}'},
+                                </#if>
+                            </#if></#list>
+                        </#assign>
+                        <m-form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}" v-slot:default="formProps"<#rt>
+                                <#t> :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.getFormListHeaderValues(formNode))}">
+                            <q-btn dense outline no-caps name="clearParameters" @click.prevent="formProps.clearForm" label="${ec.getL10n().localize("Clear Parameters")}"></q-btn>
+
+                            <#-- Always add an orderByField to select one or more columns to order by -->
+                            <q-select dense outlined options-dense multiple clearable emit-value map-options v-model="formProps.fields.orderByField"
+                                    name="orderByField" id="${headerFormId}_orderByField" stack-label label="${ec.getL10n().localize("Order By")}"
+                                    :options="[${orderByOptions}]"></q-select>
+
+                            <#t>${sri.pushSingleFormMapContext("")}
+                            <#list formNode["field"] as fieldNode><#if fieldNode["header-field"]?has_content && fieldNode["header-field"][0]?children?has_content>
+                                <#assign headerFieldNode = fieldNode["header-field"][0]>
+                                <#assign allHidden = true>
+                                <#list fieldNode?children as fieldSubNode>
+                                    <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
+                                </#list>
+
+                                <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") || allHidden ||
+                                        ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
+                                        (headerFieldNode["hidden"]?has_content || headerFieldNode["ignored"]?has_content)))>
+                                    <@formSingleWidget headerFieldNode headerFormId "col-sm" false false/>
+                                <#elseif (headerFieldNode["hidden"])?has_content>
+                                    <#recurse headerFieldNode/>
+                                </#if>
+                            </#if></#list>
+                            <#t>${sri.popContext()}<#-- context was pushed so pop here at the end -->
+                        </m-form-link>
+                        <#assign skipForm = skipFormSave>
+                        <#-- TODO: anything needed for per-row or multi forms? -->
+                        <#assign fieldsJsName = "">
+                    </#if>
+                </m-container-dialog>
+            </#if>
+
+            <#if isSelectColumns>
+                <#assign selectColumnsDialogId = formId + "_SelColsDialog">
+                <#assign selectColumnsSortableId = formId + "_SelColsSortable">
+                <#assign fieldsNotInColumns = formListInfo.getFieldsNotReferencedInFormListColumn()>
+                <#assign hiddenChildren>
+                    <#list fieldsNotInColumns as fieldNode>
+                        <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
+                        <#assign curFieldTitle><@fieldTitle fieldSubNode/></#assign>
+                        <#t>{id:'${fieldNode["@name"]}',label:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(curFieldTitle)}'}
+                    <#sep>,</#list>
+                </#assign>
+                <#assign columnFieldInfo>
+                    <#list allColInfoList as columnFieldList>
+                        <#t>{id:'column_${columnFieldList_index}',label:'${ec.l10n.localize("Column")} ${columnFieldList_index + 1}',children:[
+                        <#list columnFieldList as fieldNode>
+                            <#assign fieldSubNode = (fieldNode["header-field"][0])!(fieldNode["default-field"][0])!>
+                            <#assign curFieldTitle><@fieldTitle fieldSubNode/></#assign>
+                            <#t>{id:'${fieldNode["@name"]}',label:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(curFieldTitle)}'}
+                        <#sep>,</#list>
+                        <#t>]}
+                    <#sep>,</#list>
+                </#assign>
+                <m-container-dialog id="${selectColumnsDialogId}" button-text="${ec.getL10n().localize("Columns")}" title="${ec.l10n.localize("Column Fields")}">
+                    <m-form-column-config id="${formId}_SelColsForm" action="${sri.buildUrl("formSelectColumns").path}"
+                        <#if currentFindUrlParms?has_content> :find-parameters="{<#list currentFindUrlParms.keySet() as parmName>'${parmName}':'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentFindUrlParms.get(parmName)!)}'<#sep>,</#list>}"</#if>
+                        :columns-initial="[{id:'hidden', label:'${ec.l10n.localize("Do Not Display")}', children:[${hiddenChildren}]},${columnFieldInfo}]"
+                        form-location="${formListInfo.getFormLocation()}">
+                    </m-form-column-config>
+                </m-container-dialog>
+            </#if>
 
             <#if formNode["@show-csv-button"]! == "true">
                 <#assign csvLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("renderMode", "csv")
                         .addParameter("pageNoLimit", "true").addParameter("lastStandalone", "true").addParameter("saveFilename", formNode["@name"] + ".csv")>
-                <a href="${csvLinkUrl.getUrlWithParams()}" class="btn btn-default">${ec.getL10n().localize("CSV")}</a>
+                <q-btn dense outline type="a" href="${csvLinkUrl.getUrlWithParams()}" label="${ec.getL10n().localize("CSV")}"></q-btn>
             </#if>
             <#if formNode["@show-xlsx-button"]! == "true" && ec.screen.isRenderModeValid("xlsx")>
                 <#assign xlsxLinkUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("renderMode", "xlsx")
                         .addParameter("pageNoLimit", "true").addParameter("lastStandalone", "true").addParameter("saveFilename", formNode["@name"] + ".xlsx")>
-                <a href="${xlsxLinkUrl.getUrlWithParams()}" class="btn btn-default">${ec.getL10n().localize("XLS")}</a>
+                <q-btn dense outline type="a" href="${xlsxLinkUrl.getUrlWithParams()}" label="${ec.getL10n().localize("XLS")}"></q-btn>
             </#if>
             <#if formNode["@show-text-button"]! == "true">
                 <#assign showTextDialogId = formId + "_TextDialog">
-                <button id="${showTextDialogId}_button" type="button" data-toggle="modal" data-target="#${showTextDialogId}" data-original-title="${ec.getL10n().localize("Text")}" data-placement="bottom" class="btn btn-default"><i class="fa fa-external-link"></i> ${ec.getL10n().localize("Text")}</button>
+                <#assign textLinkUrl = sri.getScreenUrlInstance()>
+                <#assign textLinkUrlParms = textLinkUrl.getParameterMap()>
+                <m-container-dialog id="${showTextDialogId}" button-text="${ec.getL10n().localize("Text")}" title="${ec.getL10n().localize("Export Fixed-Width Plain Text")}">
+                    <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
+                    <form id="${formId}_Text" method="post" action="${textLinkUrl.getUrl()}">
+                        <input type="hidden" name="renderMode" value="text">
+                        <input type="hidden" name="pageNoLimit" value="true">
+                        <input type="hidden" name="lastStandalone" value="true">
+                        <#list textLinkUrlParms.keySet() as parmName>
+                            <input type="hidden" name="${parmName}" value="${textLinkUrlParms.get(parmName)!?html}"></#list>
+                        <#-- TODO quasar components and layout, lower priority (not commonly used) -->
+                        <fieldset class="form-horizontal">
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Text_lineCharacters">${ec.getL10n().localize("Line Characters")}</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" size="4" name="lineCharacters" id="${formId}_Text_lineCharacters" value="132">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Text_pageLines">${ec.getL10n().localize("Page Lines")}</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" size="4" name="pageLines" id="${formId}_Text_pageLines" value="88">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Text_lineWrap">${ec.getL10n().localize("Line Wrap?")}</label>
+                                <div class="col-sm-9">
+                                    <input type="checkbox" class="form-control" name="lineWrap" id="${formId}_Text_lineWrap" value="true">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Text_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Text_saveFilename" value="${formNode["@name"] + ".txt"}">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-default">${ec.getL10n().localize("Export Text")}</button>
+                        </fieldset>
+                    </form>
+                </m-container-dialog>
             </#if>
             <#if formNode["@show-pdf-button"]! == "true">
                 <#assign showPdfDialogId = formId + "_PdfDialog">
-                <button id="${showPdfDialogId}_button" type="button" data-toggle="modal" data-target="#${showPdfDialogId}" data-original-title="${ec.getL10n().localize("PDF")}" data-placement="bottom" class="btn btn-default"><i class="fa fa-external-link"></i> ${ec.getL10n().localize("PDF")}</button>
+                <#assign pdfLinkUrl = sri.getScreenUrlInstance()>
+                <#assign pdfLinkUrlParms = pdfLinkUrl.getParameterMap()>
+                <m-container-dialog id="${showPdfDialogId}" button-text="${ec.getL10n().localize("PDF")}" title="${ec.getL10n().localize("Generate PDF")}">
+                    <#-- NOTE: don't use m-form, most commonly results in download and if not won't be html -->
+                    <form id="${formId}_Pdf" method="post" action="${ec.web.getWebappRootUrl(false, null)}/fop${pdfLinkUrl.getPath()}">
+                        <input type="hidden" name="pageNoLimit" value="true">
+                        <#list pdfLinkUrlParms.keySet() as parmName>
+                            <input type="hidden" name="${parmName}" value="${pdfLinkUrlParms.get(parmName)!?html}"></#list>
+                        <#-- TODO quasar components and layout, lower priority (not commonly used) -->
+                        <fieldset class="form-horizontal">
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Pdf_layoutMaster">${ec.getL10n().localize("Page Layout")}</label>
+                                <div class="col-sm-9">
+                                    <select name="layoutMaster"  id="${formId}_Pdf_layoutMaster" class="form-control">
+                                        <option value="letter-landscape">US Letter - Landscape (11x8.5)</option>
+                                        <option value="letter-portrait">US Letter - Portrait (8.5x11)</option>
+                                        <option value="legal-landscape">US Legal - Landscape (14x8.5)</option>
+                                        <option value="legal-portrait">US Legal - Portrait (8.5x14)</option>
+                                        <option value="tabloid-landscape">US Tabloid - Landscape (17x11)</option>
+                                        <option value="tabloid-portrait">US Tabloid - Portrait (11x17)</option>
+                                        <option value="a4-landscape">A4 - Landscape (297x210)</option>
+                                        <option value="a4-portrait">A4 - Portrait (210x297)</option>
+                                        <option value="a3-landscape">A3 - Landscape (420x297)</option>
+                                        <option value="a3-portrait">A3 - Portrait (297x420)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="${formId}_Pdf_saveFilename">${ec.getL10n().localize("Save to Filename")}</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" size="40" name="saveFilename" id="${formId}_Pdf_saveFilename" value="${formNode["@name"] + ".pdf"}">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-default">${ec.getL10n().localize("Generate PDF")}</button>
+                        </fieldset>
+                    </form>
+                </m-container-dialog>
+            </#if>
+
+            <#if (context[listName + "Count"]!(context[listName].size())!0) == 0>
+                <#if context.getSharedMap().get("_entityListNoSearchParms")!false == true>
+                    <strong class="text-warning on-right" style="display:inline-block;padding-top:2px;">${ec.getL10n().localize("Find Options required to view results")}</strong>
+                <#else>
+                    <strong class="text-warning on-right" style="display:inline-block;padding-top:2px;">${ec.getL10n().localize("No results found")}</strong>
+                </#if>
             </#if>
 
             <#if isPaginated>
+                <q-space></q-space>
                 <#-- no more paginate/show-all button, use page size drop-down with 500 instead:
                 <#if formNode["@show-all-button"]! == "true" && (context[listName + 'Count'] < 500)>
                     <#if context["pageNoLimit"]?has_content>
@@ -1018,34 +967,23 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </#if>
                 -->
                 <#if formNode["@show-all-button"]! == "true" || formNode["@show-page-size"]! == "true">
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        ${context[listName + "PageSize"]?c} <span class="caret"></span>
-                      </button>
-                      <ul class="dropdown-menu">
+                    <q-btn-dropdown dense outline no-caps label="${context[listName + "PageSize"]?c}"><q-list dense>
                         <#list [10,20,50,100,200,500] as curPageSize>
                             <#assign pageSizeUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageSize", curPageSize?c)>
-                            <li><m-link href="${pageSizeUrl.pathWithParams}">${curPageSize?c}</m-link></li>
+                            <q-item clickable v-close-popup><q-item-section>
+                                <m-link href="${pageSizeUrl.pathWithParams}">${curPageSize?c}</m-link>
+                            </q-item-section></q-item>
                         </#list>
-                      </ul>
-                    </div>
+                    </q-list></q-btn-dropdown>
                 </#if>
 
                 <#assign curPageMaxIndex = context[listName + "PageMaxIndex"]>
-                <#if (curPageMaxIndex > 4)><form-go-page id-val="${formId}" :max-index="${curPageMaxIndex?c}"></form-go-page></#if>
-                <form-paginate :paginate="{ count:${context[listName + "Count"]?c}, pageIndex:${context[listName + "PageIndex"]?c},<#rt>
+                <#if (curPageMaxIndex > 4)><m-form-go-page id-val="${formId}" :max-index="${curPageMaxIndex?c}"></m-form-go-page></#if>
+                <m-form-paginate :paginate="{ count:${context[listName + "Count"]?c}, pageIndex:${context[listName + "PageIndex"]?c},<#rt>
                     <#t> pageSize:${context[listName + "PageSize"]?c}, pageMaxIndex:${context[listName + "PageMaxIndex"]?c},
-                    <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></form-paginate>
+                    <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></m-form-paginate>
             </#if>
-
-            <#if (context[listName + "Count"]!(context[listName].size())!0) == 0>
-                <#if context.getSharedMap().get("_entityListNoSearchParms")!false == true>
-                    <h4 class="text-warning" style="display:inline-block;padding-top:2px;">${ec.getL10n().localize("Find Options required to view results")}</h4>
-                <#else>
-                    <h4 class="text-warning" style="display:inline-block;padding-top:2px;">${ec.getL10n().localize("No results found")}</h4>
-                </#if>
-            </#if>
-        </nav></th></tr>
+        </q-bar></th></tr>
 
         <#if isHeaderDialog>
         <tr><th colspan="${numColumns}" style="font-weight: normal">
@@ -1075,10 +1013,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
                 <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
                 <#assign curUrlInstance = sri.getCurrentScreenUrl()>
-                <form-link name="${headerFormId}_clr" id="${headerFormId}_clr" action="${curUrlInstance.path}">
-                    <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
-                    <button id="${headerFormId}-quick-clear" type="submit" name="clearParameters" style="float:left; padding: 0 5px 0 5px; margin: 0 4px 0 0;" class="btn btn-primary btn-sm"><i class="fa fa-remove"></i></button>
-                </form-link>
+                <m-form-link name="${headerFormId}_clr" id="${headerFormId}_clr" action="${curUrlInstance.path}"
+                         :fields-initial="{<#list hiddenParameterKeys as hiddenParameterKey>'${hiddenParameterKey}':'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(hiddenParameterMap.get(hiddenParameterKey)!)}'<#sep>,</#list>}">
+                    <q-btn dense flat type="submit" icon="clear" color="negative">
+                        <q-tooltip>Reset to Default</q-tooltip></q-btn>
+                </m-form-link>
             </#if>
         </th></tr>
         </#if>
@@ -1108,15 +1047,15 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign isHeaderDialog = needHeaderForm && formNode["@header-dialog"]! == "true">
     <#assign isMulti = !skipForm && formNode["@multi"]! == "true">
     <#assign formListUrlInfo = sri.makeUrlByType(formNode["@transition"], "transition", null, "false")>
-    <#assign formListUrlParms = formListUrlInfo.getParameterMap()>
     <#assign listName = formNode["@list"]>
     <#assign isServerStatic = formInstance.isServerStatic(sri.getRenderMode())>
-    <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
-    <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
+    <#assign formDisabled = formListUrlInfo.disableLink>
 
 <#if isServerStatic><#-- client rendered, static -->
-    <#if !skipHeader><@paginationHeaderModals formListInfo formId isHeaderDialog/></#if>
-    <form-list name="${formName}" id="${formId}" rows="${formName}" action="${formListUrlInfo.path}" :multi="${isMulti?c}"<#rt>
+    <#-- TODO: form-list server-static needs to be revisited still for Quasar -->
+    <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
+    <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
+    <m-form-list name="${formName}" id="${formId}" rows="${formName}" action="${formListUrlInfo.path}" :multi="${isMulti?c}"<#rt>
             <#t> :skip-form="${skipForm?c}" :skip-header="${skipHeader?c}" :header-form="${needHeaderForm?c}"
             <#t> :header-dialog="${isHeaderDialog?c}" :saved-finds="${(formNode["@saved-finds"]! == "true")?c}"
             <#t> :select-columns="${(formNode["@select-columns"]! == "true")?c}" :all-button="${(formNode["@show-all-button"]! == "true")?c}"
@@ -1137,7 +1076,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </#list></th>
             </#list></tr>
             <#if hasSubColumns>
-                <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed${tableStyle}"><thead>
+                <tr><td colspan="${numColumns}" class="m-form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed${tableStyle}"><thead>
                     <#list subColInfoList as subColFieldList><th>
                         <#list subColFieldList as fieldNode>
                             <div><@formListHeaderField fieldNode isHeaderDialog/></div>
@@ -1165,111 +1104,46 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#list>
             <#assign fieldsJsName = ""><#assign ownerForm = "">
         </template>
-    </form-list>
+    </m-form-list>
 <#else><#-- server rendered, non-static -->
     <#assign listObject = formListInfo.getListObject(true)!>
+    <#-- use raw data, need all for non-simple fields, transform only when needed for m-form.fields-initial: <#assign listObject = sri.getFormListRowValues(formListInfo)!> -->
     <#assign listHasContent = listObject?has_content>
 
-    <#-- all form elements outside table element and referred to with input/etc.@form attribute for proper HTML -->
-    <#if !(isMulti || skipForm) && listHasContent><#list listObject as listEntry>
-        ${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
-        <m-form name="${formId}_${listEntry_index}" id="${formId}_${listEntry_index}" action="${formListUrlInfo.path}">
-            <input type="hidden" name="pageIndex" value="${pageIndex!"0"}">
-            <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-            <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
-            <#assign listEntryIndex = listEntry_index>
-            <#-- hidden fields -->
-            <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
-            <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
-            <#assign listEntryIndex = "">
-        </m-form>
-        ${sri.endFormListRow()}
-    </#list></#if>
+    <#-- start/header -->
     <#if !skipStart>
-        <#if needHeaderForm && !isHeaderDialog>
-            <#assign headerUrlInstance = sri.getCurrentScreenUrl()>
-            <form-link name="${headerFormId}" id="${headerFormId}" action="${headerUrlInstance.path}">
-                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-                <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
-                <#assign hiddenFieldList = formListInfo.getListHeaderHiddenFieldList()>
-                <#list hiddenFieldList as hiddenField><#recurse hiddenField["header-field"][0]/></#list>
-            </form-link>
-        </#if>
-        <#if formListInfo.isFirstRowForm()>
-            <#t>${sri.pushSingleFormMapContext(formNode["@map-first-row"]!"")}
-            <#assign listEntryIndex = "first">
-            <#assign firstUrlInstance = sri.makeUrlByType(formNode["@transition-first-row"], "transition", null, "false")>
-            <m-form name="${formId}_first" id="${formId}_first" action="${firstUrlInstance.path}">
-                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-                <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
-                <#assign hiddenFieldList = formListInfo.getListFirstRowHiddenFieldList()>
-                <#list hiddenFieldList as hiddenField><#recurse hiddenField["first-row-field"][0]/></#list>
-            </m-form>
-            <#assign listEntryIndex = "">
-            <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
-        </#if>
-        <#if formListInfo.isSecondRowForm()>
-            <#t>${sri.pushSingleFormMapContext(formNode["@map-second-row"]!"")}
-            <#assign listEntryIndex = "second">
-            <#assign secondUrlInstance = sri.makeUrlByType(formNode["@transition-second-row"], "transition", null, "false")>
-            <m-form name="${formId}_second" id="${formId}_second" action="${secondUrlInstance.path}">
-                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-                <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
-                <#assign hiddenFieldList = formListInfo.getListSecondRowHiddenFieldList()>
-                <#list hiddenFieldList as hiddenField><#recurse hiddenField["second-row-field"][0]/></#list>
-            </m-form>
-            <#assign listEntryIndex = "">
-            <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
-        </#if>
-        <#if formListInfo.isLastRowForm()>
-            <#t>${sri.pushSingleFormMapContext(formNode["@map-last-row"]!"")}
-            <#assign listEntryIndex = "last">
-            <#assign lastUrlInstance = sri.makeUrlByType(formNode["@transition-last-row"], "transition", null, "false")>
-            <m-form name="${formId}_last" id="${formId}_last" action="${lastUrlInstance.path}">
-                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-                <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
-                <#assign hiddenFieldList = formListInfo.getListLastRowHiddenFieldList()>
-                <#list hiddenFieldList as hiddenField><#recurse hiddenField["last-row-field"][0]/></#list>
-            </m-form>
-            <#assign listEntryIndex = "">
-            <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
-        </#if>
         <#if isMulti>
-        <m-form name="${formId}" id="${formId}" action="${formListUrlInfo.path}">
-            <input type="hidden" name="moquiFormName" value="${formName}">
-            <input type="hidden" name="_isMulti" value="true">
-            <input type="hidden" name="pageIndex" value="${pageIndex!"0"}">
-            <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-            <#list formListUrlParms.keySet() as parmName><#if !hiddenParameterMap.containsKey(parmName)>
-                <input type="hidden" name="${parmName}" value="${formListUrlParms.get(parmName)!?html}">
-            </#if></#list>
-            <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
-            <#if listHasContent><#list listObject as listEntry>
-                <#assign listEntryIndex = listEntry_index>
-                <#t>${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
-                <#-- hidden fields -->
-                <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
-                <#list hiddenFieldList as hiddenField><@formListSubField hiddenField true false isMulti false/></#list>
-                <#t>${sri.endFormListRow()}
-                <#assign listEntryIndex = "">
-            </#list></#if>
-        </m-form>
+        <m-form name="${formId}" id="${formId}" action="${formListUrlInfo.path}" v-slot:default="formProps"
+                    :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.makeFormListMultiMap(formListInfo, listObject, formListUrlInfo))}">
         </#if>
 
-        <#if !skipHeader><@paginationHeaderModals formListInfo formId isHeaderDialog/></#if>
-        <div class="table-scroll-wrapper"><table class="table table-striped table-hover table-condensed${tableStyle}" id="${formId}_table">
+        <div class="q-my-sm q-table__container q-table__card q-table--horizontal-separator q-table--dense q-table--flat" :class="{'q-table--dark':$q.dark.isActive, 'q-table__card--dark':$q.dark.isActive, 'q-dark':$q.dark.isActive,}">
+        <div class="table q-table ${tableStyle}" id="${formId}_table">
         <#if !skipHeader>
-            <thead>
+            <div class="thead">
                 <@paginationHeader formListInfo formId isHeaderDialog/>
                 <#assign ownerForm = headerFormId>
-                <tr>
-                    <#list mainColInfoList as columnFieldList><th><#list columnFieldList as fieldNode>
+                <div class="tr">
+                    <#if needHeaderForm && !isHeaderDialog>
+                        <#assign fieldsJsName = "formProps.fields">
+                        <#assign headerUrlInstance = sri.getCurrentScreenUrl()>
+                        <m-form-link name="${headerFormId}" id="${headerFormId}" action="${headerUrlInstance.path}" v-slot:default="formProps"<#rt>
+                                <#t> :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.getFormListHeaderValues(formNode))}">
+                    </#if>
+
+                    <#list mainColInfoList as columnFieldList><div class="th text-left"><#list columnFieldList as fieldNode>
                         <div><@formListHeaderField fieldNode isHeaderDialog/></div>
-                    </#list></th></#list>
-                </tr>
+                    </#list></div><#-- /th --></#list>
+
+                    <#if needHeaderForm && !isHeaderDialog>
+                        <#assign fieldsJsName = "">
+                        </m-form-link>
+                    </#if>
+                </div><#-- /tr -->
                 <#if hasSubColumns>
+                    <#-- TODO: per-row form and sub-columns used together will result in invalid html -->
                     <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed${tableStyle}"><thead>
-                        <#list subColInfoList as subColFieldList><th>
+                        <#list subColInfoList as subColFieldList><th class="text-left">
                             <#list subColFieldList as fieldNode>
                                 <div><@formListHeaderField fieldNode isHeaderDialog/></div>
                             </#list>
@@ -1277,13 +1151,26 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </thead></table></div></td></tr>
                 </#if>
                 <#assign ownerForm = "">
-            </thead>
+            </div><#-- /thead -->
         </#if>
-        <#if !isServerStatic><tbody></#if>
+        <div class="tbody">
         <#assign ownerForm = formId>
     </#if>
     <#-- first-row fields -->
     <#if formListInfo.hasFirstRow()>
+        <#-- TODO change to wrap row, use something like sri.makeFormListSingleMap() which eliminates use inline of hiddenParameterKeys, hiddenParameterMap -->
+        <#t>${sri.pushSingleFormMapContext(formNode["@map-first-row"]!"")}
+        <#assign listEntryIndex = "first">
+        <#assign firstUrlInstance = sri.makeUrlByType(formNode["@transition-first-row"], "transition", null, "false")>
+        <m-form name="${formId}_first" id="${formId}_first" action="${firstUrlInstance.path}">
+            <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+            <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
+            <#assign hiddenFieldList = formListInfo.getListFirstRowHiddenFieldList()>
+            <#list hiddenFieldList as hiddenField><#recurse hiddenField["first-row-field"][0]/></#list>
+        </m-form>
+        <#assign listEntryIndex = "">
+        <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+
         <#t>${sri.pushSingleFormMapContext(formNode["@map-first-row"]!"")}
         <#assign ownerForm = formId + "_first">
         <#assign listEntryIndex = "first">
@@ -1302,6 +1189,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
     <#-- second-row fields -->
     <#if formListInfo.hasSecondRow()>
+        <#if formListInfo.isSecondRowForm()>
+            <#-- TODO change to wrap row, use something like sri.makeFormListSingleMap() which eliminates use inline of hiddenParameterKeys, hiddenParameterMap -->
+            <#t>${sri.pushSingleFormMapContext(formNode["@map-second-row"]!"")}
+            <#assign listEntryIndex = "second">
+            <#assign secondUrlInstance = sri.makeUrlByType(formNode["@transition-second-row"], "transition", null, "false")>
+            <m-form name="${formId}_second" id="${formId}_second" action="${secondUrlInstance.path}">
+                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+                <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
+                <#assign hiddenFieldList = formListInfo.getListSecondRowHiddenFieldList()>
+                <#list hiddenFieldList as hiddenField><#recurse hiddenField["second-row-field"][0]/></#list>
+            </m-form>
+            <#assign listEntryIndex = "">
+            <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+        </#if>
+
         <#t>${sri.pushSingleFormMapContext(formNode["@map-second-row"]!"")}
         <#assign ownerForm = formId + "_second">
         <#assign listEntryIndex = "second">
@@ -1322,19 +1224,30 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign listEntryIndex = listEntry_index>
         <#-- NOTE: the form-list.@list-entry attribute is handled in the ScreenForm class through this call: -->
         <#t>${sri.startFormListRow(formListInfo, listEntry, listEntry_index, listEntry_has_next)}
-        <tr>
-        <#if !(isMulti || skipForm)><#assign ownerForm = formId + "_" + listEntry_index></#if>
+        <div class="tr">
+
+        <#if !(isMulti || skipForm)>
+            <#assign ownerForm = formId + "_" + listEntry_index>
+            <#assign fieldsJsName = "formProps.fields">
+            <m-form name="${formId}_${listEntry_index}" id="${formId}_${listEntry_index}" action="${formListUrlInfo.path}" v-slot:default="formProps"
+                    :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.makeFormListSingleMap(formListInfo, listEntry, formListUrlInfo))}">
+        </#if>
+        <#if isMulti>
+            <#assign ownerForm = formId>
+            <#assign fieldsJsName = "formProps.fields">
+        </#if>
+
         <#-- actual columns -->
         <#list mainColInfoList as columnFieldList>
-            <td>
+            <div class="td">
             <#list columnFieldList as fieldNode>
                 <@formListSubField fieldNode true false isMulti false/>
             </#list>
-            </td>
+            </div>
         </#list>
         <#if hasSubColumns><#assign aggregateSubList = listEntry["aggregateSubList"]!><#if aggregateSubList?has_content>
             </tr>
-            <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed${tableStyle}">
+            <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows q-table__container q-table__card q-table--horizontal-separator q-table--dense q-table--flat"><table class="q-table ${tableStyle}">
                 <#list aggregateSubList as subListEntry><tr>
                     <#t>${sri.startFormListSubRow(formListInfo, subListEntry, subListEntry_index, subListEntry_has_next)}
                     <#list subColInfoList as subColFieldList><td>
@@ -1346,30 +1259,55 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </tr></#list>
             </table></div></td><#-- note no /tr, let following blocks handle it -->
         </#if></#if>
-        </tr>
-        <#if !(isMulti || skipForm)><#assign ownerForm = ""></#if>
+
+        <#if !(isMulti || skipForm)>
+            <#assign ownerForm = "">
+            <#assign fieldsJsName = "">
+            </m-form>
+        </#if>
+        <#if isMulti>
+            <#assign fieldsJsName = "">
+        </#if>
+
+        </div><#-- /tr -->
         <#t>${sri.endFormListRow()}
+        <#assign listEntryIndex = "">
     </#list></#if>
-    <#assign listEntryIndex = "">
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
+
     <#-- last-row fields -->
     <#if formListInfo.hasLastRow()>
+        <#-- TODO change to wrap row, use something like sri.makeFormListSingleMap() which eliminates use inline of hiddenParameterKeys, hiddenParameterMap -->
+        <#t>${sri.pushSingleFormMapContext(formNode["@map-last-row"]!"")}
+        <#assign listEntryIndex = "last">
+        <#assign lastUrlInstance = sri.makeUrlByType(formNode["@transition-last-row"], "transition", null, "false")>
+        <m-form name="${formId}_last" id="${formId}_last" action="${lastUrlInstance.path}">
+            <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
+            <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
+            <#assign hiddenFieldList = formListInfo.getListLastRowHiddenFieldList()>
+            <#list hiddenFieldList as hiddenField><#recurse hiddenField["last-row-field"][0]/></#list>
+        </m-form>
+        <#assign listEntryIndex = "">
+        <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+
         <#t>${sri.pushSingleFormMapContext(formNode["@map-last-row"]!"")}
         <#assign ownerForm = formId + "_last">
         <#assign listEntryIndex = "last">
-        <tr class="last">
+        <div class="tr last">
             <#list mainColInfoList as columnFieldList>
-                <td>
+                <div class="td">
                     <#list columnFieldList as fieldNode>
                             <@formListSubLast fieldNode true/>
                         </#list>
-                </td>
+                </div>
             </#list>
-        </tr>
+        </div>
         <#assign ownerForm = formId>
         <#assign listEntryIndex = "">
         <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
     </#if>
+
+    <#-- end/footer -->
     <#if !skipEnd>
         <#if isMulti && listHasContent>
             <tr><td colspan="${numColumns}">
@@ -1378,30 +1316,33 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if>
         <#-- footer pagination control -->
         <#if isPaginated?? && isPaginated>
-            <tr class="form-list-nav-row"><th colspan="${numColumns}"><nav class="form-list-nav">
+            <tr class="form-list-nav-row"><th colspan="${numColumns}"><q-bar>
+                <q-space></q-space>
                 <#if formNode["@show-all-button"]! == "true" || formNode["@show-page-size"]! == "true">
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        ${context[listName + "PageSize"]?c} <span class="caret"></span>
-                      </button>
-                      <ul class="dropdown-menu">
+                    <q-btn-dropdown dense outline no-caps label="${context[listName + "PageSize"]?c}"><q-list dense>
                         <#list [10,20,50,100,200,500] as curPageSize>
                             <#assign pageSizeUrl = sri.getScreenUrlInstance().cloneUrlInstance().addParameter("pageSize", curPageSize?c)>
-                            <li><m-link href="${pageSizeUrl.pathWithParams}">${curPageSize?c}</m-link></li>
+                            <q-item clickable v-close-popup><q-item-section>
+                                <m-link href="${pageSizeUrl.pathWithParams}">${curPageSize?c}</m-link>
+                            </q-item-section></q-item>
                         </#list>
-                      </ul>
-                    </div>
+                    </q-list></q-btn-dropdown>
                 </#if>
                 <#assign curPageMaxIndex = context[listName + "PageMaxIndex"]>
-                <#if (curPageMaxIndex > 4)><form-go-page id-val="${formId}" :max-index="${curPageMaxIndex?c}"></form-go-page></#if>
-                <form-paginate :paginate="{ count:${context[listName + "Count"]?c}, pageIndex:${context[listName + "PageIndex"]?c},<#rt>
+                <#if (curPageMaxIndex > 4)><m-form-go-page id-val="${formId}" :max-index="${curPageMaxIndex?c}"></m-form-go-page></#if>
+                <m-form-paginate :paginate="{ count:${context[listName + "Count"]?c}, pageIndex:${context[listName + "PageIndex"]?c},<#rt>
                     <#t> pageSize:${context[listName + "PageSize"]?c}, pageMaxIndex:${context[listName + "PageMaxIndex"]?c},
-                    <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></form-paginate>
-            </nav></th></tr>
+                    <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></m-form-paginate>
+            </q-bar></th></tr>
         </#if>
-        <#if !isServerStatic></tbody></#if>
-        <#assign ownerForm = "">
-        </table></div>
+        </div><#-- /tbody -->
+        </div><#-- /table -->
+        </div><#-- /table wrapper -->
+
+        <#if isMulti>
+            <#assign ownerForm = "">
+            </m-form>
+        </#if>
     </#if>
     <#if formNode["@focus-field"]?has_content>
         <m-script>$("#${formId}_table").find('[name="${formNode["@focus-field"]}<#if isMulti && !formListInfo.hasFirstRow()>_0</#if>"][form="${formId}<#if formListInfo.hasFirstRow()>_first<#elseif !isMulti>_0</#if>"]').addClass('default-focus').focus();</m-script>
@@ -1544,7 +1485,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#-- ================== Form Field Widgets ==================== -->
 <#-- ========================================================== -->
 
-<#macro fieldName widgetNode><#assign fieldNode=widgetNode?parent?parent/>${fieldNode["@name"]?html}<#if isMulti?exists && isMulti && listEntryIndex?has_content && listEntryIndex?matches("\\d*")>_${listEntryIndex}</#if></#macro>
+<#macro fieldName widgetNode suffix=""><#assign fieldNode=widgetNode?parent?parent/>${fieldNode["@name"]?html}${suffix}<#if isMulti?exists && isMulti && listEntryIndex?has_content && listEntryIndex?matches("\\d*")>_${listEntryIndex}</#if></#macro>
 <#macro fieldId widgetNode><#assign fieldNode=widgetNode?parent?parent/><#if fieldFormId?has_content>${fieldFormId}<#else>${ec.getResource().expandNoL10n(fieldNode?parent["@name"], "")}</#if>_${fieldNode["@name"]}<#if listEntryIndex?has_content>_${listEntryIndex}</#if><#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#macro>
 <#macro fieldTitle fieldSubNode><#t>
     <#t><#if (fieldSubNode?node_name == 'header-field')>
@@ -1569,12 +1510,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign tlId><@fieldId .node/></#assign>
     <#assign curName><@fieldName .node/></#assign>
     <#assign containerStyle = ec.getResource().expandNoL10n(.node["@container-style"]!, "")>
-    <#list (options.keySet())! as key>
-        <#assign allChecked = ec.getResource().expandNoL10n(.node["@all-checked"]!, "")>
-        <#assign fullId = tlId>
-        <#if (key_index > 0)><#assign fullId = tlId + "_" + key_index></#if>
-        <span id="${fullId}"<#if containerStyle?has_content> class="${containerStyle}"</#if>><input type="checkbox" name="${curName}" value="${key?html}"<#if allChecked! == "true"> checked="checked"<#elseif currentValue?has_content && (currentValue==key || currentValue.contains(key))> checked="checked"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>><#if options.get(key)! != ""><span class="checkbox-label" onclick="$('#${fullId}').children('input[type=checkbox]').click()" style="cursor: default">${options.get(key)}</span></#if></span>
-    </#list>
+    <#assign fieldLabel><@fieldTitle .node?parent/></#assign>
+    <#assign useWrapper = (.node["@no-wrapper"]!"false") != "true">
+    <#if useWrapper>
+    <q-field dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if><#if containerStyle?has_content> class="${containerStyle}"</#if><#if formDisabled!false> disable</#if>>
+        <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
+        <template v-slot:control>
+    </#if>
+            <#list (options.keySet())! as key>
+                <q-checkbox size="xs" val="${key?html}" label="${(options.get(key)!"")?html}" name="${curName}" id="${tlId}<#if (key_index > 0)>_${key_index}</#if>"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
+                    <#lt><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curName}"<#else> value="${key?html}"<#if allChecked! == "true"> checked="checked"<#elseif currentValue?has_content && (currentValue==key || currentValue.contains(key))> checked="checked"</#if></#if>></q-checkbox>
+            </#list>
+    <#if useWrapper>
+        </template>
+    </q-field>
+    </#if>
 </#macro>
 
 <#macro "date-find">
@@ -1583,33 +1533,41 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#else><#assign size=16><#assign maxlength=23><#assign defaultFormat="yyyy-MM-dd HH:mm">
     </#if>
     <#assign curFieldName><@fieldName .node/></#assign>
+    <#assign curFieldTitle><@fieldTitle dtSubFieldNode/></#assign>
     <#assign fieldValueFrom = ec.getL10n().format(ec.getContext().get(curFieldName + "_from")!?default(.node["@default-value-from"]!""), defaultFormat)>
     <#assign fieldValueThru = ec.getL10n().format(ec.getContext().get(curFieldName + "_thru")!?default(.node["@default-value-thru"]!""), defaultFormat)>
     <span class="form-date-find">
-      <span>${ec.getL10n().localize("From")}&nbsp;</span>
-      <date-time id="<@fieldId .node/>_from" name="${curFieldName}_from" value="${fieldValueFrom?html}" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
-        <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"<#else> tooltip="From"</#if>
-        <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>/>
+      <m-date-time id="<@fieldId .node/>_from" name="${curFieldName}_from" value="${fieldValueFrom?html}" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
+          <#t> :label="${curFieldTitle} ${ec.getL10n().localize("From")}"
+          <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
+          <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>></m-date-time>
     </span>
     <span class="form-date-find">
-      <span>${ec.getL10n().localize("Thru")}&nbsp;</span>
-      <date-time id="<@fieldId .node/>_thru" name="${curFieldName}_thru" value="${fieldValueThru?html}" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
-          <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"<#else> tooltip="Thru"</#if>
-          <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>/>
+      <m-date-time id="<@fieldId .node/>_thru" name="${curFieldName}_thru" value="${fieldValueThru?html}" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
+          <#t> :label="${curFieldTitle} ${ec.getL10n().localize("Thru")}"
+          <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
+          <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>></m-date-time>
     </span>
 </#macro>
 
 <#macro "date-period">
-    <#assign tlId><@fieldId .node/></#assign><#assign curFieldName><@fieldName .node/></#assign>
-    <#assign fvOffset = ec.getContext().get(curFieldName + "_poffset")!>
-    <#assign fvPeriod = ec.getContext().get(curFieldName + "_period")!?lower_case>
-    <#assign fvDate = ec.getContext().get(curFieldName + "_pdate")!"">
-    <#assign fvFromDate = ec.getContext().get(curFieldName + "_from")!"">
-    <#assign fvThruDate = ec.getContext().get(curFieldName + "_thru")!"">
+    <#assign tlId><@fieldId .node/></#assign>
+    <#assign curFieldName><@fieldName .node/></#assign>
+    <#assign curFieldTitle><@fieldTitle .node?parent/></#assign>
     <#assign allowEmpty = .node["@allow-empty"]!"true">
     <#if .node["@time"]! == "true"><#assign fromThruType = "date-time"><#else><#assign fromThruType = "date"></#if>
-    <date-period name="${curFieldName}" id="${tlId}" :allow-empty="${allowEmpty}" offset="${fvOffset}" period="${fvPeriod}" from-thru-type="${fromThruType}"
-         date="${fvDate}" from-date="${fvFromDate}" thru-date="${fvThruDate}" <#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>/>
+    <m-date-period name="${curFieldName}" id="${tlId}" :allow-empty="${allowEmpty}" from-thru-type="${fromThruType}" label="${curFieldTitle}"
+        <#if fieldsJsName?has_content>
+            :fields="${fieldsJsName}"
+        <#else>
+            <#assign fvOffset = ec.getContext().get(curFieldName + "_poffset")!>
+            <#assign fvPeriod = ec.getContext().get(curFieldName + "_period")!?lower_case>
+            <#assign fvDate = ec.getContext().get(curFieldName + "_pdate")!"">
+            <#assign fvFromDate = ec.getContext().get(curFieldName + "_from")!"">
+            <#assign fvThruDate = ec.getContext().get(curFieldName + "_thru")!"">
+            :fields="{'${curFieldName}_poffset':'${fvOffset}','${curFieldName}_period':'${fvPeriod}','${curFieldName}_pdate':'${fvDate}','${curFieldName}_from':'${fvFromDate}','${curFieldName}_thru':'${fvThruDate}'}"
+        </#if>
+        <#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>></m-date-period>
 </#macro>
 
 <#--
@@ -1650,25 +1608,32 @@ a => A, d => D, y => Y
         <#elseif .node["@type"]! == "date"><#assign javaFormat="yyyy-MM-dd">
         <#else><#assign javaFormat="yyyy-MM-dd HH:mm"></#if>
     </#if>
-    <#assign fieldValue = sri.getFieldValueString(dtFieldNode, .node["@default-value"]!"", javaFormat)>
+    <#assign curName><@fieldName .node/></#assign>
     <#assign validationClasses = formInstance.getFieldValidationClasses(dtSubFieldNode)>
-    <date-time id="<@fieldId .node/>" name="<@fieldName .node/>" value="${fieldValue?html}" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
+    <m-date-time id="<@fieldId .node/>" name="${curName}" type="${.node["@type"]!""}" size="${.node["@size"]!""}" label="<@fieldTitle dtSubFieldNode/>"<#if formDisabled!> disable</#if><#rt>
+        <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curName}"<#else> value="${sri.getFieldValueString(dtFieldNode, .node["@default-value"]!"", javaFormat)?html}"</#if>
         <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
         <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>
-        <#t><#if validationClasses?contains("required")> required="required"</#if> auto-year="${.node["@auto-year"]!"true"}" :minuteStep="${.node["@minute-stepping"]!"5"}"/>
+        <#t><#if validationClasses?contains("required")> required="required"</#if> auto-year="${.node["@auto-year"]!"true"}" :minuteStep="${.node["@minute-stepping"]!"5"}"></m-date-time>
 </#macro>
 
 <#macro display>
     <#assign dispFieldId><@fieldId .node/></#assign>
     <#assign dispFieldName><@fieldName .node/></#assign>
-    <#assign dispFieldNode = .node?parent?parent>
+    <#assign dispSubFieldNode = .node?parent>
+    <#assign dispFieldNode = dispSubFieldNode?parent>
+    <#assign dispFormNode = dispFieldNode?parent>
     <#assign dispAlign = dispFieldNode["@align"]!"left">
     <#assign dispHidden = (!.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true") && !(skipForm!false)>
     <#assign dispDynamic = .node["@dynamic-transition"]?has_content>
+    <#assign labelWrapper = dispFormNode?node_name == "form-single">
+    <#assign fieldLabel><@fieldTitle dispSubFieldNode/></#assign>
     <#assign fieldValue = "">
     <#if fieldsJsName?has_content>
         <#assign format = .node["@format"]!>
-        <#assign fieldValue>{{${fieldsJsName}.${dispFieldName} | format<#if format?has_content>("${format}")</#if>}}</#assign>
+        <#assign dispFieldNameDisplay><@fieldName .node "_display"/></#assign>
+        <#-- TODO: format is a Vue filter, applied with {{ ... | format }}, how to format only ${fieldsJsName}.${dispFieldName} and not ${fieldsJsName}.${dispFieldNameDisplay} ??? for now no format -->
+        <#assign fieldValue>{{${fieldsJsName}.${dispFieldNameDisplay} || ${fieldsJsName}.${dispFieldName}}}</#assign>
     <#else>
         <#if .node["@text"]?has_content>
             <#assign textMap = "">
@@ -1682,12 +1647,27 @@ a => A, d => D, y => Y
         <#else>
             <#assign fieldValue = sri.getFieldValueString(.node)>
         </#if>
+        <#if dispDynamic && !fieldValue?has_content><#assign fieldValue><@widgetTextValue .node true/></#assign></#if>
     </#if>
-    <#if dispDynamic && !fieldValue?has_content><#assign fieldValue><@widgetTextValue .node true/></#assign></#if>
-    <#t><span class="text-inline ${sri.getFieldValueClass(dispFieldNode)}<#if .node["@currency-unit-field"]?has_content> currency</#if><#if dispAlign == "center"> text-center<#elseif dispAlign == "right"> text-right</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if dispDynamic> id="${dispFieldId}_display"</#if>>
-    <#t><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if>
-    <#t></span>
-    <#t><#if dispHidden>
+
+    <#if dispDynamic>
+        <#assign defUrlInfo = sri.makeUrlByType(.node["@dynamic-transition"], "transition", .node, "false")>
+        <#assign defUrlParameterMap = defUrlInfo.getParameterMap()>
+        <#assign depNodeList = .node["depends-on"]>
+    </#if>
+
+    <m-display name="${dispFieldName}" id="${dispFieldId}_display"<#if fieldLabel?has_content> label="${fieldLabel}"</#if><#if labelWrapper> label-wrapper</#if><#rt>
+            <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${dispFieldName}" :display="${fieldsJsName}.${dispFieldNameDisplay}" :fields="${fieldsJsName}"
+                <#t><#elseif fieldValue?has_content> display="<#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if>"</#if>
+            <#t><#if dispSubFieldNode["@tooltip"]?has_content> tooltip="${ec.getResource().expand(dispSubFieldNode["@tooltip"], "")}"</#if>
+            <#if dispDynamic> value-url="${defUrlInfo.url}" <#if .node["@depends-optional"]! == "true"> :depends-optional="true"</#if>
+                <#t> :depends-on="{<#list depNodeList as depNode><#local depNodeField = depNode["@field"]>'${depNode["@parameter"]!depNodeField}':'${depNodeField}'<#sep>, </#list>}"
+                <#t> :value-parameters="{<#list defUrlParameterMap.keySet() as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(parameterKey)}':'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(defUrlParameterMap.get(parameterKey))}', </#if></#list>}"
+            <#t></#if>
+            class="${sri.getFieldValueClass(dispFieldNode)}<#if .node["@currency-unit-field"]?has_content> currency</#if><#if dispAlign == "center"> text-center<#elseif dispAlign == "right"> text-right</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>">
+    </m-display>
+
+    <#if dispHidden && !fieldsJsName?has_content>
         <#if dispDynamic>
             <#assign hiddenValue><@widgetTextValue .node true "value"/></#assign>
             <input type="hidden" id="${dispFieldId}" name="${dispFieldName}" value="${hiddenValue}"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
@@ -1697,48 +1677,39 @@ a => A, d => D, y => Y
             <input type="hidden" id="${dispFieldId}" name="${dispFieldName}" <#if fieldsJsName?has_content>:value="${fieldsJsName}.${dispFieldName}"<#else>value="${sri.getFieldValuePlainString(dispFieldNode, "")?html}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
         </#if>
     </#if>
-    <#if dispDynamic>
-        <#assign defUrlInfo = sri.makeUrlByType(.node["@dynamic-transition"], "transition", .node, "false")>
-        <#assign defUrlParameterMap = defUrlInfo.getParameterMap()>
-        <#assign depNodeList = .node["depends-on"]>
-        <m-script>
-            function populate_${dispFieldId}() {
-                <#if .node["@depends-optional"]! != "true">
-                    var hasAllParms = true;
-                    <#list depNodeList as depNode>if (!$('#<@fieldIdByName depNode["@field"]/>').val()) { hasAllParms = false; } </#list>
-                    if (!hasAllParms) { <#-- alert("not has all parms"); --> return; }
-                </#if>
-                $.ajax({ type:"POST", url:"${defUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
-                    <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local depNodeParm = depNode["@parameter"]!depNodeField><#local _void = defUrlParameterMap.remove(depNodeParm)!>, "${depNodeParm}": $("#<@fieldIdByName depNodeField/>").val()</#list>
-                    <#t><#list defUrlParameterMap.keySet() as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
-                    <#t>}, dataType:"text" }).done(function(defaultText) { if (defaultText && defaultText.length) {
-                        var label = '', value = '';
-                        try {
-                            var response = JSON.parse(defaultText);
-                            if ($.isArray(response) && response.length) { response = response[0]; }
-                            else if ($.isPlainObject(response) && response.hasOwnProperty('options') && response.options.length) { response = response.options[0]; }
-                            if (response.hasOwnProperty('label')) { label = response.label; }
-                            if (response.hasOwnProperty('value')) { value = response.value; }
-                        } catch(e) { }
-                        if (!label || !label.length) label = defaultText;
-                        if (!value || !value.length) value = defaultText;
-                        $('#${dispFieldId}_display').html(label);
-                        <#if dispHidden>$('#${dispFieldId}').val(value);</#if>
-                    }});
-            }
-            <#list depNodeList as depNode>
-            $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${dispFieldId}(); });
-            </#list>
-            <#-- <#if !fieldValue?has_content>populate_${dispFieldId}();</#if> -->
-        </m-script>
-    </#if>
 </#macro>
 <#macro "display-entity">
-    <#assign fieldValue = sri.getFieldEntityValue(.node)!/>
+    <#assign dispFieldId><@fieldId .node/></#assign>
+    <#assign dispFieldName><@fieldName .node/></#assign>
+    <#assign dispSubFieldNode = .node?parent>
+    <#assign dispFieldNode = dispSubFieldNode?parent>
+    <#assign dispFormNode = dispFieldNode?parent>
+    <#assign dispAlign = dispFieldNode["@align"]!"left">
     <#assign dispHidden = (!.node["@also-hidden"]?has_content || .node["@also-hidden"] == "true") && !(skipForm!false)>
-    <#t><span class="text-inline<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"><#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue!"&nbsp;"}<#else>${(fieldValue!" ")?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></span>
+
+    <#if fieldsJsName?has_content>
+        <#assign fieldValue>{{(${fieldsJsName}.<@fieldName .node "_display"/> || ${fieldsJsName}.${dispFieldName})}}</#assign>
+    <#else>
+        <#assign fieldValue = sri.getFieldEntityValue(.node)!/>
+    </#if>
+
+    <#if dispFormNode?node_name == "form-single">
+        <#assign fieldLabel><@fieldTitle dispSubFieldNode/></#assign>
+        <#t><q-input dense outlined readonly<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if> id="${dispFieldId}_display"
+                <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${dispFieldName}_display"</#if>
+                <#t>class="<#if dispAlign == "center"> text-center<#elseif dispAlign == "right"> text-right</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>">
+            <#if dispSubFieldNode["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(dispSubFieldNode["@tooltip"], "")}</q-tooltip></#if>
+            <#-- TODO not sure if this will be used, might be for plain forms (not m-form or m-form-link) but need to find way to display like v-model as this ends up looking funny -->
+            <#t><#if !fieldsJsName?has_content && fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if>
+        <#t></q-input>
+    <#else>
+        <#t><span class="text-inline<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>">
+            <#if dispSubFieldNode["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(dispSubFieldNode["@tooltip"], "")}</q-tooltip></#if>
+            <#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></span>
+    </#if>
+
     <#-- don't default to fieldValue for the hidden input value, will only be different from the entry value if @text is used, and we don't want that in the hidden value -->
-    <#t><#if dispHidden><input type="hidden" id="<@fieldId .node/>" name="<@fieldName .node/>" value="${sri.getFieldValuePlainString(.node?parent?parent, "")?html}"<#if ownerForm?has_content> form="${ownerForm}"</#if>></#if>
+    <#t><#if dispHidden && !fieldsJsName?has_content><input type="hidden" id="<@fieldId .node/>" name="<@fieldName .node/>" value="${sri.getFieldValuePlainString(.node?parent?parent, "")?html}"<#if ownerForm?has_content> form="${ownerForm}"</#if>></#if>
 </#macro>
 
 <#macro "drop-down">
@@ -1773,31 +1744,45 @@ a => A, d => D, y => Y
         <#assign doUrlParameterMap = doUrlInfo.getParameterMap()>
         <#if currentValue?has_content && !currentDescription?has_content><#assign currentDescription><@widgetTextValue .node true/></#assign></#if>
     </#if>
-    <drop-down name="${name}" id="${tlId}" class="<#if isDynamicOptions> dynamic-options</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if><#if validationClasses?has_content> ${validationClasses}</#if>"<#rt>
-            <#t><#if allowMultiple> multiple="multiple"</#if><#if allowEmpty> :allow-empty="true"</#if><#if .node["@combo-box"]! == "true"> :combo="true"</#if>
+    <#assign fieldLabel><@fieldTitle ddSubFieldNode/></#assign>
+    <m-drop-down name="${name}" id="${tlId}"<#if fieldLabel?has_content> label="${fieldLabel}"</#if><#if formDisabled!> disable</#if><#rt>
+            <#t> class="<#if isDynamicOptions>dynamic-options</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if><#if validationClasses?has_content> ${validationClasses}</#if>"<#rt>
+            <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${name}" :fields="${fieldsJsName}"<#else><#if allowMultiple> :value="[<#list currentValueList as curVal><#if curVal?has_content>'${curVal}',</#if></#list>]"<#else> value="${currentValue!}"</#if></#if>
+            <#t><#if allowMultiple> :multiple="true"</#if><#if allowEmpty> :allow-empty="true"</#if><#if .node["@combo-box"]! == "true"> :combo="true"</#if>
             <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
             <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if .node["@size"]?has_content> size="${.node["@size"]}"</#if>
-            <#t><#if allowMultiple> :value="[<#list currentValueList as curVal><#if curVal?has_content>'${curVal}',</#if></#list>]"<#else> value="${currentValue!}"</#if>
             <#if isDynamicOptions> options-url="${doUrlInfo.url}" value-field="${doNode["@value-field"]!"value"}" label-field="${doNode["@label-field"]!"label"}"<#if doNode["@depends-optional"]! == "true"> :depends-optional="true"</#if>
-                <#t> :depends-on="{<#list depNodeList as depNode><#local depNodeField = depNode["@field"]>'${depNode["@parameter"]!depNodeField}':'<@fieldIdByName depNodeField/>'<#sep>, </#list>}"
+                <#t> :depends-on="{<#list depNodeList as depNode><#local depNodeField = depNode["@field"]>'${depNode["@parameter"]!depNodeField}':'${depNodeField}'<#sep>, </#list>}"
                 <#t> :options-parameters="{<#list doUrlParameterMap.keySet() as parameterKey><#if doUrlParameterMap.get(parameterKey)?has_content>'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(parameterKey)}':'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(doUrlParameterMap.get(parameterKey))}', </#if></#list>}"
                 <#t><#if doNode["@server-search"]! == "true"> :server-search="true"</#if><#if doNode["@delay"]?has_content> :server-delay="${doNode["@delay"]}"</#if>
                 <#t><#if doNode["@min-length"]?has_content> :server-min-length="${doNode["@min-length"]}"</#if>
                 <#t><#if (.node?children?size > 1)> :options-load-init="true"</#if>
-            <#t></#if>
-                :options="[<#if currentValue?has_content && !allowMultiple && !optionsHasCurrent>{id:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentValue)}',text:'<#if currentDescription?has_content>${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentDescription!)}<#else>${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentValue)}</#if>'},</#if><#rt>
-                    <#t><#list (options.keySet())! as key>{id:'<#if key?has_content>${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(key)}<#else>\u00a0</#if>',text:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(options.get(key)!)}'}<#sep>,</#list>]"
+            </#if>
+                :options="[<#if currentValue?has_content && !allowMultiple && !optionsHasCurrent>{value:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentValue)}',label:'<#if currentDescription?has_content>${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentDescription!)}<#else>${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentValue)}</#if>'},</#if><#rt>
+                    <#t><#list (options.keySet())! as key>{value:'<#if key?has_content>${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(key)}</#if>',label:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(options.get(key)!)}'}<#sep>,</#list>]"
             <#lt>>
             <#-- support <#if .node["@current"]! == "first-in-list"> again? -->
-    </drop-down>
-    <#if ec.getResource().expandNoL10n(.node["@show-not"]!, "") == "true"><span><input type="checkbox" class="form-control" name="${name}_not" value="Y"<#if ec.getWeb().parameters.get(name + "_not")! == "Y"> checked="checked"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>&nbsp;${ec.getL10n().localize("Not")}</span></#if>
-    <#-- <span>[${currentValue}]; <#list currentValueList as curValue>[${curValue!''}], </#list></span> -->
-    <#if allowMultiple><input type="hidden" id="${tlId}_op" name="${name}_op" value="in"></#if>
+            <#if ec.getResource().expandNoL10n(.node["@show-not"]!, "") == "true">
+            <template v-slot:after>
+                <q-checkbox size="xs" name="${name}_not" label="${ec.getL10n().localize("Not")}"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
+                    <#t><#if fieldsJsName?has_content> true-value="Y" false-value="N" v-model="${fieldsJsName}.${name}_not"<#else> value="Y"<#if ec.getWeb().parameters.get(name + "_not")! == "Y"> checked="checked"</#if></#if>></q-checkbox>
+            </template>
+            </#if>
+    </m-drop-down>
 </#macro>
 
-<#macro file><input type="file" class="form-control" name="<@fieldName .node/>" value="${sri.getFieldValueString(.node)?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>></#macro>
+<#macro file>
+    <#assign curFieldName><@fieldName .node/></#assign>
+    <#assign fieldLabel><@fieldTitle .node?parent/></#assign>
+    <q-file dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}"</#if><#if formDisabled!> disable</#if>
+            name="<@fieldName .node/>" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+        <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
+    </q-file>
+</#macro>
 
 <#macro hidden>
+    <#-- if the form is client rendered don't render anything hidden fields; NOTE: could also render and populate with value, but not needed (unless a need comes up...) -->
+    <#if fieldsJsName?has_content><#return/></#if>
     <#-- use getFieldValuePlainString() and not getFieldValueString() so we don't do timezone conversions, etc -->
     <#assign tlId><@fieldId .node/></#assign>
     <input type="hidden" name="<@fieldName .node/>" value="${sri.getFieldValuePlainString(.node?parent?parent, .node["@default-value"]!"")?html}" id="${tlId}"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
@@ -1807,7 +1792,15 @@ a => A, d => D, y => Y
 
 <#macro password>
     <#assign validationClasses = formInstance.getFieldValidationClasses(.node?parent)>
-    <input type="password" name="<@fieldName .node/>" id="<@fieldId .node/>" class="form-control<#if validationClasses?has_content> ${validationClasses}</#if>" size="${.node.@size!"25"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if validationClasses?contains("required")> required</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+    <#assign curFieldName><@fieldName .node/></#assign>
+    <#assign fieldLabel><@fieldTitle .node?parent/></#assign>
+    <q-input dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if> type="password" name="${curFieldName}" id="<@fieldId .node/>"<#if formDisabled!> disable</#if><#rt>
+            <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}"</#if>
+            <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if>" size="${.node.@size!"25"}"
+            <#t><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
+            <#t><#if validationClasses?contains("required")> required</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+        <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
+    </q-input>
 </#macro>
 
 <#macro radio>
@@ -1816,62 +1809,81 @@ a => A, d => D, y => Y
     <#if !currentValue?has_content><#assign currentValue = ec.getResource().expandNoL10n(.node["@no-current-selected-key"]!, "")/></#if>
     <#assign tlId><@fieldId .node/></#assign>
     <#assign curName><@fieldName .node/></#assign>
-    <#list (options.keySet())! as key>
-        <span id="${tlId}<#if (key_index > 0)>_${key_index}</#if>"><input type="radio" name="${curName}" value="${key?html}"<#if currentValue?has_content && currentValue==key> checked="checked"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>&nbsp;${options.get(key)!""}</span>
-    </#list>
+    <#assign fieldLabel><@fieldTitle .node?parent/></#assign>
+    <q-field dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if><#if formDisabled!> disable</#if>>
+        <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
+        <template v-slot:control>
+        <#list (options.keySet())! as key>
+            <q-radio size="xs" val="${key?html}" label="${(options.get(key)!"")?html}" name="${curName}" id="${tlId}<#if (key_index > 0)>_${key_index}</#if>"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
+                <#lt><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curName}"<#else> value="${key?html}"<#if currentValue?has_content && currentValue==key> checked="checked"</#if></#if>></q-radio>
+        </#list>
+        </template>
+    </q-field>
 </#macro>
 
 <#macro "range-find">
     <#assign curFieldName><@fieldName .node/></#assign>
     <#assign tlId><@fieldId .node/></#assign>
-<span class="form-range-find">
-    <span>${ec.getL10n().localize("From")}&nbsp;</span><input type="text" class="form-control" name="${curFieldName}_from" value="${ec.getContext().get(curFieldName + "_from")!?default(.node["@default-value-from"]!"")?html}" size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if> id="${tlId}_from"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-</span>
-<span class="form-range-find">
-    <span>${ec.getL10n().localize("Thru")}&nbsp;</span><input type="text" class="form-control" name="${curFieldName}_thru" value="${ec.getContext().get(curFieldName + "_thru")!?default(.node["@default-value-thru"]!"")?html}" size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if> id="${tlId}_thru"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-</span>
+    <#assign fieldLabel><@fieldTitle .node?parent/></#assign>
+    <#assign curTooltip = ec.getResource().expand(.node?parent["@tooltip"]!, "")>
+<div class="row">
+    <q-input dense outlined stack-label label="${fieldLabel} From" name="${curFieldName}_from" id="${tlId}_from"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
+            <#t> size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
+            <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_from"<#else> value="${ec.getContext().get(curFieldName + "_from")!?default(.node["@default-value-from"]!"")?html}"</#if>>
+        <#if curTooltip?has_content><q-tooltip>${curTooltip}</q-tooltip></#if>
+    </q-input>
+    <q-input class="q-pl-xs" dense outlined stack-label label="${fieldLabel} Thru" name="${curFieldName}_thru" id="${tlId}_thru"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
+            <#t> size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
+            <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_thru"<#else> value="${ec.getContext().get(curFieldName + "_thru")!?default(.node["@default-value-thru"]!"")?html}"</#if>>
+        <#if curTooltip?has_content><q-tooltip>${curTooltip}</q-tooltip></#if>
+    </q-input>
+</div>
 </#macro>
 
-<#macro reset><input type="reset" name="<@fieldName .node/>" value="<@fieldTitle .node?parent/>" id="<@fieldId .node/>"<#if .node["@icon"]?has_content> iconcls="ui-icon-${.node["@icon"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>></#macro>
+<#macro reset><q-btn dense outline type="reset" name="<@fieldName .node/>" value="<@fieldTitle .node?parent/>" id="<@fieldId .node/>"<#if .node["@icon"]?has_content> iconcls="ui-icon-${.node["@icon"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>></#macro>
 
 <#macro submit>
     <#assign confirmationMessage = ec.getResource().expand(.node["@confirmation"]!, "")/>
     <#assign buttonText><#if .node["@text"]?has_content>${ec.getResource().expand(.node["@text"], "")}<#else><@fieldTitle .node?parent/></#if></#assign>
     <#assign iconClass = .node["@icon"]!>
     <#if !iconClass?has_content><#assign iconClass = sri.getThemeIconClass(buttonText)!></#if>
-    <button type="submit" name="<@fieldName .node/>" value="<@fieldName .node/>" id="<@fieldId .node/>"<#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}');"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if> class="btn btn-${.node["@btn-type"]!"primary"} btn-sm"<#if ownerForm?has_content> form="${ownerForm}"</#if>><#if iconClass?has_content><i class="${iconClass}"></i> </#if>
+    <q-btn dense outline no-caps type="submit" name="<@fieldName .node/>" value="<@fieldName .node/>" id="<@fieldId .node/>"<#if formDisabled!> disabled</#if><#rt>
+            <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}');"</#if>
+            <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if !.node["image"]?has_content> label="${buttonText}"</#if>>
+        <#if iconClass?has_content><i class="${iconClass}"></i></#if>
+        <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
     <#if .node["image"]?has_content><#assign imageNode = .node["image"][0]>
         <img src="${sri.makeUrlByType(imageNode["@url"],imageNode["@url-type"]!"content",null,"true")}" alt="<#if imageNode["@alt"]?has_content>${imageNode["@alt"]}<#else><@fieldTitle .node?parent/></#if>"<#if imageNode["@width"]?has_content> width="${imageNode["@width"]}"</#if><#if imageNode["@height"]?has_content> height="${imageNode["@height"]}"</#if>>
-    <#else>
-        <#t>${buttonText}
     </#if>
-    </button>
+    </q-btn>
 </#macro>
 
 <#macro "text-area">
-    <#assign textAreaId><@fieldId .node/></#assign>
+    <#assign name><@fieldName .node/></#assign>
+    <#assign fieldLabel><@fieldTitle .node?parent/></#assign>
     <#assign editorType = ec.getResource().expand(.node["@editor-type"]!"", "")>
-    <textarea v-pre class="form-control" name="<@fieldName .node/>" id="${textAreaId}" <#if .node["@cols"]?has_content>cols="${.node["@cols"]}"<#else>style="width:100%;"</#if>
-        rows="${.node["@rows"]!"3"}"<#if .node["@read-only"]! == "true"> readonly="readonly"</#if><#if .node["@maxlength"]?has_content> maxlength="${.node["@maxlength"]}"</#if>
-        <#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>><#rt>
-${sri.getFieldValueString(.node)?html}</textarea>
     <#if editorType == "html">
         <#-- support CSS from editorScreenThemeId with resourceTypeEnumId=STRT_STYLESHEET, like: contentsCss:['/css/mysitestyles.css','/css/anotherfile.css']; -->
         <#-- see: https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_config.html#cfg-contentsCss -->
         <#assign editorScreenThemeId = ec.getResource().expand(.node["@editor-theme"]!"", "")>
         <#assign editorThemeCssList = sri.getThemeValues("STRT_STYLESHEET", editorScreenThemeId)>
-        <m-script src="https://cdn.ckeditor.com/4.14.1/standard-all/ckeditor.js" type="text/javascript"></m-script>
-        <m-script>
-        CKEDITOR.dtd.$removeEmpty['i'] = false;
-        CKEDITOR.replace('${textAreaId}', { customConfig:'',<#if editorThemeCssList?has_content>contentsCss:[<#list editorThemeCssList as themeCss>'${themeCss}'<#sep>,</#list>],</#if>
-            allowedContent:true, linkJavaScriptLinksAllowed:true, fillEmptyBlocks:false,
-            extraAllowedContent:'p(*)[*]{*};div(*)[*]{*};li(*)[*]{*};ul(*)[*]{*};i(*)[*]{*};span(*)[*]{*}',
-            width:'100%', height:'600px', removeButtons:'Image,Save,NewPage,Preview' }).on('change', function(evt) { this.updateElement(); });
-        </m-script>
+        <m-ck-editor<#if fieldsJsName?has_content> v-model="${fieldsJsName}.${name}"</#if>
+                :config="{ customConfig:'',<#if editorThemeCssList?has_content>contentsCss:[<#list editorThemeCssList as themeCss>'${themeCss}'<#sep>,</#list>],</#if>
+                    allowedContent:true, linkJavaScriptLinksAllowed:true, fillEmptyBlocks:false,
+                    extraAllowedContent:'p(*)[*]{*};div(*)[*]{*};li(*)[*]{*};ul(*)[*]{*};i(*)[*]{*};span(*)[*]{*}',
+                    width:'100%', height:'600px', removeButtons:'Image,Save,NewPage,Preview' }"></m-ck-editor>
     <#elseif editorType == "md">
-        <m-stylesheet href="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css"></m-stylesheet>
-        <m-script src="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.js" type="text/javascript"></m-script>
-        <m-script>new SimpleMDE({ element: document.getElementById("${textAreaId}"), indentWithTabs:false, autoDownloadFontAwesome:false, autofocus:true, spellChecker:false, forceSync:true });</m-script>
+        <m-simple-mde<#if fieldsJsName?has_content> v-model="${fieldsJsName}.${name}"</#if>
+                :config="{ indentWithTabs:false, autoDownloadFontAwesome:false, autofocus:true, spellChecker:false }"></m-simple-mde>
+    <#else>
+        <q-input type="textarea" dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if> name="${name}" for="<@fieldId .node/>"
+                <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${name}"</#if><#if formDisabled!> disable</#if>
+                <#t><#if .node["@cols"]?has_content> cols="${.node["@cols"]}"<#else> style="width:100%;"</#if>
+                <#t> rows="${.node["@rows"]!"3"}"<#if .node["@read-only"]! == "true"> readonly="readonly"</#if>
+                <#t><#if .node["@maxlength"]?has_content> maxlength="${.node["@maxlength"]}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+            <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
+            <#if !fieldsJsName?has_content>${sri.getFieldValueString(.node)?html}</#if>
+        </q-input>
     </#if>
 </#macro>
 
@@ -1882,7 +1894,7 @@ ${sri.getFieldValueString(.node)?html}</textarea>
     <#assign name><@fieldName .node/></#assign>
     <#assign fieldValue = sri.getFieldValueString(.node)>
     <#assign validationClasses = formInstance.getFieldValidationClasses(tlSubFieldNode)>
-    <#assign regexpInfo = formInstance.getFieldValidationRegexpInfo(tlSubFieldNode)!>
+    <#assign validationRules = formInstance.getFieldValidationJsRules(tlSubFieldNode)!>
     <#-- NOTE: removed number type (<#elseif validationClasses?contains("number")>number) because on Safari, maybe others, ignores size and behaves funny for decimal values -->
     <#if .node["@ac-transition"]?has_content>
         <#assign acUrlInfo = sri.makeUrlByType(.node["@ac-transition"], "transition", .node, "false")>
@@ -1892,6 +1904,8 @@ ${sri.getFieldValueString(.node)?html}</textarea>
         <#if .node["@ac-initial-text"]?has_content><#assign valueText = ec.getResource().expand(.node["@ac-initial-text"]!, "")>
             <#else><#assign valueText = fieldValue></#if>
         <#assign depNodeList = .node["depends-on"]>
+        <strong class="text-negative">text-line with @ac-transition is not supported, use drop-down with dynamic-options.@server-search</strong>
+        <#--
         <text-autocomplete id="${tlId}" name="${name}" url="${acUrlInfo.url}" value="${fieldValue?html}" value-text="${valueText?html}"<#rt>
                 <#t> type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>" size="${.node.@size!"30"}"
                 <#t><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
@@ -1906,66 +1920,68 @@ ${sri.getFieldValueString(.node)?html}</textarea>
                 <#t> :ac-parameters="{<#list acUrlParameterMap.keySet() as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>'${parameterKey}':'${acUrlParameterMap.get(parameterKey)}', </#if></#list>}"
                 <#t><#if .node["@ac-delay"]?has_content> :delay="${.node["@ac-delay"]}"</#if>
                 <#t><#if .node["@ac-initial-text"]?has_content> :skip-initial="true"</#if>/>
+        -->
     <#else>
         <#assign tlAlign = tlFieldNode["@align"]!"left">
-        <#t><input id="${tlId}" <#--v-model="fields.${name}"--> type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>"
-            <#t> name="${name}" <#if fieldValue?html == fieldValue>value="${fieldValue}"<#else>:value="'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(fieldValue)}'"</#if>
-            <#t> <#if .node.@size?has_content>size="${.node.@size}"<#else>style="width:100%;"</#if><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
-            <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if>
-            <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
-            <#t><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}" data-msg-pattern="${regexpInfo.message!"Invalid format"}"</#if>
-            <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
-            <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-        <#assign expandedMask = ec.getResource().expandNoL10n(.node["@mask"], "")!>
-        <#if expandedMask?has_content><m-script>$('#${tlId}').inputmask("${expandedMask}");</m-script></#if>
+        <#assign fieldLabel><@fieldTitle tlSubFieldNode/></#assign>
         <#if .node["@default-transition"]?has_content>
             <#assign defUrlInfo = sri.makeUrlByType(.node["@default-transition"], "transition", .node, "false")>
             <#assign defUrlParameterMap = defUrlInfo.getParameterMap()>
             <#assign depNodeList = .node["depends-on"]>
-            <m-script>
-                function populate_${tlId}() {
-                    // if ($('#${tlId}').val()) return;
-                    var hasAllParms = true;
-                    <#list depNodeList as depNode>if (!$('#<@fieldIdByName depNode["@field"]/>').val()) { hasAllParms = false; } </#list>
-                    if (!hasAllParms) { <#-- alert("not has all parms"); --> return; }
-                    $.ajax({ type:"POST", url:"${defUrlInfo.url}", data:{ moquiSessionToken: "${(ec.getWeb().sessionToken)!}"<#rt>
-                            <#t><#list depNodeList as depNode><#local depNodeField = depNode["@field"]><#local _void = defUrlParameterMap.remove(depNodeField)!>, "${depNode["@parameter"]!depNodeField}": $("#<@fieldIdByName depNodeField/>").val()</#list>
-                            <#t><#list defUrlParameterMap.keySet() as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>, "${parameterKey}":"${defUrlParameterMap.get(parameterKey)}"</#if></#list>
-                            <#t>}, dataType:"text", success:function(defaultText) {   $('#${tlId}').val(defaultText);  } });
-                }
-                <#list depNodeList as depNode>
-                $("#<@fieldIdByName depNode["@field"]/>").on('change', function() { populate_${tlId}(); });
-                </#list>
-                populate_${tlId}();
-            </m-script>
         </#if>
+        <m-text-line dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if> id="${tlId}" type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>"<#rt>
+                <#t> name="${name}" <#if fieldsJsName?has_content>v-model="${fieldsJsName}.${name}" :fields="${fieldsJsName}"<#else><#if fieldValue?html == fieldValue>value="${fieldValue}"<#else>:value="'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(fieldValue)}'"</#if></#if>
+                <#t><#if .node.@size?has_content> size="${.node.@size}"<#else> style="width:100%;"</#if><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
+                <#t><#if formDisabled! || ec.getResource().condition(.node.@disabled!"false", "")> disable</#if>
+                <#t> class="<#if validationClasses?has_content>${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
+                <#t><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}" data-msg-pattern="${regexpInfo.message!"Invalid format"}"</#if>
+                <#t><#if .node["@default-transition"]?has_content>
+                    <#t> default-url="${defUrlInfo.path}" :default-load-init="true"<#if .node["@depends-optional"]! == "true"> :depends-optional="true"</#if>
+                    <#t> :depends-on="{<#list depNodeList as depNode><#local depNodeField = depNode["@field"]>'${depNode["@parameter"]!depNodeField}':'${depNodeField}'<#sep>, </#list>}"
+                    <#t> :default-parameters="{<#list defUrlParameterMap.keySet() as parameterKey><#if defUrlParameterMap.get(parameterKey)?has_content>'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(parameterKey)}':'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(defUrlParameterMap.get(parameterKey))}', </#if></#list>}"
+                <#t></#if>
+                <#t><#if validationRules?has_content>
+                    <#t> :rules="[<#list validationRules as valRule>value => ${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(valRule.expr)}||'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(valRule.message)}'<#sep>,</#list>]"
+                <#t></#if>
+                <#lt><#if ownerForm?has_content> form="${ownerForm}"</#if><#if tlSubFieldNode["@tooltip"]?has_content> tooltip="${ec.getResource().expand(tlSubFieldNode["@tooltip"], "")?html}"</#if>></m-text-line>
+        <#assign expandedMask = ec.getResource().expandNoL10n(.node["@mask"], "")!>
+        <#if expandedMask?has_content><strong class="text-negative">mask not yet supported - ${expandedMask}</strong></#if>
+        <#-- TODO handle @mask:
+        <#if expandedMask?has_content><m-script>$('#${tlId}').inputmask("${expandedMask}");</m-script></#if>
+        -->
     </#if>
 </#macro>
 
 <#macro "text-find">
-<span class="form-text-find">
-    <#assign defaultOperator = .node["@default-operator"]!"contains">
+<div class="row">
     <#assign curFieldName><@fieldName .node/></#assign>
-    <#if .node["@hide-options"]! == "true" || .node["@hide-options"]! == "operator">
-        <input type="hidden" name="${curFieldName}_op" value="${defaultOperator}"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
-    <#else>
-        <span><input type="checkbox" class="form-control" name="${curFieldName}_not" value="Y"<#if ec.getWeb().parameters.get(curFieldName + "_not")! == "Y"> checked="checked"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>&nbsp;${ec.getL10n().localize("Not")}</span>
-        <select name="${curFieldName}_op" class="form-control"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
-            <option value="equals"<#if defaultOperator == "equals"> selected="selected"</#if>>${ec.getL10n().localize("Equals")}</option>
-            <option value="like"<#if defaultOperator == "like"> selected="selected"</#if>>${ec.getL10n().localize("Like")}</option>
-            <option value="contains"<#if defaultOperator == "contains"> selected="selected"</#if>>${ec.getL10n().localize("Contains")}</option>
-            <option value="begins"<#if defaultOperator == "begins"> selected="selected"</#if>>${ec.getL10n().localize("Begins With")}</option>
-            <option value="empty"<#rt/><#if defaultOperator == "empty"> selected="selected"</#if>>${ec.getL10n().localize("Empty")}</option>
-        </select>
-    </#if>
-    <input type="text" class="form-control" name="${curFieldName}" value="${sri.getFieldValueString(.node)?html}" size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if> id="<@fieldId .node/>"<#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-    <#assign ignoreCase = (ec.getWeb().parameters.get(curFieldName + "_ic")! == "Y") || !(.node["@ignore-case"]?has_content) || (.node["@ignore-case"] == "true")>
-    <#if .node["@hide-options"]! == "true" || .node["@hide-options"]! == "ignore-case">
-        <input type="hidden" name="${curFieldName}_ic" value="Y"<#if ownerForm?has_content> form="${ownerForm}"</#if>>
-    <#else>
-        <span><input type="checkbox" class="form-control" name="${curFieldName}_ic" value="Y"<#if ignoreCase> checked="checked"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>&nbsp;${ec.getL10n().localize("Ignore Case")}</span>
-    </#if>
-</span>
+    <#assign fieldLabel><@fieldTitle .node?parent/></#assign>
+    <#assign hideOptions = .node["@hide-options"]!"false">
+    <q-input dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if> name="${curFieldName}"<#rt>
+            <#t> size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if> id="<@fieldId .node/>"
+            <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>
+            <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}"<#else> value="${sri.getFieldValueString(.node)?html}"</#if>>
+        <#if .node["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node["@tooltip"], "")}</q-tooltip></#if>
+        <#if hideOptions != "true" && (hideOptions != "ignore-case" || hideOptions != "operator")>
+        <template v-slot:after>
+            <#if hideOptions != "operator">
+                <#assign defaultOperator = .node["@default-operator"]!"contains">
+                <q-checkbox class="on-left" size="xs" name="${curFieldName}_not" label="${ec.getL10n().localize("Not")}"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
+                    <#t><#if fieldsJsName?has_content> true-value="Y" false-value="N" v-model="${fieldsJsName}.${curFieldName}_not"<#else>
+                    <#t> value="Y"<#if ec.getWeb().parameters.get(curFieldName + "_not")! == "Y"> checked="checked"</#if></#if>></q-checkbox>
+                <q-select class="on-left" dense outlined options-dense emit-value map-options name="${curFieldName}_op"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
+                    <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_op"<#else> value="${ec.web.parameters.get(curFieldName + "_op")!defaultOperator!""}"</#if>
+                    <#t> :options="[{value:'equals',label:'${ec.getL10n().localize("Equals")}'},{value:'like',label:'${ec.getL10n().localize("Like")}'},{value:'contains',label:'${ec.getL10n().localize("Contains")}'},{value:'begins',label:'${ec.getL10n().localize("Begins With")}'},{value:'empty',label:'${ec.getL10n().localize("Empty")}'}]"></q-select>
+            </#if>
+            <#if hideOptions != "ignore-case">
+                <#assign ignoreCase = (ec.getWeb().parameters.get(curFieldName + "_ic")! == "Y") || !(.node["@ignore-case"]?has_content) || (.node["@ignore-case"] == "true")>
+                <q-checkbox size="xs" name="${curFieldName}_ic" label="${ec.getL10n().localize("Ignore Case")}"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
+                    <#t><#if fieldsJsName?has_content> true-value="Y" false-value="N" v-model="${fieldsJsName}.${curFieldName}_ic"<#else> value="Y"<#if ignoreCase> checked="checked"</#if></#if>></q-checkbox>
+            </#if>
+        </template>
+        </#if>
+    </q-input>
+</div>
 </#macro>
 
 <#macro widgetTextValue widgetNode alwaysGet=false valueField="label">

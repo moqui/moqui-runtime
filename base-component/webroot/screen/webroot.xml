@@ -39,7 +39,8 @@ along with this software (see the LICENSE.md file). If not, see
             List menuDataList = sri.getMenuData(sri.screenUrlInfo.extraPathNameList)
             if (menuDataList != null) ec.web.sendJsonResponse(menuDataList)
         ]]></script></actions>
-        <default-response type="none"/>
+        <!-- NOTE DEJ 20200806 use save-parameters="true" to re-save parameters otherwise lost from the menuData request under vapps, qapps, etc -->
+        <default-response type="none" save-parameters="true"/>
     </transition>
     <transition name="email"><path-parameter name="emailMessageId"/><actions><script>ec.web.viewEmailMessage()</script></actions>
         <default-response type="none"/></transition>

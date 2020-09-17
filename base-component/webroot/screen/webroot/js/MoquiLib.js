@@ -1,15 +1,152 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 var moqui = {
+    // map locale to a locale that exists in moment-with-locales.js
+    localeMap: { 'zh':'zh-cn' },
+
     isString: function(obj) { return typeof obj === 'string'; },
     isBoolean: function(obj) { return typeof obj === 'boolean'; },
     isNumber: function(obj) { return typeof obj === 'number'; },
     isArray: function(obj) { return Object.prototype.toString.call(obj) === '[object Array]'; },
     isFunction: function(obj) { return Object.prototype.toString.call(obj) === '[object Function]'; },
     isPlainObject: function(obj) { return obj != null && typeof obj == 'object' && Object.prototype.toString.call(obj) === '[object Object]'; },
+    deepCopy: function(inObject) {
+        if (typeof inObject !== "object" || inObject === null) { return inObject; }
+        var outObject = Array.isArray(inObject) ? [] : {};
+        var key, value;
+        for (key in inObject) { value = inObject[key]; outObject[key] = moqui.deepCopy(value); }
+        return outObject
+    },
+    objToSearch: function(obj) {
+        var search = "";
+        if (moqui.isPlainObject(obj)) $.each(obj, function (key, value) { search = search + (search.length > 0 ? '&' : '') + key + '=' + value; });
+        return search;
+    },
+    searchToObj: function(search) {
+        if (!search || search.length === 0) { return {}; }
+        var newParams = {};
+        var parmList = search.split("&");
+        for (var i=0; i<parmList.length; i++) {
+            var parm = parmList[i]; var ps = parm.split("=");
+            if (ps.length > 1) {
+                var key = ps[0]; var value = ps[1]; var exVal = newParams[key];
+                if (exVal) { if (moqui.isArray(exVal)) { exVal.push(value); } else { newParams[key] = [exVal, value]; } }
+                else { newParams[key] = value; }
+            }
+        }
+        return newParams;
+    },
+    parseHref: function(href) {
+        var result = { protocol:"", host:"", path:"/", query:{}, search:"", hash:"", name:"" }
+        var ssIdx = href.indexOf("://");
+        if (ssIdx >= 0) {
+            result.protocol = href.slice(0, ssIdx);
+            var slIdx = href.indexOf("/", ssIdx+3);
+            if (slIdx === -1) {
+                if (href.length > (ssIdx+3)) result.host = href.slice(ssIdx+3);
+                return result;
+            }
+            result.host = href.slice(ssIdx + 3, slIdx);
+            href = href.slice(slIdx);
+        }
+        var splitHash = href.split("#");
+        if (splitHash.length > 1 && splitHash[1].length) {
+            result.hash = splitHash[1];
+            href = splitHash[0];
+        }
+        var splitQuery = href.split("?");
+        if (splitQuery.length > 1 && splitQuery[1].length) {
+            var search = splitQuery[1];
+            result.search = search;
+            result.query = moqui.searchToObj(search);
+        }
+        var path = splitQuery[0];
+        result.path = path;
+        if (path.length) {
+            var lslIdx = path.lastIndexOf("/");
+            result.name = lslIdx === -1 ? path : path.slice(lslIdx+1);
+        }
+        return result;
+    },
+    makeHref: function(urlInfo) {
+        var href = "";
+        if (urlInfo.protocol && urlInfo.protocol.length) href += urlInfo.protocol + "://";
+        if (urlInfo.host && urlInfo.host.length) href += urlInfo.host;
+        href += urlInfo.path || "/";
+        if (urlInfo.search && urlInfo.search.length) { href += "?" + urlInfo.search; }
+        else if (urlInfo.query && urlInfo.query.length) { href += "?" + moqui.objToSearch(urlInfo.query); }
+        if (urlInfo.hash && urlInfo.hash.length) href += "#" + urlInfo.hash;
+        return href;
+    },
 
     htmlEncode: function(value) { return $('<div/>').text(value).html(); },
     htmlDecode: function(value) { return $('<div/>').html(value).text(); },
+
+    /* ========== script and stylesheet handling methods ========== */
+    loadScript: function(src, callback, validate) {
+        // make sure the script isn't loaded
+        var loadedScript = null;
+        $('head script').each(function(i, hscript) { if (hscript.src.indexOf(src) !== -1) loadedScript = hscript; });
+        if (loadedScript) {
+            if (callback) {
+                if (validate) {
+                    moqui.retryValidateCallback(function() { callback(null, loadedScript); }, validate)
+                } else {
+                    callback(null, loadedScript);
+                }
+            }
+            return;
+        }
+        // add it to the header
+        var script = document.createElement('script'); script.src = src; script.async = false;
+        if (callback) {
+            script.onload = function() {
+                this.onerror = this.onload = null;
+                if (validate) {
+                    moqui.retryValidateCallback(function() { callback(null, script); }, validate)
+                } else {
+                    callback(null, script);
+                }
+            };
+            script.onerror = function() {
+                this.onerror = this.onload = null;
+                var error = new Error('Error loading script ' + this.src);
+                console.error(error);
+                callback(error, script);
+            };
+        }
+        document.head.appendChild(script);
+    },
+    retryValidateCallback: function(callback, validate, count) {
+        if (!validate || validate()) {
+            callback();
+        } else {
+            if (!count) count = 1;
+            var retryTime = count*count*100;
+            if (count <= 8) setTimeout(moqui.retryValidateCallback, retryTime, callback, validate, count+1);
+        }
+    },
+    loadStylesheet: function(href, rel, type) {
+        if (!rel) rel = 'stylesheet'; if (!type) type = 'text/css';
+        // make sure the stylesheet isn't loaded
+        var loaded = false;
+        $('head link').each(function(i, hlink) { if (hlink.href.indexOf(href) !== -1) loaded = true; });
+        if (loaded) return;
+        // add it to the header
+        var link = document.createElement('link'); link.href = href; link.rel = rel; link.type = type;
+        document.head.appendChild(link);
+    },
+    retryInlineScript: function(src, count) {
+        try { eval(src); } catch(e) {
+            src = src.trim();
+            var retryTime = count <= 5 ? count*count*100 : -1;
+            console.warn('inline script error ' + count + ' retry ' + retryTime + ' script: ' + src.slice(0, 80) + '...');
+            console.warn(e);
+            if (count <= 5) setTimeout(moqui.retryInlineScript, retryTime, src, count+1);
+        }
+    },
+
+    /* ========== general format function ========== */
     format: function(value, format, type) {
         // console.log('format ' + value + ' with ' + format + ' of type ' + type);
         // number formatting: http://numeraljs.com/ https://github.com/andrewgp/jsNumberFormatter http://www.asual.com/jquery/format/
@@ -123,7 +260,7 @@ var moqui = {
         if (!jsonObj) return;
         var notificationOptions = {};
         if (jsonObj.topic && jsonObj.topic.length) notificationOptions.tag = jsonObj.topic;
-        // consider options 'body' and 'icon' (icon URL, any way to use glyphicon class?)
+        // consider options 'body' and 'icon' (icon URL, any way to use icon class?)
         if (window.Notification && Notification.permission === "granted") {
             var notif = new Notification(jsonObj.title, notificationOptions);
             if (jsonObj.link && jsonObj.link.length) notif.onclick = function () { window.open(jsonObj.link); };
@@ -145,10 +282,10 @@ var moqui = {
         if (url) this.url = url;
         if (icon) { this.icon = icon; }
         else {
-            if (type === 'success') this.icon = 'glyphicon glyphicon-ok-sign';
-            else if (type === 'warning') this.icon = 'glyphicon glyphicon-warning-sign';
-            else if (type === 'danger') this.icon = 'glyphicon glyphicon-exclamation-sign';
-            else this.icon = 'glyphicon glyphicon-info-sign';
+            if (type === 'success') this.icon = 'fa fa-check-circle';
+            else if (type === 'warning') this.icon = 'fa fa-exclamation-triangle';
+            else if (type === 'danger') this.icon = 'fa fa-exclamation-circle';
+            else this.icon = 'fa fa-info-circle';
         }
     },
     NotifySettings: function(type) {

@@ -13,7 +13,7 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
-        default-menu-index="1" menu-image="glyphicon glyphicon-dashboard" menu-image-type="icon">
+        default-menu-index="1" menu-image="fa fa-dashboard" menu-image-type="icon">
 
     <transition name="threadList"><default-response url="../ThreadList"/></transition>
     <transition name="reInitElasticFacade">
@@ -50,6 +50,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="../Instance" text="Instance Mgmt"/>
                 <link url="../Print/Printer" text="Printers"/>
                 <link url="../Print/PrintJob" text="Print Jobs"/>
+                <link url="../HazelcastInfo" text="Hazelcast"/>
                 <link url="../ServiceJob/Jobs" text="Service Jobs"/>
                 <link url="../ServiceJob/JobRuns" text="Jobs Runs"/>
             </box-body></container-box>

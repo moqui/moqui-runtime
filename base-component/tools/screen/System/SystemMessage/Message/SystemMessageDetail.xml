@@ -38,6 +38,14 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="cancelMessage"><service-call name="org.moqui.impl.SystemMessageServices.cancel#SystemMessage"/>
         <default-response url="."/></transition>
 
+    <transition name="downloadMessageText" read-only="true">
+        <actions>
+            <entity-find-one entity-name="moqui.service.message.SystemMessage" value-field="systemMessage"/>
+            <script>ec.web.sendTextResponse(systemMessage.messageText, "text/plain", "SystemMessage${systemMessageId}.txt")</script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
     <actions>
         <entity-find-one entity-name="moqui.service.message.SystemMessage" value-field="systemMessage"/>
         <entity-find entity-name="moqui.service.message.SystemMessageError" list="errorList">
@@ -49,6 +57,7 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <dynamic-dialog id="EmtDialog" button-text="Edit Message Text" transition="EditMessageText" width="900"/>
+        <link url="downloadMessageText" text="Download Message Text"/>
 
         <link url="sendMessage" text="Send Message" parameter-map="[systemMessageId:systemMessageId]"
                 condition="systemMessage.isOutgoing == 'Y' &amp;&amp; (systemMessage.statusId == 'SmsgProduced' || systemMessage.statusId == 'SmsgError')"/>

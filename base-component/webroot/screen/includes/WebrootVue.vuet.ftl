@@ -19,6 +19,7 @@ along with this software (see the LICENSE.md file). If not, see
     <input type="hidden" id="confLinkBasePath" value="${ec.web.servletContext.contextPath}/vapps">
     <input type="hidden" id="confUserId" value="${ec.user.userId!''}">
     <input type="hidden" id="confLocale" value="${ec.user.locale.toLanguageTag()}">
+    <input type="hidden" id="confOuterStyle" value="${ec.user.getPreference("OUTER_STYLE")!"bg-light"}">
     <#assign navbarCompList = sri.getThemeValues("STRT_HEADER_NAVBAR_COMP")>
     <#list navbarCompList! as navbarCompUrl><input type="hidden" class="confNavPluginUrl" value="${navbarCompUrl}"></#list>
     <#if hideNav! != 'true'>
@@ -40,10 +41,10 @@ along with this software (see the LICENSE.md file). If not, see
             <ul id="dynamic-menus" class="nav navbar-nav">
                 <li v-for="(navMenuItem, menuIndex) in navMenuList" class="dropdown">
                     <template v-if="menuIndex < (navMenuList.length - 1)">
-                        <m-link v-if="navMenuItem.hasTabMenu" :href="getNavHref(menuIndex)">{{navMenuItem.title}} <i class="glyphicon glyphicon-menu-right"></i></m-link>
+                        <m-link v-if="navMenuItem.hasTabMenu" :href="getNavHref(menuIndex)">{{navMenuItem.title}} <i class="fa fa-chevron-right"></i></m-link>
                         <template v-else-if="navMenuItem.subscreens && navMenuItem.subscreens.length > 1">
                             <#-- use chevron-right if has subscreens menu, thicker arrow to distinguish -->
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{navMenuItem.title}} <i class="glyphicon glyphicon-chevron-right"></i></a>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{navMenuItem.title}} <i class="fa fa-chevron-right"></i></a>
                             <ul class="dropdown-menu">
                                 <li v-for="subscreen in navMenuItem.subscreens" :class="{active:subscreen.active}">
                                     <m-link :href="subscreen.pathWithParams">
@@ -51,11 +52,11 @@ along with this software (see the LICENSE.md file). If not, see
                                             <i v-if="subscreen.imageType === 'icon'" :class="subscreen.image" style="padding-right: 4px;"></i>
                                             <img v-else :src="subscreen.image" :alt="subscreen.title" width="18" style="padding-right: 4px;">
                                         </template>
-                                        <i v-else class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                                        <i v-else class="fa fa-link" style="padding-right: 8px;"></i>
                                         {{subscreen.title}}</m-link></li>
                             </ul>
                         </template>
-                        <m-link v-else :href="getNavHref(menuIndex)">{{navMenuItem.title}} <i class="glyphicon glyphicon-menu-right"></i></m-link>
+                        <m-link v-else :href="getNavHref(menuIndex)">{{navMenuItem.title}} <i class="fa fa-chevron-right"></i></m-link>
                     </template>
                 </li>
             </ul>
@@ -63,31 +64,31 @@ along with this software (see the LICENSE.md file). If not, see
             <#-- logout button -->
             <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="${ec.l10n.localize("Logout")} ${(ec.user.userAccount.userFullName)!''}"
                    onclick="return confirm('${ec.l10n.localize("Logout")} ${(ec.user.userAccount.userFullName)!''}?')"
-                   data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-off"></i></a>
+                   data-placement="bottom" class="btn btn-danger btn-sm navbar-btn navbar-right"><i class="fa fa-power-off"></i></a>
             <#-- screen history menu -->
             <#-- get initial history from server? <#assign screenHistoryList = ec.web.getScreenHistory()><#list screenHistoryList as screenHistory><#if (screenHistory_index >= 25)><#break></#if>{url:pathWithParams, name:title}</#list> -->
             <div id="history-menu" class="nav navbar-right dropdown">
                 <a id="history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="${ec.l10n.localize("Screen History")}">
-                    <i class="glyphicon glyphicon-menu-hamburger"></i></a>
+                    <i class="fa fa-bars"></i></a>
                 <ul class="dropdown-menu">
                     <li v-for="histItem in navHistoryList"><m-link :href="histItem.pathWithParams">
                         <template v-if="histItem.image">
                             <i v-if="histItem.imageType === 'icon'" :class="histItem.image" style="padding-right: 8px;"></i>
                             <img v-else :src="histItem.image" :alt="histItem.title" width="18" style="padding-right: 4px;">
                         </template>
-                        <i v-else class="glyphicon glyphicon-link" style="padding-right: 8px;"></i>
+                        <i v-else class="fa fa-link" style="padding-right: 8px;"></i>
                         {{histItem.title}}</m-link></li>
                 </ul>
             </div>
             <#-- screen history previous screen -->
             <#-- disable this for now to save space, not commonly used and limited value vs browser back:
             <a href="#" @click.prevent="goPreviousScreen()" data-toggle="tooltip" data-original-title="${ec.l10n.localize("Previous Screen")}"
-               data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-menu-left"></i></a>
+               data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="fa fa-chevron-left"></i></a>
             -->
             <#-- notify history -->
             <div id="notify-history-menu" class="nav navbar-right dropdown">
                 <a id="notify-history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="${ec.l10n.localize("Notify History")}">
-                    <i class="glyphicon glyphicon-exclamation-sign"></i></a>
+                    <i class="fa fa-exclamation-circle"></i></a>
                 <ul class="dropdown-menu" @click.prevent="stopProp">
                     <li v-for="histItem in notifyHistoryList">
                         <#-- NOTE: don't use v-html for histItem.message, may contain input repeated back so need to encode for security (make sure scripts not run, etc) -->
@@ -97,7 +98,7 @@ along with this software (see the LICENSE.md file). If not, see
             </div>
             <#-- dark/light switch -->
             <a href="#" @click.prevent="switchDarkLight()" data-toggle="tooltip" data-original-title="${ec.l10n.localize("Switch Dark/Light")}"
-                   data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="glyphicon glyphicon-adjust"></i></a>
+                   data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="fa fa-adjust"></i></a>
 
             <#-- QZ print options placeholder -->
             <component :is="qzVue" ref="qzVue"></component>
@@ -108,7 +109,7 @@ along with this software (see the LICENSE.md file). If not, see
             <#-- screen documentation/help -->
             <div id="document-menu" class="nav navbar-right dropdown" :class="{hidden:!documentMenuList.length}">
                 <a id="document-menu-link" href="#" class="dropdown-toggle btn btn-info btn-sm navbar-btn" data-toggle="dropdown" title="Documentation">
-                    <i class="glyphicon glyphicon-question-sign"></i></a>
+                    <i class="fa fa-question-circle"></i></a>
                 <ul class="dropdown-menu">
                     <li v-for="screenDoc in documentMenuList">
                         <a href="#" @click.prevent="showScreenDocDialog(screenDoc.index)">{{screenDoc.title}}</a></li>

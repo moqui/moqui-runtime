@@ -105,7 +105,7 @@ along with this software (see the LICENSE.md file). If not, see
                         <text-line size="30"/></default-field></field>
                     <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
                     <field name="deleteLink"><default-field title="">
-                        <link url="deleteArtifactGroupMember" text=" " icon="glyphicon glyphicon-trash" confirmation="Really Delete?"
+                        <link url="deleteArtifactGroupMember" text=" " icon="fa fa-trash" confirmation="Really Delete?"
                                 parameter-map="[artifactGroupId:artifactGroupId, artifactName:artifactName, artifactTypeEnumId:artifactTypeEnumId]"/>
                     </default-field></field>
                 </form-list>
@@ -189,7 +189,7 @@ along with this software (see the LICENSE.md file). If not, see
                     </default-field></field>
                     <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
                     <field name="deleteLink"><default-field title="">
-                        <link url="deleteArtifactAuthz" text=" " icon="glyphicon glyphicon-trash" confirmation="Really Delete?"
+                        <link url="deleteArtifactAuthz" text=" " icon="fa fa-trash" confirmation="Really Delete?"
                                 parameter-map="[artifactAuthzId:artifactAuthzId]"/>
                     </default-field></field>
                 </form-list>
@@ -229,7 +229,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="tarpitDuration"><default-field tooltip="In seconds"><text-line size="8"/></default-field></field>
                     <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
                     <field name="deleteLink"><default-field title="">
-                        <link url="deleteArtifactTarpit" text=" " icon="glyphicon glyphicon-trash" confirmation="Really Delete?"
+                        <link url="deleteArtifactTarpit" text=" " icon="fa fa-trash" confirmation="Really Delete?"
                                 parameter-map="[artifactGroupId:artifactGroupId, userGroupId:userGroupId]"/>
                     </default-field></field>
                 </form-list>

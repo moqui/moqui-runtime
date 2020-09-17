@@ -123,7 +123,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="thruDate"><default-field><date-time/></default-field></field>
                     <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
                     <field name="deleteButton"><default-field title="">
-                        <link url="deleteUserGroupPermission" text=" " icon="glyphicon glyphicon-trash" confirmation="Really remove?"/></default-field></field>
+                        <link url="deleteUserGroupPermission" text=" " icon="fa fa-trash" confirmation="Really remove?"/></default-field></field>
                 </form-list>
             </box-body></container-box>
         </row-col><row-col lg="6">
@@ -159,7 +159,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="preferenceValue"><default-field title="Value"><text-line size="30"/></default-field></field>
                     <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
                     <field name="deleteButton"><default-field title="">
-                        <link url="deleteUserGroupPreference" text=" " icon="glyphicon glyphicon-trash" confirmation="Really remove?"/></default-field></field>
+                        <link url="deleteUserGroupPreference" text=" " icon="fa fa-trash" confirmation="Really remove?"/></default-field></field>
                 </form-list>
             </box-body></container-box>
         </row-col></container-row>

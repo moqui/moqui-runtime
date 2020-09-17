@@ -17,7 +17,6 @@ along with this software (see the LICENSE.md file). If not, see
         default-menu-title="Service Run" default-menu-index="2">
 
     <parameter name="serviceName"/>
-    <parameter name="doingRun"/>
 
     <transition name="run" begin-transaction="false">
         <actions>
@@ -28,16 +27,17 @@ along with this software (see the LICENSE.md file). If not, see
                 } else {
                     serviceResults = ec.service.sync().name(serviceName).parameters(context).call()
                 }
+                if (serviceResults) {
+                    StringBuilder sb = new StringBuilder("Service Run Results:\n")
+                    for (def resultEntry in serviceResults) sb.append("==> ${resultEntry.key}: ${resultEntry.value?.toString()}\n")
+                    ec.logger.info(sb.toString())
 
-                StringBuilder sb = new StringBuilder("Service Run Results:\n")
-                for (def resultEntry in serviceResults) sb.append("${resultEntry.key}: ${resultEntry.value?.toString()}\n")
-                ec.logger.info(sb.toString())
-
-                // save the results to display on the screen in the next request (after the transition redirect)
-                ec.webImpl?.saveParametersToSession(serviceResults)
+                    // save the results to display on the screen in the next request (after the transition redirect)
+                    ec.webImpl?.saveParametersToSession(serviceResults)
+                }
             </script>
         </actions>
-        <default-response url="." save-parameters="true"/>
+        <default-response url="." save-parameters="true"><parameter name="doingRun" value="Y"/></default-response>
     </transition>
 
     <actions>
@@ -45,8 +45,7 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <form-single name="SelectServiceInput" transition=".">
             <field name="serviceName"><default-field title="Service Name (path.verb#noun)">
-                <text-line size="80"/>
-            </default-field></field>
+                <text-line size="80"/></default-field></field>
             <field name="submitButton"><default-field title="Select Service"><submit/></default-field></field>
             <field-layout><field-row-big><field-ref name="serviceName"/><field-ref name="submitButton"/></field-row-big></field-layout>
         </form-single>
@@ -63,7 +62,6 @@ along with this software (see the LICENSE.md file). If not, see
             <label text="Run Service: ${serviceName}" type="h3"/>
             <form-single name="ServiceParameters" transition="run" dynamic="true">
                 <field name="serviceName"><default-field><hidden/></default-field></field>
-                <field name="doingRun"><default-field><hidden default-value="Y"/></default-field></field>
                 <auto-fields-service service-name="${serviceName}" include="in" field-type="edit"/>
                 <field name="submitButton"><default-field title="Run Service"><submit/></default-field></field>
 

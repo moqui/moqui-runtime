@@ -109,7 +109,7 @@ along with this software (see the LICENSE.md file). If not, see
         </form-single>
 
         <label text="Query Results" type="h4"/>
-        <render-mode><text type="html,vuet"><![CDATA[
+        <render-mode><text type="html,vuet,qvt"><![CDATA[
             <#if outerColumnsList?has_content>
                 <#list outerColumnsList as columns>
                     <#assign records = outerRecordsList[columns?index] />
