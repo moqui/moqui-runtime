@@ -34,7 +34,7 @@ body.test #top { background: #224422!important; }
 
 .q-btn { margin:2px; }
 .q-btn--dense .q-btn__wrapper { padding:4px 8px; }
-.q-btn .q-icon, .q-btn .q-spinner { font-size:18px; } /* was 1.715em ~= 24px */
+.q-btn .q-icon, .q-btn .q-spinner { font-size:18px; padding:2px 0; } /* was 1.715em ~= 24px */
 /* using q-btn flat for link style buttons, reduce margin/padding/height to match inline text */
 .m-link.q-btn--flat { margin:0; }
 .m-link.q-btn--flat .q-btn__wrapper { padding:0 4px; min-height:1.5em; }
