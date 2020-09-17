@@ -359,26 +359,6 @@ Vue.component('container-dialog', {
             if (defFocus.length) { defFocus.focus(); } else { jqEl.find("form :input:visible:not([type='submit']):first").focus(); }
         });
         if (this.openDialog) { jqEl.modal('show'); }
-
-        $(".modal-header").css('cursor', 'move');
-
-        $(".modal-header").on("mousedown", function(mousedownEvent) {
-            var $modalHeader = $(this);
-            var x = mousedownEvent.pageX - $modalHeader.offset().left,
-                y = mousedownEvent.pageY - $modalHeader.offset().top;
-            $("body").on("mousemove.draggable", function(mousemoveEvent) {
-                $modalHeader.closest(".modal-dialog").offset({
-                    "left": mousemoveEvent.pageX - x,
-                    "top": mousemoveEvent.pageY - y
-                });
-            });
-            $("body").one("mouseup", function() {
-                $("body").off("mousemove.draggable");
-            });
-            $modalHeader.closest(".modal").one("hidden.bs.modal", function() {
-                $("body").off("mousemove.draggable");
-            });
-        });
     }
 });
 Vue.component('dynamic-container', {
