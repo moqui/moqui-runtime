@@ -399,6 +399,43 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 <#macro parameter><#-- do nothing, used directly in other elements --></#macro>
 
+<#macro "button-menu">
+    <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
+    <#if !conditionResult><#return></#if>
+
+    <#assign textMap = "">
+    <#if .node["@text-map"]?has_content><#assign textMap = ec.getResource().expression(.node["@text-map"], "")!></#if>
+    <#if textMap?has_content><#assign linkText = ec.getResource().expand(.node["@text"], "", textMap)>
+        <#else><#assign linkText = ec.getResource().expand(.node["@text"]!"", "")></#if>
+
+    <#if linkText == "null"><#assign linkText = ""></#if>
+    <#if linkText?has_content || .node["image"]?has_content || .node["@icon"]?has_content>
+        <#if .node["@encode"]! != "false"><#assign linkText = linkText?html></#if>
+        <#assign iconClass = .node["@icon"]!>
+        <#if !iconClass?has_content && linkText?has_content><#assign iconClass = sri.getThemeIconClass(linkText)!></#if>
+        <#assign badgeMessage = ec.getResource().expand(.node["@badge"]!, "")/>
+
+        <#-- NOTE: do not use auto-close or v-close-popup because it closes dialogs as well as the menu! -->
+        <q-btn-dropdown dense outline no-caps color="<@getQuasarColor .node["@btn-type"]!"primary"/>"<#rt>
+                <#lt><#if .node["@style"]?has_content> class="${ec.getResource().expandNoL10n(.node["@style"], "")}"</#if>>
+            <template v-slot:label>
+                <#if .node["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node["@tooltip"], "")}</q-tooltip></#if>
+                <#if iconClass?has_content><i class="${iconClass} q-icon<#if linkText?has_content> on-left</#if>"></i></#if>
+                <#if .node["image"]?has_content><#visit .node["image"][0]><#else>${linkText}</#if>
+                <#if badgeMessage?has_content><q-badge class="on-right" transparent>${badgeMessage}</q-badge></#if>
+            </template>
+
+            <q-list>
+            <#list .node?children as childNode>
+                <q-item><q-item-section>
+                    <#visit childNode>
+                </q-item-section></q-item>
+            </#list>
+            </q-list>
+        </q-btn-dropdown>
+    </#if>
+</#macro>
+
 <#-- ============================================================= -->
 <#-- ======================= Form Single ========================= -->
 <#-- ============================================================= -->

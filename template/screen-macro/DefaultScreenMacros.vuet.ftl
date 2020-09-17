@@ -360,6 +360,41 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 </#macro>
 <#macro parameter><#-- do nothing, used directly in other elements --></#macro>
 
+<#macro "button-menu">
+    <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
+    <#if !conditionResult><#return></#if>
+
+    <#assign textMap = "">
+    <#if .node["@text-map"]?has_content><#assign textMap = ec.getResource().expression(.node["@text-map"], "")!></#if>
+    <#if textMap?has_content><#assign linkText = ec.getResource().expand(.node["@text"], "", textMap)>
+        <#else><#assign linkText = ec.getResource().expand(.node["@text"]!"", "")></#if>
+
+    <#if linkText == "null"><#assign linkText = ""></#if>
+    <#if linkText?has_content || .node["image"]?has_content || .node["@icon"]?has_content>
+        <#if .node["@encode"]! != "false"><#assign linkText = linkText?html></#if>
+        <#assign iconClass = .node["@icon"]!>
+        <#if !iconClass?has_content && linkText?has_content><#assign iconClass = sri.getThemeIconClass(linkText)!></#if>
+        <#assign badgeMessage = ec.getResource().expand(.node["@badge"]!, "")/>
+
+        <#-- TODO: tooltip, doesn't work when using data-toggle for dropdown! <#if .node["@tooltip"]?has_content>${ec.getResource().expand(.node["@tooltip"], "")}</#if> -->
+        <div class="btn-group">
+            <button type="button" class="btn btn-${.node["@btn-type"]!"primary"} dropdown-toggle<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <#if iconClass?has_content><i class="${iconClass}"></i></#if>
+                <#if .node["image"]?has_content><#visit .node["image"][0]><#else>${linkText}</#if>
+                <#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if>
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" style="padding:8px;">
+            <#list .node?children as childNode>
+                <li>
+                    <#visit childNode>
+                </li>
+            </#list>
+            </ul>
+        </div>
+    </#if>
+</#macro>
+
 <#-- ============================================================= -->
 <#-- ======================= Form Single ========================= -->
 <#-- ============================================================= -->
