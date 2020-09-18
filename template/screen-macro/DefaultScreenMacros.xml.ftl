@@ -11,6 +11,8 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 
+<#include "DefaultScreenMacros.any.ftl"/>
+
 <#macro attributeValue textValue>${Static["org.moqui.util.StringUtilities"].encodeForXmlAttribute(textValue)}</#macro>
 
 <#macro @element><#-- Doing nothing for element ${.node?node_name}, not yet implemented. --></#macro>
@@ -45,35 +47,6 @@ along with this software (see the LICENSE.md file). If not, see
     <#if .node["panel-footer"]?has_content><#recurse .node["panel-footer"][0]></#if>
 </#macro>
 <#macro "container-dialog"><#recurse></#macro>
-
-<#-- ==================== Includes ==================== -->
-<#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}</#macro>
-
-
-<#-- ============== Render Mode Elements ============== -->
-<#macro "render-mode">
-<#if .node["text"]?has_content>
-    <#list .node["text"] as textNode><#if !textNode["@type"]?has_content || textNode["@type"] == "any"><#local textToUse = textNode/></#if></#list>
-    <#list .node["text"] as textNode><#if textNode["@type"]?has_content && textNode["@type"]?split(",")?seq_contains(sri.getRenderMode())><#local textToUse = textNode></#if></#list>
-    <#if textToUse?exists>
-        <#if textToUse["@location"]?has_content>
-    <#-- NOTE: this still won't encode templates that are rendered to the writer -->
-    <#if .node["@encode"]!"false" == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else>${sri.renderText(textToUse["@location"], textToUse["@template"]!)}</#if>
-        </#if>
-        <#assign inlineTemplateSource = textToUse?string/>
-        <#if inlineTemplateSource?has_content>
-          <#if !textToUse["@template"]?has_content || textToUse["@template"] == "true">
-            <#assign inlineTemplate = [inlineTemplateSource, sri.getActiveScreenDef().location + ".render_mode.text"]?interpret>
-            <@inlineTemplate/>
-          <#else>
-            ${inlineTemplateSource}
-          </#if>
-        </#if>
-    </#if>
-</#if>
-</#macro>
-
-<#macro text><#-- do nothing, is used only through "render-mode" --></#macro>
 
 <#-- ================== Standalone Fields ==================== -->
 <#macro link><#if .node?parent?node_name?contains("-field")>${ec.resource.expand(.node["@text"], "")}</#if></#macro>
