@@ -22,6 +22,17 @@ p { margin-bottom:8px; } /* orig 16px */
 body.dev #top { background: #0c1b29!important; }
 body.test #top { background: #224422!important; }
 
+/* example for header that changes light and dark along with rest of screen:
+#top { background:white!important; color:black; }
+body.body--dark #top { background:black!important; color:white; }
+
+body.dev #top { background:lightblue!important; color:black; }
+body.dev.body--dark #top { background:#0c1b29!important; color:white; }
+
+body.test #top { background:lightgreen!important; color:black; }
+body.test.body--dark #top { background:#224422!important; color:white; }
+*/
+
 .body--dark .q-menu { background-color:black; }
 .body--dark img.invertible { -webkit-filter: invert(90%); filter: invert(90%); }
 
