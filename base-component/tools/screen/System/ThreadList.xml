@@ -39,9 +39,16 @@ along with this software (see the LICENSE.md file). If not, see
         <actions><script>ec.factory.workerPool.setCorePoolSize(coreSize as int); ec.factory.workerPool.setMaximumPoolSize(maxSize as int)</script></actions>
         <default-response url="."/>
     </transition>
+    <transition name="scheduledReInit">
+        <actions><script>ec.factory.scheduledReInit()</script></actions>
+        <default-response url="."/>
+    </transition>
 
     <actions>
         <set field="workerPool" from="ec.factory.workerPool"/>
+        <set field="scheduledExecutor" from="ec.factory.scheduledExecutor"/>
+        <set field="scheduledRunnableList" from="ec.factory.scheduledRunnableList"/>
+        <set field="jobRunner" from="ec.service.getJobRunner()"/>
 
         <set field="orderByField" from="orderByField ?: 'threadName'"/>
 
@@ -82,6 +89,31 @@ along with this software (see the LICENSE.md file). If not, see
                 </form-single>
             </container-dialog>
         </container>
+
+        <container>
+            <label text="Scheduled Executor" type="strong"/>
+            <label text="Active: ${scheduledExecutor.getActiveCount()} Cur: ${scheduledExecutor.getPoolSize()} Max: ${scheduledExecutor.getMaximumPoolSize()}"
+                    style="${scheduledExecutor.getActiveCount() == scheduledExecutor.getMaximumPoolSize() ? 'text-warning' : ''}"/>
+            <label text="Queue (scheduled runnables):" type="strong"/>
+            <label text="${scheduledExecutor.queue.size()}" style="${scheduledExecutor.queue.size() &lt; scheduledRunnableList.size() ? 'text-danger' : ''}"/>
+
+            <container-dialog id="ScheduledQueueDialog" button-text="Scheduled Queue">
+                <section-iterate name="ScheduledQueueList" list="scheduledExecutor.queue" entry="scheduledRunnable"><widgets>
+                    <container><label text="${scheduledRunnable.toString()} Done? ${scheduledRunnable.isDone()} Cancelled? ${scheduledRunnable.isCancelled()}"/></container>
+                </widgets></section-iterate>
+            </container-dialog>
+            <container-dialog id="ScheduledRunnableDialog" button-text="Initial Runnables">
+                <section-iterate name="ScheduledRunnableList" list="scheduledRunnableList" entry="scheduledRunnable"><widgets>
+                    <container><label text="${scheduledRunnable.command.class.name} Period ${scheduledRunnable.period}s"/></container>
+                </widgets></section-iterate>
+                <link url="scheduledReInit" text="Re-Queue Initial" confirmation="Re-queue initial runnables? Do this only if there are issues with scheduled runnables."/>
+            </container-dialog>
+        </container>
+        <section name="JobRunnerInfo" condition="jobRunner"><widgets>
+            <label text="Last job runner execute: &lt;strong&gt;${new Timestamp(jobRunner.getLastExecuteTime())}&lt;/strong&gt;, runner executes: ${jobRunner.getExecuteCount()}, total jobs run: ${jobRunner.getTotalJobsRun()}, last active: ${jobRunner.getLastJobsActive()}, last paused: ${jobRunner.getLastJobsPaused()}" encode="false"/>
+        </widgets><fail-widgets>
+            <label text="No Service Job Runner active (generally because scheduled-job-check-time is set to 0)"/>
+        </fail-widgets></section>
 
         <form-list name="ThreadList" list="threadMapList" skip-form="true" select-columns="true">
             <field name="threadName"><header-field title="Name" show-order-by="case-insensitive"/><default-field><display/></default-field></field>
