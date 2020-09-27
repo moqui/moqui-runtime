@@ -146,6 +146,34 @@ var moqui = {
         }
     },
 
+    decimalSeparator: (1.1).toLocaleString().substring(1,2),
+    thousandSeparator: (1000).toLocaleString().substring(1,2),
+    isStringInteger: function(value) {
+        if (!moqui.isString(value)) return false;
+        // optional leading -; contains digits, thousandSeparator
+        for (var i = 0; i < value.length; i++) {
+            var curChar = value[i];
+            if (curChar >= '0' && curChar <= '9') continue;
+            if (i === 0 && curChar === '-') continue;
+            if (curChar === moqui.thousandSeparator) continue;
+            return false;
+        }
+        return true;
+    },
+    isStringNumber: function(value) {
+        if (!moqui.isString(value)) return false;
+        // optional leading -; contains digits, thousandSeparator, decimalSeparator
+        for (var i = 0; i < value.length; i++) {
+            var curChar = value[i];
+            if (curChar >= '0' && curChar <= '9') continue;
+            if (i === 0 && curChar === '-') continue;
+            if (curChar === moqui.thousandSeparator) continue;
+            if (curChar === moqui.decimalSeparator) continue;
+            return false;
+        }
+        return true;
+    },
+
     /* ========== general format function ========== */
     format: function(value, format, type) {
         // console.log('format ' + value + ' with ' + format + ' of type ' + type);
