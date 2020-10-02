@@ -97,6 +97,8 @@ form.q-form { width:100%; }
 .q-table--dense .q-table .form-list-nav-row th:first-child { padding:4px 0; }
 .form-list-nav-row .q-bar { background-color:transparent; }
 
+.form-date-find { display:inline-flex; }
+
 /* ====== div based table styles ====== */
 
 .table { display: table; width: 100%; }

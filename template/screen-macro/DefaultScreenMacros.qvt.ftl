@@ -1506,18 +1506,18 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#else><#assign size=16><#assign maxlength=23><#assign defaultFormat="yyyy-MM-dd HH:mm">
     </#if>
     <#assign curFieldName><@fieldName .node/></#assign>
-    <#assign curFieldTitle><@fieldTitle dtSubFieldNode/></#assign>
+    <#assign curFieldTitle><@fieldTitle .node?parent/></#assign>
     <#assign fieldValueFrom = ec.getL10n().format(ec.getContext().get(curFieldName + "_from")!?default(.node["@default-value-from"]!""), defaultFormat)>
     <#assign fieldValueThru = ec.getL10n().format(ec.getContext().get(curFieldName + "_thru")!?default(.node["@default-value-thru"]!""), defaultFormat)>
     <span class="form-date-find">
       <m-date-time id="<@fieldId .node/>_from" name="${curFieldName}_from" value="${fieldValueFrom?html}" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
-          <#t> :label="${curFieldTitle} ${ec.getL10n().localize("From")}"
+          <#t> label="${curFieldTitle} ${ec.getL10n().localize("From")}"
           <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
           <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>></m-date-time>
     </span>
     <span class="form-date-find">
       <m-date-time id="<@fieldId .node/>_thru" name="${curFieldName}_thru" value="${fieldValueThru?html}" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
-          <#t> :label="${curFieldTitle} ${ec.getL10n().localize("Thru")}"
+          <#t> label="${curFieldTitle} ${ec.getL10n().localize("Thru")}"
           <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
           <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>></m-date-time>
     </span>
