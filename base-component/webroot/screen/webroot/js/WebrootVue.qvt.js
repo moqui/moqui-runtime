@@ -620,7 +620,10 @@ Vue.component('m-form', {
                 var fieldValue = pair[1];
                 // NOTE: this shouldn't happen as when not getting from FormData q-input with mask should have null value when empty, but just in case skip String values that are unfilled masks
                 // NOTE: with q-input mask place holder is underscore, look for 2; this will cause issues if a valid user input starts with 2 underscores, may need better approach here and in m-form-link
-                if (moqui.isString(fieldValue) && fieldValue.startsWith("__")) formData["delete"](fieldName);
+                if (moqui.isString(fieldValue) && fieldValue.startsWith("__")) {
+                    // instead of delete set to empty string, otherwise can't clear masked fields: formData["delete"](fieldName);
+                    formData.set(fieldName, "");
+                }
             }
             formData.set('moquiSessionToken', this.$root.moquiSessionToken);
             if (btnName) { formData.set(btnName, btnValue); }
