@@ -10,9 +10,8 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
-
+<#-- NOTE: no empty lines before the first #macro otherwise FTL outputs empty lines -->
 <#include "DefaultScreenMacros.any.ftl"/>
-
 <#-- truncate or pad the textValue plus one space at the end so it is exactly characters chars long -->
 <#macro paddedValue textValue characters=cellCharWidth!lineCharactersNum!0 leftPad=cellLeftPad!false wrapLine=cellWrapLine!0>
     <#if characters == 0><#return></#if>
@@ -28,9 +27,7 @@ along with this software (see the LICENSE.md file). If not, see
     </#if>
     <#t>${outValue}
 </#macro>
-
 <#macro @element></#macro>
-
 <#macro screen><#recurse></#macro>
 <#macro widgets>
     <#if !lineCharacters?has_content><#assign lineCharacters = "132"></#if>
