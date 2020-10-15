@@ -1207,7 +1207,7 @@ Vue.component('m-display', {
             '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
         '</q-input>' +
         '<span v-else :id="id">' +
-            '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
+            '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip><slot></slot>' +
             '{{displayValue}}' +
         '</span>',
     methods: {
