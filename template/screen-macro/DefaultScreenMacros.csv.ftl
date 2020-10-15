@@ -16,7 +16,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro csvValue textValue>
     <#-- this default escaping looks for commas or double-quotes and if found surrounds with quotes, always changes
     double-quotes within the string to 2 double-quotes -->
-    <#if textValue?contains(",") || textValue?contains("\"")><#assign useQuotes = true><#else><#assign useQuotes = false></#if>
+    <#if textValue?contains(",") || textValue?contains("\"") || textValue?contains("\n")><#assign useQuotes = true><#else><#assign useQuotes = false></#if>
     <#t><#if useQuotes>"</#if>${textValue?replace("\"", "\"\"")}<#if useQuotes>"</#if>
 </#macro>
 
