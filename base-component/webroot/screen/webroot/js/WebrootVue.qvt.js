@@ -889,6 +889,8 @@ Vue.component('m-form-column-config', {
                         '<q-btn-dropdown dense outline no-caps label="Display"><q-list dense>' +
                             '<q-item v-for="(toColumn, toColumnIdx) in columns.slice(1)" :key="toColumn.id" clickable>' +
                                 '<q-item-section @click="moveToCol(columnIdx, fieldIdx, toColumnIdx+1)">{{toColumn.label}}</q-item-section></q-item>' +
+                            '<q-item clickable>' +
+                                '<q-item-section @click="moveToCol(columnIdx, fieldIdx, columns.length+1)">New Column</q-item-section></q-item>' +
                         '</q-list></q-btn-dropdown>' +
                     '</q-item-section>' +
                     '<q-item-section v-else side><q-btn-group flat>' +
