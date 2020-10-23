@@ -26,6 +26,8 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/></transition>
     <transition name="disableUserAccount"><service-call name="org.moqui.impl.UserServices.disable#UserAccount"/>
         <default-response url="."/></transition>
+    <transition name="resetPassword"><service-call name="org.moqui.impl.UserServices.reset#Password"/>
+        <default-response url="."/></transition>
 
     <transition name="visitList"><default-response url="../../../Visit/VisitList"/></transition>
     <transition name="visitDetail"><default-response url="../../../Visit/VisitDetail"/></transition>
@@ -88,8 +90,12 @@ along with this software (see the LICENSE.md file). If not, see
                         <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
                     </form-single>
                 </container-dialog>
+
                 <link url="enableUserAccount" text="Enable Account" parameter-map="[userId:userId]" condition="userAccount.disabled == 'Y'"/>
                 <link url="disableUserAccount" text="Disable Account" parameter-map="[userId:userId]" condition="userAccount.disabled != 'Y'"/>
+                <link url="resetPassword" text="Reset Password" parameter-map="[userId:userAccount.userId]" condition="userAccount.emailAddress"
+                        confirmation="Generate reset password and send by email to ${userAccount.emailAddress}?"/>
+
                 <container-dialog id="AuditLogDialog" button-text="Audit Log" width="960">
                     <form-list name="AuditLogList" list="auditLogList" skip-form="true">
                         <entity-find entity-name="moqui.entity.EntityAuditLog" list="auditLogList">
