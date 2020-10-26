@@ -1854,6 +1854,8 @@ ${sri.getFieldValueString(.node)?html}</textarea>
     <#assign fieldValue = sri.getFieldValueString(.node)>
     <#assign validationClasses = formInstance.getFieldValidationClasses(tlSubFieldNode)>
     <#assign regexpInfo = formInstance.getFieldValidationRegexpInfo(tlSubFieldNode)!>
+    <#assign inputType><#if .node["@input-type"]?has_content>${.node["@input-type"]}<#else><#rt>
+        <#lt><#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if></#if></#assign>
     <#-- NOTE: removed number type (<#elseif validationClasses?contains("number")>number) because on Safari, maybe others, ignores size and behaves funny for decimal values -->
     <#if .node["@ac-transition"]?has_content>
         <#assign acUrlInfo = sri.makeUrlByType(.node["@ac-transition"], "transition", .node, "false")>
@@ -1864,7 +1866,7 @@ ${sri.getFieldValueString(.node)?html}</textarea>
             <#else><#assign valueText = fieldValue></#if>
         <#assign depNodeList = .node["depends-on"]>
         <text-autocomplete id="${tlId}" name="${name}" url="${acUrlInfo.url}" value="${fieldValue?html}" value-text="${valueText?html}"<#rt>
-                <#t> type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>" size="${.node.@size!"30"}"
+                <#t> type="${inputType}" size="${.node.@size!"30"}"
                 <#t><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
                 <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> :disabled="true"</#if>
                 <#t><#if validationClasses?has_content> validation-classes="${validationClasses}"</#if>
@@ -1879,7 +1881,7 @@ ${sri.getFieldValueString(.node)?html}</textarea>
                 <#t><#if .node["@ac-initial-text"]?has_content> :skip-initial="true"</#if>/>
     <#else>
         <#assign tlAlign = tlFieldNode["@align"]!"left">
-        <#t><input id="${tlId}" <#--v-model="fields.${name}"--> type="<#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if>"
+        <#t><input id="${tlId}" <#--v-model="fields.${name}"--> type="${inputType}"
             <#t> name="${name}" <#if fieldValue?html == fieldValue>value="${fieldValue}"<#else>:value="'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(fieldValue)}'"</#if>
             <#t> <#if .node.@size?has_content>size="${.node.@size}"<#else>style="width:100%;"</#if><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
             <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if>
