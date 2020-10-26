@@ -1553,8 +1553,9 @@ Vue.component('m-drop-down', {
 
 Vue.component('m-text-line', {
     name: "mTextLine",
-    props: { value:String, type:String, id:String, name:String, size:String, fields:{type:Object}, label:String, tooltip:String, disable:Boolean, mask:String, fillMask:String,
-        defaultUrl:String, defaultParameters:Object, dependsOn:Object, dependsOptional:Boolean, defaultLoadInit:Boolean, rules:Array },
+    props: { value:String, type:{type:String,'default':'text'}, id:String, name:String, size:String, fields:{type:Object},
+        label:String, tooltip:String, disable:Boolean, mask:String, fillMask:String, rules:Array,
+        defaultUrl:String, defaultParameters:Object, dependsOn:Object, dependsOptional:Boolean, defaultLoadInit:Boolean },
     data: function() { return { loading:false } },
     template:
         '<q-input dense outlined stack-label :label="label" v-bind:value="value" v-on:input="$emit(\'input\', $event)" :type="type"' +
