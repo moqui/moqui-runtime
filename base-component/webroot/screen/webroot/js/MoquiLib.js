@@ -173,6 +173,10 @@ var moqui = {
         }
         return true;
     },
+    parseNumber: function(value) {
+        var replValue = value.replaceAll(moqui.thousandSeparator, '');
+        return replValue.indexOf(moqui.decimalSeparator) === -1 ? parseInt(replValue) : parseFloat(replValue);
+    },
 
     /* ========== general format function ========== */
     format: function(value, format, type) {
