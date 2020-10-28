@@ -1,5 +1,9 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
+// some globals for all Vue components to directly use the moqui object (for methods, constants, etc) and the window object
+Vue.prototype.moqui = moqui;
+Vue.prototype.window = window;
+
 moqui.urlExtensions = { js:'qjs', vue:'qvue', vuet:'qvt' }
 
 // simple stub for define if it doesn't exist (ie no require.js, etc); mimic pattern of require.js define()
@@ -142,13 +146,13 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
     }
     // if Quasar says it's mobile then tell the server via _uiType parameter
     console.log("Load Component " + JSON.stringify(urlInfo) + " Window Width " + window.innerWidth + " Quasar Platform: " + JSON.stringify(Quasar.Platform.is) + " search: " + search);
-    if ((window.innerWidth <= 600 || Quasar.Platform.is.mobile) && (!search || search.indexOf("_uiType") < 0)) {
+    if ((window.innerWidth <= 600 || Quasar.Platform.is.mobile) && (!search || search.indexOf("_uiType") === -1)) {
         search = (search || '') + '&_uiType=mobile';
     }
 
     /* NOTE DEJ 20200718: uncommented componentCache but leaving comment in place in case remains an issue (makes user experience much smoother):
      * CACHE DISABLED: issue with more recent Vue JS where cached components don't re-render when assigned so screens don't load
-     * to reproduce: make a screen like a dashboad slow loading with a Thread.sleep(5000), from another screen select it
+     * to reproduce: make a screen like a dashboard slow loading with a Thread.sleep(5000), from another screen select it
      * in the menu and before it loads click on a link for another screen, won't load and gets into a bad state where
      * nothing in the same path will load, need to somehow force it to re-render;
      * note that vm.$forceUpdate() in m-subscreens-active component before return false did not work
@@ -348,8 +352,8 @@ Vue.component('m-dialog', {
     props: { draggable:{type:Boolean,'default':true}, value:{type:Boolean,'default':false}, id:String, color:String, width:{type:String}, title:{type:String} },
     data: function() { return { isShown:false }; },
     template:
-    '<q-dialog v-bind:value="value" v-on:input="$emit(\'input\', $event)" :id="id" @show="onShow" @hide="onHide">' +
-        '<q-card ref="dialogCard" flat bordered :style="{width:((width||760)+\'px\')}" style="max-width:90vw;">' +
+    '<q-dialog v-bind:value="value" v-on:input="$emit(\'input\', $event)" :id="id" @show="onShow" @hide="onHide" :maximized="$q.platform.is.mobile">' +
+        '<q-card ref="dialogCard" flat bordered :style="{width:((width||760)+\'px\'),\'max-width\':($q.platform.is.mobile?\'100vw\':\'90vw\')}">' +
             '<q-card-actions ref="dialogHeader" :style="{cursor:(draggable?\'move\':\'default\')}">' +
                 '<h5 class="q-pl-sm non-selectable">{{title}}</h5><q-space></q-space>' +
                 '<q-btn icon="close" flat round dense v-close-popup></q-btn>' +
