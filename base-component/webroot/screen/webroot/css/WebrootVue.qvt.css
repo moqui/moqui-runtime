@@ -113,10 +113,10 @@ form.q-form { width:100%; }
 
 /* lines 4216-4531 */
 .q-table .thead .tr, .q-table .tbody .td { height: 48px; }
-.q-table .th { font-weight: 500; font-size: 12px; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+.q-table .th { font-weight: 500; font-size: 13px; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
 .q-table .th, .q-table .td { padding: 7px 16px; background-color: inherit; }
 .q-table .thead, .q-table .td, .q-table .th { border-style: solid; border-width: 0; }
-.q-table .tbody .td { font-size: 13px; }
+.q-table .tbody .td { font-size: 14px; } /* was 13px in quasar css */
 
 .q-table--no-wrap .th, .q-table--no-wrap .td { white-space: nowrap; }
 .q-table--grid .q-table__middle .thead, .q-table--grid .q-table__middle .thead .th { border: 0 !important; }
