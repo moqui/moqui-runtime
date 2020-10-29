@@ -6,6 +6,7 @@ a { color:var(--q-color-primary); text-decoration:none; }
 .text-success { color:var(--q-color-positive); }
 .text-danger { color:var(--q-color-negative); }
 .text-mono { font-family: monospace,monospace; }
+strong, .text-strong { font-weight:bold; }
 
 form, fieldset { border:none; display:contents; }
 
