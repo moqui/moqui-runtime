@@ -1173,9 +1173,9 @@ Vue.component('m-date-period', {
         '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
         '<template v-slot:before>' +
             '<q-select class="q-pr-xs" dense outlined options-dense emit-value map-options v-model="fields[name+\'_poffset\']" :name="name+\'_poffset\'"' +
-                ' stack-label label="Offset" :options="dateOffsets" :form="form"></q-select>' +
+                ' stack-label label="Offset" :options="dateOffsets" :form="form" behavior="menu"></q-select>' +
             '<q-select dense outlined options-dense emit-value map-options v-model="fields[name+\'_period\']" :name="name+\'_period\'"' +
-                ' stack-label label="Period" :options="datePeriods" :form="form"></q-select>' +
+                ' stack-label label="Period" :options="datePeriods" :form="form" behavior="menu"></q-select>' +
         '</template>' +
         '<template v-slot:prepend>' +
             '<q-icon name="event" class="cursor-pointer">' +
@@ -1310,7 +1310,7 @@ Vue.component('m-drop-down', {
         '<q-select ref="qSelect" v-bind:value="value" v-on:input="handleInput($event)"' +
                 ' dense outlined options-dense use-input :fill-input="!multiple" hide-selected :name="name" :id="id" :form="form"' +
                 ' input-debounce="500" @filter="filterFn" :clearable="allowEmpty||multiple" :disable="disable"' +
-                ' :multiple="multiple" :emit-value="!onSelectGoTo" map-options' +
+                ' :multiple="multiple" :emit-value="!onSelectGoTo" map-options behavior="menu"' +
                 ' stack-label :label="label" :loading="loading" :options="curOptions">' +
             '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
             '<template v-slot:no-option><q-item><q-item-section class="text-grey">No results</q-item-section></q-item></template>' +
