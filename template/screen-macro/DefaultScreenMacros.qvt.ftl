@@ -661,6 +661,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
     <#if (isHeaderDialog || isSavedFinds || isSelectColumns || isPaginated) && hideNav! != "true">
         <tr class="form-list-nav-row"><th colspan="${numColumns}"><div class="row">
+            <div class="col-xs-12 col-sm-6"><div class="row">
             <#if isSavedFinds>
                 <#assign userFindInfoList = formListInfo.getUserFormListFinds(ec)>
                 <#if userFindInfoList?has_content>
@@ -955,8 +956,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <strong class="text-warning on-right" style="display:inline-block;padding-top:2px;">${ec.getL10n().localize("No results found")}</strong>
                 </#if>
             </#if>
+            </div></div>
 
             <#if isPaginated>
+            <div class="col-xs-12 col-sm-6"><div class="row">
                 <q-space></q-space>
                 <#-- no more paginate/show-all button, use page size drop-down with 500 instead:
                 <#if formNode["@show-all-button"]! == "true" && (context[listName + 'Count'] < 500)>
@@ -985,6 +988,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <m-form-paginate :paginate="{ count:${context[listName + "Count"]?c}, pageIndex:${context[listName + "PageIndex"]?c},<#rt>
                     <#t> pageSize:${context[listName + "PageSize"]?c}, pageMaxIndex:${context[listName + "PageMaxIndex"]?c},
                     <#lt> pageRangeLow:${context[listName + "PageRangeLow"]?c}, pageRangeHigh:${context[listName + "PageRangeHigh"]?c} }"></m-form-paginate>
+            </div></div>
             </#if>
         </div></th></tr>
 
