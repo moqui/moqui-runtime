@@ -67,7 +67,7 @@ form.q-form { width:100%; }
 /* make notch fit text, not full width */
 .q-field--dense.q-field--float .q-field__label { right:auto; }
 /* move input text up 6px OOTB padding-top:14px */
-.q-field--labeled.q-field--dense .q-field__native { padding-top:8px; }
+.q-field--labeled.q-field--dense .q-field__native, .q-field--labeled.q-field--dense .q-field__prefix { padding-top:8px; }
 /* move drop-down input up 6px; this padding-top defaults to 14px, have to move up 12px to handle wrapped field padding */
 .q-field--auto-height.q-field--dense.q-field--labeled .q-field__control-container { padding-top:0; }
 /* fix blue focus border on top of label instead of behind */
