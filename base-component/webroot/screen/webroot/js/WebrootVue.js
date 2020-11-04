@@ -496,7 +496,7 @@ Vue.component('m-form', {
     props: { action:{type:String,required:true}, method:{type:String,'default':'POST'},
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean },
     data: function() { return { fields:{}, fieldsChanged:{}, buttonClicked:null }},
-    template: '<form @submit.prevent="submitForm"><slot></slot></form>',
+    template: '<form @submit.prevent="submitForm" autocapitalize="off" autocomplete="off"><slot></slot></form>',
     methods: {
         submitForm: function submitForm() {
             var jqEl = $(this.$el);
@@ -624,7 +624,7 @@ Vue.component('m-form', {
 Vue.component('form-link', {
     props: { action:{type:String,required:true}, focusField:String, noValidate:Boolean, bodyParameterNames:Array },
     data: function() { return { fields:{} }},
-    template: '<form @submit.prevent="submitForm"><slot :clearForm="clearForm"></slot></form>',
+    template: '<form @submit.prevent="submitForm" autocapitalize="off" autocomplete="off"><slot :clearForm="clearForm"></slot></form>',
     methods: {
         submitForm: function() {
             var jqEl = $(this.$el);
