@@ -2,6 +2,7 @@
 
 // some globals for all Vue components to directly use the moqui object (for methods, constants, etc) and the window object
 Vue.prototype.moqui = moqui;
+Vue.prototype.moment = moment;
 Vue.prototype.window = window;
 
 moqui.urlExtensions = { js:'qjs', vue:'qvue', vuet:'qvt' }
@@ -1056,12 +1057,12 @@ Vue.component('m-form-list', {
 Vue.component('m-date-time', {
     name: "mDateTime",
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'}, label:String,
-        size:String, format:String, tooltip:String, form:String, required:String, disable:Boolean, autoYear:String,
+        size:String, format:String, tooltip:String, form:String, required:String, rules:Array, disable:Boolean, autoYear:String,
         minuteStep:{type:Number,'default':5} },
     template:
     // NOTE: tried :fill-mask="formatVal" but results in all Y, only supports single character for mask placeholder... how to show more helpful date mask?
     // TODO: add back @focus="focusDate" @blur="blurDate" IFF needed given different mask/etc behavior
-    '<q-input dense outlined stack-label :label="label" v-bind:value="value" v-on:input="$emit(\'input\', $event)"' +
+    '<q-input dense outlined stack-label :label="label" v-bind:value="value" v-on:input="$emit(\'input\', $event)" :rules="rules"' +
             ' :mask="inputMask" fill-mask :id="id" :name="name" :form="form" :disable="disable" :size="sizeVal" style="max-width:max-content;">' +
         '<template v-slot:prepend v-if="type==\'date\' || type==\'date-time\' || !type">' +
             '<q-icon name="event" class="cursor-pointer">' +
