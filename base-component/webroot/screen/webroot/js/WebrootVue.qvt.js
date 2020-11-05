@@ -2017,7 +2017,7 @@ moqui.webrootVue = new Vue({
             }
         },
         getLinkPath: function(path) {
-            if (moqui.isPlainObject(path)) path = path.path;
+            if (moqui.isPlainObject(path)) path = moqui.makeHref(path);
             if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
             var pathList = path.split('/');
             // element 0 in array after split is empty string from leading '/'
