@@ -1319,7 +1319,7 @@ Vue.component('m-drop-down', {
                 ' dense outlined options-dense use-input :fill-input="!multiple" hide-selected :name="name" :id="id" :form="form"' +
                 ' input-debounce="500" @filter="filterFn" :clearable="allowEmpty||multiple" :disable="disable"' +
                 ' :multiple="multiple" :emit-value="!onSelectGoTo" map-options behavior="menu"' +
-                ' :rules="[ val => allowEmpty || (val && val.length) || \'Please select an option\' ]"' +
+                ' :rules="[val => allowEmpty||multiple||(val && val.length)||\'Please select an option\']"' +
                 ' stack-label :label="label" :loading="loading" :options="curOptions">' +
             '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
             '<template v-slot:no-option><q-item><q-item-section class="text-grey">No results</q-item-section></q-item></template>' +
