@@ -574,6 +574,7 @@ Vue.component('m-form', {
                     if (success) {
                         vm.submitGo();
                     } else {
+                        /*
                         // For convenience, attempt to focus the first invalid element.
                         // Begin by finding the first invalid input
                         var invEle = jqEl.find('div.has-error input, div.has-error select, div.has-error textarea').first();
@@ -597,6 +598,7 @@ Vue.component('m-form', {
                                 } else invEle.focus();
                             } else invEle.focus();
                         }
+                        */
                     }
                 })
             }
@@ -1316,6 +1318,7 @@ Vue.component('m-drop-down', {
                 ' dense outlined options-dense use-input :fill-input="!multiple" hide-selected :name="name" :id="id" :form="form"' +
                 ' input-debounce="500" @filter="filterFn" :clearable="allowEmpty||multiple" :disable="disable"' +
                 ' :multiple="multiple" :emit-value="!onSelectGoTo" map-options behavior="menu"' +
+                ' :rules="[ val => allowEmpty || (val && val.length) || \'Please select an option\' ]"' +
                 ' stack-label :label="label" :loading="loading" :options="curOptions">' +
             '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
             '<template v-slot:no-option><q-item><q-item-section class="text-grey">No results</q-item-section></q-item></template>' +
@@ -1546,7 +1549,7 @@ Vue.component('m-drop-down', {
             }
         }
         // simulate normal select behavior with no empty option (not allowEmpty) where first value is selected by default
-        if (!this.multiple && !this.allowEmpty && (!this.value || !this.value.length) && this.options && this.options.length) {
+        if (!this.multiple && !this.allowEmpty && (!this.value || !this.value.length) && this.options && this.options.length === 1) {
             this.$emit('input', this.options[0].value);
         }
     },
@@ -1568,7 +1571,7 @@ Vue.component('m-text-line', {
     data: function() { return { loading:false } },
     template:
         '<q-input dense outlined stack-label :label="label" :prefix="prefix" v-bind:value="value" v-on:input="$emit(\'input\', $event)" :type="type"' +
-                ' :id="id" :name="name" :size="size" :loading="loading" lazy-rules :rules="rules" :disable="disable" :mask="mask" :fill-mask="fillMask"' +
+                ' :id="id" :name="name" :size="size" :loading="loading" :rules="rules" :disable="disable" :mask="mask" :fill-mask="fillMask"' +
                 ' autocapitalize="off" autocomplete="off">' +
             '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
         '</q-input>',
