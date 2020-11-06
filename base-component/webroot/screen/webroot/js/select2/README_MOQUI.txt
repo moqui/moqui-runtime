@@ -40,6 +40,9 @@ Add the following line:
 Added additional logic to more naturally handle (Shift) Tab keypresses,
 causing focus to move to the next/previous element immediately.
 
-2020-04-08 DEJ:
+20200408 DEJ:
 If no options and/or options are loading ignore ENTER.
-This avoids certain user error and makes it possible to use
+This avoids certain user error and makes it possible to use a barcode scanner.
+
+20201105 DEJ:
+Also ignore TAB if options are loading.
