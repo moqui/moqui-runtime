@@ -1922,6 +1922,9 @@ moqui.webrootVue = new Vue({
 
                 // set the window URL
                 window.history.pushState(null, this.ScreenTitle, url);
+                // scroll to top
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
             }
         },
         callOnComplete: function(onComplete, redirectedFrom) {
