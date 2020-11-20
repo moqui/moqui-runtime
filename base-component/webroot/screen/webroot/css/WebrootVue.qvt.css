@@ -61,6 +61,8 @@ form.q-form { width:100%; }
 /* BEGIN q-field label move up to overlay outline */
 /* need small (6px) top margin so floating label does not overlap elements above, but to make all q-field consistent apply too all (not just .q-field--labeled.q-field--dense) */
 .q-field--dense { margin:6px 0 6px 0; }
+/* don't double margin for q-field within q-field */
+.q-field--dense .q-field--dense { margin:0; }
 /* move field lable up to 'notch' in outline (like https://material.io/components/text-fields) */
 .q-field--dense .q-field__label { top:0; padding-left:4px; padding-right:4px; background-color:white; }
 .body--dark .q-field--dense .q-field__label { background-color:black; }
