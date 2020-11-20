@@ -71,19 +71,25 @@ along with this software (see the LICENSE.md file). If not, see
                 <search-form-inputs require-parameters="true"/></entity-find>
 
             <field name="aen"><header-field><hidden/></header-field><default-field><hidden/></default-field></field>
+
+            <field name="find"><header-field title="Find"><submit/></header-field></field>
             <field name="edit">
-                <header-field title="Find"><submit/></header-field>
                 <conditional-field title="" condition="entityValue != null">
                     <link url="../AutoEdit/AutoEditMaster" text="" icon="fa fa-pencil" parameter-map="entityValue.getPrimaryKeys()"/></conditional-field>
-                <default-field><display text=" "/></default-field>
+                <default-field title=""><display text=" "/></default-field>
             </field>
             <field name="delete">
                 <conditional-field title="" condition="entityValue != null"><link url="deleteRecord" text="" icon="fa fa-trash"
                     confirmation="Are you sure?" parameter-map="entityValue.getPrimaryKeys()"/></conditional-field>
-                <default-field><display text=" "/></default-field>
+                <default-field title=""><display text=" "/></default-field>
             </field>
             <auto-fields-entity entity-name="${aen}" field-type="find-display"/>
             <field name="lastUpdatedStamp"><default-field title="Last Updated"><display format="yyyy-MM-dd HH:mm:ss"/></default-field></field>
+
+            <columns>
+                <column><field-ref name="edit"/><field-ref name="delete"/></column>
+                <column><field-ref name="lastUpdatedStamp"/></column>
+            </columns>
         </form-list>
         <link url="getFormXml" text="Get Forms XML" link-type="anchor"/>
     </widgets>
