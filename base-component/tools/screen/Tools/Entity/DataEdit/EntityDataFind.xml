@@ -62,11 +62,15 @@ along with this software (see the LICENSE.md file). If not, see
             <link url="../EntityDetail" parameter-map="[selectedEntity:selectedEntity]" text="See Entity Detail"/>
         </container>
         <container><label text="Find '${selectedEntity}' Entity Value" type="h3"/></container>
-        <form-list name="ListEntityValue" list="entityValueList" transition="listSubmit" multi="false" dynamic="true">
+        <form-list name="ListEntityValue" list="entityValueList" transition="listSubmit" header-dialog="true" dynamic="true">
+            <field name="find"><header-field title="Find"><submit/></header-field></field>
             <field name="selectedEntity"><default-field title="Entity Name"><hidden/></default-field></field>
             <field name="edit"><default-field title="Edit"><submit/></default-field></field>
             <field name="delete"><default-field title="Delete"><submit/></default-field></field>
-            <auto-fields-entity entity-name="${selectedEntity}" field-type="display"/>
+            <auto-fields-entity entity-name="${selectedEntity}" field-type="find-display"/>
+            <columns>
+                <column><field-ref name="edit"/><field-ref name="delete"/></column>
+            </columns>
         </form-list>
     </widgets>
 </screen>
