@@ -23,6 +23,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <actions>
         <entity-find-one entity-name="moqui.server.Visit" value-field="visit"/>
+        <if condition="visit == null"><return error="true" message="Visit not found with ID ${visitId}"/></if>
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
             <field-map field-name="userId" from="visit.userId"/></entity-find-one>
         <entity-find entity-name="moqui.server.ArtifactHit" list="artifactHitList" use-clone="true">
@@ -94,7 +95,8 @@ along with this software (see the LICENSE.md file). If not, see
         </widgets></section>
 
         <form-list name="VisitArtifactHitList" list="artifactHitList" skip-form="true" header-dialog="true" select-columns="true">
-            <hidden-parameters><parameter name="visitId"/></hidden-parameters>
+            <field name="visitId"><header-field><hidden/></header-field></field>
+
             <field name="startDateTime"><header-field show-order-by="true"><date-period time="true"/></header-field>
                 <default-field><display/></default-field></field>
             <field name="userId"><default-field><display/></default-field></field>
