@@ -78,6 +78,8 @@ form.q-form { width:100%; }
 .q-field--disabled .q-field__control > div { opacity:1 !important; }
 /* END q-field label move */
 
+.q-field--focused .q-field__input { border-bottom: var(--q-color-primary) solid 1px; margin-left:8px; }
+
 .q-field--dense .q-field__marginal { height:auto; min-height:40px; }
 .q-field__prepend { max-width:75%; }
 .q-field__marginal .q-checkbox__label { font-size:10px; } /* orig from q-field__marginal 24px */
