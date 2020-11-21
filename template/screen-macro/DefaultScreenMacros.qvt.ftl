@@ -429,8 +429,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if urlInstance.getTargetTransition()?has_content><#assign formSingleType = "m-form"><#else><#assign formSingleType = "m-form-link"></#if>
         <#assign fieldsJsName = "formProps.fields">
     <#else>
-        <#assign formSingleType = "form">
-        <#assign fieldsJsName = "">
+        <#assign formSingleType = "m-form">
+        <#assign fieldsJsName = "formProps.fields">
     </#if>
     <#assign formDisabled = urlInstance.disableLink>
 
