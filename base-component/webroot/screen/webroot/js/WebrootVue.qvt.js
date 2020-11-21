@@ -1618,10 +1618,11 @@ Vue.component('m-drop-down', {
             }
         }
         // simulate normal select behavior with no empty option (not allowEmpty) where first value is selected by default - but only do for 1 option to force user to think and choose from multiple
-        if (!this.multiple && !this.allowEmpty && (!this.value || !this.value.length) && this.options && this.options.length === 1) {
+        if (!this.multiple && !this.allowEmpty && (!this.value || !this.value.length) && this.options && this.options.length && (this.dependsOn || this.options.length === 1)) {
             this.$emit('input', this.options[0].value);
         }
-    },
+    }
+    /* probably don't need, remove sometime:
     watch: {
         // need to watch for change to options prop? options: function(options) { this.curOptions = options; },
         curOptionsFoo: function(options) {
@@ -1630,6 +1631,7 @@ Vue.component('m-drop-down', {
 
         }
     }
+     */
 });
 
 Vue.component('m-text-line', {
