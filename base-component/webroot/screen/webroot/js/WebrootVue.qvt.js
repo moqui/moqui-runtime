@@ -609,6 +609,7 @@ Vue.component('m-form', {
             this.fieldsChanged = {};
         },
         submitGo: function() {
+            var vm = this;
             var jqEl = $(this.$el);
             // get button pressed value and disable ASAP to avoid double submit
             var btnName = null, btnValue = null;
@@ -641,11 +642,75 @@ Vue.component('m-form', {
             // console.info('m-form parameters ' + JSON.stringify(formData));
             // for (var key of formData.keys()) { console.log('m-form key ' + key + ' val ' + JSON.stringify(formData.get(key))); }
             this.$root.loading++;
-            $.ajax({ type:this.method, url:(this.$root.appRootPath + this.action), data:formData, contentType:false, processData:false,
-                headers:{Accept:'application/json'}, error:moqui.handleLoadError, success:this.handleResponse });
+
+            /* this didn't work, JS console error: Failed to execute 'createObjectURL' on 'URL': Overload resolution failed
+            $.ajax({ type:this.method, url:(this.$root.appRootPath + this.action), data:formData, contentType:false, processData:false, dataType:'text',
+                xhrFields:{responseType:'blob'}, headers:{Accept:'application/json'}, error:moqui.handleLoadError, success:this.handleResponse });
+             */
+
+            var xhr = new XMLHttpRequest();
+            xhr.open(this.method, (this.$root.appRootPath + this.action), true);
+            xhr.responseType = 'blob';
+            xhr.withCredentials = true;
+            xhr.onload = function () {
+                if (this.status === 200) {
+                    // decrement loading counter
+                    vm.$root.loading--;
+
+                    var disposition = xhr.getResponseHeader('Content-Disposition');
+                    if (disposition && (disposition.indexOf('attachment') !== -1 || disposition.indexOf('inline') !== -1)) {
+                        // download code here thanks to Jonathan Amend, see: https://stackoverflow.com/questions/16086162/handle-file-download-from-ajax-post/23797348#23797348
+                        var blob = this.response;
+                        var filename = "";
+                        if (disposition && disposition.indexOf('attachment') !== -1) {
+                            var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                            var matches = filenameRegex.exec(disposition);
+                            if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+                        }
+
+                        if (typeof window.navigator.msSaveBlob !== 'undefined') {
+                            window.navigator.msSaveBlob(blob, filename);
+                        } else {
+                            var URL = window.URL || window.webkitURL;
+                            var downloadUrl = URL.createObjectURL(blob);
+
+                            if (filename) {
+                                var a = document.createElement("a");
+                                if (typeof a.download === 'undefined') {
+                                    window.location.href = downloadUrl;
+                                } else {
+                                    a.href = downloadUrl;
+                                    a.download = filename;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                }
+                            } else {
+                                window.location.href = downloadUrl;
+                            }
+
+                            setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 100); // cleanup
+                        }
+                    } else {
+                        var reader = new FileReader();
+                        reader.onload = function(evt) {
+                            var bodyText = evt.target.result;
+                            try {
+                                vm.handleResponse(JSON.parse(bodyText));
+                            } catch(e) {
+                                vm.handleResponse(bodyText);
+                            }
+
+                        };
+                        reader.readAsText(this.response);
+                    }
+                } else {
+                    moqui.handleLoadError(this, this.statusText, "");
+                }
+            };
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.send(formData);
         },
         handleResponse: function(resp) {
-            this.$root.loading--;
             var notified = false;
             // console.info('m-form response ' + JSON.stringify(resp));
             if (resp && moqui.isPlainObject(resp)) {
@@ -1453,6 +1518,7 @@ Vue.component('m-drop-down', {
                         } else {
                             vm.setNewOptions(procList);
                             if (vm.$refs.qSelect) vm.$refs.qSelect.refresh();
+                            // tried this for some drop-downs getting value set and have options but not showing current value's label, didn't work: if (vm.$refs.qSelect) vm.$nextTick(function() { vm.$refs.qSelect.refresh(); });
                             // NOTE: don't want to do this, was mistakenly used before, use only if setting the input value string to an explicit value otherwise clears it and calls filter again: vm.$refs.qSelect.updateInputValue();
                         }
                     }
@@ -1494,7 +1560,7 @@ Vue.component('m-drop-down', {
             if (!isInNewOptions) {
                 if (!this.allowEmpty && !this.multiple && options && options.length && options[0].value) {
                     // simulate normal select behavior with no empty option (not allowEmpty) where first value is selected by default
-                    // console.warn("setting " + this.name + " to " + options[0].value);
+                    console.warn("checkCurrentValue setting " + this.name + " to " + options[0].value);
                     this.$emit('input', options[0].value);
                 } else {
                     // console.warn("setting " + this.name + " to null");
@@ -1549,7 +1615,7 @@ Vue.component('m-drop-down', {
                 else if (this.value && this.value.length && moqui.isString(this.value)) { this.populateFromUrl({term:this.value}); }
             }
         }
-        // simulate normal select behavior with no empty option (not allowEmpty) where first value is selected by default
+        // simulate normal select behavior with no empty option (not allowEmpty) where first value is selected by default - but only do for 1 option to force user to think and choose from multiple
         if (!this.multiple && !this.allowEmpty && (!this.value || !this.value.length) && this.options && this.options.length === 1) {
             this.$emit('input', this.options[0].value);
         }
