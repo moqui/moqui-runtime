@@ -80,8 +80,22 @@ moqui.notifyValidationError = function(valError) {
     moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsError, { message:message }));
     moqui.webrootVue.addNotify(message, 'negative');
 };
-moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
-    var resp = jqXHR.responseText;
+moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown, responseText) {
+    var resp;
+    if (responseText) {
+        resp = responseText;
+    } else if (jqXHR.responseType === 'blob') {
+        var reader = new FileReader();
+        reader.onload = function(evt) {
+            var bodyText = evt.target.result;
+            moqui.handleAjaxError(jqXHR, textStatus, errorThrown, bodyText);
+        };
+        reader.readAsText(jqXHR.response);
+        return;
+    } else {
+        resp = jqXHR.responseText;
+    }
+
     var respObj;
     try { respObj = JSON.parse(resp); } catch (e) { /* ignore error, don't always expect it to be JSON */ }
     console.warn('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown /*+ '; response: ' + resp*/);
@@ -92,6 +106,7 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
     } else {
         if (respObj && moqui.isPlainObject(respObj)) {
             notified = moqui.notifyMessages(respObj.messageInfos, respObj.errors, respObj.validationErrors);
+            console.log("got here notified ", notified);
         } else if (resp && moqui.isString(resp) && resp.length) {
             notified = moqui.notifyMessages(resp);
         }
@@ -107,6 +122,7 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
             moqui.webrootVue.addNotify(msg, 'negative');
         }
     } else if (!notified) {
+        console.log("got here 2 notified ", notified);
         var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
         moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsError, { message:errMsg }));
         moqui.webrootVue.addNotify(errMsg, 'negative');
