@@ -161,11 +161,15 @@ ${sri.renderSection(.node["@name"])}
         <#if !title?has_content><#assign title = buttonText></#if>
         <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
         <#assign ddDivId><@nodeId .node/></#assign>
-        <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm ${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}"><i class="${iconClass}"></i> ${buttonText}</button>
-        <#assign afterFormText>
-        <dynamic-dialog id="${ddDivId}" url="${urlInstance.urlWithParams}" width="${.node["@width"]!"760"}" title="${title}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></dynamic-dialog>
-        </#assign>
-        <#t>${sri.appendToAfterScreenWriter(afterFormText)}
+        <#if urlInstance.disableLink>
+            <button id="${ddDivId}-button" type="button" class="disabled text-muted btn btn-${.node["@type"]!"primary"} btn-sm ${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}"><i class="${iconClass}"></i> ${buttonText}</button>
+        <#else>
+            <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm ${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}"><i class="${iconClass}"></i> ${buttonText}</button>
+            <#assign afterFormText>
+            <dynamic-dialog id="${ddDivId}" url="${urlInstance.urlWithParams}" width="${.node["@width"]!"760"}" title="${title}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></dynamic-dialog>
+            </#assign>
+            <#t>${sri.appendToAfterScreenWriter(afterFormText)}
+        </#if>
     </#if>
 </#macro>
 
