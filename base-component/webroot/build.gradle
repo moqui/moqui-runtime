@@ -14,6 +14,11 @@
 
 import java.nio.charset.StandardCharsets
 
+buildscript {
+    repositories { jcenter() }
+    dependencies { classpath 'com.github.ben-manes:gradle-versions-plugin:0.28.0' }
+}
+
 /* gradle.js plugin getting warning with Gradle 5+, incompatible with Gradle 6:
 
    Internal API constructor FactoryNamedDomainObjectContainerConstructor AbstractNamedDomainObjectContainer(Class<T>, Instantiator)
@@ -24,6 +29,12 @@ import java.nio.charset.StandardCharsets
 plugins {
     id "com.eriwen.gradle.js" version "2.14.1"
 }
+
+apply plugin: 'com.github.ben-manes.versions'
+dependencyUpdates.resolutionStrategy = { componentSelection { rules -> rules.all { ComponentSelection selection ->
+    boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm', 'b'].any { qualifier -> selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-].*/ }
+    if (rejected) selection.reject('Release candidate')
+} } }
 
 def webrootPath = "screen/webroot"
 def libsPath = webrootPath + "/libs"
@@ -87,7 +98,7 @@ def fileMap = [
 ]
 
 def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
-def jsdelivrList = ["quasar@1.14.5/dist/quasar.min.css", "quasar@1.14.5/dist/quasar.umd.min.js"]
+def jsdelivrList = ["quasar@1.14.7/dist/quasar.min.css", "quasar@1.14.7/dist/quasar.umd.min.js"]
 
 String getTargetPath(String sourcePath, String targetPath) {
     if (!targetPath) {
