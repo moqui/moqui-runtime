@@ -1389,10 +1389,12 @@ Vue.component('m-display', {
 
 Vue.component('m-drop-down', {
     name: "mDropDown",
-    props: { value:[Array,String], options:{type:Array,'default':function(){return [];}}, combo:Boolean, allowEmpty:Boolean, multiple:Boolean, optionsUrl:String,
+    props: { value:[Array,String], options:{type:Array,'default':function(){return [];}}, combo:Boolean,
+        allowEmpty:Boolean, multiple:Boolean, requiredManualSelect:Boolean,
+        optionsUrl:String, optionsParameters:Object, optionsLoadInit:Boolean,
         serverSearch:Boolean, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
-        optionsParameters:Object, labelField:{type:String,'default':'label'}, valueField:{type:String,'default':'value'},
-        dependsOn:Object, dependsOptional:Boolean, optionsLoadInit:Boolean, form:String, fields:{type:Object},
+        labelField:{type:String,'default':'label'}, valueField:{type:String,'default':'value'},
+        dependsOn:Object, dependsOptional:Boolean, form:String, fields:{type:Object},
         tooltip:String, label:String, name:String, id:String, disable:Boolean, onSelectGoTo:String },
     data: function() { return { curOptions:this.options, allOptions:this.options, lastVal:null, lastSearch:null, loading:false } },
     template:
@@ -1502,8 +1504,8 @@ Vue.component('m-drop-down', {
         },
         populateFromUrl: function(params, doneFn, abortFn) {
             var reqData = this.serverData(params);
-            // console.log("populateFromUrl 1 " + this.optionsUrl + " reqData.hasAllParms " + reqData.hasAllParms + " dependsOptional " + this.dependsOptional);
-            // console.log(reqData);
+            console.log("populateFromUrl 1 " + this.optionsUrl + " reqData.hasAllParms " + reqData.hasAllParms + " dependsOptional " + this.dependsOptional);
+            console.log(reqData);
             if (!this.optionsUrl || !this.optionsUrl.length) {
                 console.warn("In m-drop-down tried to populateFromUrl but no optionsUrl");
                 if (abortFn) abortFn();
@@ -1574,11 +1576,11 @@ Vue.component('m-drop-down', {
                 }
             }
 
-            // console.warn("curOptions updated " + this.name + " allowEmpty " + this.allowEmpty + " value '" + this.value + "' " + " isInNewOptions " + isInNewOptions + ": " + JSON.stringify(options));
+            console.warn("curOptions updated " + this.name + " allowEmpty " + this.allowEmpty + " value '" + this.value + "' " + " isInNewOptions " + isInNewOptions + ": " + JSON.stringify(options));
             if (!isInNewOptions) {
-                if (!this.allowEmpty && !this.multiple && options && options.length && options[0].value) {
+                if (!this.allowEmpty && !this.multiple && options && options.length && options[0].value && (!this.requiredManualSelect || options.length === 1)) {
                     // simulate normal select behavior with no empty option (not allowEmpty) where first value is selected by default
-                    console.warn("checkCurrentValue setting " + this.name + " to " + options[0].value);
+                    console.warn("checkCurrentValue setting " + this.name + " to " + options[0].value + " options " + options.length);
                     this.$emit('input', options[0].value);
                 } else {
                     // console.warn("setting " + this.name + " to null");
@@ -1634,7 +1636,7 @@ Vue.component('m-drop-down', {
             }
         }
         // simulate normal select behavior with no empty option (not allowEmpty) where first value is selected by default - but only do for 1 option to force user to think and choose from multiple
-        if (!this.multiple && !this.allowEmpty && (!this.value || !this.value.length) && this.options && this.options.length && (this.dependsOn || this.options.length === 1)) {
+        if (!this.multiple && !this.allowEmpty && (!this.value || !this.value.length) && this.options && this.options.length && (!this.requiredManualSelect || this.options.length === 1)) {
             this.$emit('input', this.options[0].value);
         }
     }
