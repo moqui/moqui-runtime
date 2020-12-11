@@ -1504,8 +1504,8 @@ Vue.component('m-drop-down', {
         },
         populateFromUrl: function(params, doneFn, abortFn) {
             var reqData = this.serverData(params);
-            console.log("populateFromUrl 1 " + this.optionsUrl + " reqData.hasAllParms " + reqData.hasAllParms + " dependsOptional " + this.dependsOptional);
-            console.log(reqData);
+            // console.log("populateFromUrl 1 " + this.optionsUrl + " reqData.hasAllParms " + reqData.hasAllParms + " dependsOptional " + this.dependsOptional);
+            // console.log(reqData);
             if (!this.optionsUrl || !this.optionsUrl.length) {
                 console.warn("In m-drop-down tried to populateFromUrl but no optionsUrl");
                 if (abortFn) abortFn();
@@ -1576,11 +1576,11 @@ Vue.component('m-drop-down', {
                 }
             }
 
-            console.warn("curOptions updated " + this.name + " allowEmpty " + this.allowEmpty + " value '" + this.value + "' " + " isInNewOptions " + isInNewOptions + ": " + JSON.stringify(options));
+            // console.warn("curOptions updated " + this.name + " allowEmpty " + this.allowEmpty + " value '" + this.value + "' " + " isInNewOptions " + isInNewOptions + ": " + JSON.stringify(options));
             if (!isInNewOptions) {
                 if (!this.allowEmpty && !this.multiple && options && options.length && options[0].value && (!this.requiredManualSelect || options.length === 1)) {
                     // simulate normal select behavior with no empty option (not allowEmpty) where first value is selected by default
-                    console.warn("checkCurrentValue setting " + this.name + " to " + options[0].value + " options " + options.length);
+                    // console.warn("checkCurrentValue setting " + this.name + " to " + options[0].value + " options " + options.length);
                     this.$emit('input', options[0].value);
                 } else {
                     // console.warn("setting " + this.name + " to null");
