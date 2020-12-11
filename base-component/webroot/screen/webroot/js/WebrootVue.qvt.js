@@ -1331,16 +1331,18 @@ Vue.component('m-display', {
             // console.log("m-display populateFromUrl 1 " + this.valueUrl + " reqData.hasAllParms " + reqData.hasAllParms + " dependsOptional " + this.dependsOptional);
             // console.log(reqData);
             if (!this.valueUrl || !this.valueUrl.length) {
-                console.warn("In m-display tried to populateFromUrl but no valueUrl");
+                console.warn("In m-display for " + this.name + " tried to populateFromUrl but no valueUrl");
                 return;
             }
             if (!reqData.hasAllParms && !this.dependsOptional) {
-                console.warn("In m-display tried to populateFromUrl but not hasAllParms and not dependsOptional");
+                console.warn("In m-display for " + this.name + "  tried to populateFromUrl but not hasAllParms and not dependsOptional");
+                this.$emit('input', null);
+                this.curDisplay = null;
                 return;
             }
             var vm = this;
             this.loading = true;
-            $.ajax({ type:"POST", url:this.valueUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
+            $.ajax({ type:"POST", url:this.valueUrl, data:reqData, dataType:"text", headers:{Accept:'text/plain'},
                 error:function(jqXHR, textStatus, errorThrown) {
                     vm.loading = false;
                     moqui.handleAjaxError(jqXHR, textStatus, errorThrown);
@@ -1389,10 +1391,12 @@ Vue.component('m-display', {
 
 Vue.component('m-drop-down', {
     name: "mDropDown",
-    props: { value:[Array,String], options:{type:Array,'default':function(){return [];}}, combo:Boolean, allowEmpty:Boolean, multiple:Boolean, optionsUrl:String,
+    props: { value:[Array,String], options:{type:Array,'default':function(){return [];}}, combo:Boolean,
+        allowEmpty:Boolean, multiple:Boolean, requiredManualSelect:Boolean,
+        optionsUrl:String, optionsParameters:Object, optionsLoadInit:Boolean,
         serverSearch:Boolean, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
-        optionsParameters:Object, labelField:{type:String,'default':'label'}, valueField:{type:String,'default':'value'},
-        dependsOn:Object, dependsOptional:Boolean, optionsLoadInit:Boolean, form:String, fields:{type:Object},
+        labelField:{type:String,'default':'label'}, valueField:{type:String,'default':'value'},
+        dependsOn:Object, dependsOptional:Boolean, form:String, fields:{type:Object},
         tooltip:String, label:String, name:String, id:String, disable:Boolean, onSelectGoTo:String },
     data: function() { return { curOptions:this.options, allOptions:this.options, lastVal:null, lastSearch:null, loading:false } },
     template:
@@ -1576,9 +1580,9 @@ Vue.component('m-drop-down', {
 
             // console.warn("curOptions updated " + this.name + " allowEmpty " + this.allowEmpty + " value '" + this.value + "' " + " isInNewOptions " + isInNewOptions + ": " + JSON.stringify(options));
             if (!isInNewOptions) {
-                if (!this.allowEmpty && !this.multiple && options && options.length && options[0].value) {
+                if (!this.allowEmpty && !this.multiple && options && options.length && options[0].value && (!this.requiredManualSelect || options.length === 1)) {
                     // simulate normal select behavior with no empty option (not allowEmpty) where first value is selected by default
-                    console.warn("checkCurrentValue setting " + this.name + " to " + options[0].value);
+                    // console.warn("checkCurrentValue setting " + this.name + " to " + options[0].value + " options " + options.length);
                     this.$emit('input', options[0].value);
                 } else {
                     // console.warn("setting " + this.name + " to null");
@@ -1634,7 +1638,7 @@ Vue.component('m-drop-down', {
             }
         }
         // simulate normal select behavior with no empty option (not allowEmpty) where first value is selected by default - but only do for 1 option to force user to think and choose from multiple
-        if (!this.multiple && !this.allowEmpty && (!this.value || !this.value.length) && this.options && this.options.length && (this.dependsOn || this.options.length === 1)) {
+        if (!this.multiple && !this.allowEmpty && (!this.value || !this.value.length) && this.options && this.options.length && (!this.requiredManualSelect || this.options.length === 1)) {
             this.$emit('input', this.options[0].value);
         }
     }
