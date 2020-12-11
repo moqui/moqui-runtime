@@ -1331,16 +1331,18 @@ Vue.component('m-display', {
             // console.log("m-display populateFromUrl 1 " + this.valueUrl + " reqData.hasAllParms " + reqData.hasAllParms + " dependsOptional " + this.dependsOptional);
             // console.log(reqData);
             if (!this.valueUrl || !this.valueUrl.length) {
-                console.warn("In m-display tried to populateFromUrl but no valueUrl");
+                console.warn("In m-display for " + this.name + " tried to populateFromUrl but no valueUrl");
                 return;
             }
             if (!reqData.hasAllParms && !this.dependsOptional) {
-                console.warn("In m-display tried to populateFromUrl but not hasAllParms and not dependsOptional");
+                console.warn("In m-display for " + this.name + "  tried to populateFromUrl but not hasAllParms and not dependsOptional");
+                this.$emit('input', null);
+                this.curDisplay = null;
                 return;
             }
             var vm = this;
             this.loading = true;
-            $.ajax({ type:"POST", url:this.valueUrl, data:reqData, dataType:"json", headers:{Accept:'application/json'},
+            $.ajax({ type:"POST", url:this.valueUrl, data:reqData, dataType:"text", headers:{Accept:'text/plain'},
                 error:function(jqXHR, textStatus, errorThrown) {
                     vm.loading = false;
                     moqui.handleAjaxError(jqXHR, textStatus, errorThrown);
