@@ -1,5 +1,6 @@
 
 # downloaded lib, generated, etc files
+/base-component/webroot/build
 /base-component/webroot/screen/webroot/libs
 /base-component/webroot/screen/webroot/js/*.min.js
 /base-component/webroot/screen/webroot/qz-tray
