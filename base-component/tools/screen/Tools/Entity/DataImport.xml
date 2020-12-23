@@ -20,10 +20,10 @@ along with this software (see the LICENSE.md file). If not, see
         <actions><script><![CDATA[
             org.moqui.entity.EntityDataLoader edl = ec.entity.makeDataLoader()
             String source = ""
-            if (types) {
-                edl.dataTypes(new HashSet(Arrays.asList(types.split(","))))
+            if (types || components) {
+                if (types) edl.dataTypes(new HashSet(Arrays.asList(types.split(","))))
                 if (components) edl.componentNameList(Arrays.asList(components.split(",")))
-                source = "Types: ${types}, Components: ${components}"
+                source = "Types: ${types?:'N/A'}, Components: ${components?:'N/A'}"
             } else if (location) {
                 edl.location(location)
                 source = location
@@ -36,6 +36,9 @@ along with this software (see the LICENSE.md file). If not, see
             } else if (xmlText) {
                 edl.xmlText(xmlText)
                 source = "XML Text Box"
+            } else {
+                ec.message.addMessage(ec.l10n.localize("No parameters specified, not loading data"))
+                return
             }
             if (timeout) edl.transactionTimeout(timeout as Integer)
             if (dummyFks) edl.dummyFks(true)
