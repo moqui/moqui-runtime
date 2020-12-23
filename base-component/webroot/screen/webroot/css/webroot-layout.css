@@ -114,7 +114,7 @@ span.shaded-area { display: inline-block; white-space: normal; }
 .diagram-sequence-item i.left:before { content:"\f053" }
 .diagram-sequence-item i.right { position: absolute; font-size: 14px; bottom: -8px; right: -2px; color: rgb(127, 127, 127); }
 .diagram-sequence-item i.right:before { content:"\f054" }
-.diagram-sequence-actor { font-size: larger; font-weight: bold; margin-bottom: 12px; }
+.diagram-sequence-actor { font-size: larger; font-weight: bold; margin-bottom: 14px; border-top: rgb(127, 127, 127) solid 1px; border-bottom: rgb(127, 127, 127) solid 1px; }
 
 /* ================ Extensions for bootstrap.min.css =============== */
 
