@@ -110,6 +110,7 @@ span.shaded-area { display: inline-block; white-space: normal; }
 .diagram-sequence>div:last-child {  }
 .diagram-sequence p { margin-bottom: 10px; }
 .diagram-sequence-item { position: relative; border-bottom: rgb(127, 127, 127) solid 2px; margin-bottom: 8px; }
+.diagram-sequence-item.smaller { font-size: 14px; }
 .diagram-sequence-item i.left { position: absolute; font-size: 14px; bottom: -8px; left: -2px; color: rgb(127, 127, 127); }
 .diagram-sequence-item i.left:before { content:"\f053" }
 .diagram-sequence-item i.right { position: absolute; font-size: 14px; bottom: -8px; right: -2px; color: rgb(127, 127, 127); }
