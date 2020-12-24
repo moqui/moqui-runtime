@@ -55,10 +55,6 @@ body.test.body--dark #top { background:#224422!important; color:white; }
 /* don't let buttons wrap, ugly */
 .q-btn__content { flex-wrap: nowrap; }
 
-.q-btn-group>.q-btn { margin:0; }
-.q-btn-group>.q-btn--dense.q-btn-item:not(:first-child)>.q-btn__wrapper { padding-left:4px; }
-.q-btn-group>.q-btn--dense.q-btn-item:not(:last-child)>.q-btn__wrapper { padding-right:4px; }
-
 form.q-form { width:100%; }
 
 /* BEGIN q-field label move up to overlay outline */
