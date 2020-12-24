@@ -347,7 +347,7 @@ Vue.component('m-container-box', {
     data: function() { return { isBodyOpen:this.initialOpen }},
     // TODO: handle type, somehow, with text color and Bootstrap to Quasar mapping
     template:
-    '<q-card flat bordered class="q-ma-sm">' +
+    '<q-card flat bordered class="q-ma-sm m-container-box">' +
         '<q-card-actions @click.self="toggleBody">' +
             '<h5 v-if="title && title.length" @click="toggleBody">{{title}}</h5>' +
             '<slot name="header"></slot>' +
