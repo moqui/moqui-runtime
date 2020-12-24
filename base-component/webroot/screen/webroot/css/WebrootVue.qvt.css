@@ -19,6 +19,7 @@ h5, .text-h5 { font-size:1.2rem; line-height:1.2rem; letter-spacing:initial; mar
 h6, .text-h6 { font-size:1.0rem; line-height:1.0rem; letter-spacing:initial; margin-block-start:0.25em; margin-block-end:0.25em; }
 
 p { margin-bottom:8px; } /* orig 16px */
+pre { text-wrap: normal; white-space: pre-line; word-wrap: normal; word-break: normal; }
 
 body.dev #top { background: #0c1b29!important; }
 body.test #top { background: #224422!important; }
@@ -51,6 +52,8 @@ body.test.body--dark #top { background:#224422!important; color:white; }
 .m-link.q-btn--flat { margin:0; }
 .m-link.q-btn--flat .q-btn__wrapper { padding:0 4px; min-height:1.5em; }
 .m-link.q-btn--flat .q-btn__content { line-height:1.5; }
+/* don't let buttons wrap, ugly */
+.q-btn__content { flex-wrap: nowrap; }
 
 .q-btn-group>.q-btn { margin:0; }
 .q-btn-group>.q-btn--dense.q-btn-item:not(:first-child)>.q-btn__wrapper { padding-left:4px; }
@@ -85,7 +88,7 @@ form.q-form { width:100%; }
 .q-field__marginal .q-checkbox__label { font-size:10px; } /* orig from q-field__marginal 24px */
 
 /* instead of always having 20px bottom area only do when there is an error - may need adjustment for other field bottom uses */
-.q-field--with-bottom { padding-bottom:4px; }
+.q-field--with-bottom { padding-bottom:0; }
 .q-field--with-bottom.q-field--error { padding-bottom:16px; }
 .q-field__bottom { padding-top:4px; }
 
@@ -96,6 +99,7 @@ form.q-form { width:100%; }
 .q-card__section--vert { padding:8px; } /* orig 16px */
 
 .big-row { display:flex; flex-wrap:wrap; justify-content:flex-start; align-content:center; }
+.big-row.text-center { justify-content:center; }
 .big-row-item {}
 .big-row-item .q-field { display:inline-flex; }
 
