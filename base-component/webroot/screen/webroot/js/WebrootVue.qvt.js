@@ -564,7 +564,7 @@ Vue.component('m-editable', {
             var vm = this; edConfig.loadurl = this.loadUrl; edConfig.loadtype = "POST";
             edConfig.loaddata = function(value) { return $.extend({ currentValue:value, moquiSessionToken:vm.$root.moquiSessionToken }, vm.loadParameters); };
         }
-        $(this.$el).editable(this.url, edConfig);
+        // TODO, replace with something in quasar: $(this.$el).editable(this.url, edConfig);
     },
     render: function(createEl) { return createEl(this.labelType, { attrs:{ id:this.id, 'class':'editable-label' }, domProps: { innerHTML:this.labelValue } }); }
 });
@@ -2258,9 +2258,11 @@ window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.
 // NOTE: simulate vue-router so this.$router.resolve() works in a basic form; required for use of q-btn 'to' attribute along with router-link component defined above
 moqui.webrootRouter = {
     resolve: function resolve(to, current, append) {
-        var location;
-        if (moqui.isString(to)) { location = moqui.parseHref(to); } else { location = to; }
+        var location = moqui.isString(to) ? location = moqui.parseHref(to) : location = to;
+
         var path = location.path;
+        if (moqui.webrootVue) location.path = path = moqui.webrootVue.getLinkPath(path);
+
         var lslIdx = path.lastIndexOf("/");
         var name = lslIdx === -1 ? path : path.slice(lslIdx+1);
 
