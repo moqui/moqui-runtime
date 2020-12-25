@@ -347,7 +347,7 @@ Vue.component('m-container-box', {
     data: function() { return { isBodyOpen:this.initialOpen }},
     // TODO: handle type, somehow, with text color and Bootstrap to Quasar mapping
     template:
-    '<q-card flat bordered class="q-ma-sm">' +
+    '<q-card flat bordered class="q-ma-sm m-container-box">' +
         '<q-card-actions @click.self="toggleBody">' +
             '<h5 v-if="title && title.length" @click="toggleBody">{{title}}</h5>' +
             '<slot name="header"></slot>' +
@@ -564,7 +564,7 @@ Vue.component('m-editable', {
             var vm = this; edConfig.loadurl = this.loadUrl; edConfig.loadtype = "POST";
             edConfig.loaddata = function(value) { return $.extend({ currentValue:value, moquiSessionToken:vm.$root.moquiSessionToken }, vm.loadParameters); };
         }
-        $(this.$el).editable(this.url, edConfig);
+        // TODO, replace with something in quasar: $(this.$el).editable(this.url, edConfig);
     },
     render: function(createEl) { return createEl(this.labelType, { attrs:{ id:this.id, 'class':'editable-label' }, domProps: { innerHTML:this.labelValue } }); }
 });
@@ -1959,9 +1959,11 @@ Vue.component('m-menu-item-content', {
 
 moqui.webrootVue = new Vue({
     el: '#apps-root',
-    data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
-        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[], lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{},
-        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null, leftOpen:false, moqui:moqui },
+    data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], currentParameters:{}, bodyParameters:null,
+        activeSubscreens:[], navMenuList:[], navHistoryList:[], navPlugins:[], accountPlugins:[], notifyHistoryList:[],
+        lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{},
+        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en",
+        notificationClient:null, qzVue:null, leftOpen:false, moqui:moqui },
     methods: {
         setUrl: function(url, bodyParameters, onComplete) {
             // cancel current load if needed
@@ -2071,12 +2073,20 @@ moqui.webrootVue = new Vue({
             if (contComp) { contComp.reload(); } else { console.error("Container with ID " + contId + " not found, not reloading"); }},
         loadContainer: function(contId, url) { var contComp = this.activeContainers[contId];
             if (contComp) { contComp.load(url); } else { console.error("Container with ID " + contId + " not found, not loading url " + url); }},
+
         addNavPlugin: function(url) { var vm = this; moqui.loadComponent(this.appRootPath + url, function(comp) { vm.navPlugins.push(comp); }) },
         addNavPluginsWait: function(urlList, urlIndex) { if (urlList && urlList.length > urlIndex) {
             this.addNavPlugin(urlList[urlIndex]);
             var vm = this;
             if (urlList.length > (urlIndex + 1)) { setTimeout(function(){ vm.addNavPluginsWait(urlList, urlIndex + 1); }, 500); }
         } },
+        addAccountPlugin: function(url) { var vm = this; moqui.loadComponent(this.appRootPath + url, function(comp) { vm.accountPlugins.push(comp); }) },
+        addAccountPluginsWait: function(urlList, urlIndex) { if (urlList && urlList.length > urlIndex) {
+            this.addAccountPlugin(urlList[urlIndex]);
+            var vm = this;
+            if (urlList.length > (urlIndex + 1)) { setTimeout(function(){ vm.addAccountPluginsWait(urlList, urlIndex + 1); }, 500); }
+        } },
+
         addNotify: function(message, type) {
             var histList = this.notifyHistoryList.slice(0);
             var nowDate = new Date();
@@ -2231,6 +2241,10 @@ moqui.webrootVue = new Vue({
         var navPluginUrlList = [];
         $('.confNavPluginUrl').each(function(idx, el) { navPluginUrlList.push($(el).val()); });
         this.addNavPluginsWait(navPluginUrlList, 0);
+
+        var accountPluginUrlList = [];
+        $('.confAccountPluginUrl').each(function(idx, el) { accountPluginUrlList.push($(el).val()); });
+        this.addAccountPluginsWait(accountPluginUrlList, 0);
     },
     mounted: function() {
         var jqEl = $(this.$el);
@@ -2258,9 +2272,11 @@ window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.
 // NOTE: simulate vue-router so this.$router.resolve() works in a basic form; required for use of q-btn 'to' attribute along with router-link component defined above
 moqui.webrootRouter = {
     resolve: function resolve(to, current, append) {
-        var location;
-        if (moqui.isString(to)) { location = moqui.parseHref(to); } else { location = to; }
+        var location = moqui.isString(to) ? location = moqui.parseHref(to) : location = to;
+
         var path = location.path;
+        if (moqui.webrootVue) location.path = path = moqui.webrootVue.getLinkPath(path);
+
         var lslIdx = path.lastIndexOf("/");
         var name = lslIdx === -1 ? path : path.slice(lslIdx+1);
 
