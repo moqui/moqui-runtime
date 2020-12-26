@@ -178,8 +178,8 @@ ul.float-plain.condensed { margin: 0; }
 ul.float-plain.condensed li { margin: 0 4px 0 0; padding: 4px; }
 
 .diagram-sequence { font-size: 16px; text-align: center; width: 900px; max-width: 100%; margin-left: auto; margin-right: auto; }
-.diagram-sequence>div { border-right: rgb(127, 127, 127) dashed thin; }
-.diagram-sequence>div:first-child { border-left: rgb(127, 127, 127) dashed thin;  }
+/*.diagram-sequence>div { border-right: rgb(127, 127, 127) dotted 0; }
+.diagram-sequence>div:first-child { border-left: rgb(127, 127, 127) dotted 0; }*/
 .diagram-sequence>div:last-child {  }
 .diagram-sequence p { margin-bottom: 10px; }
 .diagram-sequence-item { position: relative; border-bottom: rgb(127, 127, 127) solid 2px; margin: 0 4px 8px 4px; }
