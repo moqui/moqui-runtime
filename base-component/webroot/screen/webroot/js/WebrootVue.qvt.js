@@ -636,7 +636,7 @@ Vue.component('m-form', {
                 setTimeout(function() { $btn.prop('disabled', false); }, 3000);
             }
             var formData = Object.keys(this.fields).length ? new FormData() : new FormData(this.$refs.qForm.$el);
-            $.each(this.fields, function(key, value) { if (value) { formData.set(key, value); } });
+            $.each(this.fields, function(key, value) { formData.set(key, value); });
             // NOTE: using iterator directly to avoid using 'for of' which requires more recent ES version (for minify, browser compatibility)
             var formDataIterator = formData.entries()[Symbol.iterator]();
             while (true) {
