@@ -17,6 +17,14 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- NOTE: require-authentication=false is required to allow transitions to decide. -->
 
     <!--
+    NOTE: an api_key is for system-system interaction, not for user-system interaction; for REST API client applications that
+    it is far better to use the standard session approach with a cookie (JSESSIONID) + session token (X-CSRF-Token header)
+
+    IMPORTANT NOTE: seriously, don't use this for REST API client applications; you are effectively keeping a password in memory
+    which is a security vulnerability similar to keeping the user's password in memory so should not be done except in known
+    secure environments that are encrypted at rest, which is never the case with a web browser; browser security semantics are
+    much better for session cookies along with a per session CSRF token (for all except GET requests)
+
     Send request to api_key to get a temporary login/api key to pass to other rest calls instead of username/password.
 
     A user must be authenticated for this request, and the key will be associated with that user. Each time this is
