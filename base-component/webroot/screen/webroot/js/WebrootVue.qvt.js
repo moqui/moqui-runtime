@@ -2272,7 +2272,7 @@ window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.
 // NOTE: simulate vue-router so this.$router.resolve() works in a basic form; required for use of q-btn 'to' attribute along with router-link component defined above
 moqui.webrootRouter = {
     resolve: function resolve(to, current, append) {
-        var location = moqui.isString(to) ? location = moqui.parseHref(to) : location = to;
+        var location = moqui.isString(to) ? moqui.parseHref(to) : to;
 
         var path = location.path;
         if (moqui.webrootVue) location.path = path = moqui.webrootVue.getLinkPath(path);
