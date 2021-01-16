@@ -16,6 +16,9 @@ along with this software (see the LICENSE.md file). If not, see
         default-menu-title="SQL" begin-transaction="false"><!-- NOTE: begin tx is false so table meta data changes, etc can be done -->
 
     <actions>
+        <if condition="!sri.getScreenUrlInfo().isPermitted(ec, null, org.moqui.context.ArtifactExecutionInfo.AUTHZA_ALL)">
+            <return error="true" message="User must be authorized for all actions on this screen"/></if>
+
         <script><![CDATA[
             import java.sql.Connection
             import java.sql.ResultSet
