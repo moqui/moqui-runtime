@@ -46,7 +46,7 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
                 notified = true;
             }
         } else {
-            moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsInfo, { message:messageItem }));
+            moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsInfo, { message:messages }));
             moqui.webrootVue.addNotify(messages, 'info');
             notified = true;
         }
@@ -99,14 +99,14 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown, responseText) {
     var respObj;
     try { respObj = JSON.parse(resp); } catch (e) { /* ignore error, don't always expect it to be JSON */ }
     console.warn('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown /*+ '; response: ' + resp*/);
-    // console.error('respObj: ' + JSON.stringify(respObj));
+    // console.error('resp [' + resp + '] respObj: ' + JSON.stringify(respObj));
     var notified = false;
     if (jqXHR.status === 401) {
         notified = moqui.notifyMessages(null, "No user authenticated");
     } else {
         if (respObj && moqui.isPlainObject(respObj)) {
             notified = moqui.notifyMessages(respObj.messageInfos, respObj.errors, respObj.validationErrors);
-            console.log("got here notified ", notified);
+            // console.log("got here notified ", notified);
         } else if (resp && moqui.isString(resp) && resp.length) {
             notified = moqui.notifyMessages(resp);
         }
