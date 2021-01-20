@@ -157,7 +157,7 @@ along with this software (see the LICENSE.md file). If not, see
         </q-toolbar></q-header>
 
         <q-drawer v-model="leftOpen" side="left" bordered><#-- no 'overlay', for those who want to keep it open better to compress main area -->
-            <q-btn dense flat icon="menu" @click="toggleLeftOpen()"></q-btn>
+            <q-btn dense flat icon="menu" @click="toggleLeftOpen()" class="lt-sm"></q-btn>
             <q-list dense padding><m-menu-nav-item :menu-index="0"></m-menu-nav-item></q-list>
         </q-drawer>
 
