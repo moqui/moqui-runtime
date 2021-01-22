@@ -2213,7 +2213,7 @@ a => A, d => D, y => Y
     <#assign textAreaId><@fieldId .node/></#assign>
     <#assign editorType = ec.getResource().expand(.node["@editor-type"]!"", "")>
     <#assign editorScreenThemeId = ec.getResource().expand(.node["@editor-theme"]!"", "")>
-<textarea class="form-control" name="<@fieldName .node/>" id="${textAreaId}" <#if .node["@cols"]?has_content>cols="${.node["@cols"]}"<#else>style="width:100%;"</#if> rows="${.node["@rows"]!"3"}"<#if .node["@read-only"]!"false" == "true"> readonly="readonly"</#if><#if .node["@maxlength"]?has_content> maxlength="${.node["@maxlength"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>${sri.getFieldValueString(.node)?html}</textarea>
+<textarea class="form-control" name="<@fieldName .node/>" id="${textAreaId}" <#if .node["@cols"]?has_content>cols="${.node["@cols"]}"<#else>style="width:100%;"</#if> rows="${.node["@rows"]!"3"}"<#if (.node["@read-only"]!"false") == "true"> readonly="readonly"</#if><#if .node["@maxlength"]?has_content> maxlength="${.node["@maxlength"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>${sri.getFieldValueString(.node)?html}</textarea>
     <#if editorType == "html">
         <#assign editorThemeCssList = sri.getThemeValues("STRT_STYLESHEET", editorScreenThemeId)>
         <script src="https://cdn.ckeditor.com/4.14.1/standard-all/ckeditor.js" type="text/javascript"></script>
