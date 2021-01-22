@@ -318,22 +318,19 @@ Vue.component('m-stylesheet', {
 Vue.component('m-container-box', {
     name: "mContainerBox",
     props: { type:{type:String,'default':'default'}, title:String, initialOpen:{type:Boolean,'default':true} },
-    data: function() { return { expanded:this.initialOpen }},
+    data: function() { return { isBodyOpen:this.initialOpen }},
     // TODO: handle type, somehow, with text color and Bootstrap to Quasar mapping
     template:
     '<q-card flat bordered class="q-ma-sm">' +
-        '<q-card-actions @click="expanded = !expanded">' +
-        '<q-btn color="grey" round flat dense :icon="expanded?\'fa fa-angle-down\':\'fa fa-angle-right\'" />' +
-            '<span class="text-h5" v-if="title && title.length">{{title}}</span>' +
+        '<q-card-actions @click.self="toggleBody">' +
+            '<h5 v-if="title && title.length" @click="toggleBody">{{title}}</h5>' +
             '<slot name="header"></slot>' +
             '<q-space></q-space>' +
             '<slot name="toolbar"></slot>' +
         '</q-card-actions>' +
-        '<q-slide-transition><div v-show="expanded">' +
-            '<q-separator />' +
-            '<q-card-section :class="{in:expanded}"><slot></slot></q-card-section>' +
-        '</div></q-slide-transition>' +
-    '</q-card>'
+        '<q-card-section :class="{in:isBodyOpen}"><slot></slot></q-card-section>' +
+    '</q-card>',
+    methods: { toggleBody: function() { this.isBodyOpen = !this.isBodyOpen; } }
 });
 Vue.component('m-box-body', {
     name: "mBoxBody",
