@@ -5389,10 +5389,18 @@ S2.define('select2/core',[
 
     this.on('keypress', function (evt) {
       var key = evt.which;
+      var lastKeyTime = self.options.get('lastKeyTime') || 0;
+      self.options.set('lastKeyTime', Date.now());
 
       if (self.isOpen()) {
-//        if (key === KEYS.TAB || key === KEYS.NUMPLUS ) {
+        // if (key === KEYS.TAB || key === KEYS.NUMPLUS ) {
         if (key === KEYS.TAB ) {
+          // DEJ 20201105 next 4 lines: if options are loading ignore TAB, if < 500ms since last keypress ignore TAB
+          if (self.options.get('ajaxResultsLoading') || (Date.now() - lastKeyTime) < 500) {
+              evt.preventDefault();
+              return;
+          }
+
           self.options.set('okToSelectOnClose', true);
           self.close();
 
@@ -5444,9 +5452,9 @@ S2.define('select2/core',[
 
           evt.preventDefault();
         } else if (key === KEYS.ENTER) {
-          // DEJ 20200408 next 2 lines: if no options and/or options are loading ignore ENTER
+          // DEJ 20200408 next 2 lines: if no options and/or options are loading ignore ENTER, if < 500ms since last keypress ignore ENTER
           if (self.results.getHighlightedResults().length < 1) { return; }
-          if (self.options.get('ajaxResultsLoading')) { return; }
+          if (self.options.get('ajaxResultsLoading') || (Date.now() - lastKeyTime) < 500) { return; }
 
           // self.trigger('results:select', {});
 

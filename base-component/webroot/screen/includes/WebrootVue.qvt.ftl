@@ -23,11 +23,15 @@ along with this software (see the LICENSE.md file). If not, see
     <input type="hidden" id="confLeftOpen" value="${ec.user.getPreference("QUASAR_LEFT_OPEN")!"false"}">
     <#assign navbarCompList = sri.getThemeValues("STRT_HEADER_NAVBAR_COMP")>
     <#list navbarCompList! as navbarCompUrl><input type="hidden" class="confNavPluginUrl" value="${navbarCompUrl}"></#list>
+    <#assign accountCompList = sri.getThemeValues("STRT_HEADER_ACCOUNT_COMP")>
+    <#list accountCompList! as accountCompUrl><input type="hidden" class="confAccountPluginUrl" value="${accountCompUrl}"></#list>
+
+    <#assign headerClass = "bg-black text-white">
 
     <#-- for layout options see: https://quasar.dev/layout/layout -->
     <#-- to build a layout use the handy Quasar tool: https://quasar.dev/layout-builder -->
     <q-layout view="hHh LpR fFf">
-        <q-header reveal bordered class="bg-black text-white" id="top"><q-toolbar style="font-size:15px;">
+        <q-header reveal bordered class="${headerClass}" id="top"><q-toolbar style="font-size:15px;">
             <q-btn dense flat icon="menu" @click="toggleLeftOpen()"></q-btn>
 
             <#assign headerLogoList = sri.getThemeValues("STRT_HEADER_LOGO")>
@@ -43,8 +47,8 @@ along with this software (see the LICENSE.md file). If not, see
 
             <#-- NOTE: tried using q-breadcrumbs but last item with q-breadcrumbs--last class makes never clickable! -->
             <template v-for="(navMenuItem, menuIndex) in navMenuList"><template v-if="menuIndex < (navMenuList.length - 1)">
-                <m-link v-if="navMenuItem.hasTabMenu" :href="getNavHref(menuIndex)">{{navMenuItem.title}}</m-link>
-                <div v-else-if="navMenuItem.subscreens && navMenuItem.subscreens.length" class="cursor-pointer">
+                <m-link v-if="navMenuItem.hasTabMenu" :href="getNavHref(menuIndex)" class="gt-xs">{{navMenuItem.title}}</m-link>
+                <div v-else-if="navMenuItem.subscreens && navMenuItem.subscreens.length" class="cursor-pointer gt-xs">
                     {{navMenuItem.title}}
                     <q-menu anchor="bottom left" self="top left"><q-list dense style="min-width: 200px">
                         <q-item v-for="subscreen in navMenuItem.subscreens" :key="subscreen.name" :class="{'bg-primary':subscreen.active, 'text-white':subscreen.active}" clickable v-close-popup><q-item-section>
@@ -59,15 +63,17 @@ along with this software (see the LICENSE.md file). If not, see
                         </q-item-section></q-item>
                     </q-list></q-menu>
                 </div>
-                <m-link v-else :href="getNavHref(menuIndex)">{{navMenuItem.title}}</m-link>
+                <m-link v-else :href="getNavHref(menuIndex)" class="gt-xs">{{navMenuItem.title}}</m-link>
 
-                <q-icon size="1.5em" name="chevron_right" color="grey"></q-icon>
+                <q-icon size="1.5em" name="chevron_right" color="grey" class="gt-xs"></q-icon>
             </template></template>
-            <m-link v-if="navMenuList.length > 0" :href="getNavHref(navMenuList.length - 1)">{{navMenuList[navMenuList.length - 1].title}}</m-link>
+            <m-link v-if="navMenuList.length > 0" :href="getNavHref(navMenuList.length - 1)" class="gt-xs">{{navMenuList[navMenuList.length - 1].title}}</m-link>
 
             <q-space></q-space>
 
+            <#if (ec.user.getPreference("webroot.qvt.hide.preview")!"") != "true">
             <a :href="currentLinkUrl.replace('/qapps','/vapps')" target="_blank" class="text-warning on-left">BETA PREVIEW<q-tooltip>Click for current production-ready UI (/vapps)</q-tooltip></a>
+            </#if>
 
             <#-- spinner, usually hidden -->
             <q-circular-progress indeterminate size="20px" color="light-blue" class="q-ma-xs" :class="{ hidden: loading < 1 }"></q-circular-progress>
@@ -125,16 +131,33 @@ along with this software (see the LICENSE.md file). If not, see
                data-placement="bottom" class="btn btn-default btn-sm navbar-btn navbar-right"><i class="fa fa-chevron-left"></i></a>
             -->
 
-            <#-- dark/light switch -->
-            <q-btn flat dense @click.prevent="switchDarkLight()" icon="invert_colors">
-                <q-tooltip>${ec.l10n.localize("Switch Dark/Light")}</q-tooltip></q-btn>
-            <#-- logout button -->
-            <q-btn flat dense icon="settings_power" color="negative" type="a" href="${sri.buildUrl("/Login/logout").url}"
-                   onclick="return confirm('${ec.l10n.localize("Logout")} ${(ec.user.userAccount.userFullName)!''}?')">
-                <q-tooltip>${ec.l10n.localize("Logout")} ${(ec.user.userAccount.userFullName)!''}</q-tooltip></q-btn>
+            <q-btn dense flat icon="account_circle">
+                <q-tooltip>${(ec.user.userAccount.userFullName)!ec.l10n.localize("Account")}</q-tooltip>
+                <q-menu><q-card flat bordered><#-- always matching header (dark): class="${headerClass}" -->
+                    <q-card-section horizontal class="q-pa-md">
+                        <q-card-section>
+                            <#if (ec.user.userAccount.userFullName)?has_content><div class="q-mb-sm text-strong">${ec.l10n.localize("Welcome")} ${ec.user.userAccount.userFullName}</div></#if>
+
+                            <#-- account plugins -->
+                            <template v-for="accountPlugin in accountPlugins"><component :is="accountPlugin"></component></template>
+                        </q-card-section>
+                        <q-separator vertical></q-separator>
+                        <q-card-actions vertical class="justify-around q-px-md">
+                            <#-- dark/light switch -->
+                            <q-btn flat dense @click.prevent="switchDarkLight()" icon="invert_colors">
+                                <q-tooltip>${ec.l10n.localize("Switch Dark/Light")}</q-tooltip></q-btn>
+                            <#-- logout button -->
+                            <q-btn flat dense icon="settings_power" color="negative" type="a" href="${sri.buildUrl("/Login/logout").url}"
+                                   onclick="return confirm('${ec.l10n.localize("Logout")} ${(ec.user.userAccount.userFullName)!''}?')">
+                                <q-tooltip>${ec.l10n.localize("Logout")} ${(ec.user.userAccount.userFullName)!''}</q-tooltip></q-btn>
+                        </q-card-actions>
+                    </q-card-section>
+                </q-card></q-menu>
+            </q-btn>
         </q-toolbar></q-header>
 
         <q-drawer v-model="leftOpen" side="left" bordered><#-- no 'overlay', for those who want to keep it open better to compress main area -->
+            <q-btn dense flat icon="menu" @click="toggleLeftOpen()" class="lt-sm"></q-btn>
             <q-list dense padding><m-menu-nav-item :menu-index="0"></m-menu-nav-item></q-list>
         </q-drawer>
 

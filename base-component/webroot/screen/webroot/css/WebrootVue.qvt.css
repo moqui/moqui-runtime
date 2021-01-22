@@ -6,6 +6,7 @@ a { color:var(--q-color-primary); text-decoration:none; }
 .text-success { color:var(--q-color-positive); }
 .text-danger { color:var(--q-color-negative); }
 .text-mono { font-family: monospace,monospace; }
+strong, .text-strong { font-weight:bold; }
 
 form, fieldset { border:none; display:contents; }
 
@@ -18,14 +19,26 @@ h5, .text-h5 { font-size:1.2rem; line-height:1.2rem; letter-spacing:initial; mar
 h6, .text-h6 { font-size:1.0rem; line-height:1.0rem; letter-spacing:initial; margin-block-start:0.25em; margin-block-end:0.25em; }
 
 p { margin-bottom:8px; } /* orig 16px */
+pre { text-wrap: normal; white-space: pre-line; word-wrap: normal; word-break: normal; }
 
 body.dev #top { background: #0c1b29!important; }
 body.test #top { background: #224422!important; }
 
+/* example for header that changes light and dark along with rest of screen:
+#top { background:white!important; color:black; }
+body.body--dark #top { background:black!important; color:white; }
+
+body.dev #top { background:lightblue!important; color:black; }
+body.dev.body--dark #top { background:#0c1b29!important; color:white; }
+
+body.test #top { background:lightgreen!important; color:black; }
+body.test.body--dark #top { background:#224422!important; color:white; }
+*/
+
 .body--dark .q-menu { background-color:black; }
 .body--dark img.invertible { -webkit-filter: invert(90%); filter: invert(90%); }
 
-.q-card { background:transparent; }
+.q-dark, .q-card { background:transparent; }
 .q-card__actions h5 { font-size: 1.1rem; display:inline-block; margin-block-start:0; margin-block-end:0; }
 .q-dialog .q-card { background-color:white; }
 .body--dark .q-dialog .q-card { background-color:black; }
@@ -39,23 +52,23 @@ body.test #top { background: #224422!important; }
 .m-link.q-btn--flat { margin:0; }
 .m-link.q-btn--flat .q-btn__wrapper { padding:0 4px; min-height:1.5em; }
 .m-link.q-btn--flat .q-btn__content { line-height:1.5; }
-
-.q-btn-group>.q-btn { margin:0; }
-.q-btn-group>.q-btn--dense.q-btn-item:not(:first-child)>.q-btn__wrapper { padding-left:4px; }
-.q-btn-group>.q-btn--dense.q-btn-item:not(:last-child)>.q-btn__wrapper { padding-right:4px; }
+/* don't let buttons wrap, ugly */
+.q-btn__content { flex-wrap: nowrap; }
 
 form.q-form { width:100%; }
 
 /* BEGIN q-field label move up to overlay outline */
 /* need small (6px) top margin so floating label does not overlap elements above, but to make all q-field consistent apply too all (not just .q-field--labeled.q-field--dense) */
 .q-field--dense { margin:6px 0 6px 0; }
+/* don't double margin for q-field within q-field */
+.q-field--dense .q-field--dense, .row .q-field--dense { margin:0; }
 /* move field lable up to 'notch' in outline (like https://material.io/components/text-fields) */
 .q-field--dense .q-field__label { top:0; padding-left:4px; padding-right:4px; background-color:white; }
 .body--dark .q-field--dense .q-field__label { background-color:black; }
 /* make notch fit text, not full width */
 .q-field--dense.q-field--float .q-field__label { right:auto; }
 /* move input text up 6px OOTB padding-top:14px */
-.q-field--labeled.q-field--dense .q-field__native { padding-top:8px; }
+.q-field--labeled.q-field--dense .q-field__native, .q-field--labeled.q-field--dense .q-field__prefix { padding-top:8px; }
 /* move drop-down input up 6px; this padding-top defaults to 14px, have to move up 12px to handle wrapped field padding */
 .q-field--auto-height.q-field--dense.q-field--labeled .q-field__control-container { padding-top:0; }
 /* fix blue focus border on top of label instead of behind */
@@ -64,27 +77,33 @@ form.q-form { width:100%; }
 .q-field--disabled .q-field__control > div { opacity:1 !important; }
 /* END q-field label move */
 
+.q-field--focused .q-field__input { border-bottom: var(--q-color-primary) solid 1px; margin-left:8px; }
+
 .q-field--dense .q-field__marginal { height:auto; min-height:40px; }
 .q-field__prepend { max-width:75%; }
 .q-field__marginal .q-checkbox__label { font-size:10px; } /* orig from q-field__marginal 24px */
 
 /* instead of always having 20px bottom area only do when there is an error - may need adjustment for other field bottom uses */
-.q-field--with-bottom { padding-bottom:4px; }
+.q-field--with-bottom { padding-bottom:0; }
 .q-field--with-bottom.q-field--error { padding-bottom:16px; }
 .q-field__bottom { padding-top:4px; }
 
 .q-item__section--avatar { min-width:30px; } /* orig 56px */
 .q-drawer .q-item__section--side { padding-right:4px; } /* orig 16px */
 
-.q-card__actions { padding:8px 8px 0 8px; }
+.m-container-box .q-card__actions { padding:8px 8px 0 8px; }
 .q-card__section--vert { padding:8px; } /* orig 16px */
 
 .big-row { display:flex; flex-wrap:wrap; justify-content:flex-start; align-content:center; }
+.big-row.text-center { justify-content:center; }
 .big-row-item {}
 .big-row-item .q-field { display:inline-flex; }
 
 .q-table--dense .q-table .form-list-nav-row th:first-child { padding:4px 0; }
 .form-list-nav-row .q-bar { background-color:transparent; }
+.form-list-nav-row, .form-list-nav-row .q-btn { font-size:13px; }
+
+.form-date-find { display:inline-flex; }
 
 /* ====== div based table styles ====== */
 
@@ -94,16 +113,16 @@ form.q-form { width:100%; }
 .tbody { display: table-row-group; }
 .tr { display: table-row; }
 .td, .th { display: table-cell; vertical-align: middle; }
+td div, .td div { min-height:21px; }
 
 /* ====== quasar table styles adapted to div based table styles ====== */
 /* NOTE: these are based on quasar.css version 1.12.11 */
-
 /* lines 4216-4531 */
 .q-table .thead .tr, .q-table .tbody .td { height: 48px; }
-.q-table .th { font-weight: 500; font-size: 12px; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+.q-table .th { font-weight: 500; font-size: 13px; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
 .q-table .th, .q-table .td { padding: 7px 16px; background-color: inherit; }
 .q-table .thead, .q-table .td, .q-table .th { border-style: solid; border-width: 0; }
-.q-table .tbody .td { font-size: 13px; }
+.q-table .tbody .td { font-size: 14px; } /* was 13px in quasar css */
 
 .q-table--no-wrap .th, .q-table--no-wrap .td { white-space: nowrap; }
 .q-table--grid .q-table__middle .thead, .q-table--grid .q-table__middle .thead .th { border: 0 !important; }
@@ -134,6 +153,8 @@ body.desktop .q-table > .tbody > .tr:not(.q-tr--no-hover):hover > .td:not(.q-td-
 .q-table .q-virtual-scroll__padding .tr { height: 0 !important; }
 .q-table .q-virtual-scroll__padding .td { padding: 0 !important; }
 
+/* ====== Old Handy Styles ====== */
+
 /* Description List Horizontal - based on Bootstrap concept */
 dl { margin-top:8px; margin-bottom:8px; }
 dt { font-weight:700; }
@@ -145,7 +166,6 @@ dd { margin-left:0; }
 .dl-horizontal dd:before, .dl-horizontal dd:after { display:table; content:" "; }
 .dl-horizontal dd:after { clear:both; }
 
-/* ====== Old Handy Styles ====== */
 ul.tree-list, ul.tree-list ul { list-style-type: none; padding: 4px 4px 4px 20px; }
 
 ul.float-box { display: inline-block; list-style: none outside none; margin: 0 0 -8px 0; padding: 0; }
@@ -156,6 +176,19 @@ ul.float-plain { display: inline-block; list-style: none outside none; margin: 0
 ul.float-plain li { display: inline-block; line-height: 18px; margin: 0 8px 8px 0; padding: 8px; float: left; }
 ul.float-plain.condensed { margin: 0; }
 ul.float-plain.condensed li { margin: 0 4px 0 0; padding: 4px; }
+
+.diagram-sequence { font-size: 16px; text-align: center; width: 900px; max-width: 100%; margin-left: auto; margin-right: auto; }
+/*.diagram-sequence>div { border-right: rgb(127, 127, 127) dotted 0; }
+.diagram-sequence>div:first-child { border-left: rgb(127, 127, 127) dotted 0; }*/
+.diagram-sequence>div:last-child {  }
+.diagram-sequence p { margin-bottom: 10px; }
+.diagram-sequence-item { position: relative; border-bottom: rgb(127, 127, 127) solid 2px; margin: 0 4px 8px 4px; }
+.diagram-sequence-item.smaller { font-size: 14px; }
+.diagram-sequence-item i.left { position: absolute; font-size: 12px; bottom: -8px; left: -2px; color: rgb(127, 127, 127); }
+.diagram-sequence-item i.left:before { content:"\f053" }
+.diagram-sequence-item i.right { position: absolute; font-size: 12px; bottom: -8px; right: -2px; color: rgb(127, 127, 127); }
+.diagram-sequence-item i.right:before { content:"\f054" }
+.diagram-sequence-actor { font-size: larger; font-weight: bold; margin-bottom: 14px; border-top: rgb(127, 127, 127) solid 1px; border-bottom: rgb(127, 127, 127) solid 1px; }
 
 /* misc library styles */
 /* simplemde */

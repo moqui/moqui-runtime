@@ -11,17 +11,21 @@
     <link rel="apple-touch-icon" href="/MoquiLogo100.png"/>
 <#-- Style Sheets -->
 <#list sri.getThemeValues("STRT_STYLESHEET") as styleSheetLocation>
-    <link rel="stylesheet" href="${sri.buildUrl(styleSheetLocation).url}" type="text/css">
+    <#assign hrefUrl = sri.buildUrl(styleSheetLocation).url>
+    <link href="${hrefUrl}<#if !styleSheetLocation?starts_with("http") && !hrefUrl?contains("?")>?v=${ec.web.getResourceDistinctValue()}</#if>" rel="stylesheet" type="text/css">
 </#list>
 <#list html_stylesheets?if_exists as styleSheetLocation>
-    <link rel="stylesheet" href="${sri.buildUrl(styleSheetLocation).url}" type="text/css">
+    <#assign hrefUrl = sri.buildUrl(styleSheetLocation).url>
+    <link href="${hrefUrl}<#if !styleSheetLocation?starts_with("http") && !hrefUrl?contains("?")>?v=${ec.web.getResourceDistinctValue()}</#if>" rel="stylesheet" type="text/css">
 </#list>
 <#-- JavaScript -->
 <#list html_scripts?if_exists as scriptLocation>
-    <script src="${sri.buildUrl(scriptLocation).url}" type="text/javascript"></script>
+    <#assign srcUrl = sri.buildUrl(scriptLocation).url>
+    <script src="${srcUrl}<#if !scriptLocation?starts_with("http") && !srcUrl?contains("?")>?v=${ec.web.getResourceDistinctValue()}</#if>" type="text/javascript"></script>
 </#list>
 <#list sri.getThemeValues("STRT_SCRIPT") as scriptLocation>
-    <script src="${sri.buildUrl(scriptLocation).url}" type="text/javascript"></script>
+    <#assign srcUrl = sri.buildUrl(scriptLocation).url>
+    <script src="${srcUrl}<#if !scriptLocation?starts_with("http") && !srcUrl?contains("?")>?v=${ec.web.getResourceDistinctValue()}</#if>" type="text/javascript"></script>
 </#list>
 <#-- Icon -->
 <#list sri.getThemeValues("STRT_SHORTCUT_ICON") as iconLocation>

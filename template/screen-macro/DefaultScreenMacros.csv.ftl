@@ -10,12 +10,13 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
-
+<#-- NOTE: no empty lines before the first #macro otherwise FTL outputs empty lines in CSV file -->
+<#include "DefaultScreenMacros.any.ftl"/>
 <#-- NOTE: to change how CSV escaping/etc works change or override this macro: -->
 <#macro csvValue textValue>
     <#-- this default escaping looks for commas or double-quotes and if found surrounds with quotes, always changes
     double-quotes within the string to 2 double-quotes -->
-    <#if textValue?contains(",") || textValue?contains("\"")><#assign useQuotes = true><#else><#assign useQuotes = false></#if>
+    <#if textValue?contains(",") || textValue?contains("\"") || textValue?contains("\n")><#assign useQuotes = true><#else><#assign useQuotes = false></#if>
     <#t><#if useQuotes>"</#if>${textValue?replace("\"", "\"\"")}<#if useQuotes>"</#if>
 </#macro>
 
@@ -48,44 +49,6 @@ along with this software (see the LICENSE.md file). If not, see
     <#t><#if .node["panel-footer"]?has_content><#recurse .node["panel-footer"][0]></#if>
 </#macro>
 <#macro "container-dialog"><#-- do nothing, don't pull from container-dialog for CSV output --></#macro>
-
-<#-- ==================== Includes ==================== -->
-<#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}</#macro>
-
-<#-- ============== Tree ============== -->
-<#-- TABLED, not to be part of 1.0:
-<#macro tree>
-</#macro>
-<#macro "tree-node">
-</#macro>
-<#macro "tree-sub-node">
-</#macro>
--->
-
-<#-- ============== Render Mode Elements ============== -->
-<#macro "render-mode">
-<#t><#if .node["text"]?has_content>
-    <#list .node["text"] as textNode><#if !textNode["@type"]?has_content || textNode["@type"] == "any"><#local textToUse = textNode/></#if></#list>
-    <#list .node["text"] as textNode><#if textNode["@type"]?has_content && textNode["@type"]?split(",")?seq_contains(sri.getRenderMode())><#local textToUse = textNode></#if></#list>
-    <#t><#if textToUse??>
-        <#t><#if textToUse["@location"]?has_content>
-            <#-- NOTE: this still won't encode templates that are rendered to the writer -->
-            <#t><#if .node["@encode"]! == "true">${sri.renderText(textToUse["@location"], textToUse["@template"]!)?html}<#else>${sri.renderText(textToUse["@location"], textToUse["@template"]!)}</#if>
-        </#if>
-        <#assign inlineTemplateSource = textToUse?string/>
-        <#t><#if inlineTemplateSource?has_content>
-            <#t><#if !textToUse["@template"]?has_content || textToUse["@template"] == "true">
-                <#assign inlineTemplate = [inlineTemplateSource, sri.getActiveScreenDef().location + ".render_mode.text"]?interpret>
-                <#t><@inlineTemplate/>
-            <#else>
-                <#t>${inlineTemplateSource}
-            </#if><#t>
-        </#if>
-    </#if>
-</#if>
-</#macro>
-
-<#macro text><#-- do nothing, is used only through "render-mode" --></#macro>
 
 <#-- ================== Standalone Fields ==================== -->
 <#macro link><#if .node?parent?node_name?ends_with("-field") && (.node["@link-type"]! == "anchor" || .node["@link-type"]! == "hidden-form-link")>

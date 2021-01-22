@@ -8,6 +8,7 @@
     <default-property name="instance_purpose" value="dev"/>
     <default-property name="webapp_allow_origins" value="*"/>
     <default-property name="entity_empty_db_load" value="all"/>
+    <default-property name="entity_lock_track" value="true"/>
 
     <!-- minimal overrides for testing on local mysql8:
     <default-property name="entity_ds_db_conf" value="mysql8"/>

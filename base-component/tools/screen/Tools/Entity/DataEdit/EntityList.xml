@@ -48,7 +48,9 @@ along with this software (see the LICENSE.md file). If not, see
 
     <actions>
         <set field="pageSize" from="pageSize ?: 60"/>
-        <set field="entityList" from="ec.entity.getAllEntitiesInfo(orderByField?:'fullEntityName', filterRegexp, false, false)"/>
+        <set field="masterEntitiesOnly" from="viewOption == 'master'"/>
+        <set field="excludeViewEntities" from="viewOption == 'exclude-views'"/>
+        <set field="entityList" from="ec.entity.getAllEntitiesInfo(orderByField?:'fullEntityName', filterRegexp, masterEntitiesOnly, excludeViewEntities)"/>
         <script>paginateList("entityList", null, context)</script>
     </actions>
     <widgets>
@@ -64,8 +66,16 @@ along with this software (see the LICENSE.md file). If not, see
 
         <form-single name="FilterForm" transition=".">
             <field name="filterRegexp"><default-field><text-line size="30"/></default-field></field>
+            <field name="viewOption"><default-field title="View Option">
+                <drop-down>
+                    <option key="all" text="All Entities"/>
+                    <option key="master" text="Master Entities"/>
+                    <option key="exclude-views" text="Exclude View Entities"/>
+                </drop-down>
+            </default-field></field>
             <field name="submitButton"><default-field title="Filter"><submit/></default-field></field>
-            <field-layout><field-row-big><field-ref name="filterRegexp"/><field-ref name="submitButton"/></field-row-big></field-layout>
+            <field-layout><field-row-big><field-ref name="filterRegexp"/><field-ref name="viewOption"/>
+                <field-ref name="submitButton"/></field-row-big></field-layout>
         </form-single>
         <form-list name="EntityList" list="entityList">
             <field name="package">

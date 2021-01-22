@@ -73,8 +73,12 @@ var moqui = {
         if (urlInfo.protocol && urlInfo.protocol.length) href += urlInfo.protocol + "://";
         if (urlInfo.host && urlInfo.host.length) href += urlInfo.host;
         href += urlInfo.path || "/";
-        if (urlInfo.search && urlInfo.search.length) { href += "?" + urlInfo.search; }
-        else if (urlInfo.query && urlInfo.query.length) { href += "?" + moqui.objToSearch(urlInfo.query); }
+        if (urlInfo.search && urlInfo.search.length) {
+            href += "?" + urlInfo.search;
+        } else if (urlInfo.query) {
+            var queryStr = moqui.objToSearch(urlInfo.query);
+            if (queryStr && queryStr.length) href += "?" + queryStr;
+        }
         if (urlInfo.hash && urlInfo.hash.length) href += "#" + urlInfo.hash;
         return href;
     },
@@ -144,6 +148,38 @@ var moqui = {
             console.warn(e);
             if (count <= 5) setTimeout(moqui.retryInlineScript, retryTime, src, count+1);
         }
+    },
+
+    decimalSeparator: (1.1).toLocaleString().substring(1,2),
+    thousandSeparator: (1000).toLocaleString().substring(1,2),
+    isStringInteger: function(value) {
+        if (!moqui.isString(value)) return false;
+        // optional leading -; contains digits, thousandSeparator
+        for (var i = 0; i < value.length; i++) {
+            var curChar = value[i];
+            if (curChar >= '0' && curChar <= '9') continue;
+            if (i === 0 && curChar === '-') continue;
+            if (curChar === moqui.thousandSeparator) continue;
+            return false;
+        }
+        return true;
+    },
+    isStringNumber: function(value) {
+        if (!moqui.isString(value)) return false;
+        // optional leading -; contains digits, thousandSeparator, decimalSeparator
+        for (var i = 0; i < value.length; i++) {
+            var curChar = value[i];
+            if (curChar >= '0' && curChar <= '9') continue;
+            if (i === 0 && curChar === '-') continue;
+            if (curChar === moqui.thousandSeparator) continue;
+            if (curChar === moqui.decimalSeparator) continue;
+            return false;
+        }
+        return true;
+    },
+    parseNumber: function(value) {
+        var replValue = value.replaceAll(moqui.thousandSeparator, '');
+        return replValue.indexOf(moqui.decimalSeparator) === -1 ? parseInt(replValue) : parseFloat(replValue);
     },
 
     /* ========== general format function ========== */
