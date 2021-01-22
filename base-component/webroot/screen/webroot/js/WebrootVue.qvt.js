@@ -1850,7 +1850,9 @@ Vue.component('m-subscreens-tabs', {
             if (!this.pathIndex || this.pathIndex < 0) return [];
             var navMenu = this.$root.navMenuList[this.pathIndex];
             if (!navMenu || !navMenu.subscreens) return [];
-            return navMenu.subscreens;
+            var subscreens = [];
+            $.each(navMenu.subscreens, function(idx, tab) {if (tab.menuInclude) subscreens.push(tab);});
+            return subscreens;
         },
         activeTab: function () {
             if (!this.pathIndex || this.pathIndex < 0) return null;
