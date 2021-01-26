@@ -638,6 +638,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign currentFindUrlParms = currentFindUrl.getParameterMap()>
     <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
     <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
+    <#assign userDefaultFormListFindId = formListInfo.getUserDefaultFormListFindId(ec)!"">
     <#if isHeaderDialog>
         <#assign haveFilters = false>
         <#assign curFindSummary>
@@ -648,8 +649,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#if !(fieldSubNode["hidden"]?has_content || fieldSubNode["ignored"]?has_content)><#assign allHidden = false></#if>
                 </#list>
                 <#if !(ec.getResource().condition(fieldNode["@hide"]!, "") || allHidden ||
-                ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
-                (headerFieldNode["hidden"]?has_content || headerFieldNode["ignored"]?has_content)))>
+                        ((!fieldNode["@hide"]?has_content) && fieldNode?children?size == 1 &&
+                         (headerFieldNode["hidden"]?has_content || headerFieldNode["ignored"]?has_content)))>
                     <#t>${sri.pushContext()}
                     <#list headerFieldNode?children as widgetNode><#if widgetNode?node_name == "set">${sri.setInContext(widgetNode)}</#if></#list>
                     <#list headerFieldNode?children as widgetNode><#if widgetNode?node_name != "set">
@@ -664,7 +665,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             </#if></#list>
         </#assign>
     </#if>
-
     <#if (isHeaderDialog || isSavedFinds || isSelectColumns || isPaginated) && hideNav! != "true">
         <tr class="form-list-nav-row"><th colspan="${numColumns}"><div class="row">
             <div class="col-xs-12 col-sm-6"><div class="row">
@@ -679,7 +679,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </#if>
                     <q-btn-dropdown dense outline no-caps label="<#if activeUserFindName?has_content>${activeUserFindName?html}<#else>${ec.getL10n().localize("Select Find")}</#if>" color="<#if activeUserFindName?has_content>info</#if>"><q-list dense>
                         <q-item clickable v-close-popup><q-item-section>
-                            <m-link href="${sri.buildUrl(sri.getScreenUrlInstance().path).pathWithParams}">${ec.getL10n().localize("Clear Current Find")}</m-link>
+                            <m-link href="${sri.buildUrl(sri.getScreenUrlInstance().path).addParameter("formListFindId", "_clear").pathWithParams}">${ec.getL10n().localize("Clear Current Find")}</m-link>
                         </q-item-section></q-item>
                         <#list userFindInfoList as userFindInfo>
                             <#assign formListFind = userFindInfo.formListFind>
@@ -792,7 +792,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
                     <#if activeFormListFind?has_content>
                         <#assign screenScheduled = formListInfo.getScreenForm().getFormListFindScreenScheduled(activeFormListFind.formListFindId, ec)!>
-                        <div><strong>${ec.getL10n().localize("Active Saved Find:")} ${activeFormListFind.description?html}</strong></div>
+                        <div><strong>${ec.getL10n().localize("Active Saved Find:")}</strong> ${activeFormListFind.description?html}
+                            <#if userDefaultFormListFindId == activeFormListFind.formListFindId><span class="text-info">(${ec.getL10n().localize("My Default")})</span></#if></div>
                         <#if screenScheduled?has_content>
                             <p>(Scheduled for <#if screenScheduled.renderMode! == 'xsl-fo'>PDF<#else>${screenScheduled.renderMode!?upper_case}</#if><#rt>
                                 <#t> ${Static["org.moqui.impl.service.ScheduledJobRunner"].getCronDescription(screenScheduled.cronExpression, ec.user.getLocale(), true)!})</p>
@@ -826,16 +827,16 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#list userFindInfoList as userFindInfo>
                         <#assign formListFind = userFindInfo.formListFind>
                         <#assign findParameters = userFindInfo.findParameters>
-                    <#-- use only formListFindId now that ScreenRenderImpl picks it up and auto adds configured parameters:
-                    <#assign doFindUrl = sri.buildUrl(sri.getScreenUrlInstance().path).addParameters(findParameters)> -->
+                        <#-- use only formListFindId now that ScreenRenderImpl picks it up and auto adds configured parameters:
+                        <#assign doFindUrl = sri.buildUrl(sri.getScreenUrlInstance().path).addParameters(findParameters)> -->
                         <#assign doFindUrl = sri.buildUrl(sri.getScreenUrlInstance().path).addParameter("formListFindId", formListFind.formListFindId)>
                         <#assign saveFindFormId = formId + "_SaveFind" + userFindInfo_index>
                         <#if currentFindUrlParms?has_content>
                             <div class="big-row">
                                 <m-form id="${saveFindFormId}" name="${saveFindFormId}" action="${formSaveFindUrl}" v-slot:default="formProps"
                                         :fields-initial="{formLocation:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(formListInfo.getSavedFindFullLocation())}', formListFindId:'${formListFind.formListFindId}',<#rt>
-                                <#t>_findDescription:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(formListFind.description?html)}',
-                                <#t><#list currentFindUrlParms.keySet() as parmName>'${parmName}':'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentFindUrlParms.get(parmName)!)}',</#list>}">
+                                            <#t>_findDescription:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(formListFind.description?html)}',
+                                            <#t><#list currentFindUrlParms.keySet() as parmName>'${parmName}':'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentFindUrlParms.get(parmName)!)}',</#list>}">
                                     <div class="q-my-auto big-row-item"><q-input v-model="formProps.fields._findDescription" dense outlined stack-label label="${descLabel}" size="30" name="_findDescription" id="${saveFindFormId}_description" required="required"></q-input></div>
                                     <div class="on-right q-my-auto big-row-item"><q-btn dense outline no-caps type="submit" name="UpdateFind" label="${ec.getL10n().localize("Update")}">
                                             <q-tooltip>Update saved find using description and current find parameters</q-tooltip>
@@ -844,17 +845,29 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                         <div class="q-my-auto big-row-item"><q-btn dense flat no-caps type="submit" name="DeleteFind" color="negative" icon="delete_forever" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');"></q-btn></div>
                                     </#if>
                                     <div class="q-my-auto big-row-item"><q-btn dense outline no-caps to="${doFindUrl.pathWithParams}" label="${ec.getL10n().localize("Do Find")}"></q-btn></div>
+                                    <#if userDefaultFormListFindId == formListFind.formListFindId>
+                                        <div class="q-my-auto big-row-item"><q-btn dense outline no-caps type="submit" name="ClearDefault" color="info" label="${ec.getL10n().localize("Clear Default")}"></q-btn></div>
+                                    <#else>
+                                        <div class="q-my-auto big-row-item"><q-btn dense outline no-caps type="submit" name="MakeDefault" label="${ec.getL10n().localize("Make Default")}"></q-btn></div>
+                                    </#if>
                                 </m-form>
                             </div>
                         <#else>
-                            <div>
-                                <q-btn dense outline no-caps to="${doFindUrl.pathWithParams}" label="${ec.getL10n().localize("Do Find")}"></q-btn>
-                                <#if userFindInfo.isByUserId == "true">
-                                    <m-form id="${saveFindFormId}" action="${formSaveFindUrl}" :no-validate="true" :fields-initial="{formListFindId:'${formListFind.formListFindId}'}">
-                                        <q-btn dense flat no-caps type="submit" name="DeleteFind" color="negative" icon="delete_forever" onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');"></q-btn>
-                                    </m-form>
-                                </#if>
-                                <strong>${formListFind.description?html}</strong>
+                            <div class="big-row">
+                                <div class="q-my-auto big-row-item on-left"><q-input dense outlined readonly value="${formListFind.description?html}"></q-input></div>
+                                <div class="q-my-auto big-row-item"><q-btn dense outline no-caps to="${doFindUrl.pathWithParams}" label="${ec.getL10n().localize("Do Find")}"></q-btn></div>
+                                <m-form id="${saveFindFormId}" action="${formSaveFindUrl}" :no-validate="true"
+                                        :fields-initial="{formListFindId:'${formListFind.formListFindId}', formLocation:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(formListInfo.getSavedFindFullLocation())}'}">
+                                    <#if userFindInfo.isByUserId == "true">
+                                        <div class="q-my-auto big-row-item"><q-btn dense flat no-caps type="submit" name="DeleteFind" color="negative" icon="delete_forever"
+                                                onclick="return confirm('${ec.getL10n().localize("Delete")} ${formListFind.description?js_string}?');"></q-btn></div>
+                                    </#if>
+                                    <#if userDefaultFormListFindId == formListFind.formListFindId>
+                                        <div class="q-my-auto big-row-item"><q-btn dense outline no-caps type="submit" name="ClearDefault" color="info" label="${ec.getL10n().localize("Clear Default")}"></q-btn></div>
+                                    <#else>
+                                        <div class="q-my-auto big-row-item"><q-btn dense outline no-caps type="submit" name="MakeDefault" label="${ec.getL10n().localize("Make Default")}"></q-btn></div>
+                                    </#if>
+                                </m-form>
                             </div>
                         </#if>
                     </#list>

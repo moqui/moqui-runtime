@@ -38,7 +38,7 @@ body.test.body--dark #top { background:#224422!important; color:white; }
 .body--dark .q-menu { background-color:black; }
 .body--dark img.invertible { -webkit-filter: invert(90%); filter: invert(90%); }
 
-.q-card { background:transparent; }
+.q-dark, .q-card { background:transparent; }
 .q-card__actions h5 { font-size: 1.1rem; display:inline-block; margin-block-start:0; margin-block-end:0; }
 .q-dialog .q-card { background-color:white; }
 .body--dark .q-dialog .q-card { background-color:black; }
@@ -117,7 +117,6 @@ td div, .td div { min-height:21px; }
 
 /* ====== quasar table styles adapted to div based table styles ====== */
 /* NOTE: these are based on quasar.css version 1.12.11 */
-
 /* lines 4216-4531 */
 .q-table .thead .tr, .q-table .tbody .td { height: 48px; }
 .q-table .th { font-weight: 500; font-size: 13px; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
@@ -154,6 +153,8 @@ body.desktop .q-table > .tbody > .tr:not(.q-tr--no-hover):hover > .td:not(.q-td-
 .q-table .q-virtual-scroll__padding .tr { height: 0 !important; }
 .q-table .q-virtual-scroll__padding .td { padding: 0 !important; }
 
+/* ====== Old Handy Styles ====== */
+
 /* Description List Horizontal - based on Bootstrap concept */
 dl { margin-top:8px; margin-bottom:8px; }
 dt { font-weight:700; }
@@ -165,7 +166,6 @@ dd { margin-left:0; }
 .dl-horizontal dd:before, .dl-horizontal dd:after { display:table; content:" "; }
 .dl-horizontal dd:after { clear:both; }
 
-/* ====== Old Handy Styles ====== */
 ul.tree-list, ul.tree-list ul { list-style-type: none; padding: 4px 4px 4px 20px; }
 
 ul.float-box { display: inline-block; list-style: none outside none; margin: 0 0 -8px 0; padding: 0; }
@@ -178,15 +178,15 @@ ul.float-plain.condensed { margin: 0; }
 ul.float-plain.condensed li { margin: 0 4px 0 0; padding: 4px; }
 
 .diagram-sequence { font-size: 16px; text-align: center; width: 900px; max-width: 100%; margin-left: auto; margin-right: auto; }
-.diagram-sequence>div { border-right: rgb(127, 127, 127) dashed thin; }
-.diagram-sequence>div:first-child { border-left: rgb(127, 127, 127) dashed thin;  }
+/*.diagram-sequence>div { border-right: rgb(127, 127, 127) dotted 0; }
+.diagram-sequence>div:first-child { border-left: rgb(127, 127, 127) dotted 0; }*/
 .diagram-sequence>div:last-child {  }
 .diagram-sequence p { margin-bottom: 10px; }
 .diagram-sequence-item { position: relative; border-bottom: rgb(127, 127, 127) solid 2px; margin: 0 4px 8px 4px; }
 .diagram-sequence-item.smaller { font-size: 14px; }
-.diagram-sequence-item i.left { position: absolute; font-size: 12px; bottom: -7px; left: -2px; color: rgb(127, 127, 127); }
+.diagram-sequence-item i.left { position: absolute; font-size: 12px; bottom: -8px; left: -2px; color: rgb(127, 127, 127); }
 .diagram-sequence-item i.left:before { content:"\f053" }
-.diagram-sequence-item i.right { position: absolute; font-size: 12px; bottom: -7px; right: -2px; color: rgb(127, 127, 127); }
+.diagram-sequence-item i.right { position: absolute; font-size: 12px; bottom: -8px; right: -2px; color: rgb(127, 127, 127); }
 .diagram-sequence-item i.right:before { content:"\f054" }
 .diagram-sequence-actor { font-size: larger; font-weight: bold; margin-bottom: 14px; border-top: rgb(127, 127, 127) solid 1px; border-bottom: rgb(127, 127, 127) solid 1px; }
 

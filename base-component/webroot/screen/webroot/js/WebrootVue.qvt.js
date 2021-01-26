@@ -46,7 +46,7 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
                 notified = true;
             }
         } else {
-            moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsInfo, { message:messageItem }));
+            moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsInfo, { message:messages }));
             moqui.webrootVue.addNotify(messages, 'info');
             notified = true;
         }
@@ -99,14 +99,14 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown, responseText) {
     var respObj;
     try { respObj = JSON.parse(resp); } catch (e) { /* ignore error, don't always expect it to be JSON */ }
     console.warn('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown /*+ '; response: ' + resp*/);
-    // console.error('respObj: ' + JSON.stringify(respObj));
+    // console.error('resp [' + resp + '] respObj: ' + JSON.stringify(respObj));
     var notified = false;
     if (jqXHR.status === 401) {
         notified = moqui.notifyMessages(null, "No user authenticated");
     } else {
         if (respObj && moqui.isPlainObject(respObj)) {
             notified = moqui.notifyMessages(respObj.messageInfos, respObj.errors, respObj.validationErrors);
-            console.log("got here notified ", notified);
+            // console.log("got here notified ", notified);
         } else if (resp && moqui.isString(resp) && resp.length) {
             notified = moqui.notifyMessages(resp);
         }
@@ -636,7 +636,7 @@ Vue.component('m-form', {
                 setTimeout(function() { $btn.prop('disabled', false); }, 3000);
             }
             var formData = Object.keys(this.fields).length ? new FormData() : new FormData(this.$refs.qForm.$el);
-            $.each(this.fields, function(key, value) { if (value) { formData.set(key, value); } });
+            $.each(this.fields, function(key, value) { formData.set(key, value || ""); });
             // NOTE: using iterator directly to avoid using 'for of' which requires more recent ES version (for minify, browser compatibility)
             var formDataIterator = formData.entries()[Symbol.iterator]();
             while (true) {
@@ -1919,6 +1919,14 @@ Vue.component('m-menu-nav-item', {
         '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
         '<template v-slot:default><m-menu-subscreen-item v-for="(subscreen, ssIndex) in navMenuItem.subscreens" :key="subscreen.name" :menu-index="menuIndex" :subscreen-index="ssIndex"></m-menu-subscreen-item></template>' +
     '</q-expansion-item>' +
+    '<q-expansion-item v-else-if="navMenuItem && navMenuItem.savedFinds && navMenuItem.savedFinds.length" :value="true" :content-inset-level="0.3"' +
+            ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go">' +
+        '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
+        '<template v-slot:default><q-expansion-item v-for="(savedFind, ssIndex) in navMenuItem.savedFinds" :key="savedFind.name"' +
+                ' :value="false" switch-toggle-side dense dense-toggle expand-icon="arrow_right" :to="savedFind.pathWithParams" @input="goPath(savedFind.pathWithParams)">' +
+            '<template v-slot:header><m-menu-item-content :menu-item="savedFind" :active="savedFind.active"/></template>' +
+        '</q-expansion-item></template>' +
+    '</q-expansion-item>' +
     '<q-expansion-item v-else-if="menuIndex < (navMenuLength - 1)" :value="true" :content-inset-level="0.3"' +
             ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go">' +
         '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
@@ -1927,7 +1935,10 @@ Vue.component('m-menu-nav-item', {
     '<q-expansion-item v-else-if="navMenuItem" :value="false" switch-toggle-side dense dense-toggle expand-icon="arrow_right" :to="navMenuItem.pathWithParams" @input="go">' +
         '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
     '</q-expansion-item>',
-    methods: { go: function go() { this.$root.setUrl(this.navMenuItem.pathWithParams); } },
+    methods: {
+        go: function go() { this.$root.setUrl(this.navMenuItem.pathWithParams); },
+        goPath: function goPath(path) { this.$root.setUrl(path); }
+    },
     computed: {
         navMenuItem: function() { return this.$root.navMenuList[this.menuIndex]; },
         navMenuLength: function() { return this.$root.navMenuList.length; }
@@ -2272,7 +2283,7 @@ window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.
 // NOTE: simulate vue-router so this.$router.resolve() works in a basic form; required for use of q-btn 'to' attribute along with router-link component defined above
 moqui.webrootRouter = {
     resolve: function resolve(to, current, append) {
-        var location = moqui.isString(to) ? location = moqui.parseHref(to) : location = to;
+        var location = moqui.isString(to) ? moqui.parseHref(to) : to;
 
         var path = location.path;
         if (moqui.webrootVue) location.path = path = moqui.webrootVue.getLinkPath(path);
