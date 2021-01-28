@@ -1839,7 +1839,7 @@ Vue.component('m-subscreens-tabs', {
     '</q-tabs><q-separator class="q-mb-md"></q-separator></div>',
      */
     template:
-    '<div v-if="subscreens.length > 0"><q-tabs dense no-caps align="left" active-color="primary" indicator-color="primary" :value="activeTab">' +
+    '<div v-if="subscreens.length > 1"><q-tabs dense no-caps align="left" active-color="primary" indicator-color="primary" :value="activeTab">' +
         '<q-tab v-for="tab in subscreens" :key="tab.name" :name="tab.name" :label="tab.title" :disable="tab.disableLink" @click.prevent="goTo(tab.pathWithParams)"></q-tab>' +
     '</q-tabs><q-separator class="q-mb-md"></q-separator></div>',
     methods: {
@@ -1923,7 +1923,7 @@ Vue.component('m-menu-nav-item', {
             ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go">' +
         '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
         '<template v-slot:default><q-expansion-item v-for="(savedFind, ssIndex) in navMenuItem.savedFinds" :key="savedFind.name"' +
-                ' :value="false" switch-toggle-side dense dense-toggle expand-icon="arrow_right" :to="savedFind.pathWithParams" @input="goPath(savedFind.pathWithParams)">' +
+                ' :value="false" switch-toggle-side dense dense-toggle expand-icon="chevron_right" :to="savedFind.pathWithParams" @input="goPath(savedFind.pathWithParams)">' +
             '<template v-slot:header><m-menu-item-content :menu-item="savedFind" :active="savedFind.active"/></template>' +
         '</q-expansion-item></template>' +
     '</q-expansion-item>' +
