@@ -570,8 +570,43 @@ Vue.component('m-editable', {
 });
 
 /* ========== form components ========== */
+
+moqui.checkboxSetMixin = {
+    // NOTE: checkboxCount is used to init the checkbox state array, defaults to 100 and must be greater than or equal to the actual number of checkboxes (not including the All checkbox)
+    props: { checkboxCount:{type:Number,'default':100}, keyField:String, keyValues:Array },
+    data: function() {
+        var checkboxStates = [];
+        for (var i = 0; i < this.checkboxCount; i++) checkboxStates[i] = false;
+        return { checkboxAllState:false, checkboxStates:checkboxStates }
+    },
+    methods: {
+        setCheckboxAllState: function(newState) {
+            this.checkboxAllState = newState;
+            var csSize = this.checkboxStates.length;
+            for (var i = 0; i < csSize; i++) this.checkboxStates[i] = newState;
+        }
+    },
+    watch: {
+        checkboxStates: { deep:true, handler:function(newArray) {
+            var allTrue = true;
+            for (var i = 0; i < newArray.length; i++) {
+                var curState = newArray[i];
+                if (!curState) allTrue = false;
+                if (!allTrue) break;
+            }
+            this.checkboxAllState = allTrue;
+        } }
+    }
+}
+Vue.component('m-checkbox-set', {
+    name: "mCheckboxSet",
+    mixins:[moqui.checkboxSetMixin],
+    template: '<span class="checkbox-set"><slot :checkboxAllState="checkboxAllState" :checkboxStates="checkboxStates" :setCheckboxAllState="setCheckboxAllState"></slot></span>'
+});
+
 Vue.component('m-form', {
     name: "mForm",
+    mixins:[moqui.checkboxSetMixin],
     props: { fieldsInitial:Object, action:{type:String,required:true}, method:{type:String,'default':'POST'},
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean },
     data: function() { return { fields:Object.assign({}, this.fieldsInitial), fieldsChanged:{}, buttonClicked:null }},
@@ -579,7 +614,7 @@ Vue.component('m-form', {
     // see https://vuejs.org/v2/guide/components-slots.html
     template:
         '<q-form ref="qForm" @submit.prevent="submitForm" @reset.prevent="resetForm" autocapitalize="off" autocomplete="off">' +
-            '<slot v-bind:fields="fields"></slot></q-form>',
+            '<slot :fields="fields" :checkboxStates="checkboxStates" :checkboxAllState="checkboxAllState" :setCheckboxAllState="setCheckboxAllState"></slot></q-form>',
     methods: {
         submitForm: function() {
             if (this.noValidate) {
@@ -951,10 +986,11 @@ Vue.component('m-form-go-page', {
     props: { idVal:{type:String,required:true}, maxIndex:Number, formList:Object },
     data: function() { return { pageIndex:"" } },
     template:
-    '<q-form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage" :id="idVal+\'_GoPage\'">' +
-        '<q-input dense v-model="pageIndex" type="text" size="4" name="pageIndex" :id="idVal+\'_GoPage_pageIndex\'" placeholder="Page #"' +
-        '   :rules="[val => /^\\d*$/.test(val) || \'digits only\', val => ((formList && +val <= formList.paginate.pageMaxIndex) || (maxIndex && +val < maxIndex)) || \'higher than max\']"></q-input>' +
-        '<q-btn dense flat no-caps type="submit" label="Go"></q-btn>' +
+    '<q-form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage">' +
+        '<q-input dense v-model="pageIndex" type="text" size="4" name="pageIndex" placeholder="Page #"' +
+            '   :rules="[val => /^\\d*$/.test(val) || \'digits only\', val => ((formList && +val <= formList.paginate.pageMaxIndex) || (maxIndex && +val < maxIndex)) || \'higher than max\']">' +
+            '<template v-slot:append><q-btn dense flat no-caps type="submit" icon="redo" @click="goPage"></q-btn></template>' +
+        '</q-input>' +
     '</q-form>',
     methods: { goPage: function() {
         var formList = this.formList;
