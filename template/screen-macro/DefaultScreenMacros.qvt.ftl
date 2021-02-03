@@ -445,7 +445,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#t><#if formNode["@body-parameters"]?has_content> :body-parameter-names="[<#list formNode["@body-parameters"]?split(",") as bodyParm>'${bodyParm}'<#sep>,</#list>]"</#if>
             <#t><#if formNode["@background-message"]?has_content> submit-message="${formNode["@background-message"]?html}"</#if>
             <#t><#if formNode["@background-reload-id"]?has_content> submit-reload-id="${formNode["@background-reload-id"]}"</#if>
-            <#lt><#if formNode["@background-hide-id"]?has_content> submit-hide-id="${formNode["@background-hide-id"]}"</#if>
+            <#t><#if formNode["@background-hide-id"]?has_content> submit-hide-id="${formNode["@background-hide-id"]}"</#if>
+            <#lt><#if _formListSelectedForm!false> :parentCheckboxSet="formProps"</#if>
             <#if fieldsJsName?has_content> v-slot:default="formProps" :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.getFormFieldValues(formNode))}"</#if>>
     </#if>
     <#if formNode["field-layout"]?has_content>
@@ -628,11 +629,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign listName = formNode["@list"]>
     <#assign allColInfoList = formListInfo.getAllColInfo()>
     <#assign mainColInfoList = formListInfo.getMainColInfo()>
-    <#assign rowSelectionNode = (formNode["row-selection"][0])!>
-    <#assign isRowSelection = rowSelectionNode?has_content>
     <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
-    <#if isRowSelection><#assign numColumns = numColumns + 1></#if>
+    <#if isRowSelection!false><#assign numColumns = numColumns + 1></#if>
     <#assign isSavedFinds = formNode["@saved-finds"]! == "true">
     <#assign isSelectColumns = formNode["@select-columns"]! == "true">
     <#assign isPaginated = (!(formNode["@paginate"]! == "false") && context[listName + "Count"]?? && (context[listName + "Count"]! > 0) &&
@@ -1037,13 +1036,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#-- render action forms, optionally inside dialog -->
     <q-card flat bordered><q-card-section horizontal class="q-pa-md">
         <#list rowSelectionNode["action"]! as actionNode>
-            <#assign dialogNode = (actionNode["dialog"][0])!>
+            <#assign dialogNodes = actionNode["dialog"]!>
             <#assign formSingleNode = actionNode["form-single"][0]>
 
             <#-- TODO: disable-condition and disable-message -->
-            <#-- TODO: dynamic disable if no rows selected? -->
+            <#-- FUTURE dynamic disable if no rows selected? maybe not, some might be designed to operate with no rows selected... -->
 
-            <#if dialogNode??>
+            <#if dialogNodes?has_content>
+                <#assign dialogNode = dialogNodes[0]>
                 <#assign buttonText = ec.getResource().expand(dialogNode["@button-text"], "")>
                 <#assign title = ec.getResource().expand(dialogNode["@title"], "")>
                 <#if !title?has_content><#assign title = buttonText></#if>
@@ -1052,10 +1052,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         button-class="${ec.getResource().expandNoL10n(dialogNode["@button-style"]!"", "")}">
             </#if>
 
-            <#-- TODO add ID parameters for selected rows, add _isMulti=true -->
+            <#assign _formListSelectedForm = true>
             <#visit formSingleNode>
+            <#assign _formListSelectedForm = false>
 
-            <#if dialogNode??>
+            <#if dialogNodes?has_content>
                 </m-container-dialog>
             </#if>
         </#list>
@@ -1072,7 +1073,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign subColInfoList = formListInfo.getSubColInfo()!>
     <#assign hasSubColumns = subColInfoList?has_content>
     <#assign tableStyle><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if></#assign>
-    <#assign rowSelectionNode = (formNode["row-selection"][0])!>
+    <#assign rowSelectionNode = formInstance.getRowSelectionNode()!>
     <#assign isRowSelection = rowSelectionNode?has_content>
     <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
@@ -1153,11 +1154,21 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
     <#-- start/header -->
     <#if !skipStart>
+        <#if isRowSelection>
+            <#assign checkboxIdField = rowSelectionNode["@id-field"]>
+            <#assign checkboxKeyValues = Static["org.moqui.util.CollectionUtilities"].getMapArrayListValues(listObject, checkboxIdField, false)>
+        <#else>
+            <#assign checkboxIdField = "">
+        </#if>
         <#if isMulti>
             <m-form name="${formId}" id="${formId}" action="${formListUrlInfo.path}" v-slot:default="formProps"
+                    <#t><#if checkboxIdField?has_content> checkbox-parameter="${rowSelectionNode["@parameter"]!checkboxIdField}" :checkbox-list-mode="${rowSelectionNode["@list-mode"]!"false"}"</#if>
+                    <#if checkboxIdField?has_content> :checkbox-values="[<#list checkboxKeyValues as keyValue>'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(keyValue)}'<#sep>,</#list>]"</#if>
                     :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.makeFormListMultiMap(formListInfo, listObject, formListUrlInfo))}">
         <#elseif isRowSelection>
-            <m-checkbox-set :checkbox-count="${((listObject.size())!0)?c}" v-slot:default="formProps">
+            <m-checkbox-set :checkbox-count="${((listObject.size())!0)?c}" v-slot:default="formProps"
+                    <#t> checkbox-parameter="${rowSelectionNode["@parameter"]!checkboxIdField}" :checkbox-list-mode="${rowSelectionNode["@list-mode"]!"false"}"
+                    :checkbox-values="[<#list checkboxKeyValues as keyValue>'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(keyValue)}'<#sep>,</#list>]">
         </#if>
 
         <div class="q-my-sm q-table__container q-table__card q-table--horizontal-separator q-table--dense q-table--flat" :class="{'q-table--dark':$q.dark.isActive, 'q-table__card--dark':$q.dark.isActive, 'q-dark':$q.dark.isActive,}">
@@ -1169,12 +1180,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <div class="tr">
                     <#if isRowSelection>
                         <div class="th"><span class="q-my-auto">
-                            <q-btn dense flat icon="build" :color="formProps.checkboxStates && formProps.checkboxStates.includes(true) ? 'success' : ''">
-                                <q-tooltip>${ec.getL10n().localize("Row Actions")}</q-tooltip>
-                                <q-menu><@formListSelectedRowCard rowSelectionNode/></q-menu>
-                            </q-btn>
                             <q-checkbox size="sm" v-model="formProps.checkboxAllState" @input="formProps.setCheckboxAllState">
                                 <q-tooltip>{{formProps.checkboxAllState ? '${ec.getL10n().localize("Unselect All")}' : '${ec.getL10n().localize("Select All")}'}}</q-tooltip></q-checkbox>
+                            <q-btn dense flat icon="build" :color="formProps.checkboxStates && formProps.checkboxStates.includes(true) ? 'success' : ''">
+                                <q-tooltip>${ec.getL10n().localize("Row Actions")}</q-tooltip>
+                                <q-menu anchor="top left" self="bottom left"><@formListSelectedRowCard rowSelectionNode/></q-menu>
+                            </q-btn>
                         </span></div>
                     </#if>
 
