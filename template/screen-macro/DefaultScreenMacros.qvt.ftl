@@ -629,7 +629,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign allColInfoList = formListInfo.getAllColInfo()>
     <#assign mainColInfoList = formListInfo.getMainColInfo()>
     <#assign rowSelectionNode = (formNode["row-selection"][0])!>
-    <#assign isRowSelection = rowSelectionNode??>
+    <#assign isRowSelection = rowSelectionNode?has_content>
     <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#if isRowSelection><#assign numColumns = numColumns + 1></#if>
@@ -1036,7 +1036,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro formListSelectedRowCard rowSelectionNode>
     <#-- render action forms, optionally inside dialog -->
     <q-card flat bordered><q-card-section horizontal class="q-pa-md">
-        <#list rowSelectionNode["action"] as actionNode>
+        <#list rowSelectionNode["action"]! as actionNode>
             <#assign dialogNode = (actionNode["dialog"][0])!>
             <#assign formSingleNode = actionNode["form-single"][0]>
 
@@ -1073,7 +1073,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign hasSubColumns = subColInfoList?has_content>
     <#assign tableStyle><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if></#assign>
     <#assign rowSelectionNode = (formNode["row-selection"][0])!>
-    <#assign isRowSelection = rowSelectionNode??>
+    <#assign isRowSelection = rowSelectionNode?has_content>
     <#assign numColumns = (mainColInfoList?size)!100>
     <#if numColumns == 0><#assign numColumns = 100></#if>
     <#if isRowSelection><#assign numColumns = numColumns + 1></#if>
