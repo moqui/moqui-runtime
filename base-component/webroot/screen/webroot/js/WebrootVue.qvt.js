@@ -570,16 +570,76 @@ Vue.component('m-editable', {
 });
 
 /* ========== form components ========== */
+
+moqui.checkboxSetMixin = {
+    // NOTE: checkboxCount is used to init the checkbox state array, defaults to 100 and must be greater than or equal to the actual number of checkboxes (not including the All checkbox)
+    props: { checkboxCount:{type:Number,'default':100}, checkboxParameter:String, checkboxListMode:Boolean, checkboxValues:Array },
+    data: function() {
+        var checkboxStates = [];
+        for (var i = 0; i < this.checkboxCount; i++) checkboxStates[i] = false;
+        return { checkboxAllState:false, checkboxStates:checkboxStates }
+    },
+    methods: {
+        setCheckboxAllState: function(newState) {
+            this.checkboxAllState = newState;
+            var csSize = this.checkboxStates.length;
+            for (var i = 0; i < csSize; i++) this.checkboxStates[i] = newState;
+        },
+        getCheckboxValueArray: function() {
+            if (!this.checkboxValues) return [];
+            var valueArray = [];
+            var csSize = this.checkboxStates.length;
+            for (var i = 0; i < csSize; i++) if (this.checkboxStates[i] && this.checkboxValues[i]) valueArray.push(this.checkboxValues[i]);
+            return valueArray;
+        },
+        addCheckboxParameters: function(formData, parameter, listMode) {
+            var parmName = parameter || this.checkboxParameter;
+            var useList = (listMode !== null && listMode !== undefined && listMode) ? listMode : this.checkboxListMode;
+            // NOTE: formData must be a FormData object, or at least have a set(name, value) method
+            var valueArray = this.getCheckboxValueArray();
+            if (!valueArray.length) return false;
+            if (useList) {
+                formData.set(parmName, valueArray.join(','));
+            } else {
+                for (var i = 0; i < valueArray.length; i++)
+                    formData.set(parmName + '_' + i, valueArray[i]);
+                formData.set('_isMulti', 'true');
+            }
+            return true;
+        }
+    },
+    watch: {
+        checkboxStates: { deep:true, handler:function(newArray) {
+            var allTrue = true;
+            for (var i = 0; i < newArray.length; i++) {
+                var curState = newArray[i];
+                if (!curState) allTrue = false;
+                if (!allTrue) break;
+            }
+            this.checkboxAllState = allTrue;
+        } }
+    }
+}
+Vue.component('m-checkbox-set', {
+    name: "mCheckboxSet",
+    mixins:[moqui.checkboxSetMixin],
+    template: '<span class="checkbox-set"><slot :checkboxAllState="checkboxAllState" :setCheckboxAllState="setCheckboxAllState"' +
+        ' :checkboxStates="checkboxStates" :addCheckboxParameters="addCheckboxParameters"></slot></span>'
+});
+
 Vue.component('m-form', {
     name: "mForm",
+    mixins:[moqui.checkboxSetMixin],
     props: { fieldsInitial:Object, action:{type:String,required:true}, method:{type:String,'default':'POST'},
-        submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean },
+        submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean, parentCheckboxSet:Object },
     data: function() { return { fields:Object.assign({}, this.fieldsInitial), fieldsChanged:{}, buttonClicked:null }},
     // NOTE: <slot v-bind:fields="fields"> also requires prefix from caller, using <m-form v-slot:default="formProps"> in qvt.ftl macro
     // see https://vuejs.org/v2/guide/components-slots.html
     template:
         '<q-form ref="qForm" @submit.prevent="submitForm" @reset.prevent="resetForm" autocapitalize="off" autocomplete="off">' +
-            '<slot v-bind:fields="fields"></slot></q-form>',
+            '<slot :fields="fields" :checkboxAllState="checkboxAllState" :setCheckboxAllState="setCheckboxAllState"' +
+                ' :checkboxStates="checkboxStates" :addCheckboxParameters="addCheckboxParameters"></slot>' +
+        '</q-form>',
     methods: {
         submitForm: function() {
             if (this.noValidate) {
@@ -654,6 +714,13 @@ Vue.component('m-form', {
             }
             formData.set('moquiSessionToken', this.$root.moquiSessionToken);
             if (btnName) { formData.set(btnName, btnValue); }
+
+            // add ID parameters for selected rows, add _isMulti=true
+            if (this.parentCheckboxSet && this.parentCheckboxSet.addCheckboxParameters) {
+                var addedParms = this.parentCheckboxSet.addCheckboxParameters(formData);
+                // TODO: if no addedParms should this blow up or just wait for the server for a missing parameter?
+                // maybe best to leave it to the server, some forms might make sense without any rows selected...
+            }
 
             // console.info('m-form parameters ' + JSON.stringify(formData));
             // for (var key of formData.keys()) { console.log('m-form key ' + key + ' val ' + JSON.stringify(formData.get(key))); }
@@ -951,10 +1018,11 @@ Vue.component('m-form-go-page', {
     props: { idVal:{type:String,required:true}, maxIndex:Number, formList:Object },
     data: function() { return { pageIndex:"" } },
     template:
-    '<q-form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage" :id="idVal+\'_GoPage\'">' +
-        '<q-input dense v-model="pageIndex" type="text" size="4" name="pageIndex" :id="idVal+\'_GoPage_pageIndex\'" placeholder="Page #"' +
-        '   :rules="[val => /^\\d*$/.test(val) || \'digits only\', val => ((formList && +val <= formList.paginate.pageMaxIndex) || (maxIndex && +val < maxIndex)) || \'higher than max\']"></q-input>' +
-        '<q-btn dense flat no-caps type="submit" label="Go"></q-btn>' +
+    '<q-form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage">' +
+        '<q-input dense v-model="pageIndex" type="text" size="4" name="pageIndex" placeholder="Page #"' +
+            '   :rules="[val => /^\\d*$/.test(val) || \'digits only\', val => ((formList && +val <= formList.paginate.pageMaxIndex) || (maxIndex && +val < maxIndex)) || \'higher than max\']">' +
+            '<template v-slot:append><q-btn dense flat no-caps type="submit" icon="redo" @click="goPage"></q-btn></template>' +
+        '</q-input>' +
     '</q-form>',
     methods: { goPage: function() {
         var formList = this.formList;

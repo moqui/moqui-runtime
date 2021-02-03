@@ -113,7 +113,7 @@ form.q-form { width:100%; }
 .tbody { display: table-row-group; }
 .tr { display: table-row; }
 .td, .th { display: table-cell; vertical-align: middle; }
-td div, .td div { min-height:21px; }
+td, .td { min-height:21px; }
 
 /* ====== quasar table styles adapted to div based table styles ====== */
 /* NOTE: these are based on quasar.css version 1.12.11 */
