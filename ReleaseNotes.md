@@ -1,6 +1,20 @@
 
 # Moqui Runtime Release Notes
 
+## Release 3.0.0 - Not Yet Released
+
+Moqui Runtime 2.1.2 is a patch level new feature and bug fix release, in parallel with the release of Moqui Framework.
+
+### Non Backward Compatible Changes
+
+- Two transitions were removed from the rest.xml screen (/rest):
+    - moquiSessionToken: for security reasons, it opened a vector in a CSRF attack to acquire the session token at any time
+    - api_key: there is no good use case, just use cases that are less secure and poorly thought through
+
+For a complete list of changes see:
+
+https://github.com/moqui/moqui-runtime/compare/v2.1.3...v3.0.0
+
 ## Release 2.1.3 - 07 Dec 2019
 
 Moqui Runtime 2.1.2 is a patch level new feature and bug fix release, in parallel with the release of Moqui Framework.
