@@ -523,7 +523,7 @@ Vue.component('m-form', {
                     var fieldValue = pair[1];
                     if (this.excludeEmptyFields && (!fieldValue || !fieldValue.length)) fieldsToRemove.push(fieldName);
                 }
-                for (var ftrIdx = 0; ftrIdx < fieldsToRemove.length; ftrIdx++) formData.delete(fieldsToRemove[ftrIdx]);
+                for (var ftrIdx = 0; ftrIdx < fieldsToRemove.length; ftrIdx++) formData['delete'](fieldsToRemove[ftrIdx]);
 
                 formData.append('moquiSessionToken', this.$root.moquiSessionToken);
                 if (btnName) { formData.append(btnName, btnValue); }
