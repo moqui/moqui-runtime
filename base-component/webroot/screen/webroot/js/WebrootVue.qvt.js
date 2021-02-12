@@ -716,7 +716,7 @@ Vue.component('m-form', {
                 }
                 if (this.excludeEmptyFields && (!fieldValue || !fieldValue.length)) fieldsToRemove.push(fieldName);
             }
-            for (var ftrIdx = 0; ftrIdx < fieldsToRemove.length; ftrIdx++) formData.delete(fieldsToRemove[ftrIdx]);
+            for (var ftrIdx = 0; ftrIdx < fieldsToRemove.length; ftrIdx++) formData['delete'](fieldsToRemove[ftrIdx]);
 
             formData.set('moquiSessionToken', this.$root.moquiSessionToken);
             if (btnName) { formData.set(btnName, btnValue); }
