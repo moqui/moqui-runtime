@@ -37,7 +37,14 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/></transition>
     <transition name="updateUserGroupMember"><service-call name="update#moqui.security.UserGroupMember"/>
         <default-response url="."/></transition>
-    <transition name="createUserAuthcFactor"><service-call name="create#moqui.security.UserAuthFactor"/>
+    <transition name="createUserAuthcFactorTotp"><service-call name="mantle.party.PartyServices.create#UserAuthcFactorTotp"/>
+        <default-response url="."/></transition>
+    <transition name="createUserAuthcFactorSingleUse">
+        <service-call name="mantle.party.PartyServices.create#UserAuthcFactorSingleUse"/>
+        <actions><script>ec.web.sessionAttributes.put("singleUseCodes", singleUseCodes)</script></actions>
+        <default-response url="."/>
+    </transition>
+    <transition name="createUserAuthcFactorEmail"><service-call name="mantle.party.PartyServices.create#UserAuthcFactorEmail"/>
         <default-response url="."/></transition>
 
     <transition name="createUserPreference"><service-call name="create#moqui.security.UserPreference"/>
@@ -57,6 +64,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <actions>
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount"/>
+        <set field="singleUseCodes" from="ec.web.sessionAttributes.remove('singleUseCodes')"/>
 
         <set field="localeStringList" from="[]"/>
         <iterate list="Locale.getAvailableLocales()" entry="lcl"><script>localeStringList.add([locale:lcl.toString(), name:lcl.getDisplayName(ec.user.locale)])</script></iterate>
@@ -66,15 +74,19 @@ along with this software (see the LICENSE.md file). If not, see
             <econdition field-name="userId"/><order-by field-name="userGroupId"/></entity-find>
 
         <entity-find entity-name="moqui.security.UserAuthcFactor" list="authList">
-<!-- TODO: find a way to reverse order of fieldId to make the most recent entry is at the top -->
-            <econdition field-name="userId"/><order-by field-name="-fieldId"/></entity-find>
+            <!-- TODO: find a way to reverse order of fieldId to make the most recent entry is at the top -->
+            <econditions combine="or">
+                <econdition field-name="thruDate" operator="greater" from="ec.user.nowTimestamp"/>
+                <econdition field-name="thruDate" operator="is-null"/>
+            </econditions>
+            <econdition field-name="userId"/><order-by field-name="-factorId"/></entity-find>
         <entity-find entity-name="moqui.security.UserPreference" list="upList">
             <econdition field-name="userId"/><order-by field-name="preferenceKey"/></entity-find>
         <entity-find entity-name="moqui.security.user.NotificationTopic" list="notificationTopicList">
             <order-by field-name="description"/></entity-find>
 
         <entity-find entity-name="moqui.security.UserLoginHistory" list="historyList" limit="20">
-            <search-form-inputs default-order-by="-fromDate"/>
+            <search-form-inputs default-order-by="fromDate"/>
             <econdition field-name="userId"/></entity-find>
 
         <entity-find entity-name="moqui.security.ArtifactTarpitLock" list="artifactTarpitLockList" limit="20">
@@ -83,6 +95,13 @@ along with this software (see the LICENSE.md file). If not, see
             <econdition field-name="userId"/></entity-find-count>
     </actions>
     <widgets>
+        <section name="SingleUseCodesDisplay" condition="singleUseCodes">
+            <widgets>
+                <label text="${singleUseCodes}"></label>
+                <container type="div" style="text-danger">
+                </container>
+            </widgets>
+        </section>
         <container-row>
             <row-col lg="5">
                 <link url="visitList" text="Visits" parameter-map="[userId:userId]"/>
@@ -248,17 +267,40 @@ along with this software (see the LICENSE.md file). If not, see
 
                 <container-box><box-header title="Authentication Methods"/>
                     <box-toolbar>
-                        <container-dialog id="ForceUserAuthcFactorDialog" button-text="Add Auth for User">
-                            <form-single name="CreateUserAuthcFactor" transition="createUserAuthcFactor">
-                                <field name="userId"><default-field><display/></default-field></field>
+                        <container-dialog id="AddTotpDialog" button-text="Add Authenticator App">
+                            <form-single name="CreateUserAuthcFactorTotp" transition="createUserAuthcFactorTotp">
+                                <field name="factorId"><default-field><hidden/></default-field></field>
+                                <field name="userId"><default-field><hidden/></default-field></field>
+                                <field name="fromFactorId"><default-field><hidden/></default-field></field>
+                                <field name="factorTypeEnumId"><default-field><hidden/></default-field></field>
                                 <field name="fromDate"><default-field><date-time/></default-field></field>
-                                <field name="thruDate"><default-field><display/></default-field></field>
-                                <field name="authcType"><default-field>
-                                    <widget-template-include location="component://webroot/template/screen/BasicWidgetTemplates.xml#enumDropDown">
-                                        <set field="enumTypeId" value="AuthcTypeEnumId"/></widget-template-include>
-                                </default-field></field>
-                                <field name="authcOption"><default-field><text-line size="60"/></default-field></field>
-                                <field name="authcSecret"><default-field><display/></default-field></field>
+                                <field name="thruDate"><default-field><date-time/></default-field></field>
+                                <field name="factorOption"><default-field><hidden/></default-field></field>
+                                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                            </form-single>
+                        </container-dialog>
+                        <container-dialog id="AddSingleUseDialog" button-text="Update Single Use Codes">
+                            <form-single name="CreateUserAuthcFactorSingleUse" transition="createUserAuthcFactorSingleUse">
+                                <field name="factorId"><default-field><hidden/></default-field></field>
+                                <field name="userId"><default-field><hidden/></default-field></field>
+                                <field name="fromFactorId"><default-field><hidden/></default-field></field>
+                                <field name="factorTypeEnumId"><default-field><hidden/></default-field></field>
+                                <field name="fromDate"><default-field><date-time/></default-field></field>
+                                <field name="thruDate"><default-field><date-time/></default-field></field>
+                                <field name="factorOption"><default-field><hidden/></default-field></field>
+                                <field name="numberOfCodes"><default-field title="Number of Codes"><text-line size="30" input-type="Integer" default-value="1"/></default-field></field>
+                                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                            </form-single>
+                        </container-dialog>
+                        <container-dialog id="AddEmailDialog" button-text="Update Email Factor">
+                            <form-single name="CreateUserAuthcFactorEmail" transition="createUserAuthcFactorEmail">
+                                <field name="factorId"><default-field><hidden/></default-field></field>
+                                <field name="userId"><default-field><hidden/></default-field></field>
+                                <field name="fromFactorId"><default-field><hidden/></default-field></field>
+                                <field name="factorTypeEnumId"><default-field><hidden/></default-field></field>
+                                <field name="fromDate"><default-field><date-time/></default-field></field>
+                                <field name="thruDate"><default-field><date-time/></default-field></field>
+                                <field name="factorOption"><default-field title="Email" ><text-line default-value="${userAccount.emailAddress}" size="30" /></default-field></field>
                                 <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                             </form-single>
                         </container-dialog>
@@ -266,20 +308,16 @@ along with this software (see the LICENSE.md file). If not, see
 
                         <form-list name="UserAuthcFactorList" list="authList" skip-form="true">
                             <field name="factorId">
-                                <header-field title="Id" show-order-by="true"/>
-                                <default-field><display/></default-field></field>
+                                <header-field title="Id" show-order-by="true"/><default-field><display/></default-field></field>
                             <field name="userId"><default-field><hidden/></default-field></field>
-                            <field name="fromFactorId">
-                                <header-field title="From Id"/>
-                                <default-field><display/></default-field></field>
-                            <field name="factorTypeEnumId">
-                                <header-field title="Factor Type"/>
+                            <field name="fromFactorId"><header-field title="From Id"/><default-field><display/></default-field></field>
+                            <field name="factorTypeEnumId"><header-field title="Factor Type"/>
                                 <default-field><display-entity entity-name="moqui.basic.Enumeration" text="${description}"/></default-field></field>
                             <field name="fromDate"><default-field><display/></default-field></field>
                             <field name="thruDate"><default-field><display/></default-field></field>
                             <field name="factorOption">
                                 <header-field title="Option"/>
-                                <default-field><display text="${factorTypeEnumId != 'UafTotp' ? factorOption : 'Not Available'}"/></default-field>
+                                <default-field><display text="${factorTypeEnumId == 'UafEmail' ? factorOption : 'Not Accessable'}"/></default-field>
                             </field>
                         </form-list>
                     </box-body-nopad>
