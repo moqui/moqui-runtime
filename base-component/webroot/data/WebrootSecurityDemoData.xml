@@ -27,11 +27,11 @@ along with this software (see the LICENSE.md file). If not, see
             fromDate="1265184000000" thruDate=""/>
     <moqui.security.UserLoginHistory userId="EX_JOHN_DOE" fromDate="1265184000000" successfulLogin="Y"/>
 
-    <moqui.security.UserAuthcFactor factorId="100000" userId="EX_JOHN_DOE" factorTypeEnumId="UafTotp" fromDate="1265184000000" factorOption="JBSWY3DPEHPK3PXP"/>
-    <moqui.security.UserAuthcFactor factorId="100001" userId="EX_JOHN_DOE" factorTypeEnumId="UafEmail" fromDate="1265184000000" factorOption="john.doe@moqui.org"/>
-    <moqui.security.UserAuthcFactor factorId="100002" userId="EX_JOHN_DOE" fromFactorId="100001" factorTypeEnumId="UafSingleUse" fromDate="1265184000000" factorOption="123456"/>
-    <moqui.security.UserAuthcFactor factorId="100003" userId="EX_JOHN_DOE" factorTypeEnumId="UafSingleUse" fromDate="1265184000000" factorOption="1111-1111"/>
-    <moqui.security.UserAuthcFactor factorId="100003" userId="EX_JOHN_DOE" factorTypeEnumId="UafSingleUse" fromDate="1265184000000" factorOption="2222-2222"/>
+<!--    <moqui.security.UserAuthcFactor factorId="100000" userId="EX_JOHN_DOE" factorTypeEnumId="UafTotp" fromDate="1265184000000" factorOption="JBSWY3DPEHPK3PXP"/>-->
+<!--    <moqui.security.UserAuthcFactor factorId="100001" userId="EX_JOHN_DOE" factorTypeEnumId="UafEmail" fromDate="1265184000000" factorOption="john.doe@moqui.org"/>-->
+<!--    <moqui.security.UserAuthcFactor factorId="100002" userId="EX_JOHN_DOE" fromFactorId="100001" factorTypeEnumId="UafSingleUse" fromDate="1265184000000" factorOption="123456"/>-->
+<!--    <moqui.security.UserAuthcFactor factorId="100003" userId="EX_JOHN_DOE" factorTypeEnumId="UafSingleUse" fromDate="1265184000000" factorOption="1111-1111"/>-->
+<!--    <moqui.security.UserAuthcFactor factorId="100003" userId="EX_JOHN_DOE" factorTypeEnumId="UafSingleUse" fromDate="1265184000000" factorOption="2222-2222"/>-->
 
     <!-- ========== Artifact Tarpit Example ========== -->
     <moqui.security.ArtifactGroup artifactGroupId="ALL_SCREENS" description="All Screens"/>
