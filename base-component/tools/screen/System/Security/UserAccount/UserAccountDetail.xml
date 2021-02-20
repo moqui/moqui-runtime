@@ -17,8 +17,6 @@ along with this software (see the LICENSE.md file). If not, see
         default-menu-index="1">
 
     <parameter name="userId" required="true" from="userId ?: userId_0"/>
-<!-- for dev -->
-
 
     <transition name="updateUserAccount"><service-call name="org.moqui.impl.UserServices.update#UserAccount"/>
         <default-response url="."/></transition>
@@ -51,19 +49,14 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/></transition>
     <transition name="listSubmit">
         <actions>
-            <if condition="delete">
-                <service-call name="org.moqui.impl.UserServices.delete#UserAuthcFactor" in-map="true"/>
-            </if>
-            <if condition="qrcode">
-                <!-- Add QR Code Generator Service Here -->
-                <message type="warning">This Button does nothing at the moment</message>
-            </if>
+            <if condition="delete"><service-call name="org.moqui.impl.UserServices.delete#UserAuthcFactor" in-map="true"/></if>
+<!--            <if condition="qrcode">-->
+<!--                &lt;!&ndash; Add QR Code Generator Service Here &ndash;&gt;-->
+
+<!--            </if>-->
         </actions>
-        <conditional-response url=".">
-            <condition><expression>delete</expression></condition>
-        </conditional-response>
+<!--        <conditional-response url="../UserQrFactorAuthc"><condition><expression>qrcode</expression></condition></conditional-response>-->
         <default-response url="."/>
-<!--        <default-response url="../EntityDataEdit" parameter-map="ec.entity.getEntityDefinition(selectedEntity).getPrimaryKeys(context)"/>-->
     </transition>
 
     <transition name="createUserPreference"><service-call name="create#moqui.security.UserPreference"/>
@@ -114,13 +107,6 @@ along with this software (see the LICENSE.md file). If not, see
             <econdition field-name="userId"/></entity-find-count>
     </actions>
     <widgets>
-        <section name="SingleUseCodesDisplay" condition="singleUseCodes">
-            <widgets>
-                <label text="${singleUseCodes}"></label>
-                <container type="div" style="text-danger">
-                </container>
-            </widgets>
-        </section>
         <container-row>
             <row-col lg="5">
                 <link url="visitList" text="Visits" parameter-map="[userId:userId]"/>
@@ -284,6 +270,59 @@ along with this software (see the LICENSE.md file). If not, see
                     </form-list>
                 </box-body-nopad></container-box>
 
+                <section name="SingleUseCodesDisplay" condition="singleUseCodes">
+                    <actions>
+                        <set field="singleUseCodes1" from="[]"/>
+                        <set field="singleUseCodes2" from="[]"/>
+                        <set field="singleUseCodes3" from="[]"/>
+                        <script>
+                            int i;
+                            for(code in singleUseCodes){
+                                if( i%3 == 0 ) { singleUseCodes1.add(singleUseCodes[i]);}
+                                else if(i%3==1){ singleUseCodes2.add(singleUseCodes[i]);}
+                                else if(i%3==2){ singleUseCodes3.add(singleUseCodes[i]);}
+                                i++; }
+                        </script>
+                    </actions>
+                    <widgets>
+                        <container-box>
+                            <box-header title="Single Use Codes"></box-header>
+                            <box-body>
+                                <label text="Write down these codes. They will only appear once."/>
+                                <container-row>
+                                    <row-col sm="4">
+                                        <container type="ul">
+                                            <section-iterate name="SingleUseCodes1" list="singleUseCodes1" entry="code1">
+                                                <widgets>
+                                                    <container type="li"><text>${code1}</text></container>
+                                                </widgets>
+                                            </section-iterate>
+                                        </container>
+                                    </row-col>
+                                    <row-col lg="4">
+                                        <container type="ul">
+                                            <section-iterate name="SingleUseCodes2" list="singleUseCodes2" entry="code2">
+                                                <widgets>
+                                                    <container type="li"><text>${code2}</text></container>
+                                                </widgets>
+                                            </section-iterate>
+                                        </container>
+                                    </row-col>
+                                    <row-col lg="4">
+                                        <container type="ul">
+                                            <section-iterate name="SingleUseCodes3" list="singleUseCodes3" entry="code3">
+                                                <widgets>
+                                                    <container type="li"><text>${code3}</text></container>
+                                                </widgets>
+                                            </section-iterate>
+                                        </container>
+                                    </row-col>
+                                </container-row>
+                            </box-body>
+                        </container-box>
+                    </widgets>
+                </section>
+
                 <container-box><box-header title="Authentication Methods"/>
                     <box-toolbar>
                         <container-dialog id="AddTotpDialog" button-text="Add Authenticator App">
@@ -307,7 +346,7 @@ along with this software (see the LICENSE.md file). If not, see
                                 <field name="fromDate"><default-field><date-time/></default-field></field>
                                 <field name="thruDate"><default-field><date-time/></default-field></field>
                                 <field name="factorOption"><default-field><hidden/></default-field></field>
-                                <field name="numberOfCodes"><default-field title="Number of Codes"><text-line size="30" input-type="Integer" default-value="10"/></default-field></field>
+                                <field name="numberOfCodes"><default-field title="Number of Codes"><text-line size="30" input-type="Integer" default-value="6"/></default-field></field>
                                 <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                             </form-single>
                         </container-dialog>
@@ -338,7 +377,11 @@ along with this software (see the LICENSE.md file). If not, see
                                 <header-field title="Email"/>
                                 <default-field><display text="${factorTypeEnumId == 'UafEmail' ? factorOption : 'Not Accessable'}"/></default-field>
                             </field>
-                            <field name="qrcode"><conditional-field condition="factorTypeEnumId == 'UafTotp'" title="QR"><submit/></conditional-field></field>
+<!--                            <field name="qrcode"><conditional-field condition="factorTypeEnumId == 'UafTotp'" title="QR"><submit/></conditional-field></field>-->
+                            <field name="qrcode"><conditional-field condition="factorTypeEnumId == 'UafTotp'">
+                                <dynamic-dialog id="UserQrFactorAuthcDialog" button-text="QR" transition="UserQrFactorAuthc">
+                                    <parameter name="factorId"/></dynamic-dialog></conditional-field></field>
+
                             <field name="delete"><default-field title="Delete"><submit/></default-field></field>
                         </form-list>
                     </box-body-nopad>
