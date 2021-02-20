@@ -17,6 +17,8 @@ along with this software (see the LICENSE.md file). If not, see
         default-menu-index="1">
 
     <parameter name="userId" required="true" from="userId ?: userId_0"/>
+<!-- for dev -->
+
 
     <transition name="updateUserAccount"><service-call name="org.moqui.impl.UserServices.update#UserAccount"/>
         <default-response url="."/></transition>
@@ -37,6 +39,7 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/></transition>
     <transition name="updateUserGroupMember"><service-call name="update#moqui.security.UserGroupMember"/>
         <default-response url="."/></transition>
+
     <transition name="createUserAuthcFactorTotp"><service-call name="mantle.party.PartyServices.create#UserAuthcFactorTotp"/>
         <default-response url="."/></transition>
     <transition name="createUserAuthcFactorSingleUse">
@@ -46,6 +49,22 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
     <transition name="createUserAuthcFactorEmail"><service-call name="mantle.party.PartyServices.create#UserAuthcFactorEmail"/>
         <default-response url="."/></transition>
+    <transition name="listSubmit">
+        <actions>
+            <if condition="delete">
+                <service-call name="mantle.party.PartyServices.delete#UserAuthcFactor" in-map="true"/>
+            </if>
+            <if condition="qrcode">
+                <!-- Add QR Code Generator Service Here -->
+                <message type="warning">This Button does nothing at the moment</message>
+            </if>
+        </actions>
+        <conditional-response url=".">
+            <condition><expression>delete</expression></condition>
+        </conditional-response>
+        <default-response url="."/>
+<!--        <default-response url="../EntityDataEdit" parameter-map="ec.entity.getEntityDefinition(selectedEntity).getPrimaryKeys(context)"/>-->
+    </transition>
 
     <transition name="createUserPreference"><service-call name="create#moqui.security.UserPreference"/>
         <default-response url="."/></transition>
@@ -279,7 +298,7 @@ along with this software (see the LICENSE.md file). If not, see
                                 <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                             </form-single>
                         </container-dialog>
-                        <container-dialog id="AddSingleUseDialog" button-text="Update Single Use Codes">
+                        <container-dialog id="AddSingleUseDialog" button-text="Add Single Use Codes">
                             <form-single name="CreateUserAuthcFactorSingleUse" transition="createUserAuthcFactorSingleUse">
                                 <field name="factorId"><default-field><hidden/></default-field></field>
                                 <field name="userId"><default-field><hidden/></default-field></field>
@@ -288,11 +307,11 @@ along with this software (see the LICENSE.md file). If not, see
                                 <field name="fromDate"><default-field><date-time/></default-field></field>
                                 <field name="thruDate"><default-field><date-time/></default-field></field>
                                 <field name="factorOption"><default-field><hidden/></default-field></field>
-                                <field name="numberOfCodes"><default-field title="Number of Codes"><text-line size="30" input-type="Integer" default-value="1"/></default-field></field>
+                                <field name="numberOfCodes"><default-field title="Number of Codes"><text-line size="30" input-type="Integer" default-value="10"/></default-field></field>
                                 <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                             </form-single>
                         </container-dialog>
-                        <container-dialog id="AddEmailDialog" button-text="Update Email Factor">
+                        <container-dialog id="AddEmailDialog" button-text="Add Email Factor">
                             <form-single name="CreateUserAuthcFactorEmail" transition="createUserAuthcFactorEmail">
                                 <field name="factorId"><default-field><hidden/></default-field></field>
                                 <field name="userId"><default-field><hidden/></default-field></field>
@@ -306,7 +325,7 @@ along with this software (see the LICENSE.md file). If not, see
                         </container-dialog>
                     </box-toolbar><box-body-nopad>
 
-                        <form-list name="UserAuthcFactorList" list="authList" skip-form="true">
+                        <form-list name="UserAuthcFactorList" list="authList" transition="listSubmit">
                             <field name="factorId">
                                 <header-field title="Id" show-order-by="true"/><default-field><display/></default-field></field>
                             <field name="userId"><default-field><hidden/></default-field></field>
@@ -316,9 +335,11 @@ along with this software (see the LICENSE.md file). If not, see
                             <field name="fromDate"><default-field><display/></default-field></field>
                             <field name="thruDate"><default-field><display/></default-field></field>
                             <field name="factorOption">
-                                <header-field title="Option"/>
+                                <header-field title="Email"/>
                                 <default-field><display text="${factorTypeEnumId == 'UafEmail' ? factorOption : 'Not Accessable'}"/></default-field>
                             </field>
+                            <field name="qrcode"><conditional-field condition="factorTypeEnumId == 'UafTotp'" title="QR"><submit/></conditional-field></field>
+                            <field name="delete"><default-field title="Delete"><submit/></default-field></field>
                         </form-list>
                     </box-body-nopad>
                 </container-box>
