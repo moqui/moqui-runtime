@@ -40,19 +40,19 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="updateUserGroupMember"><service-call name="update#moqui.security.UserGroupMember"/>
         <default-response url="."/></transition>
 
-    <transition name="createUserAuthcFactorTotp"><service-call name="mantle.party.PartyServices.create#UserAuthcFactorTotp"/>
+    <transition name="createUserAuthcFactorTotp"><service-call name="org.moqui.impl.UserServices.create#UserAuthcFactorTotp"/>
         <default-response url="."/></transition>
     <transition name="createUserAuthcFactorSingleUse">
-        <service-call name="mantle.party.PartyServices.create#UserAuthcFactorSingleUse"/>
+        <service-call name="org.moqui.impl.UserServices.create#UserAuthcFactorSingleUse"/>
         <actions><script>ec.web.sessionAttributes.put("singleUseCodes", singleUseCodes)</script></actions>
         <default-response url="."/>
     </transition>
-    <transition name="createUserAuthcFactorEmail"><service-call name="mantle.party.PartyServices.create#UserAuthcFactorEmail"/>
+    <transition name="createUserAuthcFactorEmail"><service-call name="org.moqui.impl.UserServices.create#UserAuthcFactorEmail"/>
         <default-response url="."/></transition>
     <transition name="listSubmit">
         <actions>
             <if condition="delete">
-                <service-call name="mantle.party.PartyServices.delete#UserAuthcFactor" in-map="true"/>
+                <service-call name="org.moqui.impl.UserServices.delete#UserAuthcFactor" in-map="true"/>
             </if>
             <if condition="qrcode">
                 <!-- Add QR Code Generator Service Here -->
