@@ -32,7 +32,7 @@ along with this software (see the LICENSE.md file). If not, see
             Iterator theIterator = filteredServiceNames.iterator()
             while (theIterator.hasNext()) {
                 String curSn = (String) theIterator.next()
-                if (!curSn.contains(serviceName)) theIterator.remove()
+                if (!curSn.toUpperCase().contains(serviceName.toUpperCase())) theIterator.remove()
             }
         }
         paginateList("filteredServiceNames", null, context)
