@@ -144,7 +144,7 @@ td, .td { min-height:21px; }
 .q-table .tbody .td:before { background: rgba(0,0,0,0.03); }
 .q-table .tbody .td:after { background: rgba(0,0,0,0.06); }
 .q-table .tbody .tr.selected .td:after { content: ''; }
-body.desktop .q-table > .tbody > .tr:not(.q-tr--no-hover):hover > .td:not(.q-td--no-hover):before { content: ''; }
+body.desktop .q-table .tr:not(.q-tr--no-hover):hover .td:not(.q-td--no-hover):before { content: ''; }
 .q-table--dark .q-table__bottom, .q-table--dark .thead, .q-table--dark .tr, .q-table--dark .th, .q-table--dark .td { border-color: rgba(255,255,255,0.28); }
 .q-table--dark .tbody .td:before { background: rgba(255,255,255,0.07); }
 .q-table--dark .tbody .td:after { background: rgba(255,255,255,0.1); }
