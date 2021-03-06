@@ -24,13 +24,12 @@ along with this software (see the LICENSE.md file). If not, see
     <parameter name="qrUri"/>
     <parameter name="dataUri"/>
 
-    <actions>
-        <service-call name="mantle.party.PartyServices.setup#UserAuthcFactorTotp"/>
-    </actions>
+    <transition name="verifyUserAuthcFactorTotp"><service-call name="mantle.party.PartyServices.verify#UserAuthcFactorTotp"/>
+        <default-response url="../UserAccountDetail"/></transition>
 
     <widgets>
         <container-box>
-            <box-header title="Qr Code Authentication Setup"/>
+            <box-header title="Authenticator App Setup"/>
             <box-body>
                 <label text="Follow the Steps below to complete setup"/>
                 <container type="ol">
@@ -46,10 +45,13 @@ along with this software (see the LICENSE.md file). If not, see
                             <container type="li"><text>Secret: ${qrSecret}</text></container>
                         </container>
                     </container>
+                    <container type="li">Authenticate by Putting the code into the text box below</container>
+                    <form-single name="VerifyUserAuthcFactorTotp" transition="verifyUserAuthcFactorTotp">
+                        <field name="userId"><default-field><hidden default-value="${userId}"/></default-field></field>
+                        <field name="totpCode"><default-field title="Verification Code"><text-line size="30" maxlength="16"/></default-field></field>
+                        <field name="submit"><default-field><submit/></default-field></field>
+                    </form-single>
                 </container>
-
-
-
             </box-body>
         </container-box>
     </widgets>
