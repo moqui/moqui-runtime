@@ -171,18 +171,6 @@ along with this software (see the LICENSE.md file). If not, see
                     </form-list>
                 </container-dialog>
 <!--                          -->
-                <container-dialog id="AddTotpDialogTest" button-text="Add Authenticator App">
-                    <form-single name="CreateUserAuthcFactorTotp" transition="createUserAuthcFactorTotp">
-                        <field name="factorId"><default-field><hidden/></default-field></field>
-                        <field name="userId"><default-field><hidden/></default-field></field>
-                        <field name="fromFactorId"><default-field><hidden/></default-field></field>
-                        <field name="factorTypeEnumId"><default-field><hidden/></default-field></field>
-                        <field name="fromDate"><default-field><date-time/></default-field></field>
-                        <field name="thruDate"><default-field><date-time/></default-field></field>
-                        <field name="factorOption"><default-field><hidden/></default-field></field>
-                        <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
-                    </form-single>
-                </container-dialog>
 
                 <form-single name="UserAccountForm" map="userAccount" transition="updateUserAccount">
                     <field name="userId"><default-field><display/></default-field></field>
