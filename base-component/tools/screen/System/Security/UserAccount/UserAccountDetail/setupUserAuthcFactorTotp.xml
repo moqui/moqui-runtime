@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
+        default-menu-include="false" standalone="true">
+
+    <!--variations 1. create new 2. verify unverified 3. view verified -->
+
+    <parameter name="factorId"/>
+    <parameter name="userId" required="true"/>
+
+    <transition name="verifyUserAuthcFactorTotp"><service-call name="mantle.party.PartyServices.verify#UserAuthcFactorTotp"/>
+        <default-response url="."/></transition>
+
+    <actions>
+        <service-call name="mantle.party.PartyServices.setup#UserAuthcFactorTotp" in-map="context" out-map="context"/>
+        <message type="success">Successfully created new Authenticator App Entry</message>
+
+    </actions>
+    <widgets>
+        <container-box>
+            <box-header title="Follow the Steps below to Complete"/>
+            <box-body>
+                <label text="Note: This can be done later."/>
+                <container type="ol">
+
+                    <container type="li"><label text="Open Authenticator App on device such as Google Authenticator, Authy, or Lastpass Authenticator"/></container>
+                    <container type="li"><label text="Choose Either of the Options Below"/></container>
+                    <container type="ul">
+                        <container type="li"><label text="Scan this QR Code"/></container>
+                        <text>&lt;img src="${dataUri}"/&gt;</text>
+                        <container type="li"><label text="Enter the Data Below Manually"/></container>
+                        <container type="ul">
+                            <container type="li"><label text="Label: ${qrLabel}"/></container>
+                            <container type="li"><label text="Issuer: ${qrIssuer}"/></container>
+                            <container type="li"><label text="Secret: ${qrSecret}"/></container>
+                        </container>
+                    </container>
+                    <container type="li"><label text="Authenticate by Putting the code into the text box below"/></container>
+                    <form-single name="VerifyUserAuthcFactorTotp" transition="verifyUserAuthcFactorTotp">
+                        <field name="userId"><default-field><hidden default-value="${userId}"/></default-field></field>
+                        <field name="totpCode"><default-field title="Verification Code"><text-line size="30" maxlength="16"/></default-field></field>
+                        <field name="submit"><default-field><submit/></default-field></field>
+                    </form-single>
+                </container>
+            </box-body>
+        </container-box>
+    </widgets>
+
+</screen>
