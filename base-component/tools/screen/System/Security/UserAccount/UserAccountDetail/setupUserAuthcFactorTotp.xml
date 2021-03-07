@@ -16,36 +16,39 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-include="false" standalone="true">
 
+    <!--variations 1. create new 2. verify unverified 3. view verified -->
+
     <parameter name="factorId"/>
-    <parameter name="userId"/>
-    <parameter name="qrLabel"/>
-    <parameter name="qrIssuer"/>
-    <parameter name="qrSecret"/>
-    <parameter name="qrUri"/>
-    <parameter name="dataUri"/>
+    <parameter name="userId" required="true"/>
 
     <transition name="verifyUserAuthcFactorTotp"><service-call name="mantle.party.PartyServices.verify#UserAuthcFactorTotp"/>
-        <default-response url="../UserAccountDetail"/></transition>
+        <default-response url="."/></transition>
 
+    <actions>
+        <service-call name="mantle.party.PartyServices.setup#UserAuthcFactorTotp" in-map="context" out-map="context"/>
+        <message type="success">Successfully created new Authenticator App Entry</message>
+
+    </actions>
     <widgets>
         <container-box>
-            <box-header title="Authenticator App Setup"/>
+            <box-header title="Follow the Steps below to Complete"/>
             <box-body>
-                <label text="Follow the Steps below to complete setup"/>
+                <label text="Note: This can be done later."/>
                 <container type="ol">
-                    <container type="li">Open Authenticator App on device such as Google Authenticator, Authy, or Lastpass Authenticator</container>
-                    <container type="li">Choose Either of the Options Below</container>
+
+                    <container type="li"><label text="Open Authenticator App on device such as Google Authenticator, Authy, or Lastpass Authenticator"/></container>
+                    <container type="li"><label text="Choose Either of the Options Below"/></container>
                     <container type="ul">
-                        <container type="li">Scan this QR Code</container>
+                        <container type="li"><label text="Scan this QR Code"/></container>
                         <text>&lt;img src="${dataUri}"/&gt;</text>
-                        <container type="li">Enter the Data Below Manually</container>
+                        <container type="li"><label text="Enter the Data Below Manually"/></container>
                         <container type="ul">
-                            <container type="li"><text>Label: ${qrLabel}</text></container>
-                            <container type="li"><text>Issuer: ${qrIssuer}</text></container>
-                            <container type="li"><text>Secret: ${qrSecret}</text></container>
+                            <container type="li"><label text="Label: ${qrLabel}"/></container>
+                            <container type="li"><label text="Issuer: ${qrIssuer}"/></container>
+                            <container type="li"><label text="Secret: ${qrSecret}"/></container>
                         </container>
                     </container>
-                    <container type="li">Authenticate by Putting the code into the text box below</container>
+                    <container type="li"><label text="Authenticate by Putting the code into the text box below"/></container>
                     <form-single name="VerifyUserAuthcFactorTotp" transition="verifyUserAuthcFactorTotp">
                         <field name="userId"><default-field><hidden default-value="${userId}"/></default-field></field>
                         <field name="totpCode"><default-field title="Verification Code"><text-line size="30" maxlength="16"/></default-field></field>
@@ -55,4 +58,5 @@ along with this software (see the LICENSE.md file). If not, see
             </box-body>
         </container-box>
     </widgets>
+
 </screen>

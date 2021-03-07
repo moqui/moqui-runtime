@@ -40,8 +40,8 @@ along with this software (see the LICENSE.md file). If not, see
 
     <transition name="createUserAuthcFactorTotp"><service-call name="mantle.party.PartyServices.create#UserAuthcFactorTotp"/>
         <default-response url="."/></transition>
-    <transition name="setupUserAuthcFactorTotp"><service-call name="mantle.party.PartyServices.setup#UserAuthcFactorTotp"/>
-        <default-response url="../UserAccountSetupTotp"/></transition>
+    <transition name="verifyUserAuthcFactorTotp"><service-call name="mantle.party.PartyServices.verify#UserAuthcFactorTotp"/>
+        <default-response url="."/></transition>
     <transition name="createUserAuthcFactorSingleUse">
         <service-call name="mantle.party.PartyServices.create#UserAuthcFactorSingleUse"/>
         <actions><script>ec.web.sessionAttributes.put("singleUseCodes", singleUseCodes)</script></actions>
@@ -77,8 +77,18 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/></transition>
 
     <actions>
+<!--        <script>ec.logger.info("actions")</script>-->
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount"/>
         <set field="singleUseCodes" from="ec.web.sessionAttributes.remove('singleUseCodes')"/>
+<!--        <set field="factorId" from="ec.web.sessionAttributes.remove('factorId')"/>-->
+<!--        <set field="qrLabel" from="ec.web.sessionAttributes.remove('qrLabel')"/>-->
+<!--        <set field="qrIssuer" from="ec.web.sessionAttributes.remove('qrIssuer')"/>-->
+<!--        <set field="qrSecret" from="ec.web.sessionAttributes.remove('qrSecret')"/>-->
+<!--        <set field="qrUri" from="ec.web.sessionAttributes.remove('qrUri')"/>-->
+<!--        <script>ec.logger.info(factorId)</script>-->
+
+        <!-- is this secure? -->
+<!--        <service-call name="mantle.party.PartyServices.setup#UserAuthcFactorTotp" in-map="[userId:userId]" out-map="[factorId:factorId, qrLabel:qrLabel, qrIssuer:qrIssuer, qrUri:qrUri, dataUri:dataUri]"/>-->
 
         <set field="localeStringList" from="[]"/>
         <iterate list="Locale.getAvailableLocales()" entry="lcl"><script>localeStringList.add([locale:lcl.toString(), name:lcl.getDisplayName(ec.user.locale)])</script></iterate>
@@ -287,7 +297,7 @@ along with this software (see the LICENSE.md file). If not, see
                         </script>
                     </actions>
                     <widgets>
-                        <container-box>
+                        <container-box type="warning">
                             <box-header title="Single Use Codes"></box-header>
                             <box-body>
                                 <label text="Write down these codes. They will only appear once."/>
@@ -295,50 +305,26 @@ along with this software (see the LICENSE.md file). If not, see
                                     <row-col lg="4">
                                         <container type="ul">
                                             <section-iterate name="SingleUseCodes1" list="singleUseCodes1" entry="code1">
-                                                <widgets>
-                                                    <container type="li"><text>${code1}</text></container>
-                                                </widgets>
-                                            </section-iterate>
-                                        </container>
-                                    </row-col>
+                                                <widgets><container type="li"><text>${code1}</text></container></widgets></section-iterate>
+                                        </container></row-col>
                                     <row-col lg="4">
                                         <container type="ul">
                                             <section-iterate name="SingleUseCodes2" list="singleUseCodes2" entry="code2">
-                                                <widgets>
-                                                    <container type="li"><text>${code2}</text></container>
-                                                </widgets>
-                                            </section-iterate>
-                                        </container>
-                                    </row-col>
+                                                <widgets><container type="li"><text>${code2}</text></container></widgets>
+                                            </section-iterate></container></row-col>
                                     <row-col lg="4">
                                         <container type="ul">
                                             <section-iterate name="SingleUseCodes3" list="singleUseCodes3" entry="code3">
-                                                <widgets>
-                                                    <container type="li"><text>${code3}</text></container>
-                                                </widgets>
-                                            </section-iterate>
-                                        </container>
-                                    </row-col>
-                                </container-row>
-                            </box-body>
+                                                <widgets><container type="li"><text>${code3}</text></container></widgets>
+                                            </section-iterate></container></row-col>
+                                </container-row></box-body>
                         </container-box>
                     </widgets>
                 </section>
 
                 <container-box><box-header title="Authentication Methods"/>
                     <box-toolbar>
-                        <container-dialog id="AddTotpDialog" button-text="Add Authenticator App">
-                            <form-single name="CreateUserAuthcFactorTotp" transition="createUserAuthcFactorTotp">
-                                <field name="factorId"><default-field><hidden/></default-field></field>
-                                <field name="userId"><default-field><hidden/></default-field></field>
-                                <field name="fromFactorId"><default-field><hidden/></default-field></field>
-                                <field name="factorTypeEnumId"><default-field><hidden/></default-field></field>
-                                <field name="fromDate"><default-field><date-time/></default-field></field>
-                                <field name="thruDate"><default-field><date-time/></default-field></field>
-                                <field name="factorOption"><default-field><hidden/></default-field></field>
-                                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
-                            </form-single>
-                        </container-dialog>
+                        <dynamic-dialog id="VerifyTotpDialog2" button-text="Add Authenticator App" transition="setupUserAuthcFactorTotp"/>
                         <container-dialog id="AddSingleUseDialog" button-text="Add Single Use Codes">
                             <form-single name="CreateUserAuthcFactorSingleUse" transition="createUserAuthcFactorSingleUse">
                                 <field name="factorId"><default-field><hidden/></default-field></field>
@@ -352,20 +338,9 @@ along with this software (see the LICENSE.md file). If not, see
                                 <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                             </form-single>
                         </container-dialog>
-                        <container-dialog id="AddEmailDialog" button-text="Add Email Factor">
-                            <form-single name="CreateUserAuthcFactorEmail" transition="createUserAuthcFactorEmail">
-                                <field name="factorId"><default-field><hidden/></default-field></field>
-                                <field name="userId"><default-field><hidden/></default-field></field>
-                                <field name="fromFactorId"><default-field><hidden/></default-field></field>
-                                <field name="factorTypeEnumId"><default-field><hidden/></default-field></field>
-                                <field name="fromDate"><default-field><date-time/></default-field></field>
-                                <field name="thruDate"><default-field><date-time/></default-field></field>
-                                <field name="factorOption"><default-field title="Email" ><text-line default-value="${userAccount.emailAddress}" size="30" /></default-field></field>
-                                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
-                            </form-single>
-                        </container-dialog>
-                    </box-toolbar><box-body-nopad>
+                        <dynamic-dialog id="SetupUserAuthcFactorEmail" button-text="Add Email Factor" transition="setupUserAuthcFactorEmail" parameter-map="[userId:userId, singleUseCode:singleUseCode]"/>
 
+                    </box-toolbar><box-body-nopad>
                         <form-list name="UserAuthcFactorList" list="authList" transition="listSubmit">
                             <field name="factorId">
                                 <header-field title="Id" show-order-by="true"/><default-field><display/></default-field></field>
@@ -379,23 +354,15 @@ along with this software (see the LICENSE.md file). If not, see
                                 <header-field title="Email"/>
                                 <default-field><display text="${factorTypeEnumId == 'UafEmail' ? factorOption : 'Not Accessable'}"/></default-field>
                             </field>
-<!--                            <field name="qrcode"><conditional-field condition="factorTypeEnumId == 'UafTotp'" title="QR"><submit/></conditional-field></field>-->
                             <field name="qrCode">
                                 <conditional-field title="QR" condition="factorTypeEnumId == 'UafTotp'">
-                                    <form-single name="SetupUserAuthcFactorTotp" transition="setupUserAuthcFactorTotp">
-                                        <field name="factorId"><default-field><hidden/></default-field></field>
-                                        <field name="userId"><default-field><hidden/></default-field></field>
-                                        <field name="verify"><default-field><submit/></default-field></field>
-                                    </form-single>
+                                    <dynamic-dialog id="VerifyTotpDialog" button-text="Verify" transition="setupUserAuthcFactorTotp" />
                                 </conditional-field>
                                 </field>
-
-
                             <field name="delete"><default-field title=" "><submit text=" " icon="fa fa-trash"/></default-field></field>
                         </form-list>
                     </box-body-nopad>
                 </container-box>
-
 
                 <!-- TODO: consider adding full history to another screen (tab); now limited to most recent 20 -->
                 <label text="Login History" type="h5"/>
