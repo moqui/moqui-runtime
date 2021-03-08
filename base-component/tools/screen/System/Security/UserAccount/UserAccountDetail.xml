@@ -335,7 +335,14 @@ along with this software (see the LICENSE.md file). If not, see
                                 <field name="numberOfCodes"><default-field title="Number of Codes"><text-line size="30" input-type="Integer" default-value="6"/></default-field></field>
                                 <field name="submitButton"><default-field title="Add" ><submit/></default-field></field>
                             </form-single></container-dialog>
-                        <dynamic-dialog id="SetupUserAuthcFactorEmail" button-text="Add Email Factor" transition="setupUserAuthcFactorEmail" parameter-map="[userId:userId, singleUseCode:singleUseCode]"/>
+                        <container-dialog id="AddEmailFactor" button-text="Add Email Factor">
+                            <form-single name="CreateUserAuthcFactorEmail" transition="createUserAuthcFactorEmail">
+                                <field name="userId" from="userId"><default-field><hidden/></default-field></field>
+                                <field name="thruDate" from="ec.user.nowTimestamp + 365"><default-field><date-time/></default-field></field>
+                                <field name="factorOption"><default-field title="Email"><text-line size="30"/></default-field></field>
+                                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                            </form-single>
+                        </container-dialog>
 
                     </box-toolbar><box-body-nopad>
                         <form-list name="UserAuthcFactorList" list="authList" transition="listSubmit">
@@ -346,12 +353,16 @@ along with this software (see the LICENSE.md file). If not, see
                             <field name="factorTypeEnumId"><header-field title="Factor Type"/><default-field><display-entity entity-name="moqui.basic.Enumeration" text="${description}"/></default-field></field>
                             <field name="fromDate"><default-field><display/></default-field></field>
                             <field name="thruDate"><default-field><display/></default-field></field>
-                            <field name="factorOption"><header-field title="Email"/><conditional-field condition="factorTypeEnumId == 'UafEmail'"><label text="${factorOption}"/></conditional-field></field>
+<!--                            <field name="factorOption"><header-field title="Email"/><conditional-field condition="factorTypeEnumId == 'UafEmail'"><label text="${factorOption}"/></conditional-field></field>-->
                             <field name="action">
-                                <conditional-field condition="needsValidation == 'Y' &amp;&amp; factorTypeEnumId != 'UafSingleUse'">
+                                <conditional-field condition="needsValidation == 'Y' &amp;&amp; factorTypeEnumId == 'UafTotp'">
                                     <dynamic-dialog id="VerifyTotpDialog" button-text="Verify" transition="VerifyTotp" parameter-map="[userId:userId, factorId:factorId, verify:true]"/></conditional-field>
                                 <conditional-field condition="needsValidation == 'N' &amp;&amp; factorTypeEnumId == 'UafTotp'">
                                     <dynamic-dialog id="ViewTotpDialog" button-text="View" transition="VerifyTotp" parameter-map="[userId:userId, factorId:factorId, verify:true]"/></conditional-field>
+                                <conditional-field condition="needsValidation == 'Y' &amp;&amp; factorTypeEnumId == 'UafEmail'">
+                                    <dynamic-dialog id="VerifyEmailDialog" button-text="Verify" transition="VerifyEmail" parameter-map="[userId:userId, factorId:factorId, userEmail:factorOption]"/></conditional-field>
+                                <conditional-field condition="needsValidation == 'N' &amp;&amp; factorTypeEnumId == 'UafEmail'">
+                                    <label text="${factorOption}"/></conditional-field>
                             </field>
                             <field name="needsValidation"><conditional-field condition="factorTypeEnumId != 'UafSingleUse'"><label text="${needsValidation}"/></conditional-field></field>
                             <field name="delete"><default-field title=" "><submit text=" " icon="fa fa-trash"/></default-field></field>
