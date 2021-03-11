@@ -19,6 +19,7 @@ along with this software (see the LICENSE.md file). If not, see
     <pre-actions><script><![CDATA[
         // if user not logged in save current path and params then redirect to Login
         if (!ec.user.userId) { ec.web.saveScreenLastInfo(null, null); sri.sendRedirectAndStopRender('/Login') }
+//        else if (ec.user.userId) { ec.web.saveScreenLastInfo(null, null); sri.sendRedirectAndStopRender('/Authentication') }
 
         html_scripts.add('/libs/moment.js/moment-with-locales.min.js')
         html_scripts.add('/libs/jquery/jquery.min.js')
