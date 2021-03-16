@@ -15,11 +15,11 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-include="false" require-authentication="false" history="false">
 
-<!--    <pre-actions><script>-->
-<!--        if (!ec.user.userId) { ec.web.saveScreenLastInfo(null, null); sri.sendRedirectAndStopRender('/Login') }-->
-<!--    </script></pre-actions>-->
+    <pre-actions><script>
+        if (!ec.web.sessionAttributes.needAuthcFactor) { sri.sendRedirectAndStopRender('/qapps') }
+    </script></pre-actions>
 
-    <transition name="authcUserAuthcFactor"><service-call name="mantle.party.PartyServices.verify#UserAuthcFactor"/>
+    <transition name="authcUserAuthcFactor"><service-call name="mantle.party.PartyServices.authc#UserFactor"/>
         <default-response url="."/></transition>
 
     <actions>
@@ -42,7 +42,6 @@ along with this software (see the LICENSE.md file). If not, see
                 </container>
                 <form-single name="AuthcUserAuthcFactor" transition="authcUserAuthcFactor">
                     <field name="userId" from="userId"><default-field><hidden/></default-field></field>
-                    <field name="factorTypeEnumId"><default-field><hidden/></default-field></field>
                     <field name="code"><default-field title=" "><text-line/></default-field></field>
                     <field name="submit"><default-field><submit/></default-field></field>
                 </form-single>
