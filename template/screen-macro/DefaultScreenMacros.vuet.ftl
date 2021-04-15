@@ -378,31 +378,32 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
 <#macro "form-single">
     <#if sri.doBoundaryComments()><!-- BEGIN form-single[@name=${.node["@name"]}] --></#if>
-    <#-- Use the formNode assembled based on other settings instead of the straight one from the file: -->
+    <#-- Use the formSingleNode assembled based on other settings instead of the straight one from the file: -->
     <#assign formInstance = sri.getFormInstance(.node["@name"])>
-    <#assign formNode = formInstance.getFormNode()>
-    <#t>${sri.pushSingleFormMapContext(formNode["@map"]!"fieldValues")}
-    <#assign skipStart = formNode["@skip-start"]! == "true">
-    <#assign skipEnd = formNode["@skip-end"]! == "true">
-    <#assign ownerForm = formNode["@owner-form"]!>
+    <#assign formSingleNode = formInstance.getFormNode()>
+    <#t>${sri.pushSingleFormMapContext(formSingleNode["@map"]!"fieldValues")}
+    <#assign skipStart = formSingleNode["@skip-start"]! == "true">
+    <#assign skipEnd = formSingleNode["@skip-end"]! == "true">
+    <#assign ownerForm = formSingleNode["@owner-form"]!>
     <#if ownerForm?has_content><#assign skipStart = true><#assign skipEnd = true></#if>
-    <#assign urlInstance = sri.makeUrlByType(formNode["@transition"], "transition", null, "true")>
-    <#assign formId>${ec.getResource().expandNoL10n(formNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
+    <#assign urlInstance = sri.makeUrlByType(formSingleNode["@transition"], "transition", null, "true")>
+    <#assign formSingleId>${ec.getResource().expandNoL10n(formSingleNode["@name"], "")}<#if sectionEntryIndex?has_content>_${sectionEntryIndex}</#if></#assign>
     <#if urlInstance.isScreenUrl()>
         <#if urlInstance.getTargetTransition()?has_content><#assign formSingleType = "m-form"><#else><#assign formSingleType = "form-link"></#if>
     <#else><#assign formSingleType = "form"></#if>
     <#if !skipStart>
-    <${formSingleType} name="${formId}" id="${formId}" action="${urlInstance.path}"<#if formNode["@focus-field"]?has_content> focus-field="${formNode["@focus-field"]}"</#if><#rt>
-            <#t><#if formNode["@body-parameters"]?has_content> :body-parameter-names="[<#list formNode["@body-parameters"]?split(",") as bodyParm>'${bodyParm}'<#sep>,</#list>]"</#if>
-            <#t><#if formNode["@background-message"]?has_content> submit-message="${formNode["@background-message"]?html}"</#if>
-            <#t><#if formNode["@background-reload-id"]?has_content> submit-reload-id="${formNode["@background-reload-id"]}"</#if>
-            <#t><#if formNode["@background-hide-id"]?has_content> submit-hide-id="${formNode["@background-hide-id"]}"</#if>
+    <${formSingleType} name="${formSingleId}" id="${formSingleId}" action="${urlInstance.path}"<#if formSingleNode["@focus-field"]?has_content> focus-field="${formSingleNode["@focus-field"]}"</#if><#rt>
+            <#t><#if formSingleNode["@body-parameters"]?has_content> :body-parameter-names="[<#list formSingleNode["@body-parameters"]?split(",") as bodyParm>'${bodyParm}'<#sep>,</#list>]"</#if>
+            <#t><#if formSingleNode["@background-message"]?has_content> submit-message="${formSingleNode["@background-message"]?html}"</#if>
+            <#t><#if formSingleNode["@background-reload-id"]?has_content> submit-reload-id="${formSingleNode["@background-reload-id"]}"</#if>
+            <#t><#if formSingleNode["@background-hide-id"]?has_content> submit-hide-id="${formSingleNode["@background-hide-id"]}"</#if>
+            <#t><#if formSingleNode["@exclude-empty-fields"]! == "true"> :exclude-empty-fields="true"</#if>
             <#t> autocapitalize="off" autocomplete="off">
-        <input type="hidden" name="moquiFormName" value="${formNode["@name"]}">
-        <#assign lastUpdatedString = sri.getNamedValuePlain("lastUpdatedStamp", formNode)>
+        <input type="hidden" name="moquiFormName" value="${formSingleNode["@name"]}">
+        <#assign lastUpdatedString = sri.getNamedValuePlain("lastUpdatedStamp", formSingleNode)>
         <#if lastUpdatedString?has_content><input type="hidden" name="lastUpdatedStamp" value="${lastUpdatedString}"></#if>
     </#if>
-    <#if formNode["@pass-through-parameters"]! == "true">
+    <#if formSingleNode["@pass-through-parameters"]! == "true">
         <#assign currentFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("lastStandalone").removeParameter("formListFindId")>
         <#assign currentFindUrlParms = currentFindUrl.getParameterMap()>
         <#list currentFindUrlParms.keySet() as parmName><#if !formInstance.getFieldNode(parmName)??>
@@ -410,22 +411,24 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if></#list>
     </#if>
         <fieldset class="form-horizontal"<#if urlInstance.disableLink> disabled="disabled"</#if>>
-        <#if formNode["field-layout"]?has_content>
-            <#recurse formNode["field-layout"][0]/>
+        <#if formSingleNode["field-layout"]?has_content>
+            <#recurse formSingleNode["field-layout"][0]/>
         <#else>
-            <#list formNode["field"] as fieldNode><@formSingleSubField fieldNode formId/></#list>
+            <#list formSingleNode["field"] as fieldNode><@formSingleSubField fieldNode formSingleId/></#list>
         </#if>
         </fieldset>
     <#if !skipEnd></${formSingleType}></#if>
     <#t>${sri.popContext()}<#-- context was pushed for the form-single so pop here at the end -->
     <#if sri.doBoundaryComments()><!-- END   form-single[@name=${.node["@name"]}] --></#if>
     <#assign ownerForm = ""><#-- clear ownerForm so later form fields don't pick it up -->
+    <#assign formSingleId = "">
+    <#assign fieldsJsName = "">
 </#macro>
 <#macro "field-ref">
     <#assign fieldRef = .node["@name"]>
     <#assign fieldNode = formInstance.getFieldNode(fieldRef)!>
     <#if fieldNode?has_content>
-        <@formSingleSubField fieldNode formId/>
+        <@formSingleSubField fieldNode formSingleId/>
     <#else>
         <div>Error: could not find field with name ${fieldRef} referred to in a field-ref.@name attribute.</div>
     </#if>
@@ -433,7 +436,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro "fields-not-referenced">
     <#assign nonReferencedFieldList = formInstance.getFieldLayoutNonReferencedFieldList()>
     <#list nonReferencedFieldList as nonReferencedField>
-        <@formSingleSubField nonReferencedField formId/></#list>
+        <@formSingleSubField nonReferencedField formSingleId/></#list>
 </#macro>
 <#macro "field-row">
     <#assign fsFieldRow = true>
@@ -502,7 +505,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro "field-accordion">
     <#assign isAccordion = true>
     <#assign accordionIndex = 1>
-    <#assign accordionId = .node["@id"]!(formId + "_accordion")>
+    <#assign accordionId = .node["@id"]!(formSingleId + "_accordion")>
     <#assign accordionActive = .node["@active"]!"1">
     <div class="panel-group" id="${accordionId}" role="tablist" aria-multiselectable="true">
         <#recurse .node/>
@@ -521,19 +524,19 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </div>
 </#macro>
 
-<#macro formSingleSubField fieldNode formId>
+<#macro formSingleSubField fieldNode formSingleId>
     <#list fieldNode["conditional-field"] as fieldSubNode>
         <#if ec.getResource().condition(fieldSubNode["@condition"], "")>
-            <@formSingleWidget fieldSubNode formId "col-sm" fsFieldRow!false fsBigRow!false/>
+            <@formSingleWidget fieldSubNode formSingleId "col-sm" fsFieldRow!false fsBigRow!false/>
             <#return>
         </#if>
     </#list>
     <#if fieldNode["default-field"]?has_content>
-        <@formSingleWidget fieldNode["default-field"][0] formId "col-sm" fsFieldRow!false fsBigRow!false/>
+        <@formSingleWidget fieldNode["default-field"][0] formSingleId "col-sm" fsFieldRow!false fsBigRow!false/>
         <#return>
     </#if>
 </#macro>
-<#macro formSingleWidget fieldSubNode formId colPrefix inFieldRow bigRow>
+<#macro formSingleWidget fieldSubNode formSingleId colPrefix inFieldRow bigRow>
     <#assign fieldSubParent = fieldSubNode?parent>
     <#if fieldSubNode["ignored"]?has_content><#return></#if>
     <#if ec.getResource().condition(fieldSubParent["@hide"]!, "")><#return></#if>
@@ -544,7 +547,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <div class="big-row-item">
             <div class="form-group">
                 <#if curFieldTitle?has_content && !fieldSubNode["submit"]?has_content>
-                    <label class="control-label" for="${formId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
+                    <label class="control-label" for="${formSingleId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
                 </#if>
     <#else>
         <#-- NOTE: this style is only good for 2 fields in a field-row! in field-row cols are double size because are inside a ${colPrefix}-6 element -->
@@ -561,12 +564,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <div class="${widgetClass}<#if containerStyle?has_content> ${containerStyle}</#if>">
         <#elseif curFieldTitle?has_content>
         <div class="form-group">
-            <label class="control-label ${labelClass}" for="${formId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
+            <label class="control-label ${labelClass}" for="${formSingleId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
             <div class="${widgetClass}<#if containerStyle?has_content> ${containerStyle}</#if>">
         </#if>
     </#if>
     <#t>${sri.pushContext()}
-    <#assign fieldFormId = formId><#-- set this globally so fieldId macro picks up the proper formId, clear after -->
+    <#assign fieldFormId = formSingleId><#-- set this globally so fieldId macro picks up the proper formSingleId, clear after -->
     <#list fieldSubNode?children as widgetNode><#if widgetNode?node_name == "set">${sri.setInContext(widgetNode)}</#if></#list>
     <#list fieldSubNode?children as widgetNode>
         <#if widgetNode?node_name == "link">

@@ -109,7 +109,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field><display/></default-field>
             </field>
             <field name="expireTimeIdle"><default-field title="Exp Idle"><display/></default-field></field>
-            <field name="expireTimeList"><default-field title="Exp Live"><display/></default-field></field>
+            <field name="expireTimeLive"><default-field title="Exp Live"><display/></default-field></field>
             <field name="maxElements"><default-field title="Max (Evct)">
                 <display text="${maxElements} (${evictionStrategy})"/></default-field></field>
             <field name="clear">
