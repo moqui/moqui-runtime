@@ -67,8 +67,8 @@ along with this software (see the LICENSE.md file). If not, see
                 </form-single>
             </row-col>
             <row-col lg="5">
-                <container-box><box-header title="Message Enum Map"/><box-toolbar>
-                    <container-dialog id="createMessageRemoteEnumMap" button-text="Create Message Enum Map">
+                <container-box><box-header title="Message Remote Enum Map"/><box-toolbar>
+                    <container-dialog id="createMessageRemoteEnumMap" button-text="Create Message Remote Enum Map">
                         <form-single name="CreateMessageRemoteEnumMap" transition="createMessageRemoteEnumMap">
                             <field name="systemMessageRemoteId"><default-field><hidden/></default-field></field>
                             <field name="enumId"><default-field><drop-down>
