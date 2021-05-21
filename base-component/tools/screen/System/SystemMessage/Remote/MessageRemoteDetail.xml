@@ -70,10 +70,10 @@ along with this software (see the LICENSE.md file). If not, see
                     <form-single name="CreateMessageRemoteEnumMap" transition="createMessageRemoteEnumMap">
                         <field name="systemMessageRemoteId"><default-field><hidden/></default-field></field>
                         <field name="enumId"><default-field><drop-down>
-                            <entity-options key="${enumId}" text="${description}">
-                                <entity-find entity-name="moqui.basic.Enumeration">
-                                    <econdition field-name="enumTypeId" value="SystemMessageRemoteParameter"/>
-                                    <order-by field-name="sequenceNum,description"/>
+                            <entity-options key="${enumId}" text="${typeDescription} - ${description}">
+                                <!-- use a view entity to show type description, sort by type description -->
+                                <entity-find entity-name="moqui.basic.EnumerationAndType">
+                                    <order-by field-name="typeDescription,sequenceNum,description"/>
                                 </entity-find>
                             </entity-options>
                         </drop-down></default-field></field>
