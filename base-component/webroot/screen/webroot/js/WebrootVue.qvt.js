@@ -345,11 +345,11 @@ Vue.component('m-container-box', {
     name: "mContainerBox",
     props: { type:{type:String,'default':'default'}, title:String, initialOpen:{type:Boolean,'default':true} },
     data: function() { return { isBodyOpen:this.initialOpen }},
-    // TODO: handle type, somehow, with text color and Bootstrap to Quasar mapping
+    // TODO: handle type better, have text color (use text- additional styles instead of Bootstrap to Quasar mapping), can collor the border too?
     template:
     '<q-card flat bordered class="q-ma-sm m-container-box">' +
         '<q-card-actions @click.self="toggleBody">' +
-            '<h5 v-if="title && title.length" @click="toggleBody">{{title}}</h5>' +
+            '<h5 v-if="title && title.length" @click="toggleBody" :class="\'text-\' + type">{{title}}</h5>' +
             '<slot name="header"></slot>' +
             '<q-space></q-space>' +
             '<slot name="toolbar"></slot>' +
@@ -631,7 +631,8 @@ Vue.component('m-form', {
     name: "mForm",
     mixins:[moqui.checkboxSetMixin],
     props: { fieldsInitial:Object, action:{type:String,required:true}, method:{type:String,'default':'POST'},
-        submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean, parentCheckboxSet:Object },
+        submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean,
+        excludeEmptyFields:Boolean, parentCheckboxSet:Object },
     data: function() { return { fields:Object.assign({}, this.fieldsInitial), fieldsChanged:{}, buttonClicked:null }},
     // NOTE: <slot v-bind:fields="fields"> also requires prefix from caller, using <m-form v-slot:default="formProps"> in qvt.ftl macro
     // see https://vuejs.org/v2/guide/components-slots.html
@@ -697,6 +698,8 @@ Vue.component('m-form', {
             }
             var formData = Object.keys(this.fields).length ? new FormData() : new FormData(this.$refs.qForm.$el);
             $.each(this.fields, function(key, value) { formData.set(key, value || ""); });
+
+            var fieldsToRemove = [];
             // NOTE: using iterator directly to avoid using 'for of' which requires more recent ES version (for minify, browser compatibility)
             var formDataIterator = formData.entries()[Symbol.iterator]();
             while (true) {
@@ -711,7 +714,10 @@ Vue.component('m-form', {
                     // instead of delete set to empty string, otherwise can't clear masked fields: formData["delete"](fieldName);
                     formData.set(fieldName, "");
                 }
+                if (this.excludeEmptyFields && (!fieldValue || !fieldValue.length)) fieldsToRemove.push(fieldName);
             }
+            for (var ftrIdx = 0; ftrIdx < fieldsToRemove.length; ftrIdx++) formData['delete'](fieldsToRemove[ftrIdx]);
+
             formData.set('moquiSessionToken', this.$root.moquiSessionToken);
             if (btnName) { formData.set(btnName, btnValue); }
 

@@ -449,6 +449,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#t><#if formSingleNode["@background-message"]?has_content> submit-message="${formSingleNode["@background-message"]?html}"</#if>
             <#t><#if formSingleNode["@background-reload-id"]?has_content> submit-reload-id="${formSingleNode["@background-reload-id"]}"</#if>
             <#t><#if formSingleNode["@background-hide-id"]?has_content> submit-hide-id="${formSingleNode["@background-hide-id"]}"</#if>
+            <#t><#if formSingleNode["@exclude-empty-fields"]! == "true"> :exclude-empty-fields="true"</#if>
             <#lt><#if _formListSelectedForm!false> :parentCheckboxSet="formProps"</#if>
             <#if fieldsJsName?has_content> v-slot:default="formProps" :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.getFormFieldValues(formSingleNode))}"</#if>>
     </#if>
@@ -645,6 +646,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
     <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
     <#assign userDefaultFormListFindId = formListInfo.getUserDefaultFormListFindId(ec)!"">
+    <#assign origFormDisabled = formDisabled!false>
+    <#assign formDisabled = false>
     <#if isHeaderDialog>
         <#assign haveFilters = false>
         <#assign curFindSummary>
@@ -1035,6 +1038,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </th></tr>
         </#if>
     </#if>
+    <#assign formDisabled = origFormDisabled>
 </#macro>
 <#macro formListSelectedRowCard rowSelectionNode>
     <#-- render action forms, optionally inside dialog -->
@@ -1299,7 +1303,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <div class="tr">
 
         <#if isRowSelection>
-            <div class="td"><div class="q-my-auto"><q-checkbox size="xs" v-model="formProps.checkboxStates[${listEntry_index?c}]"></q-checkbox></div></div>
+            <div class="td">
+            <#if listEntry[checkboxIdField]?has_content>
+                <div class="q-my-auto"><q-checkbox size="xs" v-model="formProps.checkboxStates[${listEntry_index?c}]"></q-checkbox></div></#if>
+            </div>
         </#if>
         <#if !(isMulti || skipForm)>
             <#assign ownerForm = formId + "_" + listEntry_index>

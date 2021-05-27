@@ -493,7 +493,7 @@ Vue.component('m-editable', {
 
 /* ========== form components ========== */
 Vue.component('m-form', {
-    props: { action:{type:String,required:true}, method:{type:String,'default':'POST'},
+    props: { action:{type:String,required:true}, method:{type:String,'default':'POST'}, excludeEmptyFields:Boolean,
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean },
     data: function() { return { fields:{}, fieldsChanged:{}, buttonClicked:null }},
     template: '<form @submit.prevent="submitForm" autocapitalize="off" autocomplete="off"><slot></slot></form>',
@@ -510,8 +510,22 @@ Vue.component('m-form', {
                     setTimeout(function() { $btn.prop('disabled', false); }, 3000);
                 }
                 var formData = new FormData(this.$el);
-                formData.append('moquiSessionToken', this.$root.moquiSessionToken);
                 $.each(this.fields, function (key, value) { formData.append(key, value); });
+
+                var fieldsToRemove = [];
+                // NOTE: using iterator directly to avoid using 'for of' which requires more recent ES version (for minify, browser compatibility)
+                var formDataIterator = formData.entries()[Symbol.iterator]();
+                while (true) {
+                    var iterEntry = formDataIterator.next();
+                    if (iterEntry.done) break;
+                    var pair = iterEntry.value;
+                    var fieldName = pair[0];
+                    var fieldValue = pair[1];
+                    if (this.excludeEmptyFields && (!fieldValue || !fieldValue.length)) fieldsToRemove.push(fieldName);
+                }
+                for (var ftrIdx = 0; ftrIdx < fieldsToRemove.length; ftrIdx++) formData['delete'](fieldsToRemove[ftrIdx]);
+
+                formData.append('moquiSessionToken', this.$root.moquiSessionToken);
                 if (btnName) { formData.append(btnName, btnValue); }
 
                 // console.info('m-form parameters ' + JSON.stringify(formData));
@@ -1127,7 +1141,7 @@ Vue.component('text-autocomplete', {
 Vue.component('subscreens-tabs', {
     data: function() { return { pathIndex:-1 }},
     template:
-    '<ul v-if="subscreens.length > 0" class="nav nav-tabs" role="tablist">' +
+    '<ul v-if="subscreens.length > 1" class="nav nav-tabs" role="tablist">' +
         '<li v-for="tab in subscreens" :class="{active:tab.active,disabled:tab.disableLink}">' +
             '<span v-if="tab.disabled">{{tab.title}}</span>' +
             '<m-link v-else :href="tab.pathWithParams">{{tab.title}}</m-link>' +
