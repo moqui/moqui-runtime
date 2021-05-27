@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
+        default-menu-include="false" require-authentication="false" history="false">
+
+
+    <transition name="sendOtpEmail">
+        <actions>
+            <entity-find-one entity-name="moqui.security.UserAuthcFactor" value-field="userAuthcFactor">
+                <field-map field-name="factorId"/></entity-find-one>
+            <if condition="!userAuthcFactor"><return error="true" message="No Authc Factor found with id: ${factorId}"/></if>
+
+            <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
+                <field-map field-name="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/></entity-find-one>
+
+            <if condition="userAuthcFactor.userId != userAccount.userId"><return error="true" message="Authc Factor ${factorId} is not valid for ${userAccount.username}"/></if>
+
+            <service-call name="mantle.party.PartyServices.create#UserAuthcFactorSingleUse" in-map="[userId:userAccount.userId,factorId:factorId,thruDate:ec.user.nowTimestamp+1,numberOfCodes:'1',userEmail:userAuthcFactor.factorOptions]" out-map="code"/>
+
+            <service-call name="org.moqui.impl.EmailServices.send#EmailTemplate" async="true">
+                <field-map field-name="emailTemplateId" value="ADDED_EMAIL_AUTHC_FACTOR"/>
+                <field-map field-name="toAddresses" from="userAccount.emailAddress"/>
+                <field-map field-name="bodyParameters" from="[userEmail:userAuthcFactor.factorOptions]"/></service-call>
+        </actions>
+        <default-response url="."/>
+    </transition>
+
+
+    <pre-actions><script>
+        if (!ec.web.sessionAttributes.moquiAuthcFactorRequired) { sri.sendRedirectAndStopRender('/') }
+    </script></pre-actions>
+
+    <actions>
+        <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
+            <field-map field-name="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/></entity-find-one>
+        <entity-find entity-name="moqui.security.UserAuthcFactor" list="userAuthcFactorList">
+            <date-filter/>
+            <econdition field-name="userId" from="userAccount.userId"/>
+            <econdition field-name="factorTypeEnumId" operator="is-not-null"/></entity-find>
+        <if condition="!userAuthcFactorList"><return error="true" message="User has no valid authentication factors. Try logging in."/></if>
+        <set field="factorTypes" from="userAuthcFactorList*.factorTypeEnumId"/>
+    </actions>
+
+
+    <widgets>
+        <container id="content" style="Login"><container style="inner"><container style="container-fluid">
+            <section-iterate name="headerSavedMessages" list="ec.web?.savedMessages" entry="message"><widgets>
+                <render-mode><text type="html"><![CDATA[<div class="alert alert-success fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                <label text="${message}" type="h4"/>
+                <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+            </widgets></section-iterate>
+            <section-iterate name="headerSavedErrors" list="ec.web?.savedErrors" entry="errorMessage"><widgets>
+                <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                <label text="${errorMessage}" type="h4"/>
+                <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+            </widgets></section-iterate>
+            <section-iterate name="headerSavedValidationErrors" list="ec.web?.savedValidationErrors" entry="validationError"><widgets>
+                <!-- TODO: put these by fields instead of in header -->
+                <render-mode><text type="html"><![CDATA[<div class="alert alert-danger fade in" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>]]></text></render-mode>
+                <label text="${validationError.message} (for field ${validationError.field})" type="h4"/>
+                <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
+            </widgets></section-iterate>
+
+            <widgets>
+                <render-mode><text type="html" template="true" location="component://webroot/screen/webroot/SecondFactor.html.ftl"/></render-mode>
+            </widgets>
+        </container></container></container>
+
+<!--        <container-row>-->
+<!--            <row-col lg="4"/>-->
+<!--            <row-col lg="4">-->
+<!--                <label text="Follow the Steps below to Complete Authentication" type="h5"/>-->
+<!--                <container type="ol">-->
+<!--                    <container type="li"><label text="Choose One of the Options Below"/></container>-->
+<!--                    <container type="ul">-->
+<!--                        <container type="li"><label text="Enter a code from Authenticator App on device"/></container>-->
+<!--                        <container type="li"><label text="Enter a code from your email"/></container>-->
+<!--                        <container type="li"><label text="Enter a backup code"/></container>-->
+<!--                    </container>-->
+<!--                    <container type="li"><label text="Authenticate by Entering the Code into the Box below"/></container>-->
+<!--                </container>-->
+<!--                <form-single name="AuthcUserAuthcFactor" transition="authcUserAuthcFactor">-->
+<!--                    <field name="userId" from="userId"><default-field><hidden/></default-field></field>-->
+<!--                    <field name="code"><default-field title=" "><text-line/></default-field></field>-->
+<!--                    <field name="submit"><default-field><submit/></default-field></field>-->
+<!--                </form-single>-->
+
+<!--            </row-col>-->
+<!--            <row-col lg="4"/>-->
+<!--        </container-row>-->
+    </widgets>
+</screen>
