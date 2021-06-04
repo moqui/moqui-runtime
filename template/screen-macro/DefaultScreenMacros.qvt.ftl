@@ -1343,16 +1343,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         </#if></#if>
 
         <#if !(isMulti || skipForm)>
-            <#assign ownerForm = "">
-            <#assign fieldsJsName = "">
             </m-form>
-        </#if>
-        <#if isMulti>
-            <#assign fieldsJsName = "">
         </#if>
 
         </div><#-- /tr -->
         <#t>${sri.endFormListRow()}
+        <#assign ownerForm = "">
+        <#assign fieldsJsName = "">
         <#assign listEntryIndex = "">
     </#list></#if>
     ${sri.safeCloseList(listObject)}<#-- if listObject is an EntityListIterator, close it -->
