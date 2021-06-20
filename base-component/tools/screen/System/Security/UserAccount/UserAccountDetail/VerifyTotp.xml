@@ -22,16 +22,14 @@ along with this software (see the LICENSE.md file). If not, see
     <parameter name="userId" required="true"/>
 
     <transition name="verifyUserAuthcFactor">
-        <service-call name="mantle.party.PartyServices.verify#UserAuthcFactor" in-map="context" out-map="context"/>
+        <service-call name="mantle.party.PartyServices.validate#UserAuthcFactorCode" in-map="context" out-map="context"/>
         <default-response url="."/>
     </transition>
 
     <actions>
         <service-call name="mantle.party.PartyServices.setup#UserAuthcFactorTotp" in-map="[userId:userId, factorId:factorId]" out-map="context"/>
-<!--        <service-call name="mantle.party.PartyServices.get#UserAuthcFactor" in-map="[userId:userId, factorId:factorId]" out-map="context"/>-->
-        <script>ec.logger.info(needsValidation)</script>
     </actions>
-    
+
     <widgets>
         <label text="Follow the Steps below to Complete Verification" type="h5"  condition="needsValidation == 'Y'"/>
         <label text="View the Authenticator App Information" type="h5" condition="needsValidation == 'N'"/>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-This software is in the public domain under CC0 1.0 Universal plus a 
+This software is in the public domain under CC0 1.0 Universal plus a
 Grant of Patent License.
 
 To the extent possible under law, the author(s) have dedicated all
@@ -43,12 +43,12 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="verifyUserAuthcFactorTotp"><service-call name="mantle.party.PartyServices.verify#UserAuthcFactorTotp"/>
         <default-response url="."/></transition>
     <transition name="createUserAuthcFactorSingleUse">
-        <service-call name="mantle.party.PartyServices.create#UserAuthcFactorSingleUse"/>
+        <service-call name="mantle.party.PartyServices.create#SingleUseAuthcCodes" />
         <actions><script>ec.web.sessionAttributes.put("singleUseCodes", singleUseCodes)</script></actions>
         <default-response url="."/></transition>
-    <transition name="createUserAuthcFactorEmail"><service-call name="mantle.party.PartyServices.create#UserAuthcFactorEmail"/>
+    <transition name="createUserAuthcFactorEmail"><service-call name="mantle.party.PartyServices.create#EmailUserAuthcFactor"/>
         <default-response url="."/></transition>
-    <transition name="factorSubmit"><service-call name="mantle.party.PartyServices.delete#UserAuthcFactor" in-map="context"/>
+    <transition name="factorSubmit"><service-call name="mantle.party.PartyServices.invalidate#UserAuthcFactorEntry"/>
         <default-response url="."/></transition>
 
     <transition name="createUserPreference"><service-call name="create#moqui.security.UserPreference"/>
@@ -75,7 +75,10 @@ along with this software (see the LICENSE.md file). If not, see
         <iterate list="Locale.getAvailableLocales()" entry="lcl"><script>localeStringList.add([locale:lcl.toString(), name:lcl.getDisplayName(ec.user.locale)])</script></iterate>
         <order-map-list list="localeStringList"><order-by field-name="name"/></order-map-list>
 
-        <service-call name="mantle.party.PartyServices.get#UserAuthcFactorActiveList" in-map="[userId:userId]" out-map="activeList"/>
+        <entity-find entity-name="moqui.security.UserAuthcFactor" list="userAuthcFactorList">
+            <date-filter/>
+            <econdition field-name="userId"/>
+        </entity-find>
 
         <entity-find entity-name="moqui.security.UserGroupMember" list="ugmList">
             <econdition field-name="userId"/><order-by field-name="userGroupId"/></entity-find>
@@ -298,7 +301,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <box-toolbar>
                         <container-dialog id="CreateTotpDialog" button-text="Add Authenticator App">
                             <form-single name="CreateUserAuthcFactorTotp" transition="createUserAuthcFactorTotp">
-                                <field name="userId" from="userId"><default-field><hidden/></default-field></field>
+                                <field name="userId" from="userAccount.userId"><default-field><hidden/></default-field></field>
                                 <field name="thruDate" from="ec.user.nowTimestamp + 365"><default-field><date-time/></default-field></field>
                                 <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                             </form-single></container-dialog>
@@ -313,13 +316,13 @@ along with this software (see the LICENSE.md file). If not, see
                             <form-single name="CreateUserAuthcFactorEmail" transition="createUserAuthcFactorEmail">
                                 <field name="userId" from="userId"><default-field><hidden/></default-field></field>
                                 <field name="thruDate" from="ec.user.nowTimestamp + 365"><default-field><date-time/></default-field></field>
-                                <field name="factorOption" from="ec.user.userAccount.emailAddress"><default-field title="Email"><text-line size="30"/></default-field></field>
+                                <field name="factorOption" from="userAccount.emailAddress"><default-field title="Email"><text-line size="30"/></default-field></field>
                                 <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                             </form-single>
                         </container-dialog>
 
                     </box-toolbar><box-body-nopad>
-                        <form-list name="UserAuthcFactorList" list="activeList.activeList" transition="factorSubmit">
+                        <form-list name="UserAuthcFactorList" list="userAuthcFactorList" transition="factorSubmit">
                             <field name="factorId">
                                 <header-field title="Id" show-order-by="true"/><default-field><display/></default-field></field>
                             <field name="userId" from="userId"><default-field><hidden/></default-field></field>
