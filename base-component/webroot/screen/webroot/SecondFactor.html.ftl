@@ -18,10 +18,12 @@
 <#if factorTypes.contains('UafEmail')>
 <#list userAuthcFactorFilteredList as userAuthcFactor>
     <#if userAuthcFactor.factorTypeEnumId == 'UafEmail'>
-        <form method="post" action="${sri.buildUrl("sendOtpEmail").url}" class="form-signin">
-            <input type="hidden" name="factorId" value="${userAuthcFactor.factorId}">
-            <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
-            <button class="btn btn-lg btn-primary btn-block" type="submit">${ec.l10n.localize("Send email code")} ${userAuthcFactor.factorOption}</button></form>
+        <div class="text-center">
+            <form method="post" action="${sri.buildUrl("sendOtpEmail").url}">
+                <input type="hidden" name="factorId" value="${userAuthcFactor.factorId}">
+                <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
+                <button class="btn btn-lg btn-primary" type="submit">${ec.l10n.localize("Send code to")} ${userAuthcFactor.factorOption}</button></form>
+        </div>
     </#if>
 </#list>
 </#if>
