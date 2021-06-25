@@ -19,11 +19,11 @@ along with this software (see the LICENSE.md file). If not, see
     <parameter name="userId" required="true"/>
     <parameter name="factorId" required="true"/>
 
-    <transition name="verifyUserAuthcFactor"><service-call name="mantle.party.PartyServices.validate#UserAuthcFactorCode" in-map="context"/>
+    <transition name="verifyUserAuthcFactor"><service-call name="org.moqui.impl.UserServices.validate#UserAuthcFactorCode" in-map="context"/>
         <default-response url="."/></transition>
 
     <actions>
-        <service-call name="mantle.party.PartyServices.send#AuthcCodeEmail" in-map="emailFactorId:factorId"/>
+        <service-call name="org.moqui.impl.UserServices.send#AuthcCodeEmail" in-map="emailFactorId:factorId"/>
     </actions>
 
     <widgets>
