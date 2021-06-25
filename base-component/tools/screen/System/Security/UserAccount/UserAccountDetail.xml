@@ -88,7 +88,7 @@ along with this software (see the LICENSE.md file). If not, see
             <order-by field-name="description"/></entity-find>
 
         <entity-find entity-name="moqui.security.UserLoginHistory" list="historyList" limit="20">
-            <search-form-inputs default-order-by="fromDate"/>
+            <search-form-inputs default-order-by="-fromDate"/>
             <econdition field-name="userId"/></entity-find>
 
         <entity-find entity-name="moqui.security.ArtifactTarpitLock" list="artifactTarpitLockList" limit="20">
