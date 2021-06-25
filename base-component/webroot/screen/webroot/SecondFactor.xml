@@ -44,8 +44,7 @@ along with this software (see the LICENSE.md file). If not, see
 
 
     <pre-actions><script>
-<!--        TODO: After testing Uncomment the next line-->
-<!--        if (ec.user.userId || !ec.web.sessionAttributes.moquiAuthcFactorRequired) { sri.sendRedirectAndStopRender('/') }-->
+        if (ec.user.userId || !ec.web.sessionAttributes.moquiAuthcFactorRequired) { sri.sendRedirectAndStopRender('/') }
     </script></pre-actions>
 
     <actions>
@@ -60,9 +59,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <script>userAuthcFactorFilteredList.add(userAuthcFactor)</script>
             </if>
         </iterate>
-<!--        <if condition="!userAuthcFactorFilteredList"><return error="true" message="User has no valid authentication factors. Contact an Administrator."/></if>-->
         <set field="factorTypes" from="userAuthcFactorFilteredList*.factorTypeEnumId"/>
-<!--        <return message="factorTypes: ${factorTypes} \n userAuthcFactorList: ${userAuthcFactorList} \n userAuthcFactorFilteredList: ${userAuthcFactorFilteredList} "/>-->
     </actions>
 
     <widgets>

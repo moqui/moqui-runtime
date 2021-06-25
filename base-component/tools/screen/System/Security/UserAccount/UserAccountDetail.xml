@@ -38,17 +38,17 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="updateUserGroupMember"><service-call name="update#moqui.security.UserGroupMember"/>
         <default-response url="."/></transition>
 
-    <transition name="createUserAuthcFactorTotp"><service-call name="mantle.party.PartyServices.create#UserAuthcFactorTotp"/>
+    <transition name="createUserAuthcFactorTotp"><service-call name="org.moqui.impl.UserServices.create#UserAuthcFactorTotp"/>
         <default-response url="."/></transition>
-    <transition name="verifyUserAuthcFactorTotp"><service-call name="mantle.party.PartyServices.verify#UserAuthcFactorTotp"/>
+    <transition name="verifyUserAuthcFactorTotp"><service-call name="org.moqui.impl.UserServices.verify#UserAuthcFactorTotp"/>
         <default-response url="."/></transition>
     <transition name="createUserAuthcFactorSingleUse">
-        <service-call name="mantle.party.PartyServices.create#SingleUseAuthcCodes" />
+        <service-call name="org.moqui.impl.UserServices.create#SingleUseAuthcCodes" />
         <actions><script>ec.web.sessionAttributes.put("singleUseCodes", singleUseCodes)</script></actions>
         <default-response url="."/></transition>
-    <transition name="createUserAuthcFactorEmail"><service-call name="mantle.party.PartyServices.create#EmailUserAuthcFactor"/>
+    <transition name="createUserAuthcFactorEmail"><service-call name="org.moqui.impl.UserServices.create#EmailUserAuthcFactor"/>
         <default-response url="."/></transition>
-    <transition name="factorSubmit"><service-call name="mantle.party.PartyServices.invalidate#UserAuthcFactorEntry"/>
+    <transition name="factorSubmit"><service-call name="org.moqui.impl.UserServices.invalidate#UserAuthcFactorEntry"/>
         <default-response url="."/></transition>
 
     <transition name="createUserPreference"><service-call name="create#moqui.security.UserPreference"/>
@@ -159,7 +159,6 @@ along with this software (see the LICENSE.md file). If not, see
                         <field name="submitButton"><default-field><submit text="Update"/></default-field></field>
                     </form-list>
                 </container-dialog>
-<!--                          -->
 
                 <form-single name="UserAccountForm" map="userAccount" transition="updateUserAccount">
                     <field name="userId"><default-field><display/></default-field></field>
@@ -330,7 +329,6 @@ along with this software (see the LICENSE.md file). If not, see
                             <field name="factorTypeEnumId"><header-field title="Factor Type"/><default-field><display-entity entity-name="moqui.basic.Enumeration" text="${description}"/></default-field></field>
                             <field name="fromDate"><default-field><display/></default-field></field>
                             <field name="thruDate"><default-field><display/></default-field></field>
-<!--                            <field name="factorOption"><header-field title="Email"/><conditional-field condition="factorTypeEnumId == 'UafEmail'"><label text="${factorOption}"/></conditional-field></field>-->
                             <field name="action">
                                 <conditional-field condition="needsValidation == 'Y' &amp;&amp; factorTypeEnumId == 'UafTotp'">
                                     <dynamic-dialog id="VerifyTotpDialog" button-text="Verify" transition="VerifyTotp" parameter-map="[userId:userId, factorId:factorId, verify:true]"/></conditional-field>

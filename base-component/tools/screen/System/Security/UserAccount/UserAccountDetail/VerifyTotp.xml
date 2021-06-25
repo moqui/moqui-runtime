@@ -16,18 +16,15 @@ along with this software (see the LICENSE.md file). If not, see
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-include="false" standalone="true">
 
-    <!--variations 1. create new 2. verify unverified 3. view verified -->
-
     <parameter name="factorId"/>
     <parameter name="userId" required="true"/>
 
     <transition name="verifyUserAuthcFactor">
-        <service-call name="mantle.party.PartyServices.validate#UserAuthcFactorCode" in-map="context" out-map="context"/>
+        <service-call name="org.moqui.impl.UserServices.validate#UserAuthcFactorCode" in-map="context" out-map="context"/>
         <default-response url="."/></transition>
 
     <actions>
-        <service-call name="mantle.party.PartyServices.setup#UserAuthcFactorTotp" in-map="[userId:userId, factorId:factorId]" out-map="context"/>
-
+        <service-call name="org.moqui.impl.UserServices.setup#UserAuthcFactorTotp" in-map="[userId:userId, factorId:factorId]" out-map="context"/>
     </actions>
 
     <widgets>
@@ -55,5 +52,4 @@ along with this software (see the LICENSE.md file). If not, see
             </form-single>
         </container>
     </widgets>
-
 </screen>
