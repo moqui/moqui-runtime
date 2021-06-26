@@ -25,7 +25,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <field-map field-name="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/></entity-find-one>
             <if condition="userAuthcFactor.userId != userAccount.userId"><return error="true" message="Authc Factor ${factorId} is not valid for ${userAccount.username}"/></if>
 
-            <service-call name="mantle.party.PartyServices.send#AuthcCodeEmail" in-map="[emailFactorId:factorId]" out-map="context"/>
+            <service-call name="org.moqui.impl.UserServices.send#AuthcCodeEmail" in-map="[emailFactorId:factorId]" out-map="context"/>
 
         </actions>
         <default-response url="."/>
@@ -35,7 +35,7 @@ along with this software (see the LICENSE.md file). If not, see
         <actions>
             <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
                 <field-map field-name="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/></entity-find-one>
-            <service-call name="mantle.party.PartyServices.validate#UserAuthcFactorCode" in-map="userId:userAccount.userId,code:code" out-map="context"/>
+            <service-call name="org.moqui.impl.UserServices.validate#UserAuthcFactorCode" in-map="userId:userAccount.userId,code:code" out-map="context"/>
             <if condition="verified"><script>ec.user.internalLoginUser(ec.web.sessionAttributes.moquiAuthcFactorUsername)</script></if>
         </actions>
         <conditional-response url="/"><condition><expression>verified</expression></condition></conditional-response>
