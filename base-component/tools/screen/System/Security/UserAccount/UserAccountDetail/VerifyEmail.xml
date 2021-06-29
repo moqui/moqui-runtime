@@ -29,8 +29,8 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <label text="Follow the Steps below to Verify" type="h5"/>
         <container type="ol">
-            <container type="li"><label text="Open Email Program . Check for Email that has the code. Don't forget to check spam, archive, trash, etc"/></container>
-            <container type="li"><label text="Once the code is found, input the code into the box below"/></container>
+            <container type="li"><label text="Open Email Program. Check for Email that has the code. Don't forget to check spam, archive, trash, etc."/></container>
+            <container type="li"><label text="Once the code is found, input the code into the box below."/></container>
             <form-single name="VerifyUserAuthcFactor" transition="verifyUserAuthcFactor">
                 <field name="userId" from="userId"><default-field><hidden/></default-field></field>
                 <field name="code" from="null"><default-field title="Single Use Code"><text-line size="30"/></default-field></field>
