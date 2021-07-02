@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-This software is in the public domain under CC0 1.0 Universal plus a 
+This software is in the public domain under CC0 1.0 Universal plus a
 Grant of Patent License.
 
 To the extent possible under law, the author(s) have dedicated all
@@ -15,7 +15,9 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-include="false" require-authentication="false" history="false">
 
-    <transition name="login" require-session-token="false"><actions><script>ec.user.loginUser(username, password)</script></actions>
+    <transition name="login" require-session-token="false">
+        <actions><script>ec.user.loginUser(username, password)</script></actions>
+        <conditional-response url="../SecondFactor"><condition><expression>ec.web.sessionAttributes.moquiAuthcFactorRequired</expression></condition></conditional-response>
         <default-response type="screen-last"/><error-response url="."/></transition>
     <transition name="logout"><actions><script>ec.user.logoutUser()</script></actions>
         <default-response url="/"/><error-response url="."/></transition>
