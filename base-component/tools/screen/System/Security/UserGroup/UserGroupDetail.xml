@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-This software is in the public domain under CC0 1.0 Universal plus a 
+This software is in the public domain under CC0 1.0 Universal plus a
 Grant of Patent License.
 
 To the extent possible under law, the author(s) have dedicated all
@@ -75,7 +75,8 @@ along with this software (see the LICENSE.md file). If not, see
                 </default-field></field>
                 <field name="ipAllowed"><default-field title="IPs Allowed" tooltip="Comma separated IP4 patterns, each may use '*' for wildcard or '-' separated min/max numbers">
                     <text-line size="80"/></default-field></field>
-
+                <field name="requireAuthcFactor"><default-field title="Require Authc Factor">
+                    <radio no-current-selected-key="N"><option key="Y"/><option key="N"/></radio></default-field></field>
                 <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
             </form-single>
 
