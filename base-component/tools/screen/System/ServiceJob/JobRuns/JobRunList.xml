@@ -47,9 +47,9 @@ along with this software (see the LICENSE.md file). If not, see
 
             <field name="hasError"><header-field><drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></header-field>
                 <default-field><display/></default-field></field>
-            <field name="startTime"><header-field><date-period allow-empty="true"/></header-field>
+            <field name="startTime"><header-field show-order-by="true"><date-period allow-empty="true"/></header-field>
                 <default-field><display/></default-field></field>
-            <field name="endTime"><header-field><date-period allow-empty="true"/></header-field>
+            <field name="endTime"><header-field show-order-by="true"><date-period allow-empty="true"/></header-field>
                 <default-field><display/></default-field></field>
 
             <field name="findButton"><header-field title="Find"><submit/></header-field><default-field>
