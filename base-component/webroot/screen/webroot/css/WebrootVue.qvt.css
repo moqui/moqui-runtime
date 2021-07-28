@@ -210,3 +210,5 @@ ul.float-plain.condensed li { margin: 0 4px 0 0; padding: 4px; }
 
     tbody>tr:nth-child(even)>td, .tbody .tr:nth-child(even)>.td { background-color: #EEEEEE !important; }
 }
+
+.ScreenTreeNested { margin: 4px 0 4px 12px; padding: 0 0 0 12px; border-left: 1px dashed lightgrey; }
