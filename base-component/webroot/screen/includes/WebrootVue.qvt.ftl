@@ -71,10 +71,6 @@ along with this software (see the LICENSE.md file). If not, see
 
             <q-space></q-space>
 
-            <#if (ec.user.getPreference("webroot.qvt.hide.preview")!"") != "true">
-            <a :href="currentLinkUrl.replace('/qapps','/vapps')" target="_blank" class="text-warning on-left">BETA PREVIEW<q-tooltip>Click for current production-ready UI (/vapps)</q-tooltip></a>
-            </#if>
-
             <#-- spinner, usually hidden -->
             <q-circular-progress indeterminate size="20px" color="light-blue" class="q-ma-xs" :class="{ hidden: loading < 1 }"></q-circular-progress>
 
