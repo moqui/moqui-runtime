@@ -45,6 +45,13 @@ along with this software (see the LICENSE.md file). If not, see
         </actions>
         <default-response url="."/>
     </transition>
+    <transition name="createIndexes" begin-transaction="false">
+        <actions>
+            <set field="created" from="ec.entity.getEntityDbMeta().createIndexesForExistingTables()"/>
+            <message>Created ${created} indexes</message>
+        </actions>
+        <default-response url="."/>
+    </transition>
 
     <actions>
         <set field="pageSize" from="pageSize ?: 60"/>
@@ -57,6 +64,7 @@ along with this software (see the LICENSE.md file). If not, see
         <link url="checkTables" text="Check/Update All Tables"/>
         <link url="dropForeignKeys" text="Drop FKs" confirmation="Really drop all known foreign keys?"/>
         <link url="createForeignKeys" text="Create FKs" confirmation="Really create all missing foreign keys?"/>
+        <link url="createIndexes" text="Create Indexes" confirmation="Really create all missing indexes? WARNING: on large tables adding an index can take a long time!"/>
         <container-dialog id="LiquibaseInitDialog" button-text="Liquibase Init XML">
             <form-single name="LiquibaseInit" transition="getLiquibaseInitXml">
                 <field name="filterRegexp"><default-field><text-line size="40"/></default-field></field>
