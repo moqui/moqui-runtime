@@ -27,6 +27,23 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="." parameter-map="ec.web.requestParameters"/>
     </transition>
 
+    <transition name="getEnumRelatedByTypeList" read-only="true">
+        <parameter name="enumId"/>
+        <actions>
+            <entity-find-one entity-name="moqui.basic.Enumeration" value-field="baseEnum"/>
+            <if condition="baseEnum == null || !baseEnum.relatedEnumTypeId"><then>
+                <script>ec.web.sendJsonResponse([])</script>
+            </then><else>
+                <entity-find entity-name="moqui.basic.Enumeration" list="relatedEnumByTypeList">
+                    <econdition field-name="enumTypeId" from="baseEnum.relatedEnumTypeId"/>
+                    <order-by field-name="sequenceNum,description"/>
+                </entity-find>
+                <script>ec.web.sendJsonResponse(relatedEnumByTypeList)</script>
+            </else></if>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
     <widgets>
         <section name="EmailScreenSection"><widgets>
             <container-dialog id="EmailScreenDialog" button-text="Email Export">
