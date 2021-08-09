@@ -61,7 +61,7 @@ along with this software (see the LICENSE.md file). If not, see
         <script>paginateList("entityList", null, context)</script>
     </actions>
     <widgets>
-        <link url="checkTables" text="Check/Update All Tables"/>
+        <link url="checkTables" text="Check/Update All Tables" confirmation="Check and update all tables? NOTE: this will only create missing tables and columns if runtime-add-missing is true"/>
         <link url="dropForeignKeys" text="Drop FKs" confirmation="Really drop all known foreign keys?"/>
         <link url="createForeignKeys" text="Create FKs" confirmation="Really create all missing foreign keys?"/>
         <link url="createIndexes" text="Create Indexes" confirmation="Really create all missing indexes? WARNING: on large tables adding an index can take a long time!"/>
