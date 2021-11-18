@@ -46,7 +46,7 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
                 notified = true;
             }
         } else {
-            moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsInfo, { message:messageItem }));
+            moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsInfo, { message:messages }));
             moqui.webrootVue.addNotify(messages, 'info');
             notified = true;
         }
@@ -99,14 +99,14 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown, responseText) {
     var respObj;
     try { respObj = JSON.parse(resp); } catch (e) { /* ignore error, don't always expect it to be JSON */ }
     console.warn('ajax ' + textStatus + ' (' + jqXHR.status + '), message ' + errorThrown /*+ '; response: ' + resp*/);
-    // console.error('respObj: ' + JSON.stringify(respObj));
+    // console.error('resp [' + resp + '] respObj: ' + JSON.stringify(respObj));
     var notified = false;
     if (jqXHR.status === 401) {
         notified = moqui.notifyMessages(null, "No user authenticated");
     } else {
         if (respObj && moqui.isPlainObject(respObj)) {
             notified = moqui.notifyMessages(respObj.messageInfos, respObj.errors, respObj.validationErrors);
-            console.log("got here notified ", notified);
+            // console.log("got here notified ", notified);
         } else if (resp && moqui.isString(resp) && resp.length) {
             notified = moqui.notifyMessages(resp);
         }
@@ -345,11 +345,11 @@ Vue.component('m-container-box', {
     name: "mContainerBox",
     props: { type:{type:String,'default':'default'}, title:String, initialOpen:{type:Boolean,'default':true} },
     data: function() { return { isBodyOpen:this.initialOpen }},
-    // TODO: handle type, somehow, with text color and Bootstrap to Quasar mapping
+    // TODO: handle type better, have text color (use text- additional styles instead of Bootstrap to Quasar mapping), can collor the border too?
     template:
     '<q-card flat bordered class="q-ma-sm m-container-box">' +
         '<q-card-actions @click.self="toggleBody">' +
-            '<h5 v-if="title && title.length" @click="toggleBody">{{title}}</h5>' +
+            '<h5 v-if="title && title.length" @click="toggleBody" :class="\'text-\' + type">{{title}}</h5>' +
             '<slot name="header"></slot>' +
             '<q-space></q-space>' +
             '<slot name="toolbar"></slot>' +
@@ -570,16 +570,77 @@ Vue.component('m-editable', {
 });
 
 /* ========== form components ========== */
+
+moqui.checkboxSetMixin = {
+    // NOTE: checkboxCount is used to init the checkbox state array, defaults to 100 and must be greater than or equal to the actual number of checkboxes (not including the All checkbox)
+    props: { checkboxCount:{type:Number,'default':100}, checkboxParameter:String, checkboxListMode:Boolean, checkboxValues:Array },
+    data: function() {
+        var checkboxStates = [];
+        for (var i = 0; i < this.checkboxCount; i++) checkboxStates[i] = false;
+        return { checkboxAllState:false, checkboxStates:checkboxStates }
+    },
+    methods: {
+        setCheckboxAllState: function(newState) {
+            this.checkboxAllState = newState;
+            var csSize = this.checkboxStates.length;
+            for (var i = 0; i < csSize; i++) this.checkboxStates[i] = newState;
+        },
+        getCheckboxValueArray: function() {
+            if (!this.checkboxValues) return [];
+            var valueArray = [];
+            var csSize = this.checkboxStates.length;
+            for (var i = 0; i < csSize; i++) if (this.checkboxStates[i] && this.checkboxValues[i]) valueArray.push(this.checkboxValues[i]);
+            return valueArray;
+        },
+        addCheckboxParameters: function(formData, parameter, listMode) {
+            var parmName = parameter || this.checkboxParameter;
+            var useList = (listMode !== null && listMode !== undefined && listMode) ? listMode : this.checkboxListMode;
+            // NOTE: formData must be a FormData object, or at least have a set(name, value) method
+            var valueArray = this.getCheckboxValueArray();
+            if (!valueArray.length) return false;
+            if (useList) {
+                formData.set(parmName, valueArray.join(','));
+            } else {
+                for (var i = 0; i < valueArray.length; i++)
+                    formData.set(parmName + '_' + i, valueArray[i]);
+                formData.set('_isMulti', 'true');
+            }
+            return true;
+        }
+    },
+    watch: {
+        checkboxStates: { deep:true, handler:function(newArray) {
+            var allTrue = true;
+            for (var i = 0; i < newArray.length; i++) {
+                var curState = newArray[i];
+                if (!curState) allTrue = false;
+                if (!allTrue) break;
+            }
+            this.checkboxAllState = allTrue;
+        } }
+    }
+}
+Vue.component('m-checkbox-set', {
+    name: "mCheckboxSet",
+    mixins:[moqui.checkboxSetMixin],
+    template: '<span class="checkbox-set"><slot :checkboxAllState="checkboxAllState" :setCheckboxAllState="setCheckboxAllState"' +
+        ' :checkboxStates="checkboxStates" :addCheckboxParameters="addCheckboxParameters"></slot></span>'
+});
+
 Vue.component('m-form', {
     name: "mForm",
+    mixins:[moqui.checkboxSetMixin],
     props: { fieldsInitial:Object, action:{type:String,required:true}, method:{type:String,'default':'POST'},
-        submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean },
+        submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean,
+        excludeEmptyFields:Boolean, parentCheckboxSet:Object },
     data: function() { return { fields:Object.assign({}, this.fieldsInitial), fieldsChanged:{}, buttonClicked:null }},
     // NOTE: <slot v-bind:fields="fields"> also requires prefix from caller, using <m-form v-slot:default="formProps"> in qvt.ftl macro
     // see https://vuejs.org/v2/guide/components-slots.html
     template:
         '<q-form ref="qForm" @submit.prevent="submitForm" @reset.prevent="resetForm" autocapitalize="off" autocomplete="off">' +
-            '<slot v-bind:fields="fields"></slot></q-form>',
+            '<slot :fields="fields" :checkboxAllState="checkboxAllState" :setCheckboxAllState="setCheckboxAllState"' +
+                ' :checkboxStates="checkboxStates" :addCheckboxParameters="addCheckboxParameters"></slot>' +
+        '</q-form>',
     methods: {
         submitForm: function() {
             if (this.noValidate) {
@@ -636,7 +697,9 @@ Vue.component('m-form', {
                 setTimeout(function() { $btn.prop('disabled', false); }, 3000);
             }
             var formData = Object.keys(this.fields).length ? new FormData() : new FormData(this.$refs.qForm.$el);
-            $.each(this.fields, function(key, value) { if (value) { formData.set(key, value); } });
+            $.each(this.fields, function(key, value) { formData.set(key, value || ""); });
+
+            var fieldsToRemove = [];
             // NOTE: using iterator directly to avoid using 'for of' which requires more recent ES version (for minify, browser compatibility)
             var formDataIterator = formData.entries()[Symbol.iterator]();
             while (true) {
@@ -651,9 +714,19 @@ Vue.component('m-form', {
                     // instead of delete set to empty string, otherwise can't clear masked fields: formData["delete"](fieldName);
                     formData.set(fieldName, "");
                 }
+                if (this.excludeEmptyFields && (!fieldValue || !fieldValue.length)) fieldsToRemove.push(fieldName);
             }
+            for (var ftrIdx = 0; ftrIdx < fieldsToRemove.length; ftrIdx++) formData['delete'](fieldsToRemove[ftrIdx]);
+
             formData.set('moquiSessionToken', this.$root.moquiSessionToken);
             if (btnName) { formData.set(btnName, btnValue); }
+
+            // add ID parameters for selected rows, add _isMulti=true
+            if (this.parentCheckboxSet && this.parentCheckboxSet.addCheckboxParameters) {
+                var addedParms = this.parentCheckboxSet.addCheckboxParameters(formData);
+                // TODO: if no addedParms should this blow up or just wait for the server for a missing parameter?
+                // maybe best to leave it to the server, some forms might make sense without any rows selected...
+            }
 
             // console.info('m-form parameters ' + JSON.stringify(formData));
             // for (var key of formData.keys()) { console.log('m-form key ' + key + ' val ' + JSON.stringify(formData.get(key))); }
@@ -951,10 +1024,11 @@ Vue.component('m-form-go-page', {
     props: { idVal:{type:String,required:true}, maxIndex:Number, formList:Object },
     data: function() { return { pageIndex:"" } },
     template:
-    '<q-form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage" :id="idVal+\'_GoPage\'">' +
-        '<q-input dense v-model="pageIndex" type="text" size="4" name="pageIndex" :id="idVal+\'_GoPage_pageIndex\'" placeholder="Page #"' +
-        '   :rules="[val => /^\\d*$/.test(val) || \'digits only\', val => ((formList && +val <= formList.paginate.pageMaxIndex) || (maxIndex && +val < maxIndex)) || \'higher than max\']"></q-input>' +
-        '<q-btn dense flat no-caps type="submit" label="Go"></q-btn>' +
+    '<q-form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage">' +
+        '<q-input dense v-model="pageIndex" type="text" size="4" name="pageIndex" placeholder="Page #"' +
+            '   :rules="[val => /^\\d*$/.test(val) || \'digits only\', val => ((formList && +val <= formList.paginate.pageMaxIndex) || (maxIndex && +val < maxIndex)) || \'higher than max\']">' +
+            '<template v-slot:append><q-btn dense flat no-caps type="submit" icon="redo" @click="goPage"></q-btn></template>' +
+        '</q-input>' +
     '</q-form>',
     methods: { goPage: function() {
         var formList = this.formList;
@@ -1839,7 +1913,7 @@ Vue.component('m-subscreens-tabs', {
     '</q-tabs><q-separator class="q-mb-md"></q-separator></div>',
      */
     template:
-    '<div v-if="subscreens.length > 0"><q-tabs dense no-caps align="left" active-color="primary" indicator-color="primary" :value="activeTab">' +
+    '<div v-if="subscreens.length > 1"><q-tabs dense no-caps align="left" active-color="primary" indicator-color="primary" :value="activeTab">' +
         '<q-tab v-for="tab in subscreens" :key="tab.name" :name="tab.name" :label="tab.title" :disable="tab.disableLink" @click.prevent="goTo(tab.pathWithParams)"></q-tab>' +
     '</q-tabs><q-separator class="q-mb-md"></q-separator></div>',
     methods: {
@@ -1919,6 +1993,14 @@ Vue.component('m-menu-nav-item', {
         '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
         '<template v-slot:default><m-menu-subscreen-item v-for="(subscreen, ssIndex) in navMenuItem.subscreens" :key="subscreen.name" :menu-index="menuIndex" :subscreen-index="ssIndex"></m-menu-subscreen-item></template>' +
     '</q-expansion-item>' +
+    '<q-expansion-item v-else-if="navMenuItem && navMenuItem.savedFinds && navMenuItem.savedFinds.length" :value="true" :content-inset-level="0.3"' +
+            ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go">' +
+        '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
+        '<template v-slot:default><q-expansion-item v-for="(savedFind, ssIndex) in navMenuItem.savedFinds" :key="savedFind.name"' +
+                ' :value="false" switch-toggle-side dense dense-toggle expand-icon="chevron_right" :to="savedFind.pathWithParams" @input="goPath(savedFind.pathWithParams)">' +
+            '<template v-slot:header><m-menu-item-content :menu-item="savedFind" :active="savedFind.active"/></template>' +
+        '</q-expansion-item></template>' +
+    '</q-expansion-item>' +
     '<q-expansion-item v-else-if="menuIndex < (navMenuLength - 1)" :value="true" :content-inset-level="0.3"' +
             ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go">' +
         '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
@@ -1927,7 +2009,10 @@ Vue.component('m-menu-nav-item', {
     '<q-expansion-item v-else-if="navMenuItem" :value="false" switch-toggle-side dense dense-toggle expand-icon="arrow_right" :to="navMenuItem.pathWithParams" @input="go">' +
         '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
     '</q-expansion-item>',
-    methods: { go: function go() { this.$root.setUrl(this.navMenuItem.pathWithParams); } },
+    methods: {
+        go: function go() { this.$root.setUrl(this.navMenuItem.pathWithParams); },
+        goPath: function goPath(path) { this.$root.setUrl(path); }
+    },
     computed: {
         navMenuItem: function() { return this.$root.navMenuList[this.menuIndex]; },
         navMenuLength: function() { return this.$root.navMenuList.length; }
@@ -2272,7 +2357,7 @@ window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.
 // NOTE: simulate vue-router so this.$router.resolve() works in a basic form; required for use of q-btn 'to' attribute along with router-link component defined above
 moqui.webrootRouter = {
     resolve: function resolve(to, current, append) {
-        var location = moqui.isString(to) ? location = moqui.parseHref(to) : location = to;
+        var location = moqui.isString(to) ? moqui.parseHref(to) : to;
 
         var path = location.path;
         if (moqui.webrootVue) location.path = path = moqui.webrootVue.getLinkPath(path);

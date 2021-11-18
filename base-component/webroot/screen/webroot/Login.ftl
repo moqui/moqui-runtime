@@ -22,7 +22,7 @@
         <form method="post" action="${sri.buildUrl("login").url}" class="form-signin" id="login_form">
             <p class="text-muted text-center">${ec.l10n.localize("Enter your username and password to sign in")}</p>
             <#-- not needed for this request: <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"> -->
-            <input type="text" name="username" value="${(ec.getWeb().getErrorParameters().get("username"))!""}" placeholder="${ec.l10n.localize("Username")}" required="required" class="form-control top" id="login_form_username">
+            <input type="text" name="username" value="${((ec.getWeb().getErrorParameters().get("username"))!"")?html}" placeholder="${ec.l10n.localize("Username")}" required="required" class="form-control top" id="login_form_username">
             <input type="password" name="password" placeholder="${ec.l10n.localize("Password")}" required="required" class="form-control bottom">
             <button class="btn btn-lg btn-primary btn-block" type="submit">${ec.l10n.localize("Sign in")}</button>
         </form>

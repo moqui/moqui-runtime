@@ -49,7 +49,7 @@ along with this software (see the LICENSE.md file). If not, see
         <!-- TODO: get fancier with this, crawl screen tree looking for screens that don't require authc, maybe some sort of setting to allow robots or not -->
         <!-- TODO: also generate sitemap XML with paths we want crawled, based on ? -->
         <actions><script><![CDATA[
-            List disallowList = ['apps', 'vapps', 'rest', 'rpc', 'status', 'menuData']
+            List disallowList = ['apps', 'vapps', 'qapps', 'rest', 'rpc', 'status', 'menuData']
             def outWriter = new StringWriter()
             outWriter.append("user-agent: *\n")
             for (disPath in disallowList) outWriter.append("disallow: /${disPath}\n")

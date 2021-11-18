@@ -26,6 +26,32 @@ along with this software (see the LICENSE.md file). If not, see
         </actions>
         <default-response url="." parameter-map="ec.web.requestParameters"/>
     </transition>
+    <transition name="emailScreenUserAsync" read-only="true">
+        <service-call name="org.moqui.impl.EmailServices.send#ScreenRenderEmail" async="true"
+                in-map="context + [screenLocation:sri.getActiveScreenDef().location, bodyParameters:ec.web.requestParameters, toAddresses:ec.user.userAccount?.emailAddress]"/>
+        <actions>
+            <if condition="!ec.message.hasError()">
+                <message type="success">Your report is being generated and will be sent to ${ec.user.userAccount?.emailAddress} when ready.</message></if>
+        </actions>
+        <default-response url="." parameter-map="ec.web.requestParameters"/>
+    </transition>
+
+    <transition name="getEnumRelatedByTypeList" read-only="true">
+        <parameter name="enumId"/>
+        <actions>
+            <entity-find-one entity-name="moqui.basic.Enumeration" value-field="baseEnum"/>
+            <if condition="baseEnum == null || !baseEnum.relatedEnumTypeId"><then>
+                <script>ec.web.sendJsonResponse([])</script>
+            </then><else>
+                <entity-find entity-name="moqui.basic.Enumeration" list="relatedEnumByTypeList">
+                    <econdition field-name="enumTypeId" from="baseEnum.relatedEnumTypeId"/>
+                    <order-by field-name="sequenceNum,description"/>
+                </entity-find>
+                <script>ec.web.sendJsonResponse(relatedEnumByTypeList)</script>
+            </else></if>
+        </actions>
+        <default-response type="none"/>
+    </transition>
 
     <widgets>
         <section name="EmailScreenSection"><widgets>
@@ -37,6 +63,19 @@ along with this software (see the LICENSE.md file). If not, see
                         <default-field><text-line size="60"/></default-field></field>
                     <field name="toAddresses" from="ec.user.userAccount?.emailAddress">
                         <default-field><text-line size="80"/></default-field></field>
+                    <field name="submitButton"><default-field title="Send Email"><submit/></default-field></field>
+                </form-single>
+            </container-dialog>
+        </widgets></section>
+        <section name="EmailScreenUserSection"><widgets>
+            <container-dialog id="EmailScreenUserDialog" button-text="Email Export">
+                <form-single name="EmailScreenUserForm" transition="emailScreenUserAsync" pass-through-parameters="true">
+                    <field name="screenRenderMode"><default-field title="Output"><radio no-current-selected-key="xlsx">
+                        <option key="xlsx" text="XLS"/><option key="csv" text="CSV"/></radio></default-field></field>
+                    <field name="title" from="'Report: ' + sri.getActiveScreenDef().getDefaultMenuName()">
+                        <default-field><text-line size="60"/></default-field></field>
+                    <field name="toAddresses" from="ec.user.userAccount?.emailAddress">
+                        <default-field><display/></default-field></field>
                     <field name="submitButton"><default-field title="Send Email"><submit/></default-field></field>
                 </form-single>
             </container-dialog>

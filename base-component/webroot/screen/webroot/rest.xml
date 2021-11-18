@@ -16,43 +16,13 @@ along with this software (see the LICENSE.md file). If not, see
         require-authentication="false" track-artifact-hit="false" default-menu-include="false">
     <!-- NOTE: require-authentication=false is required to allow transitions to decide. -->
 
-    <!--
-    Send request to api_key to get a temporary login/api key to pass to other rest calls instead of username/password.
+    <!-- NOTE: the api_key transition was removed because there is no good use case, just use cases that are less secure and poorly thought through -->
+    <!-- NOTE: the moquiSessionToken was removed for security reasons, it opened a vector in a CSRF attack to acquire the session token at any time -->
 
-    A user must be authenticated for this request, and the key will be associated with that user. Each time this is
-    called a new key is issued as the key is one-way hashed when saved to the database. Keys expire after the number of
-    hours configured on the Moqui Conf XML file (in user-facade.login-key.@expire-hours). The default is 144 hours, some
-    may want a short time (like 1 hour) for more of a session like behavior, others may want to expire after months for
-    server clients and more of a utility API.
-
-    A client may know a key but not know the user credentials, ie for longer term issued keys. In this case don't use
-    this request to get a key, just use the API key in the header for requests.
-
-    An example request:
-
-    curl -X GET -H "Accept: text/plain" -u john.doe:moqui http://localhost:8080/rest/api_key
-
-    To see an error response (401) for the wrong password:
-
-    curl -X GET -H "Accept: text/plain" -u john.doe:foo -i http://localhost:8080/rest/api_key
-
-    Put the value from that request in the "api_key" header for authc on other requests.
-
-    curl -X GET -H "api_key: {apiKey}" http://localhost:8080/rest/s1/example/examples/TEST2
-    -->
-    <transition name="api_key" begin-transaction="false">
-        <actions><script>
-            try { ec.web.sendTextResponse(ec.user.getLoginKey()) }
-            catch (org.moqui.context.AuthenticationRequiredException are) { ec.web.sendError(401, are.message, are) }
-        </script></actions>
-        <default-response type="none"/>
-    </transition>
-    <!-- Get a session token for clients that are not authenticated (no api_key) to use for all request methods other than GET -->
-    <transition name="moquiSessionToken" begin-transaction="false">
-        <actions><script>ec.web.sendTextResponse(ec.web.sessionToken)</script></actions>
-        <default-response type="none"/>
-    </transition>
-    <!-- REST API calls from a browser or session aware client will have an active session, use this for explicit logout and terminate session -->
+    <!-- login: for client applications that use a Moqui UserAccount -->
+    <transition name="login" require-session-token="false"><actions><script>ec.user.loginUser(username, password)</script></actions>
+        <default-response type="none"/></transition>
+    <!-- logout: REST API calls from a browser or session aware client will have an active session, use this for explicit logout and terminate session -->
     <transition name="logout" begin-transaction="false">
         <actions><script>
             if (ec.user.username) { ec.user.logoutUser(); ec.web.sendTextResponse("successful") }

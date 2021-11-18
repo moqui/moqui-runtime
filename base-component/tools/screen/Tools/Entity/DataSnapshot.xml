@@ -91,8 +91,8 @@ along with this software (see the LICENSE.md file). If not, see
                         <list-options list="ec.entity.getAllEntitiesInfo('fullEntityName', null, false, true)" key="${fullEntityName}"/>
                     </drop-down></default-field>
                 </field>
-                <field name="fromDate"><default-field><date-time/></default-field></field>
-                <field name="thruDate"><default-field><date-time/></default-field></field>
+                <field name="fromDate"><default-field><date-time minute-stepping="1"/></default-field></field>
+                <field name="thruDate"><default-field><date-time minute-stepping="1"/></default-field></field>
                 <field name="baseFilename"><default-field><text-line size="40" default-value="MoquiSnapshot${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMdd-HHmm')}"/></default-field></field>
                 <field name="filePerEntity"><default-field>
                     <radio no-current-selected-key="false"><option key="true"/><option key="false"/></radio>
