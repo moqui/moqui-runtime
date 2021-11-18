@@ -54,7 +54,7 @@ along with this software (see the LICENSE.md file). If not, see
         <container-row><row-col md="6">
             <container-box><box-header title="Job Run Info"/><box-toolbar>
                 <link url="runJob" text="Run Job" confirmation="Run job now with current parameters?"/>
-                <link url="jobRunList" text="Job Runs" parameter-map="[jobName:jobName, startTime_poffset:'0', startTime_period:'Month']"/>
+                <link url="jobRunList" text="Job Runs" parameter-map="[jobName:jobName]"/>
             </box-toolbar><box-body>
                 <container-row>
                     <row-col md="2"><label text="Last Run" type="strong"/></row-col>

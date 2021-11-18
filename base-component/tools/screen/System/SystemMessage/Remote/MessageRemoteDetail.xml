@@ -36,7 +36,7 @@ along with this software (see the LICENSE.md file). If not, see
             <econdition field-name="systemMessageRemoteId"/></entity-find>
     </actions>
     <widgets>
-        <container-row><row-col lg="7">
+        <container-row><row-col md="6">
             <link url="systemMessageList" text="Messages" parameter-map="[systemMessageRemoteId:systemMessageRemoteId]"/>
 
             <form-single name="SystemMessageRemoteForm" map="systemMessageRemote" transition="updateMessageRemote">
@@ -62,9 +62,12 @@ along with this software (see the LICENSE.md file). If not, see
                 <field name="elementSeparator"><default-field><text-line size="1" maxlength="1"/></default-field></field>
                 <field name="componentDelimiter"><default-field><text-line size="1" maxlength="1"/></default-field></field>
                 <field name="escapeCharacter"><default-field><text-line size="1" maxlength="1"/></default-field></field>
+                <field name="publicKey"><default-field><text-area cols="100" maxlength="4000"/></default-field></field>
+                <field name="privateKey"><default-field><text-area cols="100" maxlength="4000"/></default-field></field>
+                <field name="remotePublicKey"><default-field><text-area cols="100" maxlength="4000"/></default-field></field>
                 <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
             </form-single>
-        </row-col><row-col lg="5">
+        </row-col><row-col md="6">
             <container-box><box-header title="Remote Enum Map"/><box-toolbar>
                 <container-dialog id="createMessageRemoteEnumMap" button-text="Create Enum Map">
                     <form-single name="CreateMessageRemoteEnumMap" transition="createMessageRemoteEnumMap">

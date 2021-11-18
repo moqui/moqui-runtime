@@ -28,6 +28,7 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <container-dialog id="CreateRemoteDialog" button-text="Create Message Remote" width="800">
             <form-single name="CreateMessageRemoteForm" transition="createMessageRemote">
+                <field name="systemMessageRemoteId"><default-field title="SM Remote ID"><text-line/></default-field></field>
                 <field name="description"><default-field><text-line size="40"/></default-field></field>
                 <field name="sendUrl"><default-field><text-line size="80"/></default-field></field>
                 <field name="sendServiceName"><default-field><text-line size="80"/></default-field></field>
