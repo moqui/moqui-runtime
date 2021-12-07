@@ -39,7 +39,7 @@ along with this software (see the LICENSE.md file). If not, see
                         contentDisposition = "attachment"
                     }
 
-                    ec.web.response.addHeader("Content-Disposition", contentDisposition)
+                    ec.web.response.setHeader("Content-Disposition", contentDisposition)
                     IOUtils.write(bytes, ec.web.response.outputStream)
                 } else {
                     ec.message.addError(ec.resource.expand('No document found in PrintJob [${printJobId}]',''))
