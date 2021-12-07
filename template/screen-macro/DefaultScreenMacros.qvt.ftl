@@ -1958,7 +1958,7 @@ a => A, d => D, y => Y
                 :config="{ customConfig:'',<#if editorThemeCssList?has_content>contentsCss:[<#list editorThemeCssList as themeCss>'${themeCss}'<#sep>,</#list>],</#if>
                     allowedContent:true, linkJavaScriptLinksAllowed:true, fillEmptyBlocks:false,
                     extraAllowedContent:'p(*)[*]{*};div(*)[*]{*};li(*)[*]{*};ul(*)[*]{*};i(*)[*]{*};span(*)[*]{*}',
-                    width:'100%', height:'600px', removeButtons:'Image,Save,NewPage,Preview' }"></m-ck-editor>
+                    width:'100%', height:'600px', removeButtons:'Image,Save,NewPage,Preview',autoParagraph:false}"></m-ck-editor>
     <#elseif editorType == "md">
         <m-simple-mde<#if fieldsJsName?has_content> v-model="${fieldsJsName}.${name}"</#if>
                 :config="{ indentWithTabs:false, autoDownloadFontAwesome:false, autofocus:true, spellChecker:false }"></m-simple-mde>

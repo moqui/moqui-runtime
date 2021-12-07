@@ -2219,6 +2219,7 @@ a => A, d => D, y => Y
         <script src="https://cdn.ckeditor.com/4.14.1/standard-all/ckeditor.js" type="text/javascript"></script>
         <script>
         CKEDITOR.dtd.$removeEmpty['i'] = false;
+        CKEDITOR.config.autoParagraph = false;
         CKEDITOR.replace('${textAreaId}', { customConfig:'',<#if editorThemeCssList?has_content>contentsCss:[<#list editorThemeCssList as themeCss>'${themeCss}'<#sep>,</#list>],</#if>
             allowedContent:true, linkJavaScriptLinksAllowed:true, fillEmptyBlocks:false,
             extraAllowedContent:'p(*)[*]{*};div(*)[*]{*};li(*)[*]{*};ul(*)[*]{*};i(*)[*]{*};span(*)[*]{*}',
