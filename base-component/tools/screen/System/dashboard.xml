@@ -45,7 +45,7 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <container-row><row-col md="6">
-            <container-box><box-header title="Server Admin"/><box-body>
+            <container-box id="ServerAdmin"><box-header title="Server Admin"/><box-body>
                 <link url="../Cache" text="Cache Mgmt"/>
                 <link url="../Instance" text="Instance Mgmt"/>
                 <link url="../Print/Printer" text="Printers"/>
@@ -54,13 +54,13 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="../ServiceJob/Jobs" text="Service Jobs"/>
                 <link url="../ServiceJob/JobRuns" text="Jobs Runs"/>
             </box-body></container-box>
-            <container-box><box-header title="Security"/><box-body>
+            <container-box id="Security"><box-header title="Security"/><box-body>
                 <link url="../Security/UserAccount" text="Users"/>
                 <link url="../Security/UserGroup" text="User Groups"/>
                 <link url="../Security/ArtifactGroup" text="Artifact Groups"/>
                 <link url="../Security/ActiveUsers" text="Active Users"/>
             </box-body></container-box>
-            <container-box><box-header title="Usage"/><box-body>
+            <container-box id="Usage"><box-header title="Usage"/><box-body>
                 <link url="../ArtifactHitSummary" text="Artifact Hit Summary"/>
                 <link url="../ArtifactHitBins" text="Artifact Hit Bins"/>
                 <link url="../AuditLog" text="Audit Log"/>
@@ -68,25 +68,25 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="../LogViewer" text="Log Viewer"/>
             </box-body></container-box>
         </row-col><row-col md="6">
-            <container-box><box-header title="Data Documents and Feeds"/><box-body>
+            <container-box id="DataDocumentsFeeds"><box-header title="Data Documents and Feeds"/><box-body>
                 <link url="../DataDocument/Search" text="Search"/>
                 <link url="../DataDocument/Export" text="Export"/>
                 <link url="../DataDocument/Index" text="Feed Index"/>
                 <link url="../DataDocument/Edit" text="Edit and Report Builder"/>
             </box-body></container-box>
-            <container-box><box-header title="Data Admin"/><box-body>
+            <container-box id="DataAdmin"><box-header title="Data Admin"/><box-body>
                 <link url="../Localization/Messages" text="L10n: Messages"/>
                 <link url="../Localization/EntityFields" text="L10n: Entity Fields"/>
                 <link url="../Resource" text="Resource Finder"/>
             </box-body></container-box>
-            <container-box><box-header title="Integration Admin"/><box-body>
+            <container-box id="IntegrationAdmin"><box-header title="Integration Admin"/><box-body>
                 <link url="../SystemMessage/Message" text="System Messages"/>
                 <link url="../SystemMessage/Remote" text="Message Remotes"/>
                 <link url="../SystemMessage/Type" text="Message Types"/>
                 <link url="../EntitySync" text="Entity Data Sync"/>
             </box-body></container-box>
         </row-col></container-row>
-        <container-box><box-header title="System Information"/><box-toolbar>
+        <container-box id="SystemInformation"><box-header title="System Information"/><box-toolbar>
             <link url="reInitElasticFacade" text="Re-Init Elastic" confirmation="Try again to initialize configured Elastic Search Clients?"/>
             <link url="threadList" text="Thread List"/>
         </box-toolbar><box-body>
