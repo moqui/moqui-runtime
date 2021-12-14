@@ -29,6 +29,19 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="resetPassword"><service-call name="org.moqui.impl.UserServices.reset#Password"/>
         <default-response url="."/></transition>
 
+    <transition name="loginAs">
+        <parameter name="loginAsUsername"/>
+        <actions>
+            <if condition="ec.user.hasPermission('ADMIN_LOGIN_AS')"><then>
+                <script>ec.user.internalLoginUser(loginAsUsername)</script>
+            </then><else>
+                <return error="true" message="You are not permitted to login as another user"/>
+            </else></if>
+        </actions>
+        <default-response url="/"/>
+        <error-response url="."/>
+    </transition>
+
     <transition name="visitList"><default-response url="../../../Visit/VisitList"/></transition>
     <transition name="visitDetail"><default-response url="../../../Visit/VisitDetail"/></transition>
 
@@ -114,6 +127,9 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="disableUserAccount" text="Disable Account" parameter-map="[userId:userId]" condition="userAccount.disabled != 'Y'"/>
                 <link url="resetPassword" text="Reset Password" parameter-map="[userId:userAccount.userId]" condition="userAccount.emailAddress"
                         confirmation="Generate reset password and send by email to ${userAccount.emailAddress}?"/>
+                <link url="loginAs" text="Login As" confirmation="Login as ${userAccount.username}?"
+                        condition="ec.user.hasPermission('ADMIN_LOGIN_AS') &amp;&amp; ec.user.username != userAccount.username"
+                        parameter-map="[loginAsUsername:userAccount.username]"/>
 
                 <container-dialog id="AuditLogDialog" button-text="Audit Log" width="960">
                     <form-list name="AuditLogList" list="auditLogList" skip-form="true">
