@@ -49,7 +49,7 @@ along with this software (see the LICENSE.md file). If not, see
                 if (thruDate) edw.thruDate(ec.l10n.parseTimestamp(thruDate, null))
                 if (filterMap) edw.filterMap((Map) ec.resource.expression(filterMap, null))
                 if (orderBy) edw.orderBy([(String) orderBy])
-                edw.fileType(fileType == 'JSON' ? EntityDataWriter.JSON : EntityDataWriter.XML)
+                edw.fileType((String) fileType)
 
                 noResponse = false
                 if (context.output == "file") {
@@ -89,7 +89,7 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="filterMap"><default-field><text-line size="80" default-value="[:]"/></default-field></field>
             <field name="orderBy"><default-field><text-line size="80"/></default-field></field>
             <field name="fileType"><default-field>
-                <radio no-current-selected-key="XML"><option key="XML"/><option key="JSON"/></radio>
+                <radio no-current-selected-key="XML"><option key="XML"/><option key="JSON"/><option key="CSV"/></radio>
             </default-field></field>
             <field name="output">
                 <default-field><radio no-current-selected-key="browser">

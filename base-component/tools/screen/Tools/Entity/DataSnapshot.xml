@@ -21,9 +21,10 @@ along with this software (see the LICENSE.md file). If not, see
             <script><![CDATA[
                 if (!entitiesToSkip) entitiesToSkip = null
                 if (entitiesToSkip != null && !(entitiesToSkip instanceof List)) entitiesToSkip = [entitiesToSkip]
-
+                if ("CSV".equals(fileType)) filePerEntity = true
                 jobRunId = ec.service.job("ExportEntityDataSnapshot")
-                    .parameters([fromDate:fromDate, thruDate:thruDate, baseFilename:baseFilename, filePerEntity:filePerEntity,
+                    .parameters([fromDate:fromDate, thruDate:thruDate, baseFilename:baseFilename, fileType:fileType,
+                                 filePerEntity:filePerEntity, isoDateTime:isoDateTime, tableColumnNames:tableColumnNames,
                                  entitiesToSkip:entitiesToSkip]).run()
             ]]></script>
             <message>Started Export Entity Data Snapshot ${baseFilename} (Job ID ${jobRunId})</message>
@@ -93,10 +94,21 @@ along with this software (see the LICENSE.md file). If not, see
                 </field>
                 <field name="fromDate"><default-field><date-time minute-stepping="1"/></default-field></field>
                 <field name="thruDate"><default-field><date-time minute-stepping="1"/></default-field></field>
-                <field name="baseFilename"><default-field><text-line size="40" default-value="MoquiSnapshot${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMdd-HHmm')}"/></default-field></field>
+                <field name="baseFilename"><default-field><text-line size="40" default-value="MoquiSnapshot-${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMdd-HHmm')}"/></default-field></field>
+                <field name="fileType"><default-field>
+                    <radio no-current-selected-key="XML"><option key="XML"/><option key="JSON"/><option key="CSV"/></radio>
+                </default-field></field>
                 <field name="filePerEntity"><default-field>
                     <radio no-current-selected-key="false"><option key="true"/><option key="false"/></radio>
                 </default-field></field>
+                <!-- these are only supported for CSV for now, hide until better supported (ie API only)
+                <field name="isoDateTime"><default-field>
+                    <radio no-current-selected-key="false"><option key="true"/><option key="false"/></radio>
+                </default-field></field>
+                <field name="tableColumnNames"><default-field>
+                    <radio no-current-selected-key="false"><option key="true"/><option key="false"/></radio>
+                </default-field></field>
+                -->
                 <field name="submitButton"><default-field title="Export Snapshot"><submit/></default-field></field>
             </form-single>
         </container-dialog>
