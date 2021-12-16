@@ -22,7 +22,7 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
-        <set field="smap" from="ec.factory.getStatusMap()"/>
+        <set field="smap" from="ec.factory.getStatusMap(true)"/>
         <set field="loadPercent" from="(smap.Utilization.LoadPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
         <set field="heapPercent" from="(smap.Utilization.HeapPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
         <set field="diskPercent" from="(smap.Utilization.DiskPercent as BigDecimal).setScale(1, BigDecimal.ROUND_HALF_UP)"/>
