@@ -12,8 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
-<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-include="false" standalone="true">
 
     <parameter name="userId" required="true"/>
@@ -24,13 +23,13 @@ along with this software (see the LICENSE.md file). If not, see
         <actions><if condition="!verified"><message type="danger">Authentication code is not valid</message></if></actions>
         <default-response url=".."/>
     </transition>
-    <transition name="sendAuthcCodeEmail"><service-call name="org.moqui.impl.UserServices.send#AuthcCodeEmail" in-map="[emailFactorId:factorId]"/>
+    <!-- NOTE: use send#AuthcCodeEmail directly to skip username validation for admin use -->
+    <transition name="sendAuthcCodeEmail"><service-call name="org.moqui.impl.UserServices.send#AuthcCodeEmail" in-map="[factorId:factorId]"/>
         <default-response url=".."/></transition>
 
     <actions>
         <entity-find-one entity-name="moqui.security.UserAuthcFactor" value-field="userAuthcFactor"/>
     </actions>
-
     <widgets>
         <label text="Follow the Steps Below to Verify" type="h5"/>
         <container type="ol">

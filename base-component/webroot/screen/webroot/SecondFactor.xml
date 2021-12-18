@@ -15,18 +15,8 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-include="false" require-authentication="anonymous-all" history="false">
 
-    <transition name="sendOtpEmail">
-        <actions>
-            <entity-find-one entity-name="moqui.security.UserAuthcFactor" value-field="userAuthcFactor">
-                <field-map field-name="factorId"/></entity-find-one>
-            <if condition="!userAuthcFactor"><return error="true" message="No Authc Factor found with ID: ${factorId}"/></if>
-
-            <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
-                <field-map field-name="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/></entity-find-one>
-            <if condition="userAuthcFactor.userId != userAccount.userId"><return error="true" message="Authentication Factor ${factorId} is not valid for ${userAccount.username}"/></if>
-
-            <service-call name="org.moqui.impl.UserServices.send#AuthcCodeEmail" in-map="[emailFactorId:factorId]" out-map="context"/>
-        </actions>
+    <transition name="sendOtp">
+        <service-call name="org.moqui.impl.UserServices.send#AuthcCode" in-map="[factorId:factorId]"/>
         <default-response url="."/>
     </transition>
 

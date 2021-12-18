@@ -19,6 +19,15 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- NOTE: the api_key transition was removed because there is no good use case, just use cases that are less secure and poorly thought through -->
     <!-- NOTE: the moquiSessionToken was removed for security reasons, it opened a vector in a CSRF attack to acquire the session token at any time -->
 
+    <!-- MFA Sequences:
+        already have code:
+        - login: submit username, password, and code
+        needs code sent:
+        - login: submit username/password, if user requires authc code get back MFA options info (authc factors) - server remembers user in session
+        - sendOtp: submit factorId in same session, if factor owned by remembered user then server sends code via email, SMS, etc
+        - verifyOtp: submit code in same session, if valid login user
+    -->
+
     <!-- login: for client applications that use a Moqui UserAccount -->
     <transition name="login" require-session-token="false"><actions><script>ec.user.loginUser(username, password)</script></actions>
         <default-response type="none"/></transition>
