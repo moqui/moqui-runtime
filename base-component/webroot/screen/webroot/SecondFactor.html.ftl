@@ -1,9 +1,9 @@
 <p class="text-strong text-center">${ec.l10n.localize("Enter an Authentication Code")}</p>
 <p class="text-center">${ec.l10n.localize("You have the following codes configured:")}</p>
 <ul class="form-signin" style="padding-left:40px;">
-    <#if factorTypes.contains('UafTotp')><li>Authenticator App</li></#if>
-    <#if factorTypes.contains('UafSingleUse')><li>Single Use Code</li></#if>
-    <#if factorTypes.contains('UafEmail')><li>Email Code</li></#if>
+    <#if factorTypes.contains('UafTotp')><li>${ec.l10n.localize("Authenticator App")}</li></#if>
+    <#if factorTypes.contains('UafSingleUse')><li>${ec.l10n.localize("Single Use Code")}</li></#if>
+    <#if factorTypes.contains('UafEmail')><li>${ec.l10n.localize("Email Code")}</li></#if>
 </ul>
 
 <#-- Form for Code entry -->
@@ -14,7 +14,7 @@
 </form>
 
 <#if factorTypes.contains('UafEmail')>
-<#list userAuthcFactorFilteredList as userAuthcFactor>
+<#list userAuthcFactorList as userAuthcFactor>
     <#if userAuthcFactor.factorTypeEnumId == 'UafEmail'>
         <div class="text-center">
             <form method="post" action="${sri.buildUrl("sendOtp").url}" class="form-signin">

@@ -43,16 +43,22 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
             <field-map field-name="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/></entity-find-one>
-        <entity-find entity-name="moqui.security.UserAuthcFactor" list="userAuthcFactorList">
-            <date-filter/><econdition field-name="userId" from="userAccount.userId"/></entity-find>
-        <set field="userAuthcFactorFilteredList" from="[]"/>
+        <if condition="userAccount == null"><return error="true" message="No user pre-authenticated"/></if>
 
-        <iterate list="userAuthcFactorList" entry="userAuthcFactor">
-            <if condition="userAuthcFactor.factorTypeEnumId != UafSingleUse &amp;&amp; !userAuthcFactor.fromFactorId">
-                <script>userAuthcFactorFilteredList.add(userAuthcFactor)</script>
-            </if>
-        </iterate>
-        <set field="factorTypes" from="userAuthcFactorFilteredList*.factorTypeEnumId"/>
+        <entity-find entity-name="moqui.security.UserAuthcFactor" list="userAuthcFactorList">
+            <date-filter/><econdition field-name="userId" from="userAccount.userId"/>
+            <econdition field-name="fromFactorId" operator="is-null"/>
+            <!-- was condition in post-find iterate: userAuthcFactor.factorTypeEnumId != UafSingleUse &amp;&amp; !userAuthcFactor.fromFactorId -->
+        </entity-find>
+
+        <!-- if user has no authc factors configured allow code via UserAccount.emailAddress -->
+        <!-- NOTE: org.moqui.impl.UserServices.send#AuthcCode looks for a special factorId of 'UserAccountEmail' for this purpose -->
+        <if condition="userAuthcFactorList.size() == 0 &amp;&amp; userAccount.emailAddress">
+            <set field="userAuthcFactorList" from="[[factorId:'UserAccountEmail', userId:userAccount.userId,
+                    factorTypeEnumId:'UafEmail', factorOption:userAccount.emailAddress]]"/>
+        </if>
+
+        <set field="factorTypes" from="userAuthcFactorList*.factorTypeEnumId"/>
     </actions>
 
     <widgets>
@@ -74,7 +80,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
             </widgets></section-iterate>
 
-            <section name="UserHasAuthcFactors" condition="userAuthcFactorFilteredList"><widgets>
+            <section name="UserHasAuthcFactors" condition="userAuthcFactorList"><widgets>
                 <render-mode><text type="html" template="true" location="component://webroot/screen/webroot/SecondFactor.html.ftl"/></render-mode>
             </widgets><fail-widgets>
                 <label type="h1" text="Your account requires a code to login and you do not have any setup. Contact an Administrator."/>
