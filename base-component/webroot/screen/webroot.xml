@@ -26,7 +26,7 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="status">
         <actions>
             <set field="allowed_ips" from="System.getProperty('webapp_status_ips')? System.getProperty('webapp_status_ips').replaceAll('\\s', '').split(',')+['127.0.0.1']: ['127.0.0.1']"/>
-            <if condition="ec.web.getRequest().getRemoteAddr() in allowed_ips"><then>
+            <if condition="ec.user.getClientIp() in allowed_ips"><then>
                 <script>ec.web.sendJsonResponse(ec.factory.getStatusMap())</script>
             </then><else>
                 <log message="Rejecting /status from ${ec.web.getRequest().getRemoteAddr()}"/>

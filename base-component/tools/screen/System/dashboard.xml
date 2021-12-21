@@ -87,6 +87,9 @@ along with this software (see the LICENSE.md file). If not, see
             </box-body></container-box>
         </row-col></container-row>
         <container-box id="SystemInformation"><box-header title="System Information"/><box-toolbar>
+            <container-dialog id="RequestHeaders" button-text="Request Details">
+                <label text="${ec.web.getRequestDetails()}" type="pre"/>
+            </container-dialog>
             <link url="reInitElasticFacade" text="Re-Init Elastic" confirmation="Try again to initialize configured Elastic Search Clients?"/>
             <link url="threadList" text="Thread List"/>
         </box-toolbar><box-body>
@@ -95,7 +98,7 @@ along with this software (see the LICENSE.md file). If not, see
             </row-col><row-col sm="4">
                 <label text="Locale: ${Locale.getDefault()}" type="strong"/>
             </row-col><row-col sm="4">
-                <label text="Time Zone: ${TimeZone.getDefault().getID()} GMT${ec.l10n.format(TimeZone.getDefault().getRawOffset()/(1000*60*60), '+00.0;-00.0')} DST ${TimeZone.getDefault().getDSTSavings()/(1000*60*60)}" type="strong"/>
+                <label text="Time: ${ec.l10n.format(ec.user.nowTimestamp, null, null, TimeZone.getDefault())} ${TimeZone.getDefault().getID()} GMT${ec.l10n.format(TimeZone.getDefault().getRawOffset()/(1000*60*60), '+00.0;-00.0')} DST ${TimeZone.getDefault().getDSTSavings()/(1000*60*60)}" type="strong"/>
             </row-col></container-row>
             <container-row><row-col md="4">
                 <container-row><row-col xs="5"><label text="Heap Memory" type="strong"/></row-col>
