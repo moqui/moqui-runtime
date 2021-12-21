@@ -95,7 +95,7 @@ along with this software (see the LICENSE.md file). If not, see
             </row-col><row-col sm="4">
                 <label text="Locale: ${Locale.getDefault()}" type="strong"/>
             </row-col><row-col sm="4">
-                <label text="Time Zone: ${TimeZone.getDefault().getID()} GMT${ec.l10n.format(TimeZone.getDefault().getRawOffset()/(1000*60*60), '+00.0;-00.0')} DST ${TimeZone.getDefault().getDSTSavings()/(1000*60*60)}" type="strong"/>
+                <label text="Time: ${ec.l10n.format(ec.user.nowTimestamp, null, null, TimeZone.getDefault())} ${TimeZone.getDefault().getID()} GMT${ec.l10n.format(TimeZone.getDefault().getRawOffset()/(1000*60*60), '+00.0;-00.0')} DST ${TimeZone.getDefault().getDSTSavings()/(1000*60*60)}" type="strong"/>
             </row-col></container-row>
             <container-row><row-col md="4">
                 <container-row><row-col xs="5"><label text="Heap Memory" type="strong"/></row-col>

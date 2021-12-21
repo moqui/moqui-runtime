@@ -1372,7 +1372,7 @@ Vue.component('m-display', {
         fields:{type:Object}, tooltip:String, label:String, labelWrapper:Boolean, name:String, id:String },
     data: function() { return { curDisplay:this.display, loading:false } },
     template:
-        '<q-input v-if="labelWrapper" dense outlined readonly stack-label :value="displayValue" :label="label" :id="id" :name="name" :loading="loading">' +
+        '<q-input v-if="labelWrapper" dense outlined readonly stack-label autogrow :value="displayValue" :label="label" :id="id" :name="name" :loading="loading">' +
             '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
         '</q-input>' +
         '<span v-else :id="id">' +
