@@ -87,6 +87,15 @@ along with this software (see the LICENSE.md file). If not, see
             </box-body></container-box>
         </row-col></container-row>
         <container-box id="SystemInformation"><box-header title="System Information"/><box-toolbar>
+            <container-dialog id="RequestHeaders" button-text="Request Details">
+                <label text="${ec.web.getRequestDetails()}" type="pre"/>
+                <section-iterate name="IterateHeaders" list="ec.web.request.getHeaderNames()" entry="headerName">
+                    <widgets><container>
+                        <label text="${headerName}:" type="strong"/>
+                        <label text="${ec.web.request.getHeaders(headerName)}"/>
+                    </container></widgets>
+                </section-iterate>
+            </container-dialog>
             <link url="reInitElasticFacade" text="Re-Init Elastic" confirmation="Try again to initialize configured Elastic Search Clients?"/>
             <link url="threadList" text="Thread List"/>
         </box-toolbar><box-body>
