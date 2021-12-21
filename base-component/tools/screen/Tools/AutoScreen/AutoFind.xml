@@ -46,6 +46,8 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <set field="aenDef" from="ec.entity.getEntityDefinition(aen)"/>
         <if condition="aenDef == null"><message error="true">Could not find entity with name: ${aen}</message><return/></if>
+        <!-- get count of all records, don't require parameters if less than 1M -->
+        <set field="recordCount" from="ec.entity.find(aen).count()"/>
     </actions>
     <widgets>
         <container>
@@ -68,7 +70,7 @@ along with this software (see the LICENSE.md file). If not, see
         <form-list name="ListEntityValue" list="entityValueList" list-entry="entityValue" header-dialog="true" skip-form="true" dynamic="true"
                 show-csv-button="true" show-xlsx-button="true" show-page-size="true">
             <entity-find entity-name="${aen}" list="entityValueList" offset="0" limit="50" cache="false" use-clone="true">
-                <search-form-inputs require-parameters="true"/></entity-find>
+                <search-form-inputs require-parameters="${recordCount &gt; 1000000 ? 'true' : 'false'}"/></entity-find>
 
             <field name="aen"><header-field><hidden/></header-field><default-field><hidden/></default-field></field>
 

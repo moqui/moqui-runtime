@@ -65,6 +65,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="targetServerUrl"><default-field><text-line size="50"/></default-field></field>
                     <field name="targetUsername"><default-field title="Username"><text-line size="30"/></default-field></field>
                     <field name="targetPassword"><default-field title="Password"><text-line size="20"/></default-field></field>
+                    <field name="targetPath"><default-field><text-line size="50"/></default-field></field>
 
                     <field name="forPull"><default-field tooltip="Y for pull from remote, N for push to remote">
                         <drop-down><option key="N"/><option key="Y"/></drop-down>
