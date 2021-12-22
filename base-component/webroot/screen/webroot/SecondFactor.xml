@@ -20,13 +20,13 @@ along with this software (see the LICENSE.md file). If not, see
         <default-response url="."/>
     </transition>
 
-    <transition name="verifyUserAuthcFactor" require-session-token="false">
+    <transition name="verifyUserAuthcFactor">
         <actions>
-            <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
-                <field-map field-name="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/></entity-find-one>
-            <service-call name="org.moqui.impl.UserServices.validate#UserAuthcFactorCode" in-map="[userId:userAccount.userId, code:code]" out-map="context"/>
-            <if condition="verified"><then>
-                <script>ec.user.internalLoginUser(ec.web.sessionAttributes.moquiAuthcFactorUsername)</script>
+            <set field="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/>
+            <service-call name="org.moqui.impl.UserServices.validate#ExternalUserAuthcCode"
+                    in-map="[code:code]" out-map="validateOut"/>
+            <if condition="validateOut.verified"><then>
+                <script>ec.user.internalLoginUser(validateOut.username)</script>
             </then><else>
                 <message type="danger">Authentication code is not valid</message>
             </else></if>
@@ -41,24 +41,7 @@ along with this software (see the LICENSE.md file). If not, see
     </script></pre-actions>
 
     <actions>
-        <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
-            <field-map field-name="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/></entity-find-one>
-        <if condition="userAccount == null"><return error="true" message="No user pre-authenticated"/></if>
-
-        <entity-find entity-name="moqui.security.UserAuthcFactor" list="userAuthcFactorList">
-            <date-filter/><econdition field-name="userId" from="userAccount.userId"/>
-            <econdition field-name="fromFactorId" operator="is-null"/>
-            <!-- was condition in post-find iterate: userAuthcFactor.factorTypeEnumId != UafSingleUse &amp;&amp; !userAuthcFactor.fromFactorId -->
-        </entity-find>
-
-        <!-- if user has no authc factors configured allow code via UserAccount.emailAddress -->
-        <!-- NOTE: org.moqui.impl.UserServices.send#AuthcCode looks for a special factorId of 'UserAccountEmail' for this purpose -->
-        <if condition="userAuthcFactorList.size() == 0 &amp;&amp; userAccount.emailAddress">
-            <set field="userAuthcFactorList" from="[[factorId:'UserAccountEmail', userId:userAccount.userId,
-                    factorTypeEnumId:'UafEmail', factorOption:userAccount.emailAddress]]"/>
-        </if>
-
-        <set field="factorTypes" from="userAuthcFactorList*.factorTypeEnumId"/>
+        <service-call name="org.moqui.impl.UserServices.get#UserAuthcFactorInfo" out-map="context"/>
     </actions>
 
     <widgets>
@@ -80,15 +63,12 @@ along with this software (see the LICENSE.md file). If not, see
                 <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
             </widgets></section-iterate>
 
-            <section name="UserHasAuthcFactors" condition="userAuthcFactorList"><widgets>
-                <render-mode><text type="html" template="true" location="component://webroot/screen/webroot/SecondFactor.html.ftl"/></render-mode>
+            <section name="UserHasAuthcFactors" condition="factorTypeEnumIds"><widgets>
+                <render-mode><text type="html" location="component://webroot/screen/webroot/SecondFactor.html.ftl"/></render-mode>
             </widgets><fail-widgets>
                 <label type="h1" text="Your account requires a code to login and you do not have any setup. Contact an Administrator."/>
                 <link url="/Login" text="Back to Login"/>
             </fail-widgets></section>
-
         </container></container></container>
-
-
     </widgets>
 </screen>
