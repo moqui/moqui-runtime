@@ -1,5 +1,5 @@
 <p class="text-strong text-center">${ec.l10n.localize("Enter an Authentication Code")}</p>
-<p class="text-center">${ec.l10n.localize("You have the following codes configured:")}</p>
+<p class="text-center">${ec.l10n.localize("You have these options setup on your account:")}</p>
 <ul class="form-signin" style="padding-left:40px;">
     <#list factorTypeDescriptions as factorType>
         <li>${factorType}</li>
