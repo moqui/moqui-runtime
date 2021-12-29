@@ -16,7 +16,7 @@ along with this software (see the LICENSE.md file). If not, see
         default-menu-include="false" require-authentication="anonymous-all" history="false">
 
     <transition name="sendOtp">
-        <service-call name="org.moqui.impl.UserServices.send#AuthcCode" in-map="[factorId:factorId]"/>
+        <service-call name="org.moqui.impl.UserServices.send#ExternalAuthcCode" in-map="[factorId:factorId]"/>
         <default-response url="."/>
     </transition>
 
@@ -41,7 +41,7 @@ along with this software (see the LICENSE.md file). If not, see
     </script></pre-actions>
 
     <actions>
-        <service-call name="org.moqui.impl.UserServices.get#UserAuthcFactorInfo" out-map="context"/>
+        <service-call name="org.moqui.impl.UserServices.get#ExternalUserAuthcFactorInfo" out-map="context"/>
     </actions>
 
     <widgets>

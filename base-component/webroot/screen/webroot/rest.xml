@@ -49,7 +49,7 @@ along with this software (see the LICENSE.md file). If not, see
                     </else></if>
                 </then></if>
                 <!-- if we didn't return above send back info about user's authc factors -->
-                <service-call name="org.moqui.impl.UserServices.get#UserAuthcFactorInfo" web-send-json-response="true"/>
+                <service-call name="org.moqui.impl.UserServices.get#ExternalUserAuthcFactorInfo" web-send-json-response="true"/>
             </if>
         </actions>
         <default-response type="none"/>
@@ -59,7 +59,7 @@ along with this software (see the LICENSE.md file). If not, see
             factorId can be UserAccountEmail IFF user has no active authc factors configured -->
     <transition name="sendOtp">
         <parameter name="factorId" required="true"/>
-        <service-call name="org.moqui.impl.UserServices.send#AuthcCode" in-map="[factorId:factorId]"
+        <service-call name="org.moqui.impl.UserServices.send#ExternalAuthcCode" in-map="[factorId:factorId]"
                 web-send-json-response="true"/>
         <default-response type="none"/>
     </transition>
