@@ -2027,7 +2027,7 @@ a => A, d => D, y => Y
                 <#t><#if formDisabled! || ec.getResource().condition(.node.@disabled!"false", "")> disable</#if>
                 <#t> class="<#if validationClasses?has_content>${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
                 <#t><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}" data-msg-pattern="${regexpInfo.message!"Invalid format"}"</#if>
-                <#t><#if expandedMask?has_content> mask="${expandedMask}" fill-mask="_"</#if>
+                <#t><#if expandedMask?has_content> mask="${expandedMask}" fill-mask="_"<#if validationClasses?contains("number")> :reverse-fill-mask="true"</#if></#if>
                 <#t><#if .node["@default-transition"]?has_content>
                     <#t> default-url="${defUrlInfo.path}" :default-load-init="true"<#if .node["@depends-optional"]! == "true"> :depends-optional="true"</#if>
                     <#t> :depends-on="{<#list depNodeList as depNode><#local depNodeField = depNode["@field"]>'${depNode["@parameter"]!depNodeField}':'${depNodeField}'<#sep>, </#list>}"
