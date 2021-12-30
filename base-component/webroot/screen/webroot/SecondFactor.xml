@@ -28,7 +28,7 @@ along with this software (see the LICENSE.md file). If not, see
             <if condition="validateOut.verified"><then>
                 <script>ec.user.internalLoginUser(validateOut.username)</script>
             </then><else>
-                <message type="danger">Authentication code is not valid</message>
+                <message type="danger" public="true">Authentication code not valid</message>
             </else></if>
         </actions>
         <conditional-response url="/"><condition><expression>verified</expression></condition></conditional-response>

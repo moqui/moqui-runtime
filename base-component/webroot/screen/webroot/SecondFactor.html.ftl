@@ -8,8 +8,10 @@
 
 <#-- Form for Code entry -->
 <form method="post" action="${sri.buildUrl("verifyUserAuthcFactor").url}" class="form-signin">
-    <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
-    <input type="password" name="code" placeholder="${ec.l10n.localize("Authentication Code")}" required="required" class="form-control">
+    <input name="moquiSessionToken" type="hidden" value="${ec.web.sessionToken}">
+    <input name="code" type="text" inputmode="numeric" autocomplete="one-time-code" required="required"
+           placeholder="${ec.l10n.localize("Authentication Code")}" class="form-control"
+           aria-label="${ec.l10n.localize("Authentication Code")}">
     <button class="btn btn-lg btn-primary btn-block" type="submit">${ec.l10n.localize("Verify Code")}</button>
 </form>
 

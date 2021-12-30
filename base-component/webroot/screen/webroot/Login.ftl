@@ -22,17 +22,21 @@
         <form method="post" action="${sri.buildUrl("login").url}" class="form-signin" id="login_form">
             <p class="text-muted text-center">${ec.l10n.localize("Enter your username and password to sign in")}</p>
             <#-- not needed for this request: <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"> -->
-            <input type="text" name="username" value="${((ec.getWeb().getErrorParameters().get("username"))!"")?html}" placeholder="${ec.l10n.localize("Username")}" required="required" class="form-control top" id="login_form_username">
-            <input type="password" name="password" placeholder="${ec.l10n.localize("Password")}" required="required" class="form-control bottom">
+            <input type="text" name="username" value="${((ec.getWeb().getErrorParameters().get("username"))!"")?html}"
+                    required="required" class="form-control top" id="login_form_username"
+                    placeholder="${ec.l10n.localize("Username")}" aria-label="${ec.l10n.localize("Username")}">
+            <input type="password" name="password" required="required" class="form-control bottom"
+                    placeholder="${ec.l10n.localize("Password")}" aria-label="${ec.l10n.localize("Password")}">
             <button class="btn btn-lg btn-primary btn-block" type="submit">${ec.l10n.localize("Sign in")}</button>
         </form>
         <script>$("#login_form_username").focus();</script>
     </div>
     <div id="reset" class="tab-pane">
         <form method="post" action="${sri.buildUrl("resetPassword").url}" class="form-signin" id="reset_form">
-            <p class="text-muted text-center">${ec.l10n.localize("Enter your username to reset and email your password")}</p>
+            <p class="text-muted text-center">${ec.l10n.localize("Enter your username to email a reset password")}</p>
             <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
-            <input type="text" name="username" placeholder="${ec.l10n.localize("Username")}" required="required" class="form-control">
+            <input type="text" name="username" required="required" class="form-control"
+                   placeholder="${ec.l10n.localize("Username")}" aria-label="${ec.l10n.localize("Username")}">
             <button class="btn btn-lg btn-danger btn-block" type="submit">${ec.l10n.localize("Reset &amp; Email Password")}</button>
         </form>
     </div>
@@ -40,10 +44,15 @@
         <form method="post" action="${sri.buildUrl("changePassword").url}" class="form-signin" id="change_form">
             <p class="text-muted text-center">${ec.l10n.localize("Enter details to change your password")}</p>
             <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
-            <input type="text" name="username" value="${(ec.getWeb().getErrorParameters().get("username"))!""}" placeholder="${ec.l10n.localize("Username")}" required="required" class="form-control top">
-            <input type="password" name="oldPassword" placeholder="${ec.l10n.localize("Old Password")}" required="required" class="form-control middle">
-            <input type="password" name="newPassword" placeholder="${ec.l10n.localize("New Password")}" required="required" class="form-control middle">
-            <input type="password" name="newPasswordVerify" placeholder="${ec.l10n.localize("New Password Verify")}" required="required" class="form-control bottom">
+            <input type="text" name="username" value="${(ec.getWeb().getErrorParameters().get("username"))!""}"
+                    required="required" class="form-control top"
+                    placeholder="${ec.l10n.localize("Username")}" aria-label="${ec.l10n.localize("Username")}">
+            <input type="password" name="oldPassword" required="required" class="form-control middle"
+                    placeholder="${ec.l10n.localize("Old Password")}" aria-label="${ec.l10n.localize("Old Password")}">
+            <input type="password" name="newPassword" required="required" class="form-control middle"
+                    placeholder="${ec.l10n.localize("New Password")}" aria-label="${ec.l10n.localize("New Password")}">
+            <input type="password" name="newPasswordVerify" required="required" class="form-control bottom"
+                    placeholder="${ec.l10n.localize("New Password Verify")}" aria-label="${ec.l10n.localize("New Password Verify")}">
             <button class="btn btn-lg btn-danger btn-block" type="submit">${ec.l10n.localize("Change Password")}</button>
         </form>
     </div>
