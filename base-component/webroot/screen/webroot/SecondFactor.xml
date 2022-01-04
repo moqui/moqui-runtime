@@ -22,7 +22,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <transition name="verifyUserAuthcFactor">
         <actions>
-            <set field="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/>
+            <set field="username" from="ec.web.sessionAttributes.moquiPreAuthcUsername"/>
             <service-call name="org.moqui.impl.UserServices.validate#ExternalUserAuthcCode"
                     in-map="[code:code]" out-map="validateOut"/>
             <if condition="validateOut.verified"><then>
