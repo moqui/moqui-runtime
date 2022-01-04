@@ -10,7 +10,7 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
-
+<#-- NOTE: no empty lines before the first #macro otherwise FTL outputs empty lines -->
 <#-- ==================== Includes ==================== -->
 <#macro "include-screen">${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}</#macro>
 
@@ -28,9 +28,11 @@ along with this software (see the LICENSE.md file). If not, see
 <#macro renderText textNode>
     <#if textNode["@location"]?has_content>
         <#assign textLocation = ec.getResource().expandNoL10n(textNode["@location"], "")>
-        <#if sri.doBoundaryComments() && textNode["@no-boundary-comment"]! != "true"><!-- BEGIN render-mode.text[@location=${textLocation}][@template=${textNode["@template"]!"true"}] --></#if>
+        <#if sri.doBoundaryComments() && textNode["@no-boundary-comment"]! != "true">
+        <!-- BEGIN render-mode.text[@location=${textLocation}][@template=${textNode["@template"]!"true"}] -->
+        </#if>
         <#-- NOTE: this still won't encode templates that are rendered to the writer -->
-        <#if .node["@encode"]! == "true">${sri.renderText(textLocation, textNode["@template"]!)?html}<#else>${sri.renderText(textLocation, textNode["@template"]!)}</#if>
+        <#t><#if .node["@encode"]! == "true">${sri.renderText(textLocation, textNode["@template"]!)?html}<#else>${sri.renderText(textLocation, textNode["@template"]!)}</#if>
         <#if sri.doBoundaryComments() && textNode["@no-boundary-comment"]! != "true"><!-- END   render-mode.text[@location=${textLocation}][@template=${textNode["@template"]!"true"}] --></#if>
     </#if>
     <#assign inlineTemplateSource = textNode.@@text!>
