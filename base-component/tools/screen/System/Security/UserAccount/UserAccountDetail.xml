@@ -59,7 +59,9 @@ along with this software (see the LICENSE.md file). If not, see
         <service-call name="org.moqui.impl.UserServices.create#SingleUseAuthcCodes" />
         <actions><script>ec.web.sessionAttributes.put("singleUseCodes", singleUseCodes)</script></actions>
         <default-response url="."/></transition>
-    <transition name="createUserAuthcFactorEmail"><service-call name="org.moqui.impl.UserServices.create#EmailUserAuthcFactor"/>
+    <transition name="createUserAuthcFactorEmail"><service-call name="org.moqui.impl.UserServices.create#UserAuthcFactorEmail"/>
+        <default-response url="."/></transition>
+    <transition name="createUserAuthcFactorSms"><service-call name="org.moqui.impl.UserServices.create#UserAuthcFactorSms"/>
         <default-response url="."/></transition>
     <transition name="factorSubmit"><service-call name="org.moqui.impl.UserServices.invalidate#UserAuthcFactorEntry"/>
         <default-response url="."/></transition>
@@ -88,11 +90,6 @@ along with this software (see the LICENSE.md file). If not, see
         <iterate list="Locale.getAvailableLocales()" entry="lcl"><script>localeStringList.add([locale:lcl.toString(), name:lcl.getDisplayName(ec.user.locale)])</script></iterate>
         <order-map-list list="localeStringList"><order-by field-name="name"/></order-map-list>
 
-        <entity-find entity-name="moqui.security.UserAuthcFactor" list="userAuthcFactorList">
-            <date-filter/>
-            <econdition field-name="userId"/>
-        </entity-find>
-
         <entity-find entity-name="moqui.security.UserGroupMember" list="ugmList">
             <econdition field-name="userId"/><order-by field-name="userGroupId"/></entity-find>
         <entity-find entity-name="moqui.security.UserPreference" list="upList">
@@ -108,6 +105,10 @@ along with this software (see the LICENSE.md file). If not, see
             <econdition field-name="userId"/><order-by field-name="-releaseDateTime"/></entity-find>
         <entity-find-count entity-name="moqui.security.ArtifactTarpitLock" count-field="allTarpitLocksCount">
             <econdition field-name="userId"/></entity-find-count>
+
+        <!-- only show SMS dialog if org.moqui.SmsServices.send#SmsMessage service is NOT from moqui-framework (on classpath) -->
+        <set field="sendSmsLoc" from="ec.service.getServiceDefinition('org.moqui.SmsServices.send#SmsMessage')?.serviceNode?.fileLocation"/>
+        <set field="isSmsActive" from="sendSmsLoc &amp;&amp; !sendSmsLoc.contains('classpath')"/>
     </actions>
     <widgets>
         <container-row>
@@ -276,72 +277,82 @@ along with this software (see the LICENSE.md file). If not, see
                     </form-list>
                 </box-body-nopad></container-box>
 
-                <section name="SingleUseCodesDisplay" condition="singleUseCodes">
-                    <actions>
-                        <set field="singleUseCodes1" from="[]"/><set field="singleUseCodes2" from="[]"/><set field="singleUseCodes3" from="[]"/>
-                        <script>
-                            int i;
-                            for(code in singleUseCodes){
-                                if( i%3 == 0 ) { singleUseCodes1.add(singleUseCodes[i]);}
-                                else if(i%3==1){ singleUseCodes2.add(singleUseCodes[i]);}
-                                else if(i%3==2){ singleUseCodes3.add(singleUseCodes[i]);}
-                                i++; }</script>
-                    </actions>
-                    <widgets>
-                        <container-box>
-                            <box-header><label text="Single Use Codes" style="text-danger" type="h5"/></box-header>
-                            <box-body>
-                                <label text="Write down these codes. They will only appear once." style="text-danger"/>
-                                <container-row>
-                                    <row-col lg="4">
-                                        <container type="ul">
-                                            <section-iterate name="SingleUseCodes1" list="singleUseCodes1" entry="code1">
-                                                <widgets><container type="li"><label text="${code1}" style="text-danger"/></container></widgets></section-iterate>
-                                        </container></row-col>
-                                    <row-col lg="4">
-                                        <container type="ul">
-                                            <section-iterate name="SingleUseCodes2" list="singleUseCodes2" entry="code2">
-                                                <widgets><container type="li"><label text="${code2}" style="text-danger"/></container></widgets>
-                                            </section-iterate></container></row-col>
-                                    <row-col lg="4">
-                                        <container type="ul">
-                                            <section-iterate name="SingleUseCodes3" list="singleUseCodes3" entry="code3">
-                                                <widgets><container type="li"><label text="${code3}" style="text-danger"/></container></widgets>
-                                            </section-iterate></container></row-col>
-                                </container-row>
-                            </box-body></container-box>
-                    </widgets>
-                </section>
+                <section name="SingleUseCodesDisplay" condition="singleUseCodes"><actions>
+                    <set field="singleUseCodes1" from="[]"/><set field="singleUseCodes2" from="[]"/><set field="singleUseCodes3" from="[]"/>
+                    <script><![CDATA[
+                        for (int i = 0; i < singleUseCodes.size(); i++) {
+                            if (i%3 == 0) { singleUseCodes1.add(singleUseCodes[i]) }
+                            else if (i%3 == 1) { singleUseCodes2.add(singleUseCodes[i]) }
+                            else if (i%3 == 2) { singleUseCodes3.add(singleUseCodes[i]) }
+                        }
+                    ]]></script>
+                </actions><widgets>
+                    <container-box><box-header><label text="Single Use Codes" style="text-danger" type="h5"/></box-header><box-body>
+                        <label text="Write down these codes. They will only appear once." style="text-danger"/>
+                        <container-row><row-col lg="4">
+                            <container type="ul">
+                                <section-iterate name="SingleUseCodes1" list="singleUseCodes1" entry="code1"><widgets>
+                                    <container type="li"><label text="${code1}" style="text-danger"/></container>
+                                </widgets></section-iterate>
+                            </container>
+                        </row-col><row-col lg="4">
+                            <container type="ul">
+                                <section-iterate name="SingleUseCodes2" list="singleUseCodes2" entry="code2"><widgets>
+                                    <container type="li"><label text="${code2}" style="text-danger"/></container>
+                                </widgets></section-iterate>
+                            </container>
+                        </row-col><row-col lg="4">
+                            <container type="ul">
+                                <section-iterate name="SingleUseCodes3" list="singleUseCodes3" entry="code3"><widgets>
+                                    <container type="li"><label text="${code3}" style="text-danger"/></container>
+                                </widgets></section-iterate>
+                            </container>
+                        </row-col></container-row>
+                    </box-body></container-box>
+                </widgets></section>
                 <container-box><box-header title="Authentication Methods"/>
                     <box-toolbar>
                         <container-dialog id="CreateTotpDialog" button-text="Add Authenticator App">
                             <form-single name="CreateUserAuthcFactorTotp" transition="createUserAuthcFactorTotp">
-                                <field name="userId" from="userAccount.userId"><default-field><hidden/></default-field></field>
+                                <field name="userId"><default-field><hidden/></default-field></field>
                                 <field name="thruDate" from="ec.user.nowTimestamp + 365"><default-field><date-time/></default-field></field>
                                 <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                             </form-single></container-dialog>
                         <container-dialog id="AddSingleUseDialog" button-text="Add Single Use Codes">
                             <form-single name="CreateUserAuthcFactorSingleUse" transition="createUserAuthcFactorSingleUse">
-                                <field name="userId" from="userId"><default-field><hidden/></default-field></field>
+                                <field name="userId"><default-field><hidden/></default-field></field>
                                 <field name="fromDate" from="ec.user.nowTimestamp + 365"><default-field><date-time/></default-field></field>
-                                <field name="numberOfCodes"><default-field title="Number of Codes"><text-line size="30" input-type="Integer" default-value="6"/></default-field></field>
+                                <field name="numberOfCodes"><default-field title="Number of Codes"><text-line size="5" default-value="1"/></default-field></field>
                                 <field name="submitButton"><default-field title="Add" ><submit/></default-field></field>
                             </form-single></container-dialog>
                         <container-dialog id="AddEmailFactor" button-text="Add Email Factor">
                             <form-single name="CreateUserAuthcFactorEmail" transition="createUserAuthcFactorEmail">
-                                <field name="userId" from="userId"><default-field><hidden/></default-field></field>
+                                <field name="userId"><default-field><hidden/></default-field></field>
                                 <field name="thruDate" from="ec.user.nowTimestamp + 365"><default-field><date-time/></default-field></field>
-                                <field name="factorOption" from="userAccount.emailAddress"><default-field title="Email"><text-line size="30"/></default-field></field>
+                                <field name="factorOption" from="userAccount.emailAddress"><default-field title="Email"><text-line size="40"/></default-field></field>
                                 <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                             </form-single>
                         </container-dialog>
-
-                    </box-toolbar><box-body-nopad>
+                        <container-dialog id="AddSmsFactor" button-text="Add SMS Factor" condition="isSmsActive">
+                            <form-single name="CreateUserAuthcFactorSms" transition="createUserAuthcFactorSms">
+                                <field name="userId"><default-field><hidden/></default-field></field>
+                                <field name="thruDate" from="ec.user.nowTimestamp + 365"><default-field><date-time/></default-field></field>
+                                <field name="factorOption"><default-field title="Phone (for SMS)"><text-line size="15"/></default-field></field>
+                                <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
+                            </form-single>
+                        </container-dialog>
+                    </box-toolbar>
+                    <box-body-nopad>
                         <form-list name="UserAuthcFactorList" list="userAuthcFactorList" transition="factorSubmit">
-                            <field name="factorId">
-                                <header-field title="Id" show-order-by="true"/><default-field><display/></default-field></field>
+                            <entity-find entity-name="moqui.security.UserAuthcFactor" list="userAuthcFactorList">
+                                <date-filter/><econdition field-name="userId"/>
+                                <select-field field-name="factorTypeEnumId,factorOption"/>
+                            </entity-find>
+
                             <field name="userId" from="userId"><default-field><hidden/></default-field></field>
-                            <field name="fromFactorId"><header-field title="From Id"/><default-field><display/></default-field></field>
+                            <field name="factorId"><header-field title="ID" show-order-by="true"/>
+                                <default-field><display/></default-field></field>
+                            <field name="fromFactorId"><header-field title="From ID"/><default-field><display/></default-field></field>
                             <field name="factorTypeEnumId"><header-field title="Factor Type"/><default-field><display-entity entity-name="moqui.basic.Enumeration" text="${description}"/></default-field></field>
                             <field name="fromDate"><default-field><display/></default-field></field>
                             <field name="thruDate"><default-field><display/></default-field></field>
@@ -351,8 +362,10 @@ along with this software (see the LICENSE.md file). If not, see
                                 <conditional-field condition="needsValidation == 'N' &amp;&amp; factorTypeEnumId == 'UafTotp'">
                                     <dynamic-dialog id="ViewTotpDialog" button-text="View" transition="VerifyTotp" parameter-map="[userId:userId, factorId:factorId, verify:true]"/></conditional-field>
                                 <conditional-field condition="needsValidation == 'Y' &amp;&amp; factorTypeEnumId == 'UafEmail'">
-                                    <dynamic-dialog id="VerifyEmailDialog" button-text="Verify" transition="VerifyEmail" parameter-map="[userId:userId, factorId:factorId, userEmail:factorOption]"/></conditional-field>
-                                <conditional-field condition="needsValidation == 'N' &amp;&amp; factorTypeEnumId == 'UafEmail'">
+                                    <dynamic-dialog id="VerifyEmailDialog" button-text="Verify" transition="VerifyEmail" parameter-map="[userId:userId, factorId:factorId]"/></conditional-field>
+                                <conditional-field condition="needsValidation == 'Y' &amp;&amp; factorTypeEnumId == 'UafSms'">
+                                    <dynamic-dialog id="VerifySmsDialog" button-text="Verify" transition="VerifySms" parameter-map="[userId:userId, factorId:factorId]"/></conditional-field>
+                                <conditional-field condition="needsValidation == 'N' &amp;&amp; factorTypeEnumId in ['UafEmail', 'UafSms']">
                                     <label text="${factorOption}"/></conditional-field>
                             </field>
                             <field name="needsValidation"><conditional-field condition="factorTypeEnumId != 'UafSingleUse'"><label text="${needsValidation}"/></conditional-field></field>
