@@ -45,7 +45,7 @@ along with this software (see the LICENSE.md file). If not, see
                         <script>ec.user.internalLoginUser(validateOut.username)</script>
                         <return/>
                     </then><else>
-                        <message type="danger">Authentication code is not valid</message>
+                        <message type="danger" public="true">Authentication code is not valid</message>
                     </else></if>
                 </then></if>
                 <!-- if we didn't return above send back info about user's authc factors -->
