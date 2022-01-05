@@ -105,6 +105,10 @@ along with this software (see the LICENSE.md file). If not, see
             <econdition field-name="userId"/><order-by field-name="-releaseDateTime"/></entity-find>
         <entity-find-count entity-name="moqui.security.ArtifactTarpitLock" count-field="allTarpitLocksCount">
             <econdition field-name="userId"/></entity-find-count>
+
+        <!-- only show SMS dialog if org.moqui.SmsServices.send#SmsMessage service is NOT from moqui-framework (on classpath) -->
+        <set field="sendSmsLoc" from="ec.service.getServiceDefinition('org.moqui.SmsServices.send#SmsMessage')?.serviceNode?.fileLocation"/>
+        <set field="isSmsActive" from="sendSmsLoc &amp;&amp; !sendSmsLoc.contains('classpath')"/>
     </actions>
     <widgets>
         <container-row>
@@ -329,7 +333,7 @@ along with this software (see the LICENSE.md file). If not, see
                                 <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                             </form-single>
                         </container-dialog>
-                        <container-dialog id="AddSmsFactor" button-text="Add SMS Factor">
+                        <container-dialog id="AddSmsFactor" button-text="Add SMS Factor" condition="isSmsActive">
                             <form-single name="CreateUserAuthcFactorSms" transition="createUserAuthcFactorSms">
                                 <field name="userId"><default-field><hidden/></default-field></field>
                                 <field name="thruDate" from="ec.user.nowTimestamp + 365"><default-field><date-time/></default-field></field>
