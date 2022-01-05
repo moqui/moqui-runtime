@@ -36,7 +36,8 @@
 <div class="tab-content">
     <div id="login" class="tab-pane active">
         <form method="post" action="${sri.buildUrl("login").url}" class="form-signin" id="login_form">
-            <p class="text-muted text-center">${ec.l10n.localize("Enter your username and password to sign in")}</p>
+            <input type="hidden" name="initialTab" value="login">
+            <#-- people know what to do <p class="text-muted text-center">${ec.l10n.localize("Enter your username and password to sign in")}</p> -->
             <#-- not needed for this request: <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}"> -->
             <input type="text" name="username" value="${(username!"")?html}"
                     <#if username?has_content && secondFactorRequired>disabled="disabled"</#if>
@@ -61,6 +62,7 @@
         <form method="post" action="${sri.buildUrl("resetPassword").url}" class="form-signin" id="reset_form">
             <p class="text-muted text-center">${ec.l10n.localize("Enter your username to email a reset password")}</p>
             <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
+            <input type="hidden" name="initialTab" value="reset">
             <input type="text" name="username" value="${(username!"")?html}" required="required" class="form-control"
                    <#if username?has_content && secondFactorRequired>disabled="disabled"</#if>
                    placeholder="${ec.l10n.localize("Username")}" aria-label="${ec.l10n.localize("Username")}">
@@ -71,11 +73,13 @@
         <form method="post" action="${sri.buildUrl("changePassword").url}" class="form-signin" id="change_form">
             <p class="text-muted text-center">${ec.l10n.localize("Enter details to change your password")}</p>
             <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
+            <input type="hidden" name="initialTab" value="change">
             <input type="text" name="username" value="${(username!"")?html}" required="required" class="form-control top"
                     <#if username?has_content && secondFactorRequired>disabled="disabled"</#if>
                     placeholder="${ec.l10n.localize("Username")}" aria-label="${ec.l10n.localize("Username")}">
             <#-- secondFactorRequired will only be set if a user is pre-authenticated, and in that case password not required again -->
             <#if secondFactorRequired>
+                <input type="hidden" name="oldPassword" value="ignored">
                 <input name="code" type="text" inputmode="numeric" autocomplete="one-time-code" required="required"
                        placeholder="${ec.l10n.localize("Authentication Code")}" class="form-control middle"
                        aria-label="${ec.l10n.localize("Authentication Code")}">
@@ -83,17 +87,16 @@
                 <input type="password" name="oldPassword" required="required" class="form-control middle"
                        placeholder="${ec.l10n.localize("Old Password")}" aria-label="${ec.l10n.localize("Old Password")}">
             </#if>
+            <#-- FUTURE: fancy JS to validate PW as it is entered or on blur -->
             <input type="password" name="newPassword" required="required" class="form-control middle"
                     placeholder="${ec.l10n.localize("New Password")}" aria-label="${ec.l10n.localize("New Password")}">
             <input type="password" name="newPasswordVerify" required="required" class="form-control bottom"
                     placeholder="${ec.l10n.localize("New Password Verify")}" aria-label="${ec.l10n.localize("New Password Verify")}">
             <button class="btn btn-lg btn-danger btn-block" type="submit">${ec.l10n.localize("Change Password")}</button>
 
-
-
-            <#-- TODO: show password requirements -->
-
-
+            <p class="text-muted text-center">Password must be at least ${minLength} characters
+                with at least <strong>${minDigits} number<#if (minDigits > 1)>s</#if></strong>
+                <#if (minOthers > 0)> and at least <strong>${minOthers} punctuation character<#if (minOthers > 1)>s</#if></strong></#if></p>
         </form>
     </div>
 </div>
@@ -110,6 +113,7 @@
             <form method="post" action="${sri.buildUrl("sendOtp").url}" class="form-signin">
                 <input type="hidden" name="factorId" value="${userAuthcFactor.factorId}">
                 <input type="hidden" name="moquiSessionToken" value="${ec.web.sessionToken}">
+                <input type="hidden" name="initialTab" class="initial-tab">
                 <button class="btn btn-lg btn-primary" type="submit">${ec.l10n.localize("Send code to")} ${userAuthcFactor.factorOption!}</button>
             </form>
         </div>
@@ -128,6 +132,7 @@ $(function () {
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         var $target = $(e.target);
         window.location.hash = $target.attr('href');
+        $('.initial-tab').val(window.location.hash.slice(1));
         $target.addClass("text-strong").removeClass("text-primary");
         if (e.relatedTarget) $(e.relatedTarget).removeClass("text-strong").addClass("text-primary");
     });

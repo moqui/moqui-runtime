@@ -15,6 +15,8 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-include="false" require-authentication="false" history="false">
 
+    <parameter name="initialTab"/>
+
     <!-- partial list of scenarios:
       x basic login
         - login username + password success
@@ -25,9 +27,9 @@ along with this software (see the LICENSE.md file). If not, see
           - go to directly with anchor in URL or something
           - if password was correct and authc code required for user allow instead of pw on change password
           - login after change password, don't require login again
-      - cold change password
+      x cold change password
         - start on change password tab, enter username, password, new password + confirm
-        - if 2nd factor required go to SecondFactor screen
+        - if 2nd factor required go to SecondFactor screen - instead go back to Login#change and get code + new password/verify
       - reset password
         - given username send email to UserAccount.emailAddress with separate reset password
         - in email link to change password tab on login screen with username and reset password filled in
@@ -96,7 +98,6 @@ along with this software (see the LICENSE.md file). If not, see
         </actions>
         <conditional-response type="screen-last"><condition><expression>updateSuccessful</expression></condition></conditional-response>
         <default-response url="." parameter-map="[initialTab:'#change']"/>
-        <error-response url="."/>
     </transition>
     <transition name="createInitialAdminAccount">
         <service-call name="org.moqui.impl.UserServices.create#InitialAdminAccount"/>
@@ -124,6 +125,7 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="expiredCredentials" from="ec.web.sessionAttributes.moquiExpiredCredentials ?: 'false'" type="Boolean"/>
         <if condition="passwordChangeRequired || expiredCredentials">
             <set field="initialTab" value="#change"/></if>
+        <if condition="initialTab &amp;&amp; !initialTab.startsWith('#')"><set field="initialTab" from="'#' + initialTab"/></if>
 
         <set field="secondFactorRequired" from="false"/>
         <if condition="ec.web.sessionAttributes.moquiPreAuthcUsername"><then>
