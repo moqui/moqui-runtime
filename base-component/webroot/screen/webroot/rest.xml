@@ -17,11 +17,66 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- NOTE: require-authentication=false is required to allow transitions to decide. -->
 
     <!-- NOTE: the api_key transition was removed because there is no good use case, just use cases that are less secure and poorly thought through -->
-    <!-- NOTE: the moquiSessionToken was removed for security reasons, it opened a vector in a CSRF attack to acquire the session token at any time -->
+    <!-- NOTE: the moquiSessionToken transition was removed for security reasons, it opened a vector in a CSRF attack to acquire the session token at any time -->
+
+    <!-- MFA Sequences:
+        already have code:
+        - login: submit username, password, and code
+        needs code sent:
+        - login: submit username/password, if user requires authc code get back MFA options info (authc factors) - server remembers user in session
+        - sendOtp: submit factorId in same session, if factor owned by remembered user then server sends code via email, SMS, etc
+        - verifyOtp: submit code in same session, if valid login user
+    -->
 
     <!-- login: for client applications that use a Moqui UserAccount -->
-    <transition name="login" require-session-token="false"><actions><script>ec.user.loginUser(username, password)</script></actions>
-        <default-response type="none"/></transition>
+    <transition name="login" require-session-token="false">
+        <!-- NOTE: login is a transition here instead of a Service REST endpoint under /rest/s1/moqui/... as a special case to not require session token -->
+        <parameter name="username" required="true"/>
+        <parameter name="password" required="true"/>
+        <parameter name="code"/>
+        <actions>
+            <set field="loggedIn" from="ec.user.loginUser(username, password)"/>
+
+            <if condition="ec.web.sessionAttributes.moquiAuthcFactorRequired">
+                <if condition="code"><then>
+                    <service-call name="org.moqui.impl.UserServices.validate#ExternalUserAuthcCode"
+                            in-map="[code:code]" out-map="validateOut"/>
+                    <if condition="validateOut.verified"><then>
+                        <script>ec.user.internalLoginUser(validateOut.username)</script>
+                        <return/>
+                    </then><else>
+                        <message type="danger" public="true">Authentication code is not valid</message>
+                    </else></if>
+                </then></if>
+                <!-- if we didn't return above send back info about user's authc factors -->
+                <service-call name="org.moqui.impl.UserServices.get#ExternalUserAuthcFactorInfo" web-send-json-response="true"/>
+            </if>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+    <!-- sendOtp: ask the server to send a one-time password/code (via email, SMS, etc);
+            a user must be pre-authenticated via login and must own the UserAuthcFactor record specified with factorId;
+            factorId can be UserAccountEmail IFF user has no active authc factors configured -->
+    <transition name="sendOtp">
+        <parameter name="factorId" required="true"/>
+        <service-call name="org.moqui.impl.UserServices.send#ExternalAuthcCode" in-map="[factorId:factorId]"
+                web-send-json-response="true"/>
+        <default-response type="none"/>
+    </transition>
+    <!-- verifyOtp: submit an OTP code for pre-authenticated user (via login) to complete login -->
+    <transition name="verifyOtp">
+        <parameter name="code" required="true"/>
+        <actions>
+            <service-call name="org.moqui.impl.UserServices.validate#ExternalUserAuthcCode"
+                    in-map="[code:code]" out-map="validateOut"/>
+            <if condition="validateOut.verified"><then>
+                <script>ec.user.internalLoginUser(validateOut.username)</script>
+            </then><else>
+                <script>ec.web.sendError(403, "Authentication code is not valid")</script>
+            </else></if>
+        </actions>
+        <default-response type="none"/>
+    </transition>
     <!-- logout: REST API calls from a browser or session aware client will have an active session, use this for explicit logout and terminate session -->
     <transition name="logout" begin-transaction="false">
         <actions><script>
