@@ -15,30 +15,20 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-include="false" require-authentication="anonymous-all" history="false">
 
-    <transition name="sendOtpEmail">
-        <actions>
-            <entity-find-one entity-name="moqui.security.UserAuthcFactor" value-field="userAuthcFactor">
-                <field-map field-name="factorId"/></entity-find-one>
-            <if condition="!userAuthcFactor"><return error="true" message="No Authc Factor found with ID: ${factorId}"/></if>
-
-            <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
-                <field-map field-name="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/></entity-find-one>
-            <if condition="userAuthcFactor.userId != userAccount.userId"><return error="true" message="Authentication Factor ${factorId} is not valid for ${userAccount.username}"/></if>
-
-            <service-call name="org.moqui.impl.UserServices.send#AuthcCodeEmail" in-map="[emailFactorId:factorId]" out-map="context"/>
-        </actions>
+    <transition name="sendOtp">
+        <service-call name="org.moqui.impl.UserServices.send#ExternalAuthcCode" in-map="[factorId:factorId]"/>
         <default-response url="."/>
     </transition>
 
-    <transition name="verifyUserAuthcFactor" require-session-token="false">
+    <transition name="verifyUserAuthcFactor">
         <actions>
-            <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
-                <field-map field-name="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/></entity-find-one>
-            <service-call name="org.moqui.impl.UserServices.validate#UserAuthcFactorCode" in-map="[userId:userAccount.userId, code:code]" out-map="context"/>
-            <if condition="verified"><then>
-                <script>ec.user.internalLoginUser(ec.web.sessionAttributes.moquiAuthcFactorUsername)</script>
+            <set field="username" from="ec.web.sessionAttributes.moquiPreAuthcUsername"/>
+            <service-call name="org.moqui.impl.UserServices.validate#ExternalUserAuthcCode"
+                    in-map="[code:code]" out-map="validateOut"/>
+            <if condition="validateOut.verified"><then>
+                <script>ec.user.internalLoginUser(validateOut.username)</script>
             </then><else>
-                <message type="danger">Authentication code is not valid</message>
+                <message type="danger" public="true">Authentication code not valid</message>
             </else></if>
         </actions>
         <conditional-response url="/"><condition><expression>verified</expression></condition></conditional-response>
@@ -51,18 +41,7 @@ along with this software (see the LICENSE.md file). If not, see
     </script></pre-actions>
 
     <actions>
-        <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
-            <field-map field-name="username" from="ec.web.sessionAttributes.moquiAuthcFactorUsername"/></entity-find-one>
-        <entity-find entity-name="moqui.security.UserAuthcFactor" list="userAuthcFactorList">
-            <date-filter/><econdition field-name="userId" from="userAccount.userId"/></entity-find>
-        <set field="userAuthcFactorFilteredList" from="[]"/>
-
-        <iterate list="userAuthcFactorList" entry="userAuthcFactor">
-            <if condition="userAuthcFactor.factorTypeEnumId != UafSingleUse &amp;&amp; !userAuthcFactor.fromFactorId">
-                <script>userAuthcFactorFilteredList.add(userAuthcFactor)</script>
-            </if>
-        </iterate>
-        <set field="factorTypes" from="userAuthcFactorFilteredList*.factorTypeEnumId"/>
+        <service-call name="org.moqui.impl.UserServices.get#ExternalUserAuthcFactorInfo" out-map="context"/>
     </actions>
 
     <widgets>
@@ -84,15 +63,12 @@ along with this software (see the LICENSE.md file). If not, see
                 <render-mode><text type="html"><![CDATA[</div>]]></text></render-mode>
             </widgets></section-iterate>
 
-            <section name="UserHasAuthcFactors" condition="userAuthcFactorFilteredList"><widgets>
-                <render-mode><text type="html" template="true" location="component://webroot/screen/webroot/SecondFactor.html.ftl"/></render-mode>
+            <section name="UserHasAuthcFactors" condition="factorTypeEnumIds"><widgets>
+                <render-mode><text type="html" location="component://webroot/screen/webroot/SecondFactor.html.ftl"/></render-mode>
             </widgets><fail-widgets>
                 <label type="h1" text="Your account requires a code to login and you do not have any setup. Contact an Administrator."/>
                 <link url="/Login" text="Back to Login"/>
             </fail-widgets></section>
-
         </container></container></container>
-
-
     </widgets>
 </screen>

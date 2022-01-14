@@ -35,12 +35,20 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="esClientList" from="ec.elastic.getClientList()"/>
         <set field="esServerInfoList" from="[]"/>
         <iterate list="esClientList" entry="esClient">
-            <set field="esServerInfo" from="esClient.getServerInfo()"/>
-            <if condition="esServerInfo">
-                <set field="esServerInfo.clientClusterName" from="esClient.getClusterName()"/>
-                <set field="esServerInfo.clusterLocation" from="esClient.getClusterLocation()"/>
-                <script>esServerInfoList.add(esServerInfo)</script>
-            </if>
+            <script><![CDATA[
+                try {
+                    esServerInfo = esClient.getServerInfo()
+                    if (esServerInfo) {
+                        esServerInfo.clientClusterName = esClient.getClusterName()
+                        esServerInfo.clusterLocation = esClient.getClusterLocation()
+                        esServerInfoList.add(esServerInfo)
+                    }
+                } catch (Throwable t) {
+                    ec.logger.error("Error getting info for Elastic Client", t)
+                    esServerInfoList.add([clientClusterName:esClient.getClusterName(),
+                        clusterLocation:esClient.getClusterLocation(), name:t.toString(), cluster_name:'ERROR'])
+                }
+            ]]></script>
         </iterate>
     </actions>
     <widgets>

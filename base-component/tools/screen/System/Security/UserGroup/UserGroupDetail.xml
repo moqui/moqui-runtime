@@ -137,6 +137,7 @@ along with this software (see the LICENSE.md file). If not, see
                                 <set field="enumTypeId" value="UserPreferenceKey"/></widget-template-include>
                         </default-field></field>
                         <field name="preferenceValue"><default-field><text-line size="60"/></default-field></field>
+                        <field name="groupPriority"><default-field><text-line size="5"/></default-field></field>
                         <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                     </form-single>
                 </container-dialog>
@@ -145,6 +146,7 @@ along with this software (see the LICENSE.md file). If not, see
                         <field name="userGroupId"><default-field><hidden/></default-field></field>
                         <field name="preferenceKey"><default-field><text-line size="30"/></default-field></field>
                         <field name="preferenceValue"><default-field><text-line size="60"/></default-field></field>
+                        <field name="groupPriority"><default-field><text-line size="5"/></default-field></field>
                         <field name="submitButton"><default-field title="Add"><submit/></default-field></field>
                     </form-single>
                 </container-dialog>
@@ -158,6 +160,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="preferenceKey"><default-field title="Key">
                         <display text="${keyEnum ? keyEnum.description + ' ' : ''}(${preferenceKey})"/></default-field></field>
                     <field name="preferenceValue"><default-field title="Value"><text-line size="30"/></default-field></field>
+                    <field name="groupPriority"><default-field><text-line size="5"/></default-field></field>
                     <field name="submitButton"><default-field title="Update"><submit/></default-field></field>
                     <field name="deleteButton"><default-field title="">
                         <link url="deleteUserGroupPreference" text=" " icon="fa fa-trash" confirmation="Really remove?"/></default-field></field>

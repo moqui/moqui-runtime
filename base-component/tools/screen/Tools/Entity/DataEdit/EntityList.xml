@@ -18,6 +18,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <transition name="find"><default-response url="../EntityDataFind"/></transition>
     <transition name="detail"><default-response url="../EntityDetail"/></transition>
+    <transition name="autoScreen"><default-response url="../../../AutoScreen/AutoFind"/></transition>
     <transition name="checkTables">
         <actions><script>ec.entity.entityDbMeta.forceCheckExistingTables()</script></actions>
         <default-response url="."/>
@@ -103,6 +104,9 @@ along with this software (see the LICENSE.md file). If not, see
             </default-field></field>
             <field name="detail"><default-field>
                 <link url="detail" text="Detail" link-type="anchor" parameter-map="[selectedEntity:fullEntityName]"/>
+            </default-field></field>
+            <field name="autoScreen"><default-field>
+                <link url="autoScreen" text="Auto Screen" link-type="anchor" parameter-map="[aen:fullEntityName]"/>
             </default-field></field>
         </form-list>
     </widgets>
