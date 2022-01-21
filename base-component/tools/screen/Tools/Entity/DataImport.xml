@@ -12,8 +12,7 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
-<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
         default-menu-title="Import">
 
     <transition name="load">
@@ -74,23 +73,29 @@ along with this software (see the LICENSE.md file). If not, see
                 ExecutionContext ec = context.ec
 
                 int fieldsUpdated = 0
-                List rowIdList = rowIds?.split(',')
-                for (String rowId in rowIdList) {
-                    byte[] rowIdBytes = Base64.getUrlDecoder().decode((String) rowId)
-                    String rowIdJson = new String(rowIdBytes, 'UTF-8')
-                    Map rowIdMap = org.moqui.impl.context.ContextJavaUtil.jacksonMapper.readValue((String) rowIdJson, Map.class)
-                    if (!rowIdMap.pk) { ec.message.addMessage("No PK in row: ${rowIdJson}"); continue }
+                List rowOpList = rowOps?.split(',')
+                for (String rowOp in rowOpList) {
+                    byte[] rowOpBytes = Base64.getUrlDecoder().decode((String) rowOp)
+                    String rowOpJson = new String(rowOpBytes, 'UTF-8')
+                    Map rowOpMap = org.moqui.impl.context.ContextJavaUtil.jacksonMapper.readValue((String) rowOpJson, Map.class)
+                    if (!rowOpMap.pk) { ec.message.addMessage("No PK in row: ${rowOpJson}"); continue }
 
-                    def ed = ec.entityFacade.getEntityDefinition(rowIdMap.entity)
-                    if (ed == null) { ec.message.addMessage("Entity ${rowIdMap.entity} not found for row: ${rowIdJson}"); continue }
+                    def ed = ec.entityFacade.getEntityDefinition(rowOpMap.entity)
+                    if (ed == null) { ec.message.addMessage("Entity ${rowOpMap.entity} not found for row: ${rowOpJson}"); continue }
 
-                    if (rowIdMap.field) {
-                        Map valueMap = rowIdMap.pk + [(rowIdMap.field):rowIdMap.value]
+                    if (rowOpMap.field) {
+                        Map valueMap = rowOpMap.pk + [(rowOpMap.field):rowOpMap.value]
                         org.moqui.impl.service.runner.EntityAutoServiceRunner.storeEntity(ec, ed, valueMap, null, null)
                         fieldsUpdated++
+                    } else if (rowOpMap.createValues) {
+                        Map valueMap = rowOpMap.createValues + rowOpMap.pk
+                        Map results = new HashMap()
+                        org.moqui.impl.service.runner.EntityAutoServiceRunner.createEntity(ec, ed, valueMap, results, null)
+                        if (results.size() > 0) ec.message.addMessage("Create entity ${rowOpMap.entity} PK ${rowOpMap.pk} was not complete, filled in values: ${results}", "warning")
+                        fieldsUpdated += (valueMap.size() - rowOpMap.pk.size())
                     } else {
                         // TODO: support create (at least for fields with complete PK)
-                        ec.message.addMessage("Row has no field, not updating: ${rowIdJson}")
+                        ec.message.addMessage("Row has no field or create values, not updating: ${rowOpJson}")
                     }
                 }
 
@@ -98,10 +103,11 @@ along with this software (see the LICENSE.md file). If not, see
             ]]></script>
         </actions>
         <default-response url="." save-parameters="true">
-            <parameter name="rowIds" from="null"/></default-response>
+            <parameter name="rowOps" from="null"/></default-response>
     </transition>
 
     <actions>
+        <set field="pageSize" from="pageSize ?: '100'"/>
         <script><![CDATA[
             messages = ec.web.session.getAttribute('DataImport.messages')
             if (messages) ec.web.session.removeAttribute('DataImport.messages')
@@ -200,21 +206,26 @@ along with this software (see the LICENSE.md file). If not, see
 
             <form-list name="CheckDiffInfoList" list="diffInfoList" skip-form="true" show-page-size="true">
                 <row-actions>
-                    <set field="rowIdMap" from="[entity:entity, pk:pk, field:field, value:value]"/>
-                    <set field="rowIdJson" from="org.moqui.impl.context.ContextJavaUtil.jacksonMapper.writeValueAsString(rowIdMap)"/>
-                    <set field="rowId" from="Base64.getUrlEncoder().encodeToString(((String) rowIdJson).getBytes())"/>
+                    <if condition="notFound"><then>
+                        <!-- TODO: different handling when !pkComplete? creating records in that case will create duplicates, likely not desired! -->
+                        <set field="rowOpMap" from="[entity:entity, pk:pk, createValues:createValues]"/>
+                    </then><else>
+                        <set field="rowOpMap" from="[entity:entity, pk:pk, field:field, value:value]"/>
+                    </else></if>
+                    <set field="rowOpJson" from="org.moqui.impl.context.ContextJavaUtil.jacksonMapper.writeValueAsString(rowOpMap)"/>
+                    <set field="rowOp" from="Base64.getUrlEncoder().encodeToString(((String) rowOpJson).getBytes())"/>
                 </row-actions>
-                <row-selection id-field="rowId" list-mode="true" parameter="rowIds">
+                <row-selection id-field="rowOp" list-mode="true" parameter="rowOps">
                     <action>
                         <form-single name="CheckDiffStoreSelected" transition="storeSelected" pass-through-parameters="true">
-                            <field name="submitBtn"><default-field title="Update Fields to Check/File Value"><submit/></default-field></field>
+                            <field name="submitBtn"><default-field title="Update Fields to Check/File Value and Create Missing Records"><submit/></default-field></field>
                             <field-layout><field-row-big><field-ref name="submitBtn"/></field-row-big></field-layout>
                         </form-single>
                     </action>
                 </row-selection>
 
                 <field name="entity"><default-field><display style="text-strong"/></default-field></field>
-                <field name="pk"><default-field title="Primary Key"><display/></default-field></field>
+                <field name="pk"><default-field title="Primary Key"><display style="${pkComplete ? '' : 'text-danger'}"/></default-field></field>
                 <field name="field"><default-field><display style="text-strong"/></default-field></field>
                 <field name="value"><default-field title="Check/File Value"><display/></default-field></field>
                 <field name="dbValue"><default-field><display/></default-field></field>
