@@ -2213,7 +2213,7 @@ moqui.webrootVue = new Vue({
             // element 0 in array after split is empty string from leading '/'
             var wrapperIdx = this.appRootPath ? 2 : 1;
             if (pathList.length > wrapperIdx) {
-                pathList[wrapperIdx] = this.linkBasePath.slice(1);
+                pathList[wrapperIdx] = this.linkBasePath.split('/').at(-1);
                 path = pathList.join("/");
             }
             return path;
