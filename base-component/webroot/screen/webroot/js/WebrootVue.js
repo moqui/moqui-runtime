@@ -1353,11 +1353,9 @@ moqui.webrootVue = new Vue({
             if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
             var pathList = path.split('/');
             // element 0 in array after split is empty string from leading '/'
-            var wrapperIdx = this.appRootPath ? 2 : 1;
-            if (pathList.length > wrapperIdx) {
-                pathList[wrapperIdx] = this.linkBasePath.slice(1);
-                path = pathList.join("/");
-            }
+            var wrapperIdx = this.appRootPath.split('/').length;
+            pathList[wrapperIdx] = this.linkBasePath.split('/').slice(-1);
+            path = pathList.join("/");
             return path;
         }
     },

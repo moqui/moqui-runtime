@@ -149,7 +149,7 @@ ${sri.renderSection(.node["@name"])}
 <#macro "dynamic-container">
     <#assign dcDivId><@nodeId .node/></#assign>
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", dcDivId)>
-    <dynamic-container id="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().pathWithParams}"></dynamic-container>
+    <dynamic-container id="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().urlWithParams}"></dynamic-container>
 </#macro>
 <#macro "dynamic-dialog">
     <#assign iconClass = "fa fa-external-link">
