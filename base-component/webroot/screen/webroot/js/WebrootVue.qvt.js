@@ -2211,11 +2211,9 @@ moqui.webrootVue = new Vue({
             if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
             var pathList = path.split('/');
             // element 0 in array after split is empty string from leading '/'
-            var wrapperIdx = this.appRootPath ? 2 : 1;
-            if (pathList.length > wrapperIdx) {
-                pathList[wrapperIdx] = this.linkBasePath.slice(1);
-                path = pathList.join("/");
-            }
+            var wrapperIdx = this.appRootPath.split('/').length; // appRootPath is '/moqui/v1' or '/moqui'. wrapper means 'qapps'
+            pathList[wrapperIdx] = this.linkBasePath.split('/').slice(-1);
+            path = pathList.join("/");
             return path;
         },
         getQuasarColor: function(bootstrapColor) { return moqui.getQuasarColor(bootstrapColor); }
