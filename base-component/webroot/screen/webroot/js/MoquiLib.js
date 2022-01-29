@@ -344,6 +344,15 @@ var moqui = {
     },
 
     /* NotificationClient, note does not connect the WebSocket until notificationClient.registerListener() is called the first time */
+    /* Example Notification Listener Registration (note listener method defaults to displayNotify as in first example;
+         you can register more than one listener method for the same topic):
+     <#if ec.factory.serverContainer?has_content>
+       <script>
+         notificationClient.registerListener("ALL"); // register for all topics
+         notificationClient.registerListener("MantleEvent", notificationClient.displayNotify);
+       </script>
+     </#if>
+    */
     NotificationClient: function(webSocketUrl) {
         this.displayEnable = true;
         this.webSocketUrl = webSocketUrl;
@@ -397,15 +406,36 @@ var moqui = {
             if (listenerArray.indexOf(callback) < 0) { listenerArray.push(callback); }
         };
     },
-    /* Example Notification Listener Registration (note listener method defaults to displayNotify as in first example;
-         you can register more than one listener method for the same topic):
-     <#if ec.factory.serverContainer?has_content>
-     <script>
-     notificationClient.registerListener("ALL"); // register for all topics
-     notificationClient.registerListener("MantleEvent", notificationClient.displayNotify);
-     </script>
-     </#if>
-    */
+
+    BasicWebSocketClient: function(webSocketUrl, onDataFunction) {
+        this.webSocketUrl = webSocketUrl;
+        this.onDataFunction = onDataFunction;
+        this.initWebSocket = function() {
+            this.webSocket = new WebSocket(this.webSocketUrl);
+            this.webSocket.clientObj = this;
+            this.webSocket.onopen = function(event) {
+                this.clientObj.tryReopenCount = 0;
+            };
+            this.webSocket.onmessage = function(event) {
+                this.clientObj.onDataFunction(event.data);
+            };
+            this.webSocket.onclose = function(event) {
+                console.log(event);
+                setTimeout(this.clientObj.tryReopen, 30*1000, this.clientObj);
+            };
+            this.webSocket.onerror = function(event) { console.log(event); };
+        };
+        this.tryReopen = function (clientObj) {
+            if ((!clientObj.webSocket || clientObj.webSocket.readyState === WebSocket.CLOSED || clientObj.webSocket.readyState === WebSocket.CLOSING) &&
+                (!clientObj.tryReopenCount || clientObj.tryReopenCount < 6)) {
+                console.log("Trying WebSocket reopen, count " + clientObj.tryReopenCount);
+                clientObj.tryReopenCount = (clientObj.tryReopenCount || 0) + 1;
+                clientObj.initWebSocket();
+                // no need to call this, onclose gets called when WS connect fails: setTimeout(clientObj.tryReopen, 30*1000, clientObj);
+            }
+        };
+        this.initWebSocket();
+    },
 
     LruMap: function(limit) {
         this.limit = limit; this.valueMap = {}; this.lruList = []; // end of list is least recently used
