@@ -29,6 +29,12 @@ along with this software (see the LICENSE.md file). If not, see
                     return
                 }
 
+                if (entityNames instanceof String && entityNames.contains(",")) {
+                    if (entityNames.startsWith("[")) entityNames = entityNames.substring(1)
+                    if (entityNames.endsWith("]")) entityNames = entityNames.substring(0, entityNames.length() - 1)
+                    entityNames = entityNames.split(",") as List
+                }
+
                 if (entityNames instanceof List) {
                     for (String entityName in entityNames) {
                         def entDef = ec.entity.getEntityDefinition(entityName)
