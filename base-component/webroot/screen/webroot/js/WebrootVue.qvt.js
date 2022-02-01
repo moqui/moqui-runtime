@@ -1942,7 +1942,7 @@ Vue.component('m-subscreens-tabs', {
 Vue.component('m-subscreens-active', {
     name: "mSubscreensActive",
     data: function() { return { activeComponent:moqui.EmptyComponent, pathIndex:-1, pathName:null } },
-    template: '<component :is="activeComponent"></component>',
+    template: '<component :is="activeComponent" style="height:100%;width:100%;"></component>',
     // method instead of a watch on pathName so that it runs even when newPath is the same for non-static reloading
     methods: { loadActive: function() {
         var vm = this;
