@@ -28,7 +28,7 @@ along with this software (see the LICENSE.md file). If not, see
                 var groovyshTerminal = new Terminal({
                     cols: 97, rows: 37,
                     cursorBlink: true, cursorStyle: "bar", // null | 'block' | 'underline' | 'bar'
-                    scrollback: 800, tabStopWidth: 4, screenKeys: true
+                    scrollback: 1000, tabStopWidth: 4, convertEol: true, screenKeys: true
                 });
                 groovyshTerminal.open(document.getElementById('terminal'));
                 groovyshTerminal.write('Connecting...');
