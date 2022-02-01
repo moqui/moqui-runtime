@@ -102,11 +102,11 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="find"><default-field>
                 <link url="find" text="Find" link-type="anchor" parameter-map="[selectedEntity:fullEntityName]"/>
             </default-field></field>
-            <field name="detail"><default-field>
-                <link url="detail" text="Detail" link-type="anchor" parameter-map="[selectedEntity:fullEntityName]"/>
-            </default-field></field>
             <field name="autoScreen"><default-field>
                 <link url="autoScreen" text="Auto Screen" link-type="anchor" parameter-map="[aen:fullEntityName]"/>
+            </default-field></field>
+            <field name="detail"><default-field>
+                <link url="detail" text="Detail" link-type="anchor" parameter-map="[selectedEntity:fullEntityName]"/>
             </default-field></field>
         </form-list>
     </widgets>
