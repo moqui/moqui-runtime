@@ -33,7 +33,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#-- ================ Section ================ -->
 <#macro section>${sri.renderSection(.node["@name"])}</#macro>
 <#macro "section-iterate">${sri.renderSection(.node["@name"])}</#macro>
-<#macro "section-include">${sri.renderSection(.node["@name"])}</#macro>
+<#macro "section-include">${sri.renderSectionInclude(.node)}</#macro>
 
 <#-- ================ Containers ================ -->
 <#macro container><#recurse></#macro>
