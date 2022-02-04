@@ -20,6 +20,8 @@ along with this software (see the LICENSE.md file). If not, see
 
     <transition name="list"><default-response url="../MainEntityList"/></transition>
     <transition name="find"><default-response url="."/></transition>
+    <transition name="entityDetail"><default-response url="../../Entity/DataEdit/EntityDetail"/></transition>
+
     <transition name="create"><actions><service-call name="create#${aen}" in-map="true"/></actions>
         <default-response url="."/></transition>
     <transition name="deleteRecord"><actions><service-call name="delete#${aen}" in-map="context"/></actions>
@@ -52,13 +54,14 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <container>
             <link url="list" text="Entity List" link-type="hidden-form"/>
-            <container-dialog id="FindValueDialog" button-text="Find ${ec.entity.getEntityDefinition(aen).getPrettyName(null, null)}" width="800">
+            <container-dialog id="FindValueDialog" button-text="Find ${aenDef.getPrettyName(null, null)}" width="800">
                 <form-single name="FindEntityValue" transition="find" dynamic="true">
                     <auto-fields-entity entity-name="${aen}" field-type="find"/>
                     <field name="aen"><default-field><hidden/></default-field></field>
                     <field name="submitButton"><default-field title="Find"><submit/></default-field></field>
                 </form-single>
             </container-dialog>
+            <link url="entityDetail" parameter-map="[selectedEntity:aen]" text="${aenDef.getPrettyName(null, null)} Entity Detail"/>
             <container-dialog id="CreateValueDialog" button-text="New Value">
                 <form-single name="CreateEntityValue" transition="create" dynamic="true">
                     <auto-fields-entity entity-name="${aen}" field-type="edit"/>
