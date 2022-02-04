@@ -56,6 +56,7 @@ along with this software (see the LICENSE.md file). If not, see
                 if (filterMap) edw.filterMap((Map) ec.resource.expression(filterMap, null))
                 if (orderBy) edw.orderBy([(String) orderBy])
                 edw.fileType((String) fileType)
+                if(fileType == 'CSV') edw.tableColumnNames(useTableColumnNames == 'Yes' ? true : false)
 
                 noResponse = false
                 if (context.output == "file") {
@@ -65,9 +66,11 @@ along with this software (see the LICENSE.md file). If not, see
                 } else if (context.output == "browser") {
                     // stream to ec.web.response
                     def response = ec.web.response
-                    response.setContentType(fileType == 'JSON' ? 'application/json' : 'text/xml')
+                    if (fileType == 'JSON') response.setContentType('application/json')
+                    if (fileType == 'CSV') response.setContentType('text/csv')
+                    else response.setContentType('text/xml')
                     response.setCharacterEncoding("UTF-8")
-                    response.setHeader("Content-Disposition", "attachment; filename=\"EntityExport_${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMdd_HHmm')}.${fileType == 'JSON' ? 'json' : 'xml'}\";")
+                    response.setHeader("Content-Disposition", "attachment; filename=\"EntityExport_${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMdd_HHmm')}.${fileType == 'JSON' ? 'json' : fileType == 'CSV' ? 'csv' : 'xml'}\";")
                     response.setHeader("Cache-Control", "no-cache, must-revalidate, private")
                     edw.writer(response.getWriter())
                     noResponse = true
@@ -97,6 +100,11 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="fileType"><default-field>
                 <radio no-current-selected-key="XML"><option key="XML"/><option key="JSON"/><option key="CSV"/></radio>
             </default-field></field>
+            <field name="useTableColumnNames">
+                <default-field title="Use Table Column Names (CSV Only)">
+                    <radio no-current-selected-key="No"><option key="No"/><option key="Yes"/></radio>
+                </default-field>
+            </field>
             <field name="output">
                 <default-field><radio no-current-selected-key="browser">
                     <option key="file" text="Single File"/>
