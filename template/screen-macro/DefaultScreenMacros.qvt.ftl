@@ -69,7 +69,7 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 <#macro "section-include">
     <#if sri.doBoundaryComments()><!-- BEGIN section-include[@name=${.node["@name"]}] --></#if>
-${sri.renderSection(.node["@name"])}
+${sri.renderSectionInclude(.node)}
     <#if sri.doBoundaryComments()><!-- END   section-include[@name=${.node["@name"]}] --></#if>
 </#macro>
 
@@ -157,7 +157,7 @@ ${sri.renderSection(.node["@name"])}
 <#macro "dynamic-container">
     <#assign dcDivId><@nodeId .node/></#assign>
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", dcDivId)>
-    <m-dynamic-container id="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().pathWithParams}"></m-dynamic-container>
+    <m-dynamic-container id="${dcDivId}" url="${urlInstance.passThroughSpecialParameters().urlWithParams}"></m-dynamic-container>
 </#macro>
 <#macro "dynamic-dialog">
     <#assign iconClass = "fa fa-share">
