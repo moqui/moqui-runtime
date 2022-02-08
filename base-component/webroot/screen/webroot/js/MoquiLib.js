@@ -372,7 +372,7 @@ var moqui = {
                 var callbacks = this.clientObj.topicListeners[jsonObj.topic];
                 if (callbacks) callbacks.forEach(function(callback) { callback(jsonObj, this) }, this);
                 var allCallbacks = this.clientObj.topicListeners["ALL"];
-                if (allCallbacks) allCallbacks.forEach(function(allCallbacks) { allCallbacks(jsonObj, this) }, this);
+                if (allCallbacks) allCallbacks.forEach(function(callback) { callback(jsonObj, this) }, this);
             };
             this.webSocket.onclose = function(event) {
                 console.log(event);

@@ -30,10 +30,10 @@ along with this software (see the LICENSE.md file). If not, see
                 function proposeTerminalGeometry(term) {
                   var parentEl = term.element.parentElement;
                   if (!parentEl) { return null; }
-                  console.warn(parentEl);
+                  // console.warn(parentEl);
                   var parentElementStyle = window.getComputedStyle(parentEl);
                   var parentElementHeight = parseInt(parentElementStyle.getPropertyValue('height'));
-                  console.warn("parentElementHeight " + parentElementHeight);
+                  // console.warn("parentElementHeight " + parentElementHeight);
                   var parentElementWidth = Math.max(0, parseInt(parentElementStyle.getPropertyValue('width')));
                   var elementStyle = window.getComputedStyle(term.element);
                   var elementPadding = {
@@ -59,25 +59,39 @@ along with this software (see the LICENSE.md file). If not, see
                     scrollback: 1000, tabStopWidth: 4, convertEol: true, screenKeys: true
                 });
                 groovyshTerminal.open(document.getElementById('terminal'));
-                groovyshTerminal.write('Connecting...');
+                groovyshTerminal.write('Connecting...\n');
 
-                const groovyshGeometry = proposeTerminalGeometry(groovyshTerminal);
+                var groovyshGeometry = proposeTerminalGeometry(groovyshTerminal);
                 if (groovyshGeometry && (groovyshTerminal.rows !== groovyshGeometry.rows || groovyshTerminal.cols !== groovyshGeometry.cols)) {
                     groovyshTerminal._core._renderCoordinator.clear();
                     groovyshTerminal.resize(groovyshGeometry.cols, groovyshGeometry.rows);
                 }
 
-                var groovyshWsClient = new moqui.BasicWebSocketClient(
+                if (window.groovyshWsClient && window.groovyshWsClient.webSocket) {
+                    window.groovyshWsClient.webSocket.close(1000);
+                    window.groovyshWsClient = null;
+                }
+                window.groovyshWsClient = new moqui.BasicWebSocketClient(
                     (location.protocol === 'https:' ? 'wss' : 'ws') + "://${ec.web.getHostName(true)}${ec.web.servletContext.contextPath}/groovysh",
                     function(data) {
                         // console.info("received groovysh ws data: " + data);
                         groovyshTerminal.write(data);
                     }
                 );
-                groovyshTerminal.on('data', function (data) {
+                groovyshTerminal.on("data", function (data) {
                     // console.info("sending groovysh ws data: " + data);
                     groovyshWsClient.webSocket.send(data);
                 });
+
+                if (!window.groovyshOnUrlCloseWs) window.groovyshOnUrlCloseWs = function(url) {
+                    if (window.groovyshWsClient && window.groovyshWsClient.webSocket) {
+                        window.groovyshWsClient.webSocket.close(1000);
+                        window.groovyshWsClient = null;
+                    }
+                }
+                if (moqui && moqui.webrootVue) {
+                    moqui.webrootVue.addUrlListener(window.groovyshOnUrlCloseWs);
+                }
             </script>
         ]]></text>
     </widgets>

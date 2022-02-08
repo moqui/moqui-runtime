@@ -1203,7 +1203,8 @@ Vue.component('subscreens-active', {
 moqui.webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
-        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[], lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{},
+        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[],
+        lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null },
     methods: {
         setUrl: function(url, bodyParameters) {
@@ -1261,6 +1262,8 @@ moqui.webrootVue = new Vue({
 
                 // set the window URL
                 window.history.pushState(null, this.ScreenTitle, url);
+                // notify url listeners
+                this.urlListeners.forEach(function(callback) { callback(url, this) }, this);
                 // scroll to top
                 document.documentElement.scrollTop = 0;
                 document.body.scrollTop = 0;
@@ -1316,6 +1319,10 @@ moqui.webrootVue = new Vue({
             var vm = this;
             if (urlList.length > (urlIndex + 1)) { setTimeout(function(){ vm.addNavPluginsWait(urlList, urlIndex + 1); }, 500); }
         } },
+        addUrlListener: function(urlListenerFunction) {
+            if (this.urlListeners.indexOf(urlListenerFunction) >= 0) return;
+            this.urlListeners.push(urlListenerFunction);
+        },
         addNotify: function(message, type) {
             var histList = this.notifyHistoryList.slice(0);
             var nowDate = new Date();
