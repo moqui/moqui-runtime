@@ -21,6 +21,7 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <text type="html,vuet,qvt"><![CDATA[
+            <div class="text-danger">Be careful here, you can break many things. <a href="https://groovy-lang.org/groovysh.html" target="_blank">A groovysh reference is available here.</a></div>
             <div id="terminal" style="height:100%;"></div>
 
             <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js" integrity="sha512-2PRgAav8Os8vLcOAh1gSaDoNLe1fAyq8/G3QSdyjFFD+OqNjLeHE/8q4+S4MEZgPsuo+itHopj+hJvqS8XUQ8A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
