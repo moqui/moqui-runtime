@@ -17,7 +17,9 @@ along with this software (see the LICENSE.md file). If not, see
 
     <actions>
         <if condition="!ec.user.hasPermission('GROOVY_SHELL_WEB')">
-            <return error="true" message="User does not have permission to use Groovy Shell via WebSocket"/></if>
+            <return error="true" message="User does not have permission to use Groovy Shell"/></if>
+        <if condition="!sri.getScreenUrlInfo().isPermitted(ec, null, org.moqui.context.ArtifactExecutionInfo.AUTHZA_ALL)">
+            <return error="true" message="User must be authorized for all actions on this screen"/></if>
     </actions>
     <widgets>
         <text type="html,vuet,qvt"><![CDATA[
