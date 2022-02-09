@@ -48,11 +48,11 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <container>
             <link url="list" text="Entity List"/>
-            <link url="find" text="Entity Find ${entityDefinition.getPrettyName(null, null)}"/>
-            <link url="autoFind" text="Auto Screen Find ${entityDefinition.getPrettyName(null, null)}" parameter-map="[aen:selectedEntity]"/>
+            <link url="find" text="Entity Find"/>
+            <link url="autoFind" text="Auto Screen Find" parameter-map="[aen:selectedEntity]"/>
             <link url="checkTable" text="Check/Update Table" tooltip="Check and update DB table from entity definition"/>
         </container>
-        <container><label text="Entity Detail for '${entityDefinition.fullEntityName}'" type="h3"/></container>
+        <container><label text="Entity Detail for ${entityDefinition.getPrettyName(null, null)} (${entityDefinition.fullEntityName})" type="h3"/></container>
         <container-row>
             <row-col md="3"><label text="View Entity? ${entityDefinition.isViewEntity}" type="strong"/></row-col>
             <row-col md="3"><label text="Short Alias: ${entityInfo.shortAlias ?: 'N/A'}" type="strong"/></row-col>
