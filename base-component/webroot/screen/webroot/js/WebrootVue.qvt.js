@@ -1466,7 +1466,7 @@ Vue.component('m-display', {
 Vue.component('m-drop-down', {
     name: "mDropDown",
     props: { value:[Array,String], options:{type:Array,'default':function(){return [];}}, combo:Boolean,
-        allowEmpty:Boolean, multiple:Boolean, requiredManualSelect:Boolean,
+        allowEmpty:Boolean, multiple:Boolean, requiredManualSelect:Boolean, submitOnSelect:Boolean,
         optionsUrl:String, optionsParameters:Object, optionsLoadInit:Boolean,
         serverSearch:Boolean, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
         labelField:{type:String,'default':'label'}, valueField:{type:String,'default':'value'},
@@ -1500,6 +1500,16 @@ Vue.component('m-drop-down', {
                 if ($event[this.onSelectGoTo]) this.$root.setUrl($event[this.onSelectGoTo]);
             } else {
                 this.$emit('input', $event);
+            }
+            if (this.submitOnSelect) {
+                var vm = this;
+                // this doesn't work, even alternative of custom-event with event handler in DefaultScreenMacros.qvt.ftl in the drop-down macro that explicitly calls the q-form submit() method: vm.$nextTick(function() { console.log("emitting submit"); vm.$emit('submit'); });
+                // doesn't work, q-form submit() method blows up without an even, in spite of what docs say: vm.$nextTick(function() { console.log("calling parent submit"); console.log(vm.$parent); vm.$parent.submit(); });
+                // doesn't work, q-form submit() doesn't like this event for whatever reason, method missing on it: vm.$nextTick(function() { console.log("calling parent submit with event"); console.log(vm.$parent); vm.$parent.submit($event); });
+
+                // TODO: find a better approach, perhaps pass down a reference to m-form or something so can refer to it more explicitly and handle Vue components in between
+                // this assumes the grandparent is m-form, if not it will blow up... alternatives are tricky
+                vm.$nextTick(function() { vm.$parent.$parent.submitForm(); });
             }
         },
         filterFn: function(search, doneFn, abortFn) {

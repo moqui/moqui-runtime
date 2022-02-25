@@ -16,6 +16,7 @@ along with this software (see the LICENSE.md file). If not, see
         default-menu-include="false" require-authentication="false" history="false">
 
     <parameter name="initialTab"/>
+    <parameter name="returnTo"/>
 
     <!-- partial list of scenarios:
       x basic login
@@ -121,6 +122,18 @@ along with this software (see the LICENSE.md file). If not, see
         html_stylesheets.add('/css/webroot-layout.css')
     </script></pre-actions>
     <actions>
+        <!-- handle returnTo parameter, and general handling for when the Login screen is reached directly
+            (as opposed to redirect following attempted request to screen that requires authz) -->
+        <if condition="returnTo"><then>
+            <log message="setting last path to ${returnTo}"/>
+            <script>ec.web.session.setAttribute('moqui.screen.last.path', returnTo)</script>
+        </then><else>
+            <if condition="!ec.web.session.getAttribute('moqui.screen.last.path')">
+                <set field="referrer" from="ec.web.request.getHeader('Referer')"/>
+                <if condition="referrer"><script>ec.web.session.setAttribute('moqui.screen.last.path', referrer)</script></if>
+            </if>
+        </else></if>
+
         <set field="passwordChangeRequired" from="ec.web.sessionAttributes.moquiPasswordChangeRequired ?: 'false'" type="Boolean"/>
         <set field="expiredCredentials" from="ec.web.sessionAttributes.moquiExpiredCredentials ?: 'false'" type="Boolean"/>
         <if condition="passwordChangeRequired || expiredCredentials">
