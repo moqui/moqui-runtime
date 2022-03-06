@@ -18,8 +18,12 @@ buildscript {
     repositories {
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
+//        flatDir {dirs 'libs'}
     }
-    dependencies { classpath 'com.github.ben-manes:gradle-versions-plugin:0.28.0' }
+    dependencies {
+        classpath ('com.github.ben-manes:gradle-versions-plugin:0.28.0')
+        classpath fileTree(dir: 'libs', include: '*.jar')
+    }
 }
 
 /* gradle.js plugin getting warning with Gradle 5+, incompatible with Gradle 6:
