@@ -28,10 +28,10 @@ buildscript {
    has been deprecated. This is scheduled to be removed in Gradle 6.0. Don't use internal API
 
    see https://github.com/eriwen/gradle-js-plugin/issues/168
- */
 plugins {
     id "com.eriwen.gradle.js" version "2.14.1"
 }
+ */
 
 apply plugin: 'com.github.ben-manes.versions'
 dependencyUpdates.resolutionStrategy = { componentSelection { rules -> rules.all { ComponentSelection selection ->
@@ -185,7 +185,7 @@ vuetJs.add(webrootPath + '/js/http-vue-loader/httpVueLoader.js')
 // Vue root component instance, in footer so runs after page loaded
 vuetJs.add(webrootPath + '/js/WebrootVue.min.js')
 
-
+/*
 task minifySelect2(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     source = file("${webrootPath}/js/select2/select2.js")
     dest = file("${webrootPath}/js/select2.min.js")
@@ -196,13 +196,6 @@ task minifyDateTimePicker(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     dest = file("${webrootPath}/js/bootstrap-datetimepicker.min.js")
     closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
 }
-/* using pre-minified version
-task minifyQzTray(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
-    source = file("${webrootPath}/js/qz-tray/qz-tray.js")
-    dest = file("${webrootPath}/js/qz-tray.min.js")
-    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8); warningLevel = 'QUIET' }
-}
-*/
 task minifyMoquiLib(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     source = file("${webrootPath}/js/MoquiLib.js")
     dest = file("${webrootPath}/js/MoquiLib.min.js")
@@ -217,6 +210,8 @@ task combineBaseJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     source = baseJs
     dest = file("${webrootPath}/js/CombinedBase.min.js")
 }
+*/
+
 // moment.js and many others have lots of comments, etc that make it very large so re-minify
 /* issues have been found in certain browsers on certain operating systems with this, see https://github.com/moqui/moqui-runtime/issues/76
 task minifyCombinedBase(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
@@ -229,7 +224,7 @@ task minifyCombinedBase(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     }
 }
 */
-
+/*
 task minifyWebrootVue(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     source = file("${webrootPath}/js/WebrootVue.js")
     dest = file("${webrootPath}/js/WebrootVue.min.js")
@@ -248,14 +243,15 @@ task minifyWebrootVueQvt(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
     dest = file("${webrootPath}/js/WebrootVue.qvt.min.js")
     closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
 }
+*/
 
 task clean { doLast { delete fileTree(dir: "${webrootPath}/js", include: '*.min.js') }}
 task build {
     dependsOn downloadFiles
-    dependsOn combineBaseJs
+    // dependsOn combineBaseJs
     // issues seen with this on Windows, disabling for now: dependsOn minifyCombinedBase
-    dependsOn combineVuetJs
-    dependsOn minifyWebrootVueQvt
+    // dependsOn combineVuetJs
+    // dependsOn minifyWebrootVueQvt
 }
 task cleanAll { doLast {
     delete file(libsPath)
