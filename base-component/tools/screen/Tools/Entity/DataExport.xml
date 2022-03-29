@@ -67,7 +67,7 @@ along with this software (see the LICENSE.md file). If not, see
                     // stream to ec.web.response
                     def response = ec.web.response
                     if (fileType == 'JSON') response.setContentType('application/json')
-                    if (fileType == 'CSV') response.setContentType('text/csv')
+                    else if (fileType == 'CSV') response.setContentType('text/csv')
                     else response.setContentType('text/xml')
                     response.setCharacterEncoding("UTF-8")
                     response.setHeader("Content-Disposition", "attachment; filename=\"EntityExport_${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMdd_HHmm')}.${fileType == 'JSON' ? 'json' : fileType == 'CSV' ? 'csv' : 'xml'}\";")
