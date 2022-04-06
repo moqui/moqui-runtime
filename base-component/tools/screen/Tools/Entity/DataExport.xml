@@ -18,10 +18,12 @@ along with this software (see the LICENSE.md file). If not, see
     <transition name="EntityExport" begin-transaction="false" read-only="true">
         <actions>
             <script><![CDATA[
+                import com.mkdecision.services.entity.EntityDataWriterImplEx
                 import org.moqui.entity.EntityDataWriter
                 import org.moqui.context.ExecutionContext
+
                 ExecutionContext ec = context.ec
-                EntityDataWriter edw = ec.entity.makeDataWriter()
+                EntityDataWriterImplEx edw = new EntityDataWriterImplEx(ec.entity).isoDateTimeInFilename(true);
 
                 // handle entityNames
                 if (!context.entityNames) {
@@ -38,12 +40,12 @@ along with this software (see the LICENSE.md file). If not, see
                 if (entityNames instanceof List) {
                     for (String entityName in entityNames) {
                         def entDef = ec.entity.getEntityDefinition(entityName)
-                        if (entDef == null) ec.message.addError(ec.resource.expand('Could not find entity with name ${entityName}',''))
+                        if (entDef == null) ec.message.addError(ec.resource.expand('Could not find entity with name ${entityName}', ''))
                     }
                     edw.entityNames(entityNames)
                 } else {
                     def entDef = ec.entity.getEntityDefinition(entityNames)
-                    if (entDef == null) ec.message.addError(ec.resource.expand('Could not find entity with name ${entityNames}',''))
+                    if (entDef == null) ec.message.addError(ec.resource.expand('Could not find entity with name ${entityNames}', ''))
                     edw.entityName(entityNames as String)
                 }
 
@@ -56,7 +58,10 @@ along with this software (see the LICENSE.md file). If not, see
                 if (filterMap) edw.filterMap((Map) ec.resource.expression(filterMap, null))
                 if (orderBy) edw.orderBy([(String) orderBy])
                 edw.fileType((String) fileType)
-                if(fileType == 'CSV') edw.tableColumnNames(useTableColumnNames == 'Yes' ? true : false)
+                if (fileType == 'CSV') {
+                    edw.tableColumnNames(useTableColumnNames == 'Yes' ? true : false)
+                    edw.isoDateTimeInFilename(useTimestampInFilenames == 'Yes' ? true : false)
+                }
 
                 noResponse = false
                 if (context.output == "file") {
@@ -85,7 +90,7 @@ along with this software (see the LICENSE.md file). If not, see
                     }
                     noResponse = true
                 }
-            ]]></script>
+                ]]></script>
         </actions>
         <conditional-response url="."><condition><expression>!noResponse</expression></condition></conditional-response>
         <default-response type="none"/>
@@ -112,6 +117,11 @@ along with this software (see the LICENSE.md file). If not, see
             </default-field></field>
             <field name="useTableColumnNames">
                 <default-field title="Use Table Column Names (CSV Only)">
+                    <radio no-current-selected-key="No"><option key="No"/><option key="Yes"/></radio>
+                </default-field>
+            </field>
+            <field name="useTimestampInFilenames">
+                <default-field title="Use ISO Timestamp in filenames inside zip file (CSV Only)">
                     <radio no-current-selected-key="No"><option key="No"/><option key="Yes"/></radio>
                 </default-field>
             </field>
