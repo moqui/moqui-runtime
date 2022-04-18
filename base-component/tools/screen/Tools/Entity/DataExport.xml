@@ -66,13 +66,23 @@ along with this software (see the LICENSE.md file). If not, see
                 } else if (context.output == "browser") {
                     // stream to ec.web.response
                     def response = ec.web.response
-                    if (fileType == 'JSON') response.setContentType('application/json')
-                    if (fileType == 'CSV') response.setContentType('text/csv')
-                    else response.setContentType('text/xml')
                     response.setCharacterEncoding("UTF-8")
-                    response.setHeader("Content-Disposition", "attachment; filename=\"EntityExport_${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMdd_HHmm')}.${fileType == 'JSON' ? 'json' : fileType == 'CSV' ? 'csv' : 'xml'}\";")
                     response.setHeader("Cache-Control", "no-cache, must-revalidate, private")
-                    edw.writer(response.getWriter())
+
+                    if (fileType == 'CSV' && entityNames instanceof List && entityNames.size() > 1) {
+                        // if trying to export more than one entity as CSV, send a .zip file instead
+                        response.setContentType('application/zip')
+                        response.setHeader("Content-Disposition", "attachment; filename=\"EntityExport_${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMdd_HHmm')}.zip\";")
+                        edw.zipDirectory('', response.getOutputStream())
+
+                    } else {
+                        if (fileType == 'JSON') response.setContentType('application/json')
+                        else if (fileType == 'CSV') response.setContentType('text/csv')
+                        else response.setContentType('text/xml')
+
+                        response.setHeader("Content-Disposition", "attachment; filename=\"EntityExport_${ec.l10n.format(ec.user.nowTimestamp, 'yyyyMMdd_HHmm')}.${fileType == 'JSON' ? 'json' : fileType == 'CSV' ? 'csv' : 'xml'}\";")
+                        edw.writer(response.getWriter())
+                    }
                     noResponse = true
                 }
             ]]></script>
