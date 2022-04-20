@@ -21,6 +21,7 @@ along with this software (see the LICENSE.md file). If not, see
 
     <transition name="list"><default-response url="../EntityList"/></transition>
     <transition name="find"><default-response url="../EntityDataFind"/></transition>
+    <transition name="autoFind"><default-response url="../../../AutoScreen/AutoFind"/></transition>
     <transition name="checkTable">
         <actions><script>ec.entity.entityDbMeta.forceCheckTableRuntime(ec.entity.getEntityDefinition(selectedEntity))</script></actions>
         <default-response url="."/>
@@ -47,10 +48,11 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <container>
             <link url="list" text="Entity List"/>
-            <link url="find" text="Find ${entityDefinition.entityName}"/>
+            <link url="find" text="Entity Find"/>
+            <link url="autoFind" text="Auto Screen Find" parameter-map="[aen:selectedEntity]"/>
             <link url="checkTable" text="Check/Update Table" tooltip="Check and update DB table from entity definition"/>
         </container>
-        <container><label text="Entity Detail for '${entityDefinition.fullEntityName}'" type="h3"/></container>
+        <container><label text="Entity Detail for ${entityDefinition.getPrettyName(null, null)} (${entityDefinition.fullEntityName})" type="h3"/></container>
         <container-row>
             <row-col md="3"><label text="View Entity? ${entityDefinition.isViewEntity}" type="strong"/></row-col>
             <row-col md="3"><label text="Short Alias: ${entityInfo.shortAlias ?: 'N/A'}" type="strong"/></row-col>

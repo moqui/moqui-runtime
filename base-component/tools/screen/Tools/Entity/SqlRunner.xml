@@ -13,9 +13,11 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-2.1.xsd"
-        default-menu-title="SQL" begin-transaction="false"><!-- NOTE: begin tx is false so table meta data changes, etc can be done -->
+        default-menu-title="SQL Runner" begin-transaction="false"><!-- NOTE: begin tx is false so table meta data changes, etc can be done -->
 
     <actions>
+        <if condition="!ec.user.hasPermission('SQL_RUNNER_WEB')">
+            <return error="true" message="User does not have permission to use the SQL Runner"/></if>
         <if condition="!sri.getScreenUrlInfo().isPermitted(ec, null, org.moqui.context.ArtifactExecutionInfo.AUTHZA_ALL)">
             <return error="true" message="User must be authorized for all actions on this screen"/></if>
 

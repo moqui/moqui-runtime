@@ -947,7 +947,7 @@ Vue.component('date-period', {
     beforeMount: function() { if (((this.fromDate && this.fromDate.length) || (this.thruDate && this.thruDate.length))) this.fromThruMode = true; }
 });
 Vue.component('drop-down', {
-    props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String, optionsUrl:String,
+    props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String, submitOnSelect:Boolean, optionsUrl:String,
         serverSearch:{type:Boolean,'default':false}, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
         optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object, dependsOptional:Boolean,
         optionsLoadInit:Boolean, form:String, tooltip:String },
@@ -1004,7 +1004,8 @@ Vue.component('drop-down', {
     },
     mounted: function() {
         var jqEl = $(this.$el);
-        var vm = this; var opts = { minimumResultsForSearch:10 };
+        var vm = this;
+        var opts = { minimumResultsForSearch:10 };
         if (this.combo) { opts.tags = true; opts.tokenSeparators = [',',' ']; }
         if (this.multiple === "multiple") {
             opts.multiple = true; opts.closeOnSelect = false; opts.width = "100%";
@@ -1026,7 +1027,17 @@ Vue.component('drop-down', {
             jqEl.addClass("noResetSelect2"); // so doesn't get reset on container dialog load
         }
         this.s2Opts = opts;
-        jqEl.select2(opts).on('change', function () { vm.$emit('input', this.value); });
+        jqEl.select2(opts).on('change', function () {
+            vm.$emit('input', this.value);
+            if (vm.submitOnSelect) {
+                // TODO: find a better approach, perhaps pass down a reference to m-form or something so can refer to it more explicitly and handle Vue components in between
+                // this assumes the parent is m-form, if not it will blow up... alternatives are tricky
+                // vm.$nextTick(function() { vm.$parent.submitForm(); });
+                // TODO: implement this in some way so it doesn't immediately try to submit the form; because of
+                //    the mess that is select2 and how it is used here, the change even gets called on initial load if there is a value!
+                // TODO: if/when this is ever figured out, also add to on change listener in the watch => curData block below, and for the html render mode
+            }
+        });
         if (this.tooltip && this.tooltip.length) jqEl.next().tooltip({ title: function() { return $(this).prev().attr("data-title"); }, placement: "auto" });
 
         // needed? was a hack for something, but interferes with closeOnSelect:false for multiple: .on('select2:select', function () { jqEl.select2('open').select2('close'); });
@@ -1203,7 +1214,8 @@ Vue.component('subscreens-active', {
 moqui.webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
-        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[], lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{},
+        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[],
+        lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null },
     methods: {
         setUrl: function(url, bodyParameters) {
@@ -1261,6 +1273,8 @@ moqui.webrootVue = new Vue({
 
                 // set the window URL
                 window.history.pushState(null, this.ScreenTitle, url);
+                // notify url listeners
+                this.urlListeners.forEach(function(callback) { callback(url, this) }, this);
                 // scroll to top
                 document.documentElement.scrollTop = 0;
                 document.body.scrollTop = 0;
@@ -1316,6 +1330,10 @@ moqui.webrootVue = new Vue({
             var vm = this;
             if (urlList.length > (urlIndex + 1)) { setTimeout(function(){ vm.addNavPluginsWait(urlList, urlIndex + 1); }, 500); }
         } },
+        addUrlListener: function(urlListenerFunction) {
+            if (this.urlListeners.indexOf(urlListenerFunction) >= 0) return;
+            this.urlListeners.push(urlListenerFunction);
+        },
         addNotify: function(message, type) {
             var histList = this.notifyHistoryList.slice(0);
             var nowDate = new Date();
@@ -1353,11 +1371,9 @@ moqui.webrootVue = new Vue({
             if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
             var pathList = path.split('/');
             // element 0 in array after split is empty string from leading '/'
-            var wrapperIdx = this.appRootPath ? 2 : 1;
-            if (pathList.length > wrapperIdx) {
-                pathList[wrapperIdx] = this.linkBasePath.slice(1);
-                path = pathList.join("/");
-            }
+            var wrapperIdx = this.appRootPath.split('/').length;
+            pathList[wrapperIdx] = this.linkBasePath.split('/').slice(-1);
+            path = pathList.join("/");
             return path;
         }
     },

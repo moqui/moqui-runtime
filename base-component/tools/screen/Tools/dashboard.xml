@@ -30,6 +30,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <box-body>
                     <link url="../AutoScreen" text="Auto Screens"/>
                     <link url="../ArtifactStats" text="Artifact Stats"/>
+                    <link url="../GroovyShell" text="Groovy Shell" condition="ec.user.hasPermission('GROOVY_SHELL_WEB')"/>
                     <link url="../Service" text="Services"/>
                 </box-body>
             </container-box>
@@ -75,12 +76,13 @@ along with this software (see the LICENSE.md file). If not, see
                     <link url="../Entity/DataImport" text="Data Import"/>
                     <link url="../Entity/DataExport" text="Data Export"/>
                     <link url="../Entity/DataSnapshot" text="Data Snapshots"/>
-                    <link url="../Entity/SqlRunner" text="SQL Runner"/>
+                    <link url="../Entity/SqlRunner" text="SQL Runner" condition="ec.user.hasPermission('SQL_RUNNER_WEB')"/>
                 </container>
                 <container>
                     <link url="../Entity/DataEdit" text="Entities"/>
                     <link url="../DataView" text="Data Views"/>
                     <link url="../Entity/SpeedTest" text="Speed Test"/>
+                    <link url="../Entity/TableStats" text="Table Stats"/>
                     <link url="../Entity/QueryStats" text="Query Stats"/>
                 </container>
             </box-body></container-box>

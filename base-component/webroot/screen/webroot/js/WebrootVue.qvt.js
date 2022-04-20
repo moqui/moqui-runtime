@@ -1466,7 +1466,7 @@ Vue.component('m-display', {
 Vue.component('m-drop-down', {
     name: "mDropDown",
     props: { value:[Array,String], options:{type:Array,'default':function(){return [];}}, combo:Boolean,
-        allowEmpty:Boolean, multiple:Boolean, requiredManualSelect:Boolean,
+        allowEmpty:Boolean, multiple:Boolean, requiredManualSelect:Boolean, submitOnSelect:Boolean,
         optionsUrl:String, optionsParameters:Object, optionsLoadInit:Boolean,
         serverSearch:Boolean, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
         labelField:{type:String,'default':'label'}, valueField:{type:String,'default':'value'},
@@ -1500,6 +1500,16 @@ Vue.component('m-drop-down', {
                 if ($event[this.onSelectGoTo]) this.$root.setUrl($event[this.onSelectGoTo]);
             } else {
                 this.$emit('input', $event);
+            }
+            if (this.submitOnSelect) {
+                var vm = this;
+                // this doesn't work, even alternative of custom-event with event handler in DefaultScreenMacros.qvt.ftl in the drop-down macro that explicitly calls the q-form submit() method: vm.$nextTick(function() { console.log("emitting submit"); vm.$emit('submit'); });
+                // doesn't work, q-form submit() method blows up without an even, in spite of what docs say: vm.$nextTick(function() { console.log("calling parent submit"); console.log(vm.$parent); vm.$parent.submit(); });
+                // doesn't work, q-form submit() doesn't like this event for whatever reason, method missing on it: vm.$nextTick(function() { console.log("calling parent submit with event"); console.log(vm.$parent); vm.$parent.submit($event); });
+
+                // TODO: find a better approach, perhaps pass down a reference to m-form or something so can refer to it more explicitly and handle Vue components in between
+                // this assumes the grandparent is m-form, if not it will blow up... alternatives are tricky
+                vm.$nextTick(function() { vm.$parent.$parent.submitForm(); });
             }
         },
         filterFn: function(search, doneFn, abortFn) {
@@ -1942,7 +1952,7 @@ Vue.component('m-subscreens-tabs', {
 Vue.component('m-subscreens-active', {
     name: "mSubscreensActive",
     data: function() { return { activeComponent:moqui.EmptyComponent, pathIndex:-1, pathName:null } },
-    template: '<component :is="activeComponent"></component>',
+    template: '<component :is="activeComponent" style="height:100%;width:100%;"></component>',
     // method instead of a watch on pathName so that it runs even when newPath is the same for non-static reloading
     methods: { loadActive: function() {
         var vm = this;
@@ -2047,7 +2057,7 @@ moqui.webrootVue = new Vue({
     el: '#apps-root',
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], currentParameters:{}, bodyParameters:null,
         activeSubscreens:[], navMenuList:[], navHistoryList:[], navPlugins:[], accountPlugins:[], notifyHistoryList:[],
-        lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{},
+        lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en",
         notificationClient:null, qzVue:null, leftOpen:false, moqui:moqui },
     methods: {
@@ -2100,6 +2110,8 @@ moqui.webrootVue = new Vue({
 
                 // set the window URL
                 window.history.pushState(null, this.ScreenTitle, url);
+                // notify url listeners
+                this.urlListeners.forEach(function(callback) { callback(url, this) }, this);
                 // scroll to top
                 document.documentElement.scrollTop = 0;
                 document.body.scrollTop = 0;
@@ -2172,6 +2184,10 @@ moqui.webrootVue = new Vue({
             var vm = this;
             if (urlList.length > (urlIndex + 1)) { setTimeout(function(){ vm.addAccountPluginsWait(urlList, urlIndex + 1); }, 500); }
         } },
+        addUrlListener: function(urlListenerFunction) {
+            if (this.urlListeners.indexOf(urlListenerFunction) >= 0) return;
+            this.urlListeners.push(urlListenerFunction);
+        },
 
         addNotify: function(message, type) {
             var histList = this.notifyHistoryList.slice(0);
@@ -2211,11 +2227,9 @@ moqui.webrootVue = new Vue({
             if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
             var pathList = path.split('/');
             // element 0 in array after split is empty string from leading '/'
-            var wrapperIdx = this.appRootPath ? 2 : 1;
-            if (pathList.length > wrapperIdx) {
-                pathList[wrapperIdx] = this.linkBasePath.slice(1);
-                path = pathList.join("/");
-            }
+            var wrapperIdx = this.appRootPath.split('/').length; // appRootPath is '/moqui/v1' or '/moqui'. wrapper means 'qapps'
+            pathList[wrapperIdx] = this.linkBasePath.split('/').slice(-1);
+            path = pathList.join("/");
             return path;
         },
         getQuasarColor: function(bootstrapColor) { return moqui.getQuasarColor(bootstrapColor); }
