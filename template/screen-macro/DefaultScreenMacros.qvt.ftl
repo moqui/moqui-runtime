@@ -1940,12 +1940,12 @@ a => A, d => D, y => Y
     <#assign fieldLabel><@fieldTitle .node?parent/></#assign>
     <#assign curTooltip = ec.getResource().expand(.node?parent["@tooltip"]!, "")>
 <div class="row">
-    <q-input dense outlined stack-label label="${fieldLabel} From" name="${curFieldName}_from" id="${tlId}_from"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
+    <q-input dense outlined stack-label label="${fieldLabel} ${ec.getL10n().localize('From')}" name="${curFieldName}_from" id="${tlId}_from"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
             <#t> size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
             <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_from"<#else> value="${ec.getContext().get(curFieldName + "_from")!?default(.node["@default-value-from"]!"")?html}"</#if>>
         <#if curTooltip?has_content><q-tooltip>${curTooltip}</q-tooltip></#if>
     </q-input>
-    <q-input class="q-pl-xs" dense outlined stack-label label="${fieldLabel} Thru" name="${curFieldName}_thru" id="${tlId}_thru"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
+    <q-input class="q-pl-xs" dense outlined stack-label label="${fieldLabel} ${ec.getL10n().localize('Thru')}" name="${curFieldName}_thru" id="${tlId}_thru"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
             <#t> size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
             <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_thru"<#else> value="${ec.getContext().get(curFieldName + "_thru")!?default(.node["@default-value-thru"]!"")?html}"</#if>>
         <#if curTooltip?has_content><q-tooltip>${curTooltip}</q-tooltip></#if>
