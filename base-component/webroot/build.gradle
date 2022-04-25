@@ -19,20 +19,12 @@ buildscript {
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
     }
-    dependencies { classpath 'com.github.ben-manes:gradle-versions-plugin:0.28.0' }
+    dependencies {
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.42.0'
+        classpath "org.gradle-webtools.minify:gradle-minify-plugin:1.3.1"
+    }
 }
-
-/* gradle.js plugin getting warning with Gradle 5+, incompatible with Gradle 6:
-
-   Internal API constructor FactoryNamedDomainObjectContainerConstructor AbstractNamedDomainObjectContainer(Class<T>, Instantiator)
-   has been deprecated. This is scheduled to be removed in Gradle 6.0. Don't use internal API
-
-   see https://github.com/eriwen/gradle-js-plugin/issues/168
- */
-plugins {
-    id "com.eriwen.gradle.js" version "2.14.1"
-}
-
+apply plugin: "org.gradlewebtools.minify"
 apply plugin: 'com.github.ben-manes.versions'
 dependencyUpdates.resolutionStrategy = { componentSelection { rules -> rules.all { ComponentSelection selection ->
     boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm', 'b'].any { qualifier -> selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-].*/ }
@@ -155,7 +147,6 @@ baseJs.add(libsPath + '/jquery-validate/jquery.validate.min.js')
 baseJs.add(libsPath + '/jquery-validate/additional-methods.min.js')
 // Date/Time (Moment, bootstrap-datetimepicker)
 baseJs.add(libsPath + '/moment.js/moment-with-locales.min.js')
-//baseJs.add(libsPath + '/bootstrap-datetimepicker/js/bootstrap-datetimepicker.min.js')
 baseJs.add(webrootPath + '/js/bootstrap-datetimepicker.min.js')
 // Drop-down (Select2, Selectivity)
 baseJs.add(webrootPath + '/js/select2.min.js')
@@ -185,78 +176,68 @@ vuetJs.add(webrootPath + '/js/http-vue-loader/httpVueLoader.js')
 // Vue root component instance, in footer so runs after page loaded
 vuetJs.add(webrootPath + '/js/WebrootVue.min.js')
 
-
-task minifySelect2(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
-    source = file("${webrootPath}/js/select2/select2.js")
-    dest = file("${webrootPath}/js/select2.min.js")
-    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
-}
-task minifyDateTimePicker(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
-    source = file("${webrootPath}/js/bootstrap-datetimepicker/bootstrap-datetimepicker.js")
-    dest = file("${webrootPath}/js/bootstrap-datetimepicker.min.js")
-    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
-}
-/* using pre-minified version
-task minifyQzTray(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
-    source = file("${webrootPath}/js/qz-tray/qz-tray.js")
-    dest = file("${webrootPath}/js/qz-tray.min.js")
-    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8); warningLevel = 'QUIET' }
-}
-*/
-task minifyMoquiLib(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
-    source = file("${webrootPath}/js/MoquiLib.js")
-    dest = file("${webrootPath}/js/MoquiLib.min.js")
-    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
-}
-task combineBaseJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
-    dependsOn downloadFiles
-    dependsOn minifySelect2
-    dependsOn minifyDateTimePicker
-    dependsOn minifyMoquiLib
-    encoding = "UTF-8"
-    source = baseJs
-    dest = file("${webrootPath}/js/CombinedBase.min.js")
-}
-// moment.js and many others have lots of comments, etc that make it very large so re-minify
-/* issues have been found in certain browsers on certain operating systems with this, see https://github.com/moqui/moqui-runtime/issues/76
-task minifyCombinedBase(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
-    dependsOn combineBaseJs
-    source = file("${webrootPath}/js/CombinedBase.min.js")
-    dest = file("${webrootPath}/js/CombinedBaseMin.min.js")
-    closure {
-        warningLevel = 'QUIET'
-        compilerOptions.setOutputCharset(StandardCharsets.UTF_8)
+task minifyJsDir(type: org.gradlewebtools.minify.JsMinifyTask) {
+    // see: https://github.com/gradle-webtools/gradle-minify-plugin
+    // NOTE: JsMinifyTask (and the css one, etc) always recursively minify in sub-directories, no way to disable! (based on source review 2022-04-05)
+    srcDir = file(webrootPath + "/js")
+    dstDir = file(webrootPath + "/js")
+    options.ignoreMinFiles = true
+    options.emitUseStrict = false
+    options.strictModeInput = false
+    options.compilationLevel = com.google.javascript.jscomp.CompilationLevel.SIMPLE_OPTIMIZATIONS
+    options.env = com.google.javascript.jscomp.CompilerOptions.Environment.BROWSER
+    options.warningLevel = com.google.javascript.jscomp.WarningLevel.QUIET
+    options.charset = StandardCharsets.UTF_8
+    // because all sub-directories are processed for js files to minify, move and remove manually to clean up here...
+    doLast {
+        // move the two min files we want
+        file(webrootPath + '/js/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js')
+                .renameTo(file(webrootPath + '/js/bootstrap-datetimepicker.min.js'))
+        file(webrootPath + '/js/select2/select2.min.js')
+                .renameTo(file(webrootPath + '/js/select2.min.js'))
+        // delete the min files we don't need/want
+        file(webrootPath + '/js/http-vue-loader/httpVueLoader.min.js').delete()
+        file(webrootPath + '/js/qz-tray/MoquiQzComponent.min.js').delete()
     }
 }
-*/
-
-task minifyWebrootVue(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
-    source = file("${webrootPath}/js/WebrootVue.js")
-    dest = file("${webrootPath}/js/WebrootVue.min.js")
-    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
-}
-task combineVuetJs(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
+task combineBaseJs {
     dependsOn downloadFiles
-    dependsOn minifyWebrootVue
-    encoding = "UTF-8"
-    source = vuetJs
-    dest = file("${webrootPath}/js/CombinedVuet.min.js")
+    dependsOn minifyJsDir
+    // dependsOn minifySelect2
+    // dependsOn minifyDateTimePicker
+    doLast {
+        def destFile = file("${webrootPath}/js/CombinedBase.min.js")
+        destFile.write("")
+        baseJs.each({
+            destFile.append(file(it).getText("UTF-8"))
+            destFile.append("\n")
+        })
+    }
+}
+task combineVuetJs {
+    dependsOn downloadFiles
+    dependsOn minifyJsDir
+    doLast {
+        def destFile = file("${webrootPath}/js/CombinedVuet.min.js")
+        destFile.write("")
+        vuetJs.each({
+            destFile.append(file(it).getText("UTF-8"))
+            destFile.append("\n")
+        })
+    }
 }
 
-task minifyWebrootVueQvt(type: com.eriwen.gradle.js.tasks.MinifyJsTask) {
-    source = file("${webrootPath}/js/WebrootVue.qvt.js")
-    dest = file("${webrootPath}/js/WebrootVue.qvt.min.js")
-    closure { compilerOptions.setOutputCharset(StandardCharsets.UTF_8) }
-}
-
-task clean { doLast { delete fileTree(dir: "${webrootPath}/js", include: '*.min.js') }}
 task build {
     dependsOn downloadFiles
+
+    dependsOn minifyJsDir
+
     dependsOn combineBaseJs
-    // issues seen with this on Windows, disabling for now: dependsOn minifyCombinedBase
     dependsOn combineVuetJs
-    dependsOn minifyWebrootVueQvt
 }
+task clean { doLast {
+    delete fileTree(dir: "${webrootPath}/js", include: '*.min.js')
+}}
 task cleanAll { doLast {
     delete file(libsPath)
 } }
