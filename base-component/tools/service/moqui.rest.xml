@@ -15,7 +15,7 @@ along with this software (see the LICENSE.md file). If not, see
 
 <!-- General Guideline Verbs: GET=find, POST=create/do, PUT=store (create or update), PATCH=update, DELETE=delete  -->
 
-<resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/rest-api-2.1.xsd"
+<resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/rest-api-3.xsd"
         name="moqui" displayName="Moqui Tools REST API" version="${moqui_version}"
         description="Services for various system administration and other tools in Moqui Framework. See more information
             about Moqui Framework at [http://www.moqui.org/framework](http://www.moqui.org/framework/index.html)">

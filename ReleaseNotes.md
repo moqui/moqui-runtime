@@ -1,9 +1,22 @@
 
 # Moqui Runtime Release Notes
 
-## Release 3.0.0 - Not Yet Released
+## Release 3.0.0 - 31 May 2022
 
-Moqui Runtime 2.1.2 is a patch level new feature and bug fix release, in parallel with the release of Moqui Framework.
+Moqui Runtime 3.0.0 is a major new feature and bug fix release with some changes that are not backward compatible,
+in parallel with the release of Moqui Framework.
+
+In this release there is a new render mode (qvt) and apps screen wrapper (/qapps) that is like vuet and /vapps but uses
+the Quasar project, a Vue JS component library based on Google Material Design. The new Vue JS component library in Moqui
+(in WebrootVue.qvt.js) takes a big step toward more client rendering and better use of Vue JS components and events, 
+making it far easier to extend with dynamic behavior (vs the vuet and html render modes). 
+
+There are various small improvements to the System and Tools apps, and some new screens like an interactive Groovy Shell
+screen and a Table Stats screen that shows the number of records in each entity's table.
+
+This is a brief summary of the changes since the last release, for a complete list see the commit log:
+
+https://github.com/moqui/moqui-runtime/compare/v2.1.3...v3.0.0
 
 ### Non Backward Compatible Changes
 
@@ -11,9 +24,17 @@ Moqui Runtime 2.1.2 is a patch level new feature and bug fix release, in paralle
     - moquiSessionToken: for security reasons, it opened a vector in a CSRF attack to acquire the session token at any time
     - api_key: there is no good use case, just use cases that are less secure and poorly thought through
 
-For a complete list of changes see:
+### New Features
 
-https://github.com/moqui/moqui-runtime/compare/v2.1.3...v3.0.0
+- MFA support for login and update password in screens and REST API with factors including authc code by email and SMS,
+  TOTP code (via authenticator app), backup codes; can set a flag on UserGroup to require second factor for all users in
+  the group, and if any user has any additional factor enable then a second factor will be required
+- Saved Find dialog (in form-list) improvements to show options for scheduled screen render, to send regular reports to
+  users by email (simple email with CSV or XSLT attachment)
+- Groovy Shell screen added to the Tools app (with special permission), an interactive Groovy Console for testing in
+  various environments and for fixing certain production issues
+- Update Swagger UI to 4.1.3 with JS/CSS files loaded from cdnjs instead of locally to avoid having files in the repos
+  making it easier to update over time, along with cleaning up an old mess and a few CVE and WS security issues
 
 ## Release 2.1.3 - 07 Dec 2019
 
