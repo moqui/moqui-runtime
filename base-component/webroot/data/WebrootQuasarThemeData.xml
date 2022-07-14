@@ -35,6 +35,8 @@ along with this software (see the LICENSE.md file). If not, see
 
     <!-- Add external theme(s) here  -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="10" resourceTypeEnumId="STRT_STYLESHEET" resourceValue=""/>
+    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="11" resourceTypeEnumId="STRT_STYLESHEET"
+            resourceValue="/libs/tailwind2/tailwind.min.css"/>
 
     <!-- Quasar layout and theme, loaded last to override -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="20" resourceTypeEnumId="STRT_STYLESHEET"
