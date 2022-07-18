@@ -1,3 +1,5 @@
+// for differences from stock http-vue-loader see: https://github.com/FranckFreiburger/http-vue-loader/compare/master...jonesde:master
+// NOTE: under the <script> element use the approach: <script>module.exports = {};</script> and not like <script>export default {};</script>
 (function umd(root,factory){
 	if(typeof module==='object' && typeof exports === 'object' )
 		module.exports=factory()

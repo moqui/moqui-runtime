@@ -697,7 +697,11 @@ Vue.component('m-form', {
                 setTimeout(function() { $btn.prop('disabled', false); }, 3000);
             }
             var formData = Object.keys(this.fields).length ? new FormData() : new FormData(this.$refs.qForm.$el);
-            $.each(this.fields, function(key, value) { formData.set(key, value || ""); });
+            $.each(this.fields, function(key, value) {
+                if (moqui.isArray(value)) {
+                    value.forEach(function(v) {formData.append(key, v);});
+                } else { formData.set(key, value || ""); }
+            });
 
             var fieldsToRemove = [];
             // NOTE: using iterator directly to avoid using 'for of' which requires more recent ES version (for minify, browser compatibility)
@@ -918,7 +922,9 @@ Vue.component('m-form-link', {
                 // NOTE: with q-input mask place holder is underscore, look for 2; this will cause issues if a valid user input starts with 2 underscores, may need better approach here and in m-form
                 // console.warn("m-form-link submit fields key " + key + " value " + value + " is mask placeholder " + (moqui.isString(value) && value.startsWith("__")));
                 if (moqui.isString(value) && value.startsWith("__")) return;
-                formData.set(key, value);
+                if (moqui.isArray(value)) {
+                    value.forEach(function(v) {formData.append(key, v);});
+                } else { formData.set(key, value); }
             } });
 
             var extraList = [];
