@@ -606,12 +606,12 @@ Vue.component('m-form', {
             // console.log("changed? " + changed + " node " + targetDom.nodeName + " type " + targetEl.attr("type") + " " + targetEl.attr("name") + " to " + targetDom.value + " default " + targetDom.defaultValue);
             // console.log(targetDom.defaultValue);
             if (changed) {
-                this.fieldsChanged[targetEl.attr("name")] = true;
+                this.$set(this.fieldsChanged, targetEl.attr("name"), true);
                 targetEl.parents(".form-group").children("label").addClass("is-changed");
                 targetEl.parents(".form-group").find(".select2-selection").addClass("is-changed");
                 targetEl.addClass("is-changed");
             } else {
-                this.fieldsChanged[targetEl.attr("name")] = false;
+                this.$set(this.fieldsChanged, targetEl.attr("name"), false);
                 targetEl.parents(".form-group").children("label").removeClass("is-changed");
                 targetEl.parents(".form-group").find(".select2-selection").removeClass("is-changed");
                 targetEl.removeClass("is-changed");
