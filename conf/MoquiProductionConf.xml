@@ -12,6 +12,6 @@
         <!-- add datasource elements here to configure databases -->
     </entity-facade>
 
-    <!-- timeout session in 60 minutes without a request -->
-    <session-config timeout="2880"/>
+    <!-- timeout session in 2880 minutes without a request -->
+<!--    <session-config timeout="2880"/>-->
 </moqui-conf>
