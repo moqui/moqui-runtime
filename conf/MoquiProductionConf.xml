@@ -11,4 +11,7 @@
     <entity-facade crypt-pass="${entity_ds_crypt_pass}" query-stats="true">
         <!-- add datasource elements here to configure databases -->
     </entity-facade>
+
+    <!-- timeout session in 60 minutes without a request -->
+    <session-config timeout="2880"/>
 </moqui-conf>
