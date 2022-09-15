@@ -13,5 +13,5 @@
     </entity-facade>
 
     <!-- timeout session in 2880 minutes without a request -->
-<!--    <session-config timeout="2880"/>-->
+    <session-config timeout="2880"/>
 </moqui-conf>
