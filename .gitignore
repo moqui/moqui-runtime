@@ -21,7 +21,7 @@
 
 # common runtime added files
 /classes/*.pem
-/lib/*.jar
+#/lib/*.jar
 /component/
 /ecomponent/
 /mantle/
