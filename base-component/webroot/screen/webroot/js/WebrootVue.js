@@ -1284,7 +1284,10 @@ moqui.webrootVue = new Vue({
             if (parmObj) {
                 this.$root.currentParameters = $.extend({}, this.$root.currentParameters, parmObj);
                 // no path change so just need to update parameters on most recent history item
-                this.navHistoryList[0].pathWithParams = this.currentLinkUrl;
+                var curUrl = this.currentLinkUrl;
+                var curHistoryItem = this.navHistoryList[0];
+                curHistoryItem.pathWithParams = curUrl;
+                window.history.pushState(null, curHistoryItem.title || '', curUrl);
             }
             this.$root.reloadSubscreens();
         },
