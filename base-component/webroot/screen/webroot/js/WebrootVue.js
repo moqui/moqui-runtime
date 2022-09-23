@@ -606,12 +606,12 @@ Vue.component('m-form', {
             // console.log("changed? " + changed + " node " + targetDom.nodeName + " type " + targetEl.attr("type") + " " + targetEl.attr("name") + " to " + targetDom.value + " default " + targetDom.defaultValue);
             // console.log(targetDom.defaultValue);
             if (changed) {
-                this.fieldsChanged[targetEl.attr("name")] = true;
+                this.$set(this.fieldsChanged, targetEl.attr("name"), true);
                 targetEl.parents(".form-group").children("label").addClass("is-changed");
                 targetEl.parents(".form-group").find(".select2-selection").addClass("is-changed");
                 targetEl.addClass("is-changed");
             } else {
-                this.fieldsChanged[targetEl.attr("name")] = false;
+                this.$set(this.fieldsChanged, targetEl.attr("name"), false);
                 targetEl.parents(".form-group").children("label").removeClass("is-changed");
                 targetEl.parents(".form-group").find(".select2-selection").removeClass("is-changed");
                 targetEl.removeClass("is-changed");
@@ -1281,7 +1281,14 @@ moqui.webrootVue = new Vue({
             }
         },
         setParameters: function(parmObj) {
-            if (parmObj) { this.$root.currentParameters = $.extend({}, this.$root.currentParameters, parmObj); }
+            if (parmObj) {
+                this.$root.currentParameters = $.extend({}, this.$root.currentParameters, parmObj);
+                // no path change so just need to update parameters on most recent history item
+                var curUrl = this.currentLinkUrl;
+                var curHistoryItem = this.navHistoryList[0];
+                curHistoryItem.pathWithParams = curUrl;
+                window.history.pushState(null, curHistoryItem.title || '', curUrl);
+            }
             this.$root.reloadSubscreens();
         },
         addSubscreen: function(saComp) {
@@ -1393,7 +1400,8 @@ moqui.webrootVue = new Vue({
 
             // update history and document.title
             var newTitle = (par ? par.title + ' - ' : '') + cur.title;
-            var curUrl = cur.pathWithParams; var questIdx = curUrl.indexOf("?");
+            var curUrl = cur.pathWithParams;
+            var questIdx = curUrl.indexOf("?");
             if (questIdx > 0) {
                 var excludeKeys = ["pageIndex", "orderBySelect", "orderByField", "moquiSessionToken"];
                 var parmList = curUrl.substring(questIdx+1).split("&");
@@ -1410,7 +1418,7 @@ moqui.webrootVue = new Vue({
                     if (eqIdx > 0) {
                         var key = parm.substring(0, eqIdx);
                         var value = parm.substring(eqIdx + 1);
-                        if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || excludeKeys.indexOf(key) > 0 || key === value) continue;
+                        if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || excludeKeys.indexOf(key) >= 0 || key === value) continue;
                         if (titleParms.length > 0) titleParms += ", ";
                         titleParms += decodeURIComponent(value);
                         dpCount++;
@@ -1456,7 +1464,7 @@ moqui.webrootVue = new Vue({
             get: function() { return moqui.objToSearch(this.currentParameters); },
             set: function(newSearch) { this.currentParameters = moqui.searchToObj(newSearch); }
         },
-        currentLinkUrl: function() { var srch = this.currentSearch; return this.currentLinkPath + (srch.length > 0 ? '?' + srch : ''); },
+        currentLinkUrl: function() { var search = this.currentSearch; return this.currentLinkPath + (search.length > 0 ? '?' + search : ''); },
         basePathSize: function() { return this.basePath.split('/').length - this.appRootPath.split('/').length; },
         ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; },
         documentMenuList: function() {

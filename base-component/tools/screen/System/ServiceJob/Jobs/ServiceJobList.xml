@@ -73,6 +73,10 @@ along with this software (see the LICENSE.md file). If not, see
                 <header-field><drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></header-field>
                 <default-field><display/></default-field>
             </field>
+            <field name="priority">
+                <header-field show-order-by="true"><!--<range-find size="2"/>--></header-field>
+                <default-field><display/></default-field>
+            </field>
             <field name="findButton"><header-field title="Find"><submit/></header-field><default-field>
                 <display text=" "/></default-field></field>
         </form-list>

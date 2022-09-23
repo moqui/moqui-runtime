@@ -82,6 +82,8 @@ along with this software (see the LICENSE.md file). If not, see
                         <text-line size="4"/></default-field></field>
                     <field name="minRetryTime"><default-field title="Min Retry Minutes" tooltip="Min time to retry after error, defaults to 5 minutes">
                         <text-line size="4"/></default-field></field>
+                    <field name="priority"><default-field tooltip="Lower numbers run first (ascending sort)">
+                        <text-line size="4"/></default-field></field>
                     <field name="submitButton"><default-field title="Update Job"><submit/></default-field></field>
                     <field-layout>
                         <field-ref name="jobName"/><field-ref name="description"/><field-ref name="serviceName"/>
