@@ -31,6 +31,7 @@ along with this software (see the LICENSE.md file). If not, see
         <set field="runtimeVersionMap" from="ec.factory.versionMap"/>
 
         <set field="workerPool" from="ec.factory.workerPool"/>
+        <set field="jobWorkerPool" from="ec.service.jobWorkerPool"/>
 
         <set field="esClientList" from="ec.elastic.getClientList()"/>
         <set field="esServerInfoList" from="[]"/>
@@ -60,7 +61,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <link url="../Print/PrintJob" text="Print Jobs"/>
                 <link url="../HazelcastInfo" text="Hazelcast"/>
                 <link url="../ServiceJob/Jobs" text="Service Jobs"/>
-                <link url="../ServiceJob/JobRuns" text="Jobs Runs"/>
+                <link url="../ServiceJob/JobRuns" text="Job Runs"/>
             </box-body></container-box>
             <container-box id="Security"><box-header title="Security"/><box-body>
                 <link url="../Security/UserAccount" text="Users"/>
@@ -178,7 +179,15 @@ along with this software (see the LICENSE.md file). If not, see
                             style="${workerPool.getActiveCount() == workerPool.getMaximumPoolSize() ? 'text-warning' : ''}"/></row-col></container-row>
                 <container-row><row-col xs="1"/><row-col xs="4"><label text="Queue" type="strong"/></row-col>
                     <row-col xs="7"><label text="Cur: ${workerPool.queue.size()} Rem: ${workerPool.queue.remainingCapacity()}"
-                            style="workerPool.queue.remainingCapacity() == 0 ? 'text-danger' : (workerPool.queue.size() &gt; workerPool.queue.remainingCapacity() ? 'text-warning' : '')"/></row-col></container-row>
+                            style="${workerPool.queue.remainingCapacity() == 0 ? 'text-danger' : (workerPool.queue.size() &gt; workerPool.queue.remainingCapacity() ? 'text-warning' : '')}"/></row-col></container-row>
+
+                <label text="Service Job Pool" type="strong"/>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Threads" type="strong"/></row-col>
+                    <row-col xs="7"><label text="Active: ${jobWorkerPool.getActiveCount()} Cur: ${jobWorkerPool.getPoolSize()} Max: ${jobWorkerPool.getMaximumPoolSize()}"
+                            style="${jobWorkerPool.getActiveCount() == jobWorkerPool.getMaximumPoolSize() ? 'text-warning' : ''}"/></row-col></container-row>
+                <container-row><row-col xs="1"/><row-col xs="4"><label text="Queue" type="strong"/></row-col>
+                    <row-col xs="7"><label text="Cur: ${jobWorkerPool.queue.size()} Rem: ${jobWorkerPool.queue.remainingCapacity()}"
+                            style="${jobWorkerPool.queue.remainingCapacity() == 0 ? 'text-danger' : (jobWorkerPool.queue.size() &gt; jobWorkerPool.queue.remainingCapacity() ? 'text-warning' : '')}"/></row-col></container-row>
             </row-col></container-row>
         </box-body><box-body-nopad>
             <form-list name="DatasourceList" list="smap.DataSources" skip-form="true">
