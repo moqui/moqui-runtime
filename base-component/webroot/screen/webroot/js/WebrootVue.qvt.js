@@ -1514,6 +1514,7 @@ Vue.component('m-drop-down', {
                 // doesn't work, q-form submit() doesn't like this event for whatever reason, method missing on it: vm.$nextTick(function() { console.log("calling parent submit with event"); console.log(vm.$parent); vm.$parent.submit($event); });
 
                 // TODO: find a better approach, perhaps pass down a reference to m-form or something so can refer to it more explicitly and handle Vue components in between
+                // TODO: if found a better approach change the removeValue method below
                 // this assumes the grandparent is m-form, if not it will blow up... alternatives are tricky
                 vm.$nextTick(function() { vm.$parent.$parent.submitForm(); });
             }
@@ -1698,6 +1699,18 @@ Vue.component('m-drop-down', {
                 if (valueEntry !== value) newValueArr.push(valueEntry);
             }
             if (curValueArr.length !== newValueArr.length) this.$emit('input', newValueArr);
+            // copied from handleInput method above
+            if (this.submitOnSelect) {
+                var vm = this;
+                // this doesn't work, even alternative of custom-event with event handler in DefaultScreenMacros.qvt.ftl in the drop-down macro that explicitly calls the q-form submit() method: vm.$nextTick(function() { console.log("emitting submit"); vm.$emit('submit'); });
+                // doesn't work, q-form submit() method blows up without an even, in spite of what docs say: vm.$nextTick(function() { console.log("calling parent submit"); console.log(vm.$parent); vm.$parent.submit(); });
+                // doesn't work, q-form submit() doesn't like this event for whatever reason, method missing on it: vm.$nextTick(function() { console.log("calling parent submit with event"); console.log(vm.$parent); vm.$parent.submit($event); });
+
+                // TODO: find a better approach, perhaps pass down a reference to m-form or something so can refer to it more explicitly and handle Vue components in between
+                // TODO: if found a better approach change the handleInput method above
+                // this assumes the grandparent is m-form, if not it will blow up... alternatives are tricky
+                vm.$nextTick(function() { vm.$parent.$parent.submitForm(); });
+            }
         },
         clearAll: function() { this.$emit('input', null); }
     },
