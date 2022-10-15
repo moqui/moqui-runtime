@@ -106,15 +106,19 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown, responseText) {
     } else {
         if (respObj && moqui.isPlainObject(respObj)) {
             notified = moqui.notifyMessages(respObj.messageInfos, respObj.errors, respObj.validationErrors);
-            // console.log("got here notified ", notified);
         } else if (resp && moqui.isString(resp) && resp.length) {
             notified = moqui.notifyMessages(resp);
         }
     }
 
-    // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
+    // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen, or show re-login dialog to maintain the client app context
     if (jqXHR.status === 401) {
-        if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); }
+        if (moqui.webrootVue) {
+            // window.location.href = moqui.webrootVue.currentLinkUrl;
+            moqui.webrootVue.reLoginShow = true;
+        } else {
+            window.location.reload(true);
+        }
     } else if (jqXHR.status === 0) {
         if (errorThrown.indexOf('abort') < 0) {
             var msg = 'Could not connect to server';
@@ -122,7 +126,6 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown, responseText) {
             moqui.webrootVue.addNotify(msg, 'negative');
         }
     } else if (!notified) {
-        console.log("got here 2 notified ", notified);
         var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
         moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsError, { message:errMsg }));
         moqui.webrootVue.addNotify(errMsg, 'negative');
@@ -2077,7 +2080,7 @@ moqui.webrootVue = new Vue({
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], currentParameters:{}, bodyParameters:null,
         activeSubscreens:[], navMenuList:[], navHistoryList:[], navPlugins:[], accountPlugins:[], notifyHistoryList:[],
         lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
-        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en",
+        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", username:"", locale:"en", reLoginShow:false, reLoginPassword:null,
         notificationClient:null, qzVue:null, leftOpen:false, moqui:moqui },
     methods: {
         setUrl: function(url, bodyParameters, onComplete) {
@@ -2253,12 +2256,36 @@ moqui.webrootVue = new Vue({
             if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
             var pathList = path.split('/');
             // element 0 in array after split is empty string from leading '/'
-            var wrapperIdx = this.appRootPath.split('/').length; // appRootPath is '/moqui/v1' or '/moqui'. wrapper means 'qapps'
+            var wrapperIdx = this.appRootPath.split('/').length;
+            // appRootPath is '/moqui/v1' or '/moqui'. wrapper means 'qapps'
             pathList[wrapperIdx] = this.linkBasePath.split('/').slice(-1);
             path = pathList.join("/");
             return path;
         },
-        getQuasarColor: function(bootstrapColor) { return moqui.getQuasarColor(bootstrapColor); }
+        getQuasarColor: function(bootstrapColor) { return moqui.getQuasarColor(bootstrapColor); },
+        reLoginSubmit: function() {
+            $.ajax({ type:'POST', url:(this.appRootPath + '/rest/login'), error:moqui.handleAjaxError, success:this.reLoginHandleResponse,
+                dataType:'json', headers:{Accept:'application/json'}, xhrFields:{withCredentials:true},
+                data:{ username:this.username, password:this.reLoginPassword } });
+        },
+        reLoginHandleResponse: function(resp, status, jqXHR) {
+            if (resp.loggedIn) {
+                // update the session token, new session after login (along with xhrFields:{withCredentials:true} for cookie)
+                var sessionToken = jqXHR.getResponseHeader("X-CSRF-Token");
+                if (sessionToken && sessionToken.length && sessionToken != this.moquiSessionToken) {
+                    console.log("Updating session token")
+                    this.moquiSessionToken = sessionToken;
+                }
+                // clear password, hide relogin dialog
+                this.reLoginPassword = null;
+                this.reLoginShow = false;
+                // show success notification, add to notify history
+                var msg = 'Background login successful';
+                // show for 12 seconds because we want it to show longer than the no user authenticated notification which shows for 15 seconds (minus some password typing time)
+                moqui.webrootVue.$q.notify({ timeout:12000, type:'positive', message:msg });
+                moqui.webrootVue.addNotify(msg, 'positive');
+            }
+        }
     },
     watch: {
         navMenuList: function(newList) { if (newList.length > 0) {
@@ -2357,6 +2384,7 @@ moqui.webrootVue = new Vue({
         this.appHost = $("#confAppHost").val(); this.appRootPath = $("#confAppRootPath").val();
         this.basePath = $("#confBasePath").val(); this.linkBasePath = $("#confLinkBasePath").val();
         this.userId = $("#confUserId").val();
+        this.username = $("#confUsername").val();
         this.locale = $("#confLocale").val(); if (moqui.localeMap[this.locale]) this.locale = moqui.localeMap[this.locale];
         this.leftOpen = $("#confLeftOpen").val() === 'true';
 

@@ -18,6 +18,8 @@ along with this software (see the LICENSE.md file). If not, see
     <input type="hidden" id="confBasePath" value="${ec.web.servletContext.contextPath}/apps">
     <input type="hidden" id="confLinkBasePath" value="${ec.web.servletContext.contextPath}/qapps">
     <input type="hidden" id="confUserId" value="${ec.user.userId!''}">
+    <input type="hidden" id="confUsername" value="${ec.user.username!''}">
+    <#-- TODO get secondFactorRequired (org.moqui.impl.UserServices.get#UserAuthcFactorRequired with userId) -->
     <input type="hidden" id="confLocale" value="${ec.user.locale.toLanguageTag()}">
     <input type="hidden" id="confDarkMode" value="${ec.user.getPreference("QUASAR_DARK")!"false"}">
     <input type="hidden" id="confLeftOpen" value="${ec.user.getPreference("QUASAR_LEFT_OPEN")!"false"}">
@@ -139,13 +141,15 @@ along with this software (see the LICENSE.md file). If not, see
                         </q-card-section>
                         <q-separator vertical></q-separator>
                         <q-card-actions vertical class="justify-around q-px-md">
-                            <#-- dark/light switch -->
-                            <q-btn flat dense @click.prevent="switchDarkLight()" icon="invert_colors">
-                                <q-tooltip>${ec.l10n.localize("Switch Dark/Light")}</q-tooltip></q-btn>
                             <#-- logout button -->
                             <q-btn flat dense icon="settings_power" color="negative" type="a" href="${sri.buildUrl("/Login/logout").url}"
                                    onclick="return confirm('${ec.l10n.localize("Logout")} ${(ec.user.userAccount.userFullName)!''}?')">
                                 <q-tooltip>${ec.l10n.localize("Logout")} ${(ec.user.userAccount.userFullName)!''}</q-tooltip></q-btn>
+                            <#-- dark/light switch -->
+                            <q-btn flat dense @click.prevent="switchDarkLight()" icon="invert_colors">
+                                <q-tooltip>${ec.l10n.localize("Switch Dark/Light")}</q-tooltip></q-btn>
+                            <#-- re-login button -->
+                            <q-btn flat dense icon="autorenew" color="negative" @click="reLoginShow=true"><q-tooltip>Re-Login</q-tooltip></q-btn>
                         </q-card-actions>
                     </q-card-section>
                 </q-card></q-menu>
@@ -169,6 +173,15 @@ along with this software (see the LICENSE.md file). If not, see
             </#list>
         </q-footer>
     </q-layout>
+    <#-- re-login dialog -->
+    <m-dialog v-model="reLoginShow" width="400" title="${ec.l10n.localize("Re-Login")}">
+        <div style="text-align:center;padding-bottom:10px">Please sign in to continue as user <strong>{{username}}</strong></div>
+        <q-form ref="qForm" @submit.prevent="reLoginSubmit" autocapitalize="off" autocomplete="off">
+            <q-input v-model="reLoginPassword" name="password" type="password" :autofocus="true"
+                     outlined stack-label label="${ec.l10n.localize("Password")}"></q-input>
+            <q-btn outline no-caps type="submit" label="${ec.l10n.localize("Sign in")}"></q-btn>
+        </q-form>
+    </m-dialog>
 </div>
 
 <script>
