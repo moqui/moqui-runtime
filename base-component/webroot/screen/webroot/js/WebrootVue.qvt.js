@@ -115,7 +115,8 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown, responseText) {
     if (jqXHR.status === 401) {
         if (moqui.webrootVue) {
             // window.location.href = moqui.webrootVue.currentLinkUrl;
-            moqui.webrootVue.reLoginShow = true;
+            // instead of reloading the web page, show the Re-Login dialog
+            moqui.webrootVue.reLoginShowDialog();
         } else {
             window.location.reload(true);
         }
@@ -2080,7 +2081,8 @@ moqui.webrootVue = new Vue({
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], currentParameters:{}, bodyParameters:null,
         activeSubscreens:[], navMenuList:[], navHistoryList:[], navPlugins:[], accountPlugins:[], notifyHistoryList:[],
         lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
-        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", username:"", locale:"en", reLoginShow:false, reLoginPassword:null,
+        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", username:"", locale:"en",
+        reLoginShow:false, reLoginPassword:null, reLoginMfaData:null, reLoginOtp:null,
         notificationClient:null, qzVue:null, leftOpen:false, moqui:moqui },
     methods: {
         setUrl: function(url, bodyParameters, onComplete) {
@@ -2263,27 +2265,65 @@ moqui.webrootVue = new Vue({
             return path;
         },
         getQuasarColor: function(bootstrapColor) { return moqui.getQuasarColor(bootstrapColor); },
+        // Re-Login Functions
+        getCsrfToken: function(jqXHR) {
+            // update the session token, new session after login (along with xhrFields:{withCredentials:true} for cookie)
+            var sessionToken = jqXHR.getResponseHeader("X-CSRF-Token");
+            if (sessionToken && sessionToken.length && sessionToken !== this.moquiSessionToken) {
+                console.log("Updating session token")
+                this.moquiSessionToken = sessionToken;
+            }
+        },
+        reLoginShowDialog: function() {
+            // make sure there is no MFA Data (would skip the login with password step)
+            moqui.webrootVue.reLoginMfaData = null;
+            moqui.webrootVue.reLoginOtp = null;
+            moqui.webrootVue.reLoginShow = true;
+        },
+        reLoginPostLogin: function() {
+            // clear password/etc, hide relogin dialog
+            this.reLoginShow = false;
+            this.reLoginPassword = null;
+            this.reLoginOtp = null;
+            this.reLoginMfaData = null;
+            // show success notification, add to notify history
+            var msg = 'Background login successful';
+            // show for 12 seconds because we want it to show longer than the no user authenticated notification which shows for 15 seconds (minus some password typing time)
+            moqui.webrootVue.$q.notify({ timeout:12000, type:'positive', message:msg });
+            moqui.webrootVue.addNotify(msg, 'positive');
+        },
         reLoginSubmit: function() {
             $.ajax({ type:'POST', url:(this.appRootPath + '/rest/login'), error:moqui.handleAjaxError, success:this.reLoginHandleResponse,
                 dataType:'json', headers:{Accept:'application/json'}, xhrFields:{withCredentials:true},
                 data:{ username:this.username, password:this.reLoginPassword } });
         },
         reLoginHandleResponse: function(resp, status, jqXHR) {
+            // console.warn("re-login response: " + JSON.stringify(resp));
+            this.getCsrfToken(jqXHR);
+            if (resp.secondFactorRequired) {
+                this.reLoginMfaData = resp;
+            } else if (resp.loggedIn) {
+                this.reLoginPostLogin();
+            }
+        },
+        reLoginSendOtp: function(factorId) {
+            $.ajax({ type:'POST', url:(this.appRootPath + '/rest/sendOtp'), error:moqui.handleAjaxError, success:this.reLoginSendOtpResponse,
+                dataType:'json', headers:{Accept:'application/json'}, xhrFields:{withCredentials:true},
+                data:{ moquiSessionToken:this.moquiSessionToken, factorId:factorId } });
+        },
+        reLoginSendOtpResponse: function(resp, status, jqXHR) {
+            // console.warn("re-login send otp response: " + JSON.stringify(resp));
+            if (resp) moqui.notifyMessages(resp.messages, resp.errors, resp.validationErrors);
+        },
+        reLoginVerifyOtp: function() {
+            $.ajax({ type:'POST', url:(this.appRootPath + '/rest/verifyOtp'), error:moqui.handleAjaxError, success:this.reLoginVerifyOtpResponse,
+                dataType:'json', headers:{Accept:'application/json'}, xhrFields:{withCredentials:true},
+                data:{ moquiSessionToken:this.moquiSessionToken, code:this.reLoginOtp } });
+        },
+        reLoginVerifyOtpResponse: function(resp, status, jqXHR) {
+            this.getCsrfToken(jqXHR);
             if (resp.loggedIn) {
-                // update the session token, new session after login (along with xhrFields:{withCredentials:true} for cookie)
-                var sessionToken = jqXHR.getResponseHeader("X-CSRF-Token");
-                if (sessionToken && sessionToken.length && sessionToken != this.moquiSessionToken) {
-                    console.log("Updating session token")
-                    this.moquiSessionToken = sessionToken;
-                }
-                // clear password, hide relogin dialog
-                this.reLoginPassword = null;
-                this.reLoginShow = false;
-                // show success notification, add to notify history
-                var msg = 'Background login successful';
-                // show for 12 seconds because we want it to show longer than the no user authenticated notification which shows for 15 seconds (minus some password typing time)
-                moqui.webrootVue.$q.notify({ timeout:12000, type:'positive', message:msg });
-                moqui.webrootVue.addNotify(msg, 'positive');
+                this.reLoginPostLogin();
             }
         }
     },
