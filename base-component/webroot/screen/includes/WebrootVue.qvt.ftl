@@ -195,6 +195,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <q-input v-model="reLoginPassword" name="password" type="password" :autofocus="true"
                          outlined stack-label label="${ec.l10n.localize("Password")}"></q-input>
                 <q-btn outline no-caps color="primary" type="submit" label="${ec.l10n.localize("Sign in")}"></q-btn>
+                <q-btn outline no-caps color="negative" @click.prevent="reLoginReload" label="${ec.l10n.localize("Reload Page")}"></q-btn>
             </q-form>
         </div>
     </m-dialog>

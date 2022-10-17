@@ -2306,6 +2306,10 @@ moqui.webrootVue = new Vue({
                 this.reLoginPostLogin();
             }
         },
+        reLoginReload: function () {
+            if (confirm("Reload page? All changes will be lost."))
+                window.location.href = this.currentLinkUrl;
+        },
         reLoginSendOtp: function(factorId) {
             $.ajax({ type:'POST', url:(this.appRootPath + '/rest/sendOtp'), error:moqui.handleAjaxError, success:this.reLoginSendOtpResponse,
                 dataType:'json', headers:{Accept:'application/json'}, xhrFields:{withCredentials:true},
