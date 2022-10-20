@@ -106,15 +106,20 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown, responseText) {
     } else {
         if (respObj && moqui.isPlainObject(respObj)) {
             notified = moqui.notifyMessages(respObj.messageInfos, respObj.errors, respObj.validationErrors);
-            // console.log("got here notified ", notified);
         } else if (resp && moqui.isString(resp) && resp.length) {
             notified = moqui.notifyMessages(resp);
         }
     }
 
-    // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
+    // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen, or show re-login dialog to maintain the client app context
     if (jqXHR.status === 401) {
-        if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); }
+        if (moqui.webrootVue) {
+            // window.location.href = moqui.webrootVue.currentLinkUrl;
+            // instead of reloading the web page, show the Re-Login dialog
+            moqui.webrootVue.reLoginShowDialog();
+        } else {
+            window.location.reload(true);
+        }
     } else if (jqXHR.status === 0) {
         if (errorThrown.indexOf('abort') < 0) {
             var msg = 'Could not connect to server';
@@ -122,7 +127,6 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown, responseText) {
             moqui.webrootVue.addNotify(msg, 'negative');
         }
     } else if (!notified) {
-        console.log("got here 2 notified ", notified);
         var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
         moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsError, { message:errMsg }));
         moqui.webrootVue.addNotify(errMsg, 'negative');
@@ -1514,6 +1518,7 @@ Vue.component('m-drop-down', {
                 // doesn't work, q-form submit() doesn't like this event for whatever reason, method missing on it: vm.$nextTick(function() { console.log("calling parent submit with event"); console.log(vm.$parent); vm.$parent.submit($event); });
 
                 // TODO: find a better approach, perhaps pass down a reference to m-form or something so can refer to it more explicitly and handle Vue components in between
+                // TODO: if found a better approach change the removeValue method below
                 // this assumes the grandparent is m-form, if not it will blow up... alternatives are tricky
                 vm.$nextTick(function() { vm.$parent.$parent.submitForm(); });
             }
@@ -1698,6 +1703,18 @@ Vue.component('m-drop-down', {
                 if (valueEntry !== value) newValueArr.push(valueEntry);
             }
             if (curValueArr.length !== newValueArr.length) this.$emit('input', newValueArr);
+            // copied from handleInput method above
+            if (this.submitOnSelect) {
+                var vm = this;
+                // this doesn't work, even alternative of custom-event with event handler in DefaultScreenMacros.qvt.ftl in the drop-down macro that explicitly calls the q-form submit() method: vm.$nextTick(function() { console.log("emitting submit"); vm.$emit('submit'); });
+                // doesn't work, q-form submit() method blows up without an even, in spite of what docs say: vm.$nextTick(function() { console.log("calling parent submit"); console.log(vm.$parent); vm.$parent.submit(); });
+                // doesn't work, q-form submit() doesn't like this event for whatever reason, method missing on it: vm.$nextTick(function() { console.log("calling parent submit with event"); console.log(vm.$parent); vm.$parent.submit($event); });
+
+                // TODO: find a better approach, perhaps pass down a reference to m-form or something so can refer to it more explicitly and handle Vue components in between
+                // TODO: if found a better approach change the handleInput method above
+                // this assumes the grandparent is m-form, if not it will blow up... alternatives are tricky
+                vm.$nextTick(function() { vm.$parent.$parent.submitForm(); });
+            }
         },
         clearAll: function() { this.$emit('input', null); }
     },
@@ -2064,7 +2081,8 @@ moqui.webrootVue = new Vue({
     data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], currentParameters:{}, bodyParameters:null,
         activeSubscreens:[], navMenuList:[], navHistoryList:[], navPlugins:[], accountPlugins:[], notifyHistoryList:[],
         lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
-        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en",
+        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", username:"", locale:"en",
+        reLoginShow:false, reLoginPassword:null, reLoginMfaData:null, reLoginOtp:null,
         notificationClient:null, qzVue:null, leftOpen:false, moqui:moqui },
     methods: {
         setUrl: function(url, bodyParameters, onComplete) {
@@ -2240,12 +2258,78 @@ moqui.webrootVue = new Vue({
             if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
             var pathList = path.split('/');
             // element 0 in array after split is empty string from leading '/'
-            var wrapperIdx = this.appRootPath.split('/').length; // appRootPath is '/moqui/v1' or '/moqui'. wrapper means 'qapps'
+            var wrapperIdx = this.appRootPath.split('/').length;
+            // appRootPath is '/moqui/v1' or '/moqui'. wrapper means 'qapps'
             pathList[wrapperIdx] = this.linkBasePath.split('/').slice(-1);
             path = pathList.join("/");
             return path;
         },
-        getQuasarColor: function(bootstrapColor) { return moqui.getQuasarColor(bootstrapColor); }
+        getQuasarColor: function(bootstrapColor) { return moqui.getQuasarColor(bootstrapColor); },
+        // Re-Login Functions
+        getCsrfToken: function(jqXHR) {
+            // update the session token, new session after login (along with xhrFields:{withCredentials:true} for cookie)
+            var sessionToken = jqXHR.getResponseHeader("X-CSRF-Token");
+            if (sessionToken && sessionToken.length && sessionToken !== this.moquiSessionToken) {
+                console.log("Updating session token")
+                this.moquiSessionToken = sessionToken;
+            }
+        },
+        reLoginShowDialog: function() {
+            // make sure there is no MFA Data (would skip the login with password step)
+            moqui.webrootVue.reLoginMfaData = null;
+            moqui.webrootVue.reLoginOtp = null;
+            moqui.webrootVue.reLoginShow = true;
+        },
+        reLoginPostLogin: function() {
+            // clear password/etc, hide relogin dialog
+            this.reLoginShow = false;
+            this.reLoginPassword = null;
+            this.reLoginOtp = null;
+            this.reLoginMfaData = null;
+            // show success notification, add to notify history
+            var msg = 'Background login successful';
+            // show for 12 seconds because we want it to show longer than the no user authenticated notification which shows for 15 seconds (minus some password typing time)
+            moqui.webrootVue.$q.notify({ timeout:12000, type:'positive', message:msg });
+            moqui.webrootVue.addNotify(msg, 'positive');
+        },
+        reLoginSubmit: function() {
+            $.ajax({ type:'POST', url:(this.appRootPath + '/rest/login'), error:moqui.handleAjaxError, success:this.reLoginHandleResponse,
+                dataType:'json', headers:{Accept:'application/json'}, xhrFields:{withCredentials:true},
+                data:{ username:this.username, password:this.reLoginPassword } });
+        },
+        reLoginHandleResponse: function(resp, status, jqXHR) {
+            // console.warn("re-login response: " + JSON.stringify(resp));
+            this.getCsrfToken(jqXHR);
+            if (resp.secondFactorRequired) {
+                this.reLoginMfaData = resp;
+            } else if (resp.loggedIn) {
+                this.reLoginPostLogin();
+            }
+        },
+        reLoginReload: function () {
+            if (confirm("Reload page? All changes will be lost."))
+                window.location.href = this.currentLinkUrl;
+        },
+        reLoginSendOtp: function(factorId) {
+            $.ajax({ type:'POST', url:(this.appRootPath + '/rest/sendOtp'), error:moqui.handleAjaxError, success:this.reLoginSendOtpResponse,
+                dataType:'json', headers:{Accept:'application/json'}, xhrFields:{withCredentials:true},
+                data:{ moquiSessionToken:this.moquiSessionToken, factorId:factorId } });
+        },
+        reLoginSendOtpResponse: function(resp, status, jqXHR) {
+            // console.warn("re-login send otp response: " + JSON.stringify(resp));
+            if (resp) moqui.notifyMessages(resp.messages, resp.errors, resp.validationErrors);
+        },
+        reLoginVerifyOtp: function() {
+            $.ajax({ type:'POST', url:(this.appRootPath + '/rest/verifyOtp'), error:moqui.handleAjaxError, success:this.reLoginVerifyOtpResponse,
+                dataType:'json', headers:{Accept:'application/json'}, xhrFields:{withCredentials:true},
+                data:{ moquiSessionToken:this.moquiSessionToken, code:this.reLoginOtp } });
+        },
+        reLoginVerifyOtpResponse: function(resp, status, jqXHR) {
+            this.getCsrfToken(jqXHR);
+            if (resp.loggedIn) {
+                this.reLoginPostLogin();
+            }
+        }
     },
     watch: {
         navMenuList: function(newList) { if (newList.length > 0) {
@@ -2344,6 +2428,7 @@ moqui.webrootVue = new Vue({
         this.appHost = $("#confAppHost").val(); this.appRootPath = $("#confAppRootPath").val();
         this.basePath = $("#confBasePath").val(); this.linkBasePath = $("#confLinkBasePath").val();
         this.userId = $("#confUserId").val();
+        this.username = $("#confUsername").val();
         this.locale = $("#confLocale").val(); if (moqui.localeMap[this.locale]) this.locale = moqui.localeMap[this.locale];
         this.leftOpen = $("#confLeftOpen").val() === 'true';
 

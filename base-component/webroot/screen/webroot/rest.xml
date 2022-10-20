@@ -36,8 +36,9 @@ along with this software (see the LICENSE.md file). If not, see
         <parameter name="code"/>
         <actions>
             <set field="loggedIn" from="ec.user.loginUser(username, password)"/>
+            <if condition="ec.message.hasError()"><script>ec.web.sendJsonResponse([loggedIn:false])</script></if>
 
-            <if condition="ec.web.sessionAttributes.moquiAuthcFactorRequired">
+            <if condition="ec.web.sessionAttributes.moquiAuthcFactorRequired"><then>
                 <if condition="code"><then>
                     <service-call name="org.moqui.impl.UserServices.validate#ExternalUserAuthcCode"
                             in-map="[code:code]" out-map="validateOut"/>
@@ -48,9 +49,13 @@ along with this software (see the LICENSE.md file). If not, see
                         <message type="danger" public="true">Authentication code is not valid</message>
                     </else></if>
                 </then></if>
+
                 <!-- if we didn't return above send back info about user's authc factors -->
-                <service-call name="org.moqui.impl.UserServices.get#ExternalUserAuthcFactorInfo" web-send-json-response="true"/>
-            </if>
+                <service-call name="org.moqui.impl.UserServices.get#ExternalUserAuthcFactorInfo" out-map="factorInfoOut"/>
+                <script>ec.web.sendJsonResponse(factorInfoOut)</script>
+            </then><else>
+                <script>ec.web.sendJsonResponse([loggedIn:loggedIn])</script>
+            </else></if>
         </actions>
         <default-response type="none"/>
     </transition>
@@ -70,9 +75,10 @@ along with this software (see the LICENSE.md file). If not, see
             <service-call name="org.moqui.impl.UserServices.validate#ExternalUserAuthcCode"
                     in-map="[code:code]" out-map="validateOut"/>
             <if condition="validateOut.verified"><then>
-                <script>ec.user.internalLoginUser(validateOut.username)</script>
+                <set field="loggedIn" from="ec.user.internalLoginUser(validateOut.username)"/>
+                <script>ec.web.sendJsonResponse([loggedIn:loggedIn])</script>
             </then><else>
-                <script>ec.web.sendError(403, "Authentication code is not valid")</script>
+                <script>ec.web.sendError(403, ec.l10n.localize("Authentication code is not valid"))</script>
             </else></if>
         </actions>
         <default-response type="none"/>
