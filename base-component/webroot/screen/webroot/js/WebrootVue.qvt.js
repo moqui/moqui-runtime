@@ -113,10 +113,10 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown, responseText) {
 
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen, or show re-login dialog to maintain the client app context
     if (jqXHR.status === 401) {
-        if (moqui.webrootVue) {
+        if (moqui.webrootVue && moqui.webrootVue.reLoginCheckShow) {
             // window.location.href = moqui.webrootVue.currentLinkUrl;
             // instead of reloading the web page, show the Re-Login dialog
-            moqui.webrootVue.reLoginShowDialog();
+            moqui.webrootVue.reLoginCheckShow();
         } else {
             window.location.reload(true);
         }
@@ -126,10 +126,16 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown, responseText) {
             moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsError, { message:msg }));
             moqui.webrootVue.addNotify(msg, 'negative');
         }
-    } else if (!notified) {
-        var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
-        moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsError, { message:errMsg }));
-        moqui.webrootVue.addNotify(errMsg, 'negative');
+    } else {
+        if (moqui.webrootVue && moqui.webrootVue.getCsrfToken) {
+            // update the moqui session token if it has changed
+            moqui.webrootVue.getCsrfToken(jqXHR);
+        }
+        if (!notified) {
+            var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
+            moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOptsError, { message:errMsg }));
+            moqui.webrootVue.addNotify(errMsg, 'negative');
+        }
     }
 };
 /* Override moqui.notifyGrowl */
@@ -2274,11 +2280,43 @@ moqui.webrootVue = new Vue({
                 this.moquiSessionToken = sessionToken;
             }
         },
+        reLoginCheckShow: function() {
+            // before showing the Re-Login dialog do a GET request without session token to see if there is a new one
+            $.ajax({ type:'GET', url:(this.appRootPath + '/rest/userInfo'),
+                error:this.reLoginCheckResponseError, success:this.reLoginCheckResponseSuccess,
+                dataType:'json', headers:{Accept:'application/json'}, xhrFields:{withCredentials:true} });
+        },
+        reLoginCheckResponseSuccess: function(resp, status, jqXHR) {
+            if (resp.username && resp.sessionToken) {
+                this.moquiSessionToken = resp.sessionToken;
+                // show success notification, add to notify history
+                var msg = 'Session refreshed after login in another tab, no changes made, please try again';
+                // show for 12 seconds because we want it to show longer than the no user authenticated notification which shows for 15 seconds (minus some password typing time)
+                this.$q.notify({ timeout:10000, type:'warning', message:msg });
+                this.addNotify(msg, 'warning');
+            } else {
+                this.reLoginShowDialog();
+            }
+        },
+        reLoginCheckResponseError: function(jqXHR, textStatus, errorThrown, responseText) {
+            if (jqXHR.status === 401) {
+                this.reLoginShowDialog();
+            } else {
+                var resp = responseText ? responseText : jqXHR.responseText;
+                var respObj;
+                try { respObj = JSON.parse(resp); } catch (e) { /* ignore error, don't always expect it to be JSON */ }
+                if (respObj && moqui.isPlainObject(respObj)) {
+                    moqui.notifyMessages(respObj.messageInfos, respObj.errors, respObj.validationErrors);
+                } else if (resp && moqui.isString(resp) && resp.length) {
+                    moqui.notifyMessages(resp);
+                }
+            }
+        },
         reLoginShowDialog: function() {
             // make sure there is no MFA Data (would skip the login with password step)
-            moqui.webrootVue.reLoginMfaData = null;
-            moqui.webrootVue.reLoginOtp = null;
-            moqui.webrootVue.reLoginShow = true;
+            this.reLoginMfaData = null;
+            this.reLoginOtp = null;
+            this.reLoginShow = true;
         },
         reLoginPostLogin: function() {
             // clear password/etc, hide relogin dialog
@@ -2289,8 +2327,8 @@ moqui.webrootVue = new Vue({
             // show success notification, add to notify history
             var msg = 'Background login successful';
             // show for 12 seconds because we want it to show longer than the no user authenticated notification which shows for 15 seconds (minus some password typing time)
-            moqui.webrootVue.$q.notify({ timeout:12000, type:'positive', message:msg });
-            moqui.webrootVue.addNotify(msg, 'positive');
+            this.$q.notify({ timeout:12000, type:'positive', message:msg });
+            this.addNotify(msg, 'positive');
         },
         reLoginSubmit: function() {
             $.ajax({ type:'POST', url:(this.appRootPath + '/rest/login'), error:moqui.handleAjaxError, success:this.reLoginHandleResponse,

@@ -209,7 +209,7 @@ task combineBaseJs {
         def destFile = file("${webrootPath}/js/CombinedBase.min.js")
         destFile.write("")
         baseJs.each({
-            destFile.append(file(it).getText("UTF-8"))
+            destFile.append(file(it).getText("UTF-8"), "UTF-8")
             destFile.append("\n")
         })
     }
@@ -221,7 +221,7 @@ task combineVuetJs {
         def destFile = file("${webrootPath}/js/CombinedVuet.min.js")
         destFile.write("")
         vuetJs.each({
-            destFile.append(file(it).getText("UTF-8"))
+            destFile.append(file(it).getText("UTF-8"), "UTF-8")
             destFile.append("\n")
         })
     }
