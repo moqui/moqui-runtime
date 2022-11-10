@@ -356,6 +356,7 @@ var moqui = {
     NotificationClient: function(webSocketUrl) {
         this.displayEnable = true;
         this.webSocketUrl = webSocketUrl;
+        this.serverSessionId = null;
         this.topicListeners = {};
         this.disableDisplay = function() { this.displayEnable = false; };
         this.enableDisplay = function() { this.displayEnable = true; };
@@ -363,16 +364,23 @@ var moqui = {
             this.webSocket = new WebSocket(this.webSocketUrl);
             this.webSocket.clientObj = this;
             this.webSocket.onopen = function(event) {
+                // console.log(event);
                 this.clientObj.tryReopenCount = 0;
                 var topics = []; for (var topic in this.clientObj.topicListeners) { topics.push(topic); }
                 this.send("subscribe:" + topics.join(","));
             };
             this.webSocket.onmessage = function(event) {
                 var jsonObj = JSON.parse(event.data);
-                var callbacks = this.clientObj.topicListeners[jsonObj.topic];
-                if (callbacks) callbacks.forEach(function(callback) { callback(jsonObj, this) }, this);
-                var allCallbacks = this.clientObj.topicListeners["ALL"];
-                if (allCallbacks) allCallbacks.forEach(function(callback) { callback(jsonObj, this) }, this);
+                if (jsonObj.serverSessionId) {
+                    this.clientObj.serverSessionId = jsonObj.serverSessionId;
+                    if (!jsonObj.topic) console.info("Server session ID " + jsonObj.serverSessionId);
+                }
+                if (jsonObj.topic && jsonObj.topic.length) {
+                    var callbacks = this.clientObj.topicListeners[jsonObj.topic];
+                    if (callbacks) callbacks.forEach(function(callback) { callback(jsonObj, this) }, this);
+                    var allCallbacks = this.clientObj.topicListeners["ALL"];
+                    if (allCallbacks) allCallbacks.forEach(function(callback) { callback(jsonObj, this) }, this);
+                }
             };
             this.webSocket.onclose = function(event) {
                 console.log(event);
