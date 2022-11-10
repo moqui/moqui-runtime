@@ -247,5 +247,21 @@ along with this software (see the LICENSE.md file). If not, see
         </id>
     </resource>
 
+    <resource name="wiki">
+        <!-- TODO add more wiki pages and spaces endpoints (see WikiServices.xml) -->
+        <resource name="pages">
+            <id name="wikiSpaceId"><id name="pagePathList" allow-extra-path="true"><method type="get">
+                <service name="org.moqui.impl.WikiServices.get#PublishedWikiPageText"/></method></id></id>
+
+            <resource name="page">
+                <resource name="info">
+                    <method type="get"><service name="org.moqui.impl.WikiServices.get#WikiPageInfo"/></method>
+                    <id name="wikiPageId"><method type="get">
+                        <service name="org.moqui.impl.WikiServices.get#WikiPageInfoById"/></method></id>
+                </resource>
+            </resource>
+        </resource>
+    </resource>
+
     <!-- TODO: caches, TODO will need services implemented as uses API directly for most ops -->
 </resource>
