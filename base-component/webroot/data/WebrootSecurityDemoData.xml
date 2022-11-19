@@ -22,6 +22,7 @@ along with this software (see the LICENSE.md file). If not, see
             passwordHint="framework name, lowercase" currencyUomId="USD" locale="en_US" timeZone="US/Central"
             emailAddress="john.doe@moqui.org"/>
     <moqui.security.UserGroupMember userGroupId="ADMIN" userId="EX_JOHN_DOE" fromDate="1265184000000"/>
+    <moqui.security.UserGroupMember userGroupId="ADMIN_ADV" userId="EX_JOHN_DOE" fromDate="1265184000000"/>
     <moqui.security.UserPermission userPermissionId="ExamplePerm" description="Example Permission"/>
     <moqui.security.UserGroupPermission userGroupId="ADMIN" userPermissionId="ExamplePerm"
             fromDate="1265184000000" thruDate=""/>
