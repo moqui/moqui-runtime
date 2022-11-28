@@ -154,6 +154,11 @@ ${sri.renderSectionInclude(.node)}
         </m-container-dialog>
     </#if>
 </#macro>
+<#macro template>
+    <#assign vSlot = "">
+    <#if .node["@v-slot"]?has_content><#assign vSlot = .node["@v-slot"]></#if>
+    <template<#if vSlot?has_content> v-slot:${vSlot}</#if>><#recurse></template>
+</#macro>
 <#macro "dynamic-container">
     <#assign dcDivId><@nodeId .node/></#assign>
     <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true").addParameter("_dynamic_container_id", dcDivId)>
