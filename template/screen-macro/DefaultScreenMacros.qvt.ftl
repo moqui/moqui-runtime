@@ -224,6 +224,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if linkText?has_content || linkNode["image"]?has_content || linkNode["@icon"]?has_content>
             <#if linkNode["@encode"]! != "false"><#assign linkText = linkText?html></#if>
             <#assign urlInstance = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
+            <#if linkNode["@pass-through-parameters"]! == "true">
+                <#assign urlInstance = urlInstance.addPassThroughParameters(sri.getScreenUrlInstance())></#if>
             <#assign linkDivId><@nodeId .node/></#assign>
             <@linkFormForm linkNode linkDivId linkText urlInstance/>
             <@linkFormLink linkNode linkDivId linkText urlInstance/>
