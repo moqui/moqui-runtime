@@ -2089,7 +2089,7 @@ moqui.webrootVue = new Vue({
         lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", username:"", locale:"en",
         reLoginShow:false, reLoginPassword:null, reLoginMfaData:null, reLoginOtp:null,
-        notificationClient:null, qzVue:null, leftOpen:false, moqui:moqui },
+        notificationClient:null, sessionTokenBc:null, qzVue:null, leftOpen:false, moqui:moqui },
     methods: {
         setUrl: function(url, bodyParameters, onComplete) {
             // cancel current load if needed
@@ -2279,16 +2279,29 @@ moqui.webrootVue = new Vue({
             // update the session token, new session after login (along with xhrFields:{withCredentials:true} for cookie)
             var sessionToken = jqXHR.getResponseHeader("X-CSRF-Token");
             if (sessionToken && sessionToken.length && sessionToken !== this.moquiSessionToken) {
-                console.log("Updating session token")
+                console.log("Updating session token from jqXHR, sending to BroadcastChannel")
+                this.moquiSessionToken = sessionToken;
+                this.sessionTokenBc.postMessage(sessionToken);
+            }
+        },
+        receiveBcCsrfToken: function(event) {
+            var sessionToken = event.data;
+            if (sessionToken && sessionToken.length && this.moquiSessionToken !== sessionToken) {
+                console.log("Updating session token from BroadcastChannel")
                 this.moquiSessionToken = sessionToken;
             }
         },
         reLoginCheckShow: function() {
+            this.reLoginShowDialog();
+            /* NOTE DEJ-2022-12 removing use of the userInfo endpoint which is commented out for security reasons:
             // before showing the Re-Login dialog do a GET request without session token to see if there is a new one
             $.ajax({ type:'GET', url:(this.appRootPath + '/rest/userInfo'),
                 error:this.reLoginCheckResponseError, success:this.reLoginCheckResponseSuccess,
                 dataType:'json', headers:{Accept:'application/json'}, xhrFields:{withCredentials:true} });
+
+             */
         },
+        /* NOTE DEJ-2022-12 removing use of the userInfo endpoint which is commented out for security reasons:
         reLoginCheckResponseSuccess: function(resp, status, jqXHR) {
             if (resp.username && resp.sessionToken) {
                 this.moquiSessionToken = resp.sessionToken;
@@ -2307,7 +2320,7 @@ moqui.webrootVue = new Vue({
             } else {
                 var resp = responseText ? responseText : jqXHR.responseText;
                 var respObj;
-                try { respObj = JSON.parse(resp); } catch (e) { /* ignore error, don't always expect it to be JSON */ }
+                try { respObj = JSON.parse(resp); } catch (e) { } // ignore error, don't always expect it to be JSON
                 if (respObj && moqui.isPlainObject(respObj)) {
                     moqui.notifyMessages(respObj.messageInfos, respObj.errors, respObj.validationErrors);
                 } else if (resp && moqui.isString(resp) && resp.length) {
@@ -2315,6 +2328,7 @@ moqui.webrootVue = new Vue({
                 }
             }
         },
+        */
         reLoginShowDialog: function() {
             // make sure there is no MFA Data (would skip the login with password step)
             this.reLoginMfaData = null;
@@ -2477,6 +2491,9 @@ moqui.webrootVue = new Vue({
         this.$q.dark.set(confDarkMode === "true");
 
         this.notificationClient = new moqui.NotificationClient((location.protocol === 'https:' ? 'wss://' : 'ws://') + this.appHost + this.appRootPath + "/notws");
+        // open BroadcastChannel to share session token between tabs/windows on the same domain (see https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API)
+        this.sessionTokenBc = new BroadcastChannel("SessionToken");
+        this.sessionTokenBc.onmessage = this.receiveBcCsrfToken;
 
         var navPluginUrlList = [];
         $('.confNavPluginUrl').each(function(idx, el) { navPluginUrlList.push($(el).val()); });
@@ -2504,6 +2521,9 @@ moqui.webrootVue = new Vue({
                 }
             });
         }
+    },
+    beforeDestroy: function() {
+        this.sessionTokenBc.close();
     }
 
 });

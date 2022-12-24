@@ -91,6 +91,10 @@ along with this software (see the LICENSE.md file). If not, see
         </script></actions>
         <default-response type="none"/>
     </transition>
+    <!-- NOTE DEJ-2022-12 commented for security reasons described below, is not a critical hole and
+            requires a script injection sort of attack to exploit, but is generally more secure to
+            ONLY make the session token available on the FIRST request where it is generated
+            (ie after login, logout, session timeout, other session changes)
     <transition name="userInfo" method="get" read-only="true">
         <actions><script>
             if (ec.user.username) {
@@ -109,6 +113,7 @@ along with this software (see the LICENSE.md file). If not, see
         </script></actions>
         <default-response type="none"/>
     </transition>
+    -->
 
     <!--
     EXAMPLES
