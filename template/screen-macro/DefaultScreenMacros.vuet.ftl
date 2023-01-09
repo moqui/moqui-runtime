@@ -213,6 +213,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if linkText?has_content || linkNode["image"]?has_content || linkNode["@icon"]?has_content>
             <#if linkNode["@encode"]! != "false"><#assign linkText = linkText?html></#if>
             <#assign urlInstance = sri.makeUrlByType(linkNode["@url"], linkNode["@url-type"]!"transition", linkNode, linkNode["@expand-transition-url"]!"true")>
+            <#if linkNode["@pass-through-parameters"]! == "true">
+                <#assign urlInstance = urlInstance.addPassThroughParameters(sri.getScreenUrlInstance())></#if>
             <#assign linkDivId><@nodeId .node/></#assign>
             <@linkFormForm linkNode linkDivId linkText urlInstance/>
             <@linkFormLink linkNode linkDivId linkText urlInstance/>
@@ -404,8 +406,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if lastUpdatedString?has_content><input type="hidden" name="lastUpdatedStamp" value="${lastUpdatedString}"></#if>
     </#if>
     <#if formSingleNode["@pass-through-parameters"]! == "true">
-        <#assign currentFindUrl = sri.getScreenUrlInstance().cloneUrlInstance().removeParameter("moquiFormName").removeParameter("moquiSessionToken").removeParameter("lastStandalone").removeParameter("formListFindId")>
-        <#assign currentFindUrlParms = currentFindUrl.getParameterMap()>
+        <#assign currentFindUrlParms = sri.getScreenUrlInstance().getPassThroughParameterMap()>
         <#list currentFindUrlParms.keySet() as parmName><#if !formInstance.getFieldNode(parmName)??>
             <input type="hidden" name="${parmName}" value="${currentFindUrlParms.get(parmName)!?html}">
         </#if></#list>

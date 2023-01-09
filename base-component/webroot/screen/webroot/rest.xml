@@ -29,15 +29,16 @@ along with this software (see the LICENSE.md file). If not, see
     -->
 
     <!-- login: for client applications that use a Moqui UserAccount -->
-    <transition name="login" require-session-token="false">
+    <transition name="login" method="post" require-session-token="false">
         <!-- NOTE: login is a transition here instead of a Service REST endpoint under /rest/s1/moqui/... as a special case to not require session token -->
         <parameter name="username" required="true"/>
         <parameter name="password" required="true"/>
         <parameter name="code"/>
         <actions>
             <set field="loggedIn" from="ec.user.loginUser(username, password)"/>
+            <if condition="ec.message.hasError()"><script>ec.web.sendJsonResponse([loggedIn:false])</script></if>
 
-            <if condition="ec.web.sessionAttributes.moquiAuthcFactorRequired">
+            <if condition="ec.web.sessionAttributes.moquiAuthcFactorRequired"><then>
                 <if condition="code"><then>
                     <service-call name="org.moqui.impl.UserServices.validate#ExternalUserAuthcCode"
                             in-map="[code:code]" out-map="validateOut"/>
@@ -48,31 +49,36 @@ along with this software (see the LICENSE.md file). If not, see
                         <message type="danger" public="true">Authentication code is not valid</message>
                     </else></if>
                 </then></if>
+
                 <!-- if we didn't return above send back info about user's authc factors -->
-                <service-call name="org.moqui.impl.UserServices.get#ExternalUserAuthcFactorInfo" web-send-json-response="true"/>
-            </if>
+                <service-call name="org.moqui.impl.UserServices.get#ExternalUserAuthcFactorInfo" out-map="factorInfoOut"/>
+                <script>ec.web.sendJsonResponse(factorInfoOut)</script>
+            </then><else>
+                <script>ec.web.sendJsonResponse([loggedIn:loggedIn])</script>
+            </else></if>
         </actions>
         <default-response type="none"/>
     </transition>
     <!-- sendOtp: ask the server to send a one-time password/code (via email, SMS, etc);
             a user must be pre-authenticated via login and must own the UserAuthcFactor record specified with factorId;
             factorId can be UserAccountEmail IFF user has no active authc factors configured -->
-    <transition name="sendOtp">
+    <transition name="sendOtp" method="post">
         <parameter name="factorId" required="true"/>
         <service-call name="org.moqui.impl.UserServices.send#ExternalAuthcCode" in-map="[factorId:factorId]"
                 web-send-json-response="true"/>
         <default-response type="none"/>
     </transition>
     <!-- verifyOtp: submit an OTP code for pre-authenticated user (via login) to complete login -->
-    <transition name="verifyOtp">
+    <transition name="verifyOtp" method="post">
         <parameter name="code" required="true"/>
         <actions>
             <service-call name="org.moqui.impl.UserServices.validate#ExternalUserAuthcCode"
                     in-map="[code:code]" out-map="validateOut"/>
             <if condition="validateOut.verified"><then>
-                <script>ec.user.internalLoginUser(validateOut.username)</script>
+                <set field="loggedIn" from="ec.user.internalLoginUser(validateOut.username)"/>
+                <script>ec.web.sendJsonResponse([loggedIn:loggedIn])</script>
             </then><else>
-                <script>ec.web.sendError(403, "Authentication code is not valid")</script>
+                <script>ec.web.sendError(403, ec.l10n.localize("Authentication code is not valid"))</script>
             </else></if>
         </actions>
         <default-response type="none"/>
@@ -85,6 +91,29 @@ along with this software (see the LICENSE.md file). If not, see
         </script></actions>
         <default-response type="none"/>
     </transition>
+    <!-- NOTE DEJ-2022-12 commented for security reasons described below, is not a critical hole and
+            requires a script injection sort of attack to exploit, but is generally more secure to
+            ONLY make the session token available on the FIRST request where it is generated
+            (ie after login, logout, session timeout, other session changes)
+    <transition name="userInfo" method="get" read-only="true">
+        <actions><script>
+            if (ec.user.username) {
+                // SECURITY NOTE: this returns the session token, used for multiple tabs/windows where
+                //   the session cookie for new session is updated by login in another tab so we have a
+                //   session cookie but not the token; this may need to be removed and another solution
+                //   found (if possible) for auto re-login in a tab after a user authc'ed in another tab
+                //   because this might open an attack vector and make the session token less helpful
+                //   for CSRF protection
+                ec.web.sendJsonResponse([ username:ec.user.username, userId:ec.user.userId, currencyUomId:ec.user.currencyUomId,
+                    timeZone:ec.user.timeZone?.toString(), locale:ec.user.locale?.toString(), sessionToken:ec.web.getSessionToken() ])
+            } else {
+                ec.web.sendJsonResponse([ username:null, userId:null, currencyUomId:ec.user.currencyUomId,
+                    timeZone:ec.user.timeZone?.toString(), locale:ec.user.locale?.toString() ])
+            }
+        </script></actions>
+        <default-response type="none"/>
+    </transition>
+    -->
 
     <!--
     EXAMPLES
