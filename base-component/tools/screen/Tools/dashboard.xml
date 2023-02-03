@@ -86,6 +86,11 @@ along with this software (see the LICENSE.md file). If not, see
                     <link url="../Entity/QueryStats" text="Query Stats"/>
                 </container>
             </box-body></container-box>
+            <container-box><box-header title="Generated Diagrams"/><box-body>
+                <container>
+                    <link url="../StatusFlows" text="Status Flows"/>
+                </container>
+            </box-body></container-box>
         </row-col></container-row>
 
         <!-- <link url="reloadEcfi" text="Reload Framework" link-type="anchor" confirmation="Are you sure? This is for development and emergency use only."/> -->
