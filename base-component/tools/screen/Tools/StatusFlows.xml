@@ -66,8 +66,11 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="submitBtn"><default-field><submit text="View"/></default-field></field>
         </form-single>
 
-        <label text="Found ${statusItemList.size()} statuses, ${transitionList.size()} transitions" type="p" condition="statusItemList != null"/>
         <section name="MermaidDisplay" condition="mermaidText"><widgets>
+            <label text="Found ${statusItemList.size()} statuses, ${transitionList.size()} transitions" type="p" condition="statusItemList != null"/>
+            <container-dialog id="MermaidText" button-text="Mermaid JS Text">
+                <label text="${mermaidText}" type="pre"/>
+            </container-dialog>
             <render-mode>
                 <text type="qvt"><![CDATA[<m-mermaid height="800px">${mermaidText}</m-mermaid>]]></text>
                 <text type="html,vuet"><![CDATA[<p><strong>Only supported in the 'qvt' render mode, go to the same URL under /qapps (instead of /apps or /vapps)</strong></p>]]></text>
