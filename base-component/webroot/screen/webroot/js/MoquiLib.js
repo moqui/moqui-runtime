@@ -202,6 +202,7 @@ var moqui = {
                 // TODO format numbers with format string, localize
                 return value.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
             } else if (type === "long" || type === "integer" || type === "double" || type === "float") {
+                if (!moqui.isString(value)) value = "" + value;
                 // TODO format numbers with format string, localize
                 return value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
             } else {
