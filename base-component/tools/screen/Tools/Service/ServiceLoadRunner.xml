@@ -15,7 +15,10 @@ along with this software (see the LICENSE.md file). If not, see
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
         default-menu-title="Service Load Runner" default-menu-index="3" render-modes="vue,qvue" server-static="vue,qvue">
 
-
+    <transition name="getServerStatusMap">
+        <actions><script>ec.web.sendJsonResponse(ec.factory.getStatusMap(true))</script></actions>
+        <default-response type="none"/>
+    </transition>
     <transition name="getRunnerInfo" method="get" read-only="true">
         <!-- REST-ish endpoint -->
         <actions><script><![CDATA[
@@ -44,7 +47,7 @@ along with this software (see the LICENSE.md file). If not, see
                             timeAverage:(it.runCount ? it.totalTime / it.runCount : 0),
                             runsPerSecAvg:(it.totalTime ? it.runCount / (it.totalTime/1000) : 0),
                             entityFindsPerSec:(findTimeTotal ? findCountTotal / (findTimeTotal/1000000000) : 0),
-                            entityCudPerSec:(cudTimeTotal ? cudCountTotal / (cudTimeTotal/1000000000) : 0) ]
+                            entityWritePerSec:(cudTimeTotal ? cudCountTotal / (cudTimeTotal/1000000000) : 0) ]
                 })
                 // remove the last time bin, is current and data can be weird until done
                 if (timeBinList) timeBinList.removeLast()
@@ -139,11 +142,21 @@ along with this software (see the LICENSE.md file). If not, see
                     <div class="q-px-xs col-md-2 col-sm-4"><strong>Exec Index</strong> {{executorInfo.execIndex}}</div>
                     <div class="q-px-xs col-md-2 col-sm-4"><strong>Total Threads</strong> {{executorInfo.totalThreads}}</div>
                     <div class="q-px-xs col-md-2 col-sm-4"><strong>Running</strong> {{executorInfo.running}}</div>
+
+                    <div v-if="serverStatus.System" class="q-px-xs col-md-2 col-sm-4">
+                        <strong>CPU Load</strong> {{serverStatus.System.Load}} (avg last minute)</div>
+                    <div v-if="serverStatus.System" class="q-px-xs col-md-2 col-sm-4">
+                        <strong>{{serverStatus.System.CPU}}</strong> {{serverStatus.System.Processors}} threads</div>
+                    <div v-if="serverStatus.Heap" class="q-px-xs col-md-2 col-sm-4">
+                        <strong>Heap RAM</strong> {{serverStatus.Heap.Used}}/{{serverStatus.Heap.Committed}}/{{serverStatus.Heap.Max}}</div>
+                    <div v-if="serverStatus.JavaStats" class="q-px-xs col-md-2 col-sm-4">
+                        <strong>Java GC</strong> {{serverStatus.JavaStats.GcCount}} GCs {{serverStatus.JavaStats.GcTimeSeconds}}s</div>
                 </div>
                 <div class="table q-table" id="service_table">
                     <div class="thead">
                         <div class="tr">
                             <div class="th">Service &amp; Parameters</div>
+                            <div class="th">Began</div>
                             <div class="th">Target</div>
                             <div class="th">Current</div>
                             <div class="th">Run Delay</div>
@@ -168,6 +181,7 @@ along with this software (see the LICENSE.md file). If not, see
                                 <div>{{serviceInfo.serviceName}}</div>
                                 <div>{{serviceInfo.parametersExpr}}</div>
                             </div>
+                            <div class="td text-center">{{moqui.format(serviceInfo.beginTime, null, 'time')}} - {{(Date.now() - serviceInfo.beginTime)/1000}}s</div>
                             <div class="td text-center">{{serviceInfo.targetThreads}}</div>
                             <div class="td text-center">{{serviceInfo.currentThreads}}</div>
                             <div class="td text-center">{{serviceInfo.runDelayMs}}</div>
@@ -189,13 +203,17 @@ along with this software (see the LICENSE.md file). If not, see
                 </div>
 
                 <div class="row">
-                    <div class="q-px-xs col-md-6">
+                    <div class="q-px-xs col-md-4">
                         <p><strong>Runs per Second</strong></p>
                         <m-chart height="500px" :config="runsPerSecAvgChartConfig"></m-chart>
                     </div>
-                    <div class="q-px-xs col-md-6">
+                    <div class="q-px-xs col-md-4">
                         <p><strong>Entity Finds per Second</strong></p>
                         <m-chart height="500px" :config="findsPerSecAvgChartConfig"></m-chart>
+                    </div>
+                    <div class="q-px-xs col-md-4">
+                        <p><strong>Entity Writes per Second</strong></p>
+                        <m-chart height="500px" :config="writesPerSecAvgChartConfig"></m-chart>
                     </div>
                 </div>
 
@@ -270,9 +288,11 @@ along with this software (see the LICENSE.md file). If not, see
                         // NOTE: regardless of defaults elsewhere these are the ones that show on the screen
                         newServiceInfo:{ serviceName:"", parametersExpr:"", targetThreads:"10",
                             runDelayMs:"100", rampDelayMs:"500", timeBinLength:"2000", timeBinsKeep:"20" },
-                        executorInfo:{running:false}, serviceInfos:[], getInfoInterval:null,
+                        serverStatus:{}, executorInfo:{running:false}, serviceInfos:[],
+                        getInfoInterval:null, serverStatusInterval:null,
                         runsPerSecAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }},
-                        findsPerSecAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }}
+                        findsPerSecAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }},
+                        writesPerSecAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }}
                     } },
                     methods: {
                         setLocal: function(serviceName, parametersExpr, targetThreads, runDelayMs, rampDelayMs, timeBinLength, timeBinsKeep) {
@@ -318,6 +338,17 @@ along with this software (see the LICENSE.md file). If not, see
                             });
                             // TODO timeout after last nav and clear the interval?
                         },
+                        getServerStatusMap: function() {
+                            var vm = this;
+                            $.ajax({ type:"GET", url:"/apps/tools/Service/ServiceLoadRunner/getServerStatusMap",
+                                dataType:"json", headers:{ Accept:'application/json' },
+                                error:moqui.handleAjaxError,
+                                success: function(responseObj, status, jqXHR) {
+                                    vm.serverStatus = responseObj;
+                                }
+                            });
+                            // TODO timeout after last nav and clear the interval?
+                        },
                         callBegin: function() {
                             $.ajax({ type:"POST", url:"/apps/tools/Service/ServiceLoadRunner/begin",
                                 dataType:"json", headers:{ Accept:'application/json', 'X-CSRF-Token':this.$root.moquiSessionToken },
@@ -338,7 +369,38 @@ along with this software (see the LICENSE.md file). If not, see
                             if (nostring) return over / under;
                             else return moqui.format(over / under, null, "bigdecimal");
                         },
-                        updateChartData: function () {
+                        populateChartData: function(fieldName, serviceName, timeBinList, rpsDatasetsArray) {
+                            // NOTE: change moving average lengths here; consider making these user settable
+                            var ma1Length = 7, ma2Length = 20;
+
+                            var rpsDataArray = [], rpsMa1DataArray = [], rpsMa2DataArray = [];
+                            var rpsMa1Cur = 0, rpsMa2Cur = 0;
+                            for (var tbi = 0; timeBinList && tbi < timeBinList.length; tbi++) {
+                                var timeBin = timeBinList[tbi];
+                                rpsDataArray.push(timeBin[fieldName]);
+                                // for rolling moving average always add current
+                                rpsMa1Cur += timeBin[fieldName];
+                                rpsMa2Cur += timeBin[fieldName];
+                                // for rolling moving average if more than ma periods subtract off the next one to drop
+                                if (tbi >= ma1Length) rpsMa1Cur -= timeBinList[tbi - ma1Length][fieldName];
+                                if (tbi >= ma2Length) rpsMa2Cur -= timeBinList[tbi - ma2Length][fieldName];
+                                rpsMa1DataArray.push(rpsMa1Cur / (tbi < ma1Length ? tbi+1 : ma1Length));
+                                rpsMa2DataArray.push(rpsMa2Cur / (tbi < ma2Length ? tbi+1 : ma2Length));
+                            }
+                            rpsDatasetsArray.push({
+                                backgroundColor:'rgba(49, 112, 143, 0.9)', borderColor:'rgba(49, 112, 143, 0.9)',
+                                label:serviceName, type:'line', fill:false, data:rpsDataArray
+                            });
+                            rpsDatasetsArray.push({
+                                backgroundColor:'rgba(100, 112, 70, 0.9)', borderColor:'rgba(100, 112, 70, 0.9)',
+                                label:serviceName + ' MA' + ma1Length, type:'line', fill:false, data:rpsMa1DataArray
+                            });
+                            rpsDatasetsArray.push({
+                                backgroundColor:'rgba(100, 60, 143, 0.9)', borderColor:'rgba(100, 60, 143, 0.9)',
+                                label:serviceName + ' MA' + ma2Length, type:'line', fill:false, data:rpsMa2DataArray
+                            });
+                        },
+                        updateChartData: function() {
                             if (!this.serviceInfos || !this.serviceInfos.length) return;
 
                             var labelArray = [];
@@ -347,62 +409,12 @@ along with this software (see the LICENSE.md file). If not, see
 
                             var rpsDatasetsArray = [];
                             var efpsDatasetsArray = [];
-                            // var ecpsDatasetsArray = [] for entityCudPerSec
+                            var ewpsDatasetsArray = [];
+                            var vm = this;
                             this.serviceInfos.forEach(function (it) {
-                                var ma1Length = 7, ma2Length = 20;
-
-                                var rpsDataArray = [], rpsMa1DataArray = [], rpsMa2DataArray = [];
-                                var rpsMa1Cur = 0, rpsMa2Cur = 0;
-                                for (var tbi = 0; it.timeBinList && tbi < it.timeBinList.length; tbi++) {
-                                    var timeBin = it.timeBinList[tbi];
-                                    rpsDataArray.push(timeBin.runsPerSecAvg);
-                                    // for rolling moving average always add current
-                                    rpsMa1Cur += timeBin.runsPerSecAvg;
-                                    rpsMa2Cur += timeBin.runsPerSecAvg;
-                                    // for rolling moving average if more than ma periods subtract off the next one to drop
-                                    if (tbi >= ma1Length) rpsMa1Cur -= it.timeBinList[tbi - ma1Length].runsPerSecAvg;
-                                    if (tbi >= ma2Length) rpsMa2Cur -= it.timeBinList[tbi - ma2Length].runsPerSecAvg;
-                                    rpsMa1DataArray.push(rpsMa1Cur / ma1Length);
-                                    rpsMa2DataArray.push(rpsMa2Cur / ma2Length);
-                                }
-                                rpsDatasetsArray.push({
-                                    backgroundColor:'rgba(49, 112, 143, 0.9)', borderColor:'rgba(49, 112, 143, 0.9)',
-                                    label:it.serviceName, type:'line', fill:false, data:rpsDataArray
-                                });
-                                rpsDatasetsArray.push({
-                                    backgroundColor:'rgba(100, 112, 70, 0.9)', borderColor:'rgba(100, 112, 70, 0.9)',
-                                    label:it.serviceName + ' MA' + ma1Length, type:'line', fill:false, data:rpsMa1DataArray
-                                });
-                                rpsDatasetsArray.push({
-                                    backgroundColor:'rgba(100, 60, 143, 0.9)', borderColor:'rgba(100, 60, 143, 0.9)',
-                                    label:it.serviceName + ' MA' + ma2Length, type:'line', fill:false, data:rpsMa2DataArray
-                                });
-
-                                var efpsDataArray = [], efpsMa1DataArray = [], efpsMa2DataArray = [];
-                                var efpsMa1Cur = 0, efpsMa2Cur = 0;
-                                it.timeBinList.forEach(function (timeBin, tbi) {
-                                    efpsDataArray.push(timeBin.entityFindsPerSec);
-                                    // for rolling moving average always add current
-                                    efpsMa1Cur += timeBin.entityFindsPerSec;
-                                    efpsMa2Cur += timeBin.entityFindsPerSec;
-                                    // for rolling moving average if more than ma periods subtract off the next one to drop
-                                    if (tbi >= ma1Length) efpsMa1Cur -= it.timeBinList[tbi - ma1Length].entityFindsPerSec;
-                                    if (tbi >= ma2Length) efpsMa2Cur -= it.timeBinList[tbi - ma2Length].entityFindsPerSec;
-                                    efpsMa1DataArray.push(efpsMa1Cur / ma1Length);
-                                    efpsMa2DataArray.push(efpsMa2Cur / ma2Length);
-                                });
-                                efpsDatasetsArray.push({
-                                    backgroundColor:'rgba(49, 112, 143, 0.9)', borderColor:'rgba(49, 112, 143, 0.9)',
-                                    label:it.serviceName, type:'line', fill:false, data:efpsDataArray
-                                });
-                                efpsDatasetsArray.push({
-                                    backgroundColor:'rgba(100, 112, 70, 0.9)', borderColor:'rgba(100, 112, 70, 0.9)',
-                                    label:it.serviceName + ' MA' + ma1Length, type:'line', fill:false, data:efpsMa1DataArray
-                                });
-                                efpsDatasetsArray.push({
-                                    backgroundColor:'rgba(100, 60, 143, 0.9)', borderColor:'rgba(100, 60, 143, 0.9)',
-                                    label:it.serviceName + ' MA' + ma2Length, type:'line', fill:false, data:efpsMa2DataArray
-                                });
+                                vm.populateChartData("runsPerSecAvg", it.serviceName, it.timeBinList, rpsDatasetsArray);
+                                vm.populateChartData("entityFindsPerSec", it.serviceName, it.timeBinList, efpsDatasetsArray);
+                                vm.populateChartData("entityWritePerSec", it.serviceName, it.timeBinList, ewpsDatasetsArray);
                             })
                             this.runsPerSecAvgChartConfig = {
                                 type:'line', data:{ labels:labelArray, datasets:rpsDatasetsArray },
@@ -414,6 +426,11 @@ along with this software (see the LICENSE.md file). If not, see
                                 options:{ legend:{display:false}, scales:{ xAxes:[{display:true}] },
                                     maintainAspectRatio:false, animation:false }
                             };
+                            this.writesPerSecAvgChartConfig = {
+                                type:'line', data:{ labels:labelArray, datasets:ewpsDatasetsArray },
+                                options:{ legend:{display:false}, scales:{ xAxes:[{display:true}] },
+                                    maintainAspectRatio:false, animation:false }
+                            };
                         }
                     },
                     mounted: function() {
@@ -421,6 +438,8 @@ along with this software (see the LICENSE.md file). If not, see
                         this.getRunnerInfo();
                         // kick off the runner info poller
                         this.getInfoInterval = setInterval(this.getRunnerInfo, 2*1000)
+                        // start the server status poller
+                        this.serverStatusInterval = setInterval(this.getServerStatusMap, 2*1000)
                     },
                     beforeDestroy: function() {
                         if (this.getInfoInterval) {
