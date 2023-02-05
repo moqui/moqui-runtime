@@ -34,7 +34,7 @@ along with this software (see the LICENSE.md file). If not, see
                 def timeSinceBegin = serviceInfo.lastRunTime - serviceInfo.beginTime
                 def runsPerSecTime = timeSinceBegin ? serviceInfo.runCount / (timeSinceBegin/1000) : 0
 
-                def timeBinList = serviceInfo.timeBinList.collect({
+                def timeBinList = serviceInfo.timeBinList?.collect({
                     def findCountTotal = it.artifactTypeStats.entityFindOneCount + it.artifactTypeStats.entityFindListCount
                             + it.artifactTypeStats.entityFindIteratorCount + it.artifactTypeStats.entityFindCountCount
                     def findTimeTotal = it.artifactTypeStats.entityFindOneTime + it.artifactTypeStats.entityFindListTime
@@ -71,6 +71,7 @@ along with this software (see the LICENSE.md file). If not, see
             }
 
             def executorInfo = [execIndex:loadRunner.execIndex.get(), totalThreads:loadRunner.scheduledExecutor?.getQueue()?.size(),
+                    executorExists:loadRunner.scheduledExecutor as boolean,
                     running:loadRunner.scheduledExecutor && !loadRunner.scheduledExecutor.shutdown
                             && !loadRunner.scheduledExecutor.terminated && !loadRunner.scheduledExecutor.terminating,
                     shutdown:loadRunner.scheduledExecutor?.shutdown, terminated:loadRunner.scheduledExecutor?.terminated,
@@ -133,7 +134,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <q-btn dense outline no-caps color="primary" type="submit" name="submitBtn" label="Set Service Info"></q-btn>
                 </q-form>
                 <q-btn dense outline no-caps color="positive" type="button" label="Begin" @click.prevent="callBegin"
-                        :disabled="executorInfo.running"></q-btn>
+                        :disabled="executorInfo.executorExists"></q-btn>
                 <!-- this is best avoided, observed Bitronix blow up with heavy load: <q-btn dense outline no-caps color="negative" type="button" label="Stop Now" @click.prevent="callStopNow"></q-btn> -->
                 <q-btn dense outline no-caps color="negative" type="button" label="Stop Wait" @click.prevent="callStopWait"
                         :disabled="!executorInfo.running"></q-btn>
@@ -445,6 +446,10 @@ along with this software (see the LICENSE.md file). If not, see
                         if (this.getInfoInterval) {
                             clearInterval(this.getInfoInterval);
                             this.getInfoInterval = null;
+                        }
+                        if (this.serverStatusInterval) {
+                            clearInterval(this.serverStatusInterval);
+                            this.serverStatusInterval = null;
                         }
                     }
                 }
