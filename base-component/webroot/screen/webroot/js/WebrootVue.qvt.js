@@ -1852,9 +1852,24 @@ Vue.component('m-chart', {
     mounted: function() {
         var vm = this;
         moqui.loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js', function(err) {
-            if (err) return;
+            if (err) {
+                console.error("Error loading m-chart script: " + err);
+                return;
+            }
             vm.instance = new Chart(vm.$refs.canvas, vm.config);
         }, function() { return !!window.Chart; });
+    },
+    watch: {
+        config: function (val) {
+            if (this.instance) {
+                // console.info("updating m-chart")
+                if (val.type) this.instance.type = val.type;
+                if (val.labels) this.instance.labels = val.labels;
+                if (val.data) this.instance.data = val.data;
+                if (val.options) this.instance.options = val.options;
+                this.instance.update();
+            }
+        }
     }
 });
 /* Lazy loading Mermaid JS wrapper component; for config options see https://mermaid.js.org/config/usage.html */
