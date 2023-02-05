@@ -30,9 +30,11 @@ along with this software (see the LICENSE.md file). If not, see
                 def runsPerSecAvg = serviceInfo.totalTime ? serviceInfo.runCount / (serviceInfo.totalTime/1000) : 0
                 def timeSinceBegin = serviceInfo.lastRunTime - serviceInfo.beginTime
                 def runsPerSecTime = timeSinceBegin ? serviceInfo.runCount / (timeSinceBegin/1000) : 0
+                def timeBinList = serviceInfo.timeBinList.collect({ it.getMap() })
                 serviceInfoList.add([serviceName:serviceInfo.serviceName, parametersExpr:serviceInfo.parametersExpr,
                         targetThreads:serviceInfo.targetThreads, currentThreads:serviceInfo.currentThreads.get(),
                         runDelayMs:serviceInfo.runDelayMs, rampDelayMs:serviceInfo.rampDelayMs,
+                        timeBinLength:serviceInfo.timeBinLength, timeBinsKeep:serviceInfo.timeBinsKeep,
                         runCount:serviceInfo.runCount, errorCount:serviceInfo.errorCount,
                         lastResult:serviceInfo.lastResult, beginTime:serviceInfo.beginTime,
                         lastRunTime:serviceInfo.lastRunTime, lastRunTimeStr:(new Timestamp(serviceInfo.lastRunTime).toString()),
@@ -43,11 +45,13 @@ along with this software (see the LICENSE.md file). If not, see
                             Math.sqrt((serviceInfo.totalSquaredTime - ((serviceInfo.totalTime*serviceInfo.totalTime) / serviceInfo.runCount)).abs() / (serviceInfo.runCount - 1)) : null),
                         runsPerSecAvg:runsPerSecAvg, runsPerSecTime:runsPerSecTime,
                         busyPercent:(runsPerSecAvg ? 100*runsPerSecTime/runsPerSecAvg : 0),
-                        typeStats:objectToMap(serviceInfo.artifactTypeStats)
+                        typeStats:objectToMap(serviceInfo.artifactTypeStats), timeBinList:timeBinList
                 ])
             }
 
-            def executorInfo = [execIndex:loadRunner.execIndex.get(), totalThreads:loadRunner.scheduledExecutor?.getQueue()?.size()]
+            def executorInfo = [execIndex:loadRunner.execIndex.get(), totalThreads:loadRunner.scheduledExecutor?.getQueue()?.size(),
+                    shutdown:loadRunner.scheduledExecutor?.shutdown, terminated:loadRunner.scheduledExecutor?.terminated,
+                    terminating:loadRunner.scheduledExecutor?.terminating]
 
             Map<String, Object> runnerInfo = [executorInfo:executorInfo, serviceInfos:serviceInfoList] as Map<String, Object>
             ec.web.sendJsonResponse(runnerInfo)
@@ -56,7 +60,8 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
     <transition name="setServiceInfo" method="post">
         <actions><script>ec.service.getLoadRunner().setServiceInfo(serviceName, parametersExpr, targetThreads as int,
-                (runDelayMs as Integer) ?: 100, (rampDelayMs as Integer) ?: 500)</script></actions>
+                (runDelayMs as Integer) ?: 100, (rampDelayMs as Integer) ?: 500,
+                (timeBinLength as Integer) ?: 2000, (timeBinsKeep as Integer) ?: 20)</script></actions>
         <default-response url="."/>
     </transition>
     <transition name="begin" method="post">
@@ -77,6 +82,8 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <render-mode><text type="qvue"><![CDATA[
             <template><div>
+                <q-btn dense outline no-caps color="info" type="button" label="Lookup By ID"
+                       @click.prevent="setLocal('mantle.GeneralServices.lookup#ById', '[lookupId:\'100000\']')"></q-btn>
                 <p><strong>All delay, run, etc times are in milliseconds (ms), rates in runs per second</strong></p>
                 <q-form @submit.prevent="setServiceInfo" autocapitalize="off" autocomplete="off">
                     <m-text-line dense outlined v-model="newServiceInfo.serviceName" name="serviceName"
@@ -84,15 +91,21 @@ along with this software (see the LICENSE.md file). If not, see
                     <m-text-line dense outlined v-model="newServiceInfo.parametersExpr" name="parametersExpr"
                                  stack-label label="Parameters Expression" type="text" size="100"></m-text-line>
 
-                    <div class="row"><div class="q-px-xs col-sm-4">
+                    <div class="row"><div class="q-px-xs col-md-2 col-sm-4">
                         <m-text-line dense outlined v-model="newServiceInfo.targetThreads" name="targetThreads"
                                      stack-label label="Threads" type="text" size="10"></m-text-line>
-                    </div><div class="q-px-xs col-sm-4">
+                    </div><div class="q-px-xs col-md-2 col-sm-4">
                         <m-text-line dense outlined v-model="newServiceInfo.runDelayMs" name="runDelayMs"
                                      stack-label label="Run Delay" type="text" size="10"></m-text-line>
-                    </div><div class="q-px-xs col-sm-4">
+                    </div><div class="q-px-xs col-md-2 col-sm-4">
                         <m-text-line dense outlined v-model="newServiceInfo.rampDelayMs" name="rampDelayMs"
                                      stack-label label="Ramp Delay" type="text" size="10"></m-text-line>
+                    </div><div class="q-px-xs col-md-2 col-sm-4">
+                        <m-text-line dense outlined v-model="newServiceInfo.timeBinLength" name="timeBinLength"
+                                     stack-label label="Bin Length" type="text" size="10"></m-text-line>
+                    </div><div class="q-px-xs col-md-2 col-sm-4">
+                        <m-text-line dense outlined v-model="newServiceInfo.timeBinsKeep" name="timeBinsKeep"
+                                     stack-label label="Bins Keep" type="text" size="10"></m-text-line>
                     </div></div>
                     <q-btn dense outline no-caps color="primary" type="submit" name="submitBtn" label="Set Service Info"></q-btn>
                 </q-form>
@@ -103,6 +116,9 @@ along with this software (see the LICENSE.md file). If not, see
                 <div class="row">
                     <div class="q-px-xs col-md-2 col-sm-4"><strong>Exec Index</strong> {{executorInfo.execIndex}}</div>
                     <div class="q-px-xs col-md-2 col-sm-4"><strong>Total Threads</strong> {{executorInfo.totalThreads}}</div>
+                    <div class="q-px-xs col-md-2 col-sm-4"><strong>Terminating</strong> {{executorInfo.terminating}}</div>
+                    <div class="q-px-xs col-md-2 col-sm-4"><strong>Terminated</strong> {{executorInfo.terminated}}</div>
+                    <div class="q-px-xs col-md-2 col-sm-4"><strong>Shutdown</strong> {{executorInfo.shutdown}}</div>
                 </div>
                 <div class="table q-table" id="service_table">
                     <div class="thead">
@@ -112,6 +128,8 @@ along with this software (see the LICENSE.md file). If not, see
                             <div class="th">Current</div>
                             <div class="th">Run Delay</div>
                             <div class="th">Ramp Delay</div>
+                            <div class="th">Bin Length</div>
+                            <div class="th">Bins Keep</div>
                             <div class="th">Run Count</div>
                             <div class="th">Error Count</div>
                             <div class="th">Time Average</div>
@@ -134,6 +152,8 @@ along with this software (see the LICENSE.md file). If not, see
                             <div class="td text-center">{{serviceInfo.currentThreads}}</div>
                             <div class="td text-center">{{serviceInfo.runDelayMs}}</div>
                             <div class="td text-center">{{serviceInfo.rampDelayMs}}</div>
+                            <div class="td text-center">{{serviceInfo.timeBinLength}}</div>
+                            <div class="td text-center">{{serviceInfo.timeBinsKeep}}</div>
                             <div class="td text-center">{{serviceInfo.runCount}}</div>
                             <div class="td text-center">{{serviceInfo.errorCount}}</div>
                             <div class="td text-center">{{serviceInfo.timeAverage}}</div>
@@ -209,16 +229,27 @@ along with this software (see the LICENSE.md file). If not, see
                 </div>
 
                 <div v-for="serviceInfo in serviceInfos">
+                    <!-- <pre>{{JSON.stringify(serviceInfo.timeBinList, null, 2)}}</pre> -->
                     <pre>{{JSON.stringify(serviceInfo.lastResult, null, 2)}}</pre>
                 </div>
             </div></template>
             <script>
                 module.exports = {
                     data: function () { return {
-                        newServiceInfo:{ serviceName:"", targetThreads:"10", runDelayMs:"100", rampDelayMs:"500" },
+                        newServiceInfo:{ serviceName:"", parametersExpr:"", targetThreads:"10",
+                            runDelayMs:"100", rampDelayMs:"500", timeBinLength:"2000", timeBinsKeep:"20" },
                         executorInfo:{}, serviceInfos:[], getInfoInterval:null
                     } },
                     methods: {
+                        setLocal: function (serviceName, parametersExpr, targetThreads, runDelayMs, rampDelayMs, timeBinLength, timeBinsKeep) {
+                            if (serviceName) this.newServiceInfo.serviceName = serviceName;
+                            if (parametersExpr) this.newServiceInfo.parametersExpr = parametersExpr;
+                            if (targetThreads) this.newServiceInfo.targetThreads = targetThreads;
+                            if (runDelayMs) this.newServiceInfo.runDelayMs = runDelayMs;
+                            if (rampDelayMs) this.newServiceInfo.rampDelayMs = rampDelayMs;
+                            if (timeBinLength) this.newServiceInfo.timeBinLength = timeBinLength;
+                            if (timeBinsKeep) this.newServiceInfo.timeBinsKeep = timeBinsKeep;
+                        },
                         setServiceInfo: function () {
                             var vm = this;
                             $.ajax({ type:"POST", url:"/apps/tools/Service/ServiceLoadRunner/setServiceInfo",
