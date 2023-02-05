@@ -47,7 +47,7 @@ along with this software (see the LICENSE.md file). If not, see
                             entityCudPerSec:(cudTimeTotal ? cudCountTotal / (cudTimeTotal/1000000000) : 0) ]
                 })
                 // remove the last time bin, is current and data can be weird until done
-                timeBinList.removeLast()
+                if (timeBinList) timeBinList.removeLast()
 
                 serviceInfoList.add([serviceName:serviceInfo.serviceName, parametersExpr:serviceInfo.parametersExpr,
                         targetThreads:serviceInfo.targetThreads, currentThreads:serviceInfo.currentThreads.get(),
@@ -272,7 +272,7 @@ along with this software (see the LICENSE.md file). If not, see
                             runDelayMs:"100", rampDelayMs:"500", timeBinLength:"2000", timeBinsKeep:"20" },
                         executorInfo:{running:false}, serviceInfos:[], getInfoInterval:null,
                         runsPerSecAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }},
-                        findsPerSecAvgChartConfig:{}
+                        findsPerSecAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }}
                     } },
                     methods: {
                         setLocal: function(serviceName, parametersExpr, targetThreads, runDelayMs, rampDelayMs, timeBinLength, timeBinsKeep) {
@@ -378,11 +378,30 @@ along with this software (see the LICENSE.md file). If not, see
                                     label:it.serviceName + ' MA' + ma2Length, type:'line', fill:false, data:rpsMa2DataArray
                                 });
 
-                                var efpsDataArray = [];
-                                it.timeBinList.forEach(function (it) { efpsDataArray.push(it.entityFindsPerSec) });
+                                var efpsDataArray = [], efpsMa1DataArray = [], efpsMa2DataArray = [];
+                                var efpsMa1Cur = 0, efpsMa2Cur = 0;
+                                it.timeBinList.forEach(function (timeBin, tbi) {
+                                    efpsDataArray.push(timeBin.entityFindsPerSec);
+                                    // for rolling moving average always add current
+                                    efpsMa1Cur += timeBin.entityFindsPerSec;
+                                    efpsMa2Cur += timeBin.entityFindsPerSec;
+                                    // for rolling moving average if more than ma periods subtract off the next one to drop
+                                    if (tbi >= ma1Length) efpsMa1Cur -= it.timeBinList[tbi - ma1Length].entityFindsPerSec;
+                                    if (tbi >= ma2Length) efpsMa2Cur -= it.timeBinList[tbi - ma2Length].entityFindsPerSec;
+                                    efpsMa1DataArray.push(efpsMa1Cur / ma1Length);
+                                    efpsMa2DataArray.push(efpsMa2Cur / ma2Length);
+                                });
                                 efpsDatasetsArray.push({
                                     backgroundColor:'rgba(49, 112, 143, 0.9)', borderColor:'rgba(49, 112, 143, 0.9)',
                                     label:it.serviceName, type:'line', fill:false, data:efpsDataArray
+                                });
+                                efpsDatasetsArray.push({
+                                    backgroundColor:'rgba(100, 112, 70, 0.9)', borderColor:'rgba(100, 112, 70, 0.9)',
+                                    label:it.serviceName + ' MA' + ma1Length, type:'line', fill:false, data:efpsMa1DataArray
+                                });
+                                efpsDatasetsArray.push({
+                                    backgroundColor:'rgba(100, 60, 143, 0.9)', borderColor:'rgba(100, 60, 143, 0.9)',
+                                    label:it.serviceName + ' MA' + ma2Length, type:'line', fill:false, data:efpsMa2DataArray
                                 });
                             })
                             this.runsPerSecAvgChartConfig = {
