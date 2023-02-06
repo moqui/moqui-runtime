@@ -24,7 +24,7 @@ along with this software (see the LICENSE.md file). If not, see
         <actions><script><![CDATA[
             import org.moqui.context.ExecutionContext
             ExecutionContext ec = context.ec
-            // TODO cpu, ram/gc stats, other stuff on System Dashboard
+
             def loadRunner = ec.service.getLoadRunner()
             def serviceInfos = loadRunner.serviceInfos
             def serviceInfoList = []
@@ -71,6 +71,7 @@ along with this software (see the LICENSE.md file). If not, see
             }
 
             def executorInfo = [execIndex:loadRunner.execIndex.get(), totalThreads:loadRunner.scheduledExecutor?.getQueue()?.size(),
+                    activeThreads:loadRunner.scheduledExecutor?.getActiveCount(),
                     executorExists:loadRunner.scheduledExecutor as boolean,
                     running:loadRunner.scheduledExecutor && !loadRunner.scheduledExecutor.shutdown
                             && !loadRunner.scheduledExecutor.terminated && !loadRunner.scheduledExecutor.terminating,
@@ -84,7 +85,7 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
     <transition name="setServiceInfo" method="post">
         <actions><script>ec.service.getLoadRunner().setServiceInfo(serviceName, parametersExpr, targetThreads as int,
-                (runDelayMs as Integer) ?: 100, (rampDelayMs as Integer) ?: 500,
+                (runDelayMs as Integer) ?: 100, (runDelayVaryMs as Integer) ?: 5, (rampDelayMs as Integer) ?: 505,
                 (timeBinLength as Integer) ?: 2000, (timeBinsKeep as Integer) ?: 20)</script></actions>
         <default-response url="."/>
     </transition>
@@ -102,12 +103,17 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
 
     <actions>
+        <if condition="!ec.user.hasPermission('SERVICE_LOAD_RUNNER')">
+            <return error="true" message="User does not have permission to use Service LoadRunner"/></if>
+        <if condition="!sri.getScreenUrlInfo().isPermitted(ec, null, org.moqui.context.ArtifactExecutionInfo.AUTHZA_ALL)">
+            <return error="true" message="User must be authorized for all actions on this screen"/></if>
     </actions>
     <widgets>
         <render-mode><text type="qvue"><![CDATA[
             <template><div>
-                <q-btn dense outline no-caps color="info" type="button" label="Test 1: Lookup By ID"
-                       @click.prevent="setLocal('mantle.GeneralServices.lookup#ById', '[lookupId:\'100000\']', '100', '100', '500', '1000', '60')"></q-btn>
+                <q-btn dense outline no-caps color="info" type="button" label="Populate Test 1: Lookup By ID"
+                       @click.prevent="setLocal('mantle.GeneralServices.lookup#ById', '[lookupId:\'100000\']', '100', '100', '10', '255', '1000', '60')"></q-btn>
+
                 <p><strong>All delay, run, etc times are in milliseconds (ms), rates in runs per second</strong></p>
                 <q-form @submit.prevent="setServiceInfo" autocapitalize="off" autocomplete="off">
                     <m-text-line dense outlined v-model="newServiceInfo.serviceName" name="serviceName"
@@ -121,6 +127,12 @@ along with this software (see the LICENSE.md file). If not, see
                     </div><div class="q-px-xs col-md-2 col-sm-4">
                         <m-text-line dense outlined v-model="newServiceInfo.runDelayMs" name="runDelayMs"
                                      stack-label label="Run Delay" type="text" size="10"></m-text-line>
+                    <!-- due to scheduling approach this can only be done with a random wait time, increasing the
+                            number of threads needed, better to hide this with a small minimal setting for some variation
+                    </div><div class="q-px-xs col-md-2 col-sm-4">
+                        <m-text-line dense outlined v-model="newServiceInfo.runDelayVaryMs" name="runDelayVaryMs"
+                                     stack-label label="Run Delay Vary Max" type="text" size="10"></m-text-line>
+                    -->
                     </div><div class="q-px-xs col-md-2 col-sm-4">
                         <m-text-line dense outlined v-model="newServiceInfo.rampDelayMs" name="rampDelayMs"
                                      stack-label label="Ramp Delay" type="text" size="10"></m-text-line>
@@ -142,6 +154,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <div class="row">
                     <div class="q-px-xs col-md-2 col-sm-4"><strong>Exec Index</strong> {{executorInfo.execIndex}}</div>
                     <div class="q-px-xs col-md-2 col-sm-4"><strong>Total Threads</strong> {{executorInfo.totalThreads}}</div>
+                    <div class="q-px-xs col-md-2 col-sm-4"><strong>Active Threads</strong> {{executorInfo.activeThreads}}</div>
                     <div class="q-px-xs col-md-2 col-sm-4"><strong>Running</strong> {{executorInfo.running}}</div>
 
                     <div v-if="serverStatus.System" class="q-px-xs col-md-2 col-sm-4">
@@ -204,15 +217,19 @@ along with this software (see the LICENSE.md file). If not, see
                 </div>
 
                 <div class="row">
-                    <div class="q-px-xs col-md-4">
+                    <div class="q-px-xs col-xl-3 col-md-6">
+                        <p><strong>Average Run Time</strong></p>
+                        <m-chart height="500px" :config="timeAvgChartConfig"></m-chart>
+                    </div>
+                    <div class="q-px-xs col-xl-3 col-md-6">
                         <p><strong>Runs per Second</strong></p>
                         <m-chart height="500px" :config="runsPerSecAvgChartConfig"></m-chart>
                     </div>
-                    <div class="q-px-xs col-md-4">
+                    <div class="q-px-xs col-xl-3 col-md-6">
                         <p><strong>Entity Finds per Second</strong></p>
                         <m-chart height="500px" :config="findsPerSecAvgChartConfig"></m-chart>
                     </div>
-                    <div class="q-px-xs col-md-4">
+                    <div class="q-px-xs col-xl-3 col-md-6">
                         <p><strong>Entity Writes per Second</strong></p>
                         <m-chart height="500px" :config="writesPerSecAvgChartConfig"></m-chart>
                     </div>
@@ -288,19 +305,22 @@ along with this software (see the LICENSE.md file). If not, see
                     data: function() { return {
                         // NOTE: regardless of defaults elsewhere these are the ones that show on the screen
                         newServiceInfo:{ serviceName:"", parametersExpr:"", targetThreads:"10",
-                            runDelayMs:"100", rampDelayMs:"500", timeBinLength:"2000", timeBinsKeep:"20" },
+                            runDelayMs:"100", runDelayVaryMs:"5", rampDelayMs:"505", timeBinLength:"2000", timeBinsKeep:"20" },
                         serverStatus:{}, executorInfo:{running:false}, serviceInfos:[],
                         getInfoInterval:null, serverStatusInterval:null,
+                        timeAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }},
                         runsPerSecAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }},
                         findsPerSecAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }},
                         writesPerSecAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }}
                     } },
                     methods: {
-                        setLocal: function(serviceName, parametersExpr, targetThreads, runDelayMs, rampDelayMs, timeBinLength, timeBinsKeep) {
+                        setLocal: function(serviceName, parametersExpr, targetThreads, runDelayMs, runDelayVaryMs,
+                                rampDelayMs, timeBinLength, timeBinsKeep) {
                             if (serviceName) this.newServiceInfo.serviceName = serviceName;
                             if (parametersExpr) this.newServiceInfo.parametersExpr = parametersExpr;
                             if (targetThreads) this.newServiceInfo.targetThreads = targetThreads;
                             if (runDelayMs) this.newServiceInfo.runDelayMs = runDelayMs;
+                            if (runDelayVaryMs) this.newServiceInfo.runDelayVaryMs = runDelayVaryMs;
                             if (rampDelayMs) this.newServiceInfo.rampDelayMs = rampDelayMs;
                             if (timeBinLength) this.newServiceInfo.timeBinLength = timeBinLength;
                             if (timeBinsKeep) this.newServiceInfo.timeBinsKeep = timeBinsKeep;
@@ -370,35 +390,35 @@ along with this software (see the LICENSE.md file). If not, see
                             if (nostring) return over / under;
                             else return moqui.format(over / under, null, "bigdecimal");
                         },
-                        populateChartData: function(fieldName, serviceName, timeBinList, rpsDatasetsArray) {
+                        populateChartData: function(fieldName, serviceName, timeBinList, datasetsArray) {
                             // NOTE: change moving average lengths here; consider making these user settable
                             var ma1Length = 7, ma2Length = 20;
 
-                            var rpsDataArray = [], rpsMa1DataArray = [], rpsMa2DataArray = [];
-                            var rpsMa1Cur = 0, rpsMa2Cur = 0;
+                            var dataArray = [], ma1DataArray = [], ma2DataArray = [];
+                            var ma1Cur = 0, ma2Cur = 0;
                             for (var tbi = 0; timeBinList && tbi < timeBinList.length; tbi++) {
                                 var timeBin = timeBinList[tbi];
-                                rpsDataArray.push(timeBin[fieldName]);
+                                dataArray.push(timeBin[fieldName]);
                                 // for rolling moving average always add current
-                                rpsMa1Cur += timeBin[fieldName];
-                                rpsMa2Cur += timeBin[fieldName];
+                                ma1Cur += timeBin[fieldName];
+                                ma2Cur += timeBin[fieldName];
                                 // for rolling moving average if more than ma periods subtract off the next one to drop
-                                if (tbi >= ma1Length) rpsMa1Cur -= timeBinList[tbi - ma1Length][fieldName];
-                                if (tbi >= ma2Length) rpsMa2Cur -= timeBinList[tbi - ma2Length][fieldName];
-                                rpsMa1DataArray.push(rpsMa1Cur / (tbi < ma1Length ? tbi+1 : ma1Length));
-                                rpsMa2DataArray.push(rpsMa2Cur / (tbi < ma2Length ? tbi+1 : ma2Length));
+                                if (tbi >= ma1Length) ma1Cur -= timeBinList[tbi - ma1Length][fieldName];
+                                if (tbi >= ma2Length) ma2Cur -= timeBinList[tbi - ma2Length][fieldName];
+                                ma1DataArray.push(ma1Cur / (tbi < ma1Length ? tbi+1 : ma1Length));
+                                ma2DataArray.push(ma2Cur / (tbi < ma2Length ? tbi+1 : ma2Length));
                             }
-                            rpsDatasetsArray.push({
+                            datasetsArray.push({
                                 backgroundColor:'rgba(49, 112, 143, 0.9)', borderColor:'rgba(49, 112, 143, 0.9)',
-                                label:serviceName, type:'line', fill:false, data:rpsDataArray
+                                label:serviceName, type:'line', fill:false, data:dataArray
                             });
-                            rpsDatasetsArray.push({
+                            datasetsArray.push({
                                 backgroundColor:'rgba(100, 112, 70, 0.9)', borderColor:'rgba(100, 112, 70, 0.9)',
-                                label:serviceName + ' MA' + ma1Length, type:'line', fill:false, data:rpsMa1DataArray
+                                label:serviceName + ' MA' + ma1Length, type:'line', fill:false, data:ma1DataArray
                             });
-                            rpsDatasetsArray.push({
+                            datasetsArray.push({
                                 backgroundColor:'rgba(100, 60, 143, 0.9)', borderColor:'rgba(100, 60, 143, 0.9)',
-                                label:serviceName + ' MA' + ma2Length, type:'line', fill:false, data:rpsMa2DataArray
+                                label:serviceName + ' MA' + ma2Length, type:'line', fill:false, data:ma2DataArray
                             });
                         },
                         updateChartData: function() {
@@ -408,15 +428,22 @@ along with this software (see the LICENSE.md file). If not, see
                             this.serviceInfos[0].timeBinList.forEach(function (it) {
                                 labelArray.push(moqui.format(it.beginTime, null, 'time')); });
 
+                            var timeDatasetsArray = [];
                             var rpsDatasetsArray = [];
                             var efpsDatasetsArray = [];
                             var ewpsDatasetsArray = [];
                             var vm = this;
                             this.serviceInfos.forEach(function (it) {
+                                vm.populateChartData("timeAverage", it.serviceName, it.timeBinList, timeDatasetsArray);
                                 vm.populateChartData("runsPerSecAvg", it.serviceName, it.timeBinList, rpsDatasetsArray);
                                 vm.populateChartData("entityFindsPerSec", it.serviceName, it.timeBinList, efpsDatasetsArray);
                                 vm.populateChartData("entityWritePerSec", it.serviceName, it.timeBinList, ewpsDatasetsArray);
                             })
+                            this.timeAvgChartConfig = {
+                                type:'line', data:{ labels:labelArray, datasets:timeDatasetsArray },
+                                options:{ legend:{display:false}, scales:{ xAxes:[{display:true}] },
+                                    maintainAspectRatio:false, animation:false }
+                            };
                             this.runsPerSecAvgChartConfig = {
                                 type:'line', data:{ labels:labelArray, datasets:rpsDatasetsArray },
                                 options:{ legend:{display:false}, scales:{ xAxes:[{display:true}] },
