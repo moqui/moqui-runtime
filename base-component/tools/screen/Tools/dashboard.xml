@@ -31,6 +31,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <link url="../AutoScreen" text="Auto Screens"/>
                     <link url="../ArtifactStats" text="Artifact Stats"/>
                     <link url="../GroovyShell" text="Groovy Shell" condition="ec.user.hasPermission('GROOVY_SHELL_WEB')"/>
+                    <link url="../Service/ServiceLoadRunner" text="Service LoadRunner" condition="ec.user.hasPermission('SERVICE_LOAD_RUNNER')"/>
                     <link url="../Service" text="Services"/>
                 </box-body>
             </container-box>
@@ -84,6 +85,11 @@ along with this software (see the LICENSE.md file). If not, see
                     <link url="../Entity/SpeedTest" text="Speed Test"/>
                     <link url="../Entity/TableStats" text="Table Stats"/>
                     <link url="../Entity/QueryStats" text="Query Stats"/>
+                </container>
+            </box-body></container-box>
+            <container-box><box-header title="Generated Diagrams"/><box-body>
+                <container>
+                    <link url="../StatusFlows" text="Status Flows"/>
                 </container>
             </box-body></container-box>
         </row-col></container-row>

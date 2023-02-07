@@ -1852,9 +1852,38 @@ Vue.component('m-chart', {
     mounted: function() {
         var vm = this;
         moqui.loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js', function(err) {
-            if (err) return;
+            if (err) {
+                console.error("Error loading m-chart script: " + err);
+                return;
+            }
             vm.instance = new Chart(vm.$refs.canvas, vm.config);
         }, function() { return !!window.Chart; });
+    },
+    watch: {
+        config: function (val) {
+            if (this.instance) {
+                // console.info("updating m-chart")
+                if (val.type) this.instance.type = val.type;
+                if (val.labels) this.instance.labels = val.labels;
+                if (val.data) this.instance.data = val.data;
+                if (val.options) this.instance.options = val.options;
+                this.instance.update();
+            }
+        }
+    }
+});
+/* Lazy loading Mermaid JS wrapper component; for config options see https://mermaid.js.org/config/usage.html */
+Vue.component('m-mermaid', {
+    name: 'mMermaid',
+    props: { config:{type:Object,'default': function() { return {startOnLoad:true,securityLevel:'loose'} }},
+        height:{type:String,'default':'400px'}, width:{type:String,'default':'100%'} },
+    template: '<pre ref="mermaid" class="mermaid" :style="{height:height,width:width}"><slot></slot></pre>',
+    mounted: function() {
+        var vm = this;
+        moqui.loadScript('https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.3.0/mermaid.min.js', function(err) {
+            if (err) return;
+            mermaid.init(vm.config, vm.$refs.mermaid);
+        }, function() { return !!window.mermaid; });
     }
 });
 /* Lazy loading CK Editor wrapper component, based on https://github.com/ckeditor/ckeditor4-vue */

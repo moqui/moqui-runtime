@@ -200,8 +200,10 @@ var moqui = {
                 return moment(value).format(format);
             } else if (type === "bigdecimal" || type === "currency") {
                 // TODO format numbers with format string, localize
-                return value.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+                if (moqui.isNumber(value)) value = value.toFixed(2);
+                return ("" + value).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
             } else if (type === "long" || type === "integer" || type === "double" || type === "float") {
+                if (!moqui.isString(value)) value = "" + value;
                 // TODO format numbers with format string, localize
                 return value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
             } else {

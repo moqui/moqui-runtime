@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Status Flows" default-menu-index="3">
+
+    <actions>
+        <if condition="statusTypeId || statusFlowId">
+            <entity-find entity-name="moqui.basic.StatusFlowTransitionFromAndTo" list="transitionList">
+                <econdition field-name="fromStatusTypeId" from="statusTypeId" ignore-if-empty="true"/>
+                <econdition field-name="statusFlowId" ignore-if-empty="true"/>
+                <order-by field-name="transitionSequence,fromSequenceNum"/>
+            </entity-find>
+            <set field="statusIdSet" from="new HashSet(transitionList*.statusId + transitionList*.toStatusId)"/>
+            <entity-find entity-name="moqui.basic.StatusItem" list="statusItemList">
+                <econdition field-name="statusId" operator="in" from="statusIdSet"/>
+                <order-by field-name="sequenceNum"/>
+            </entity-find>
+            <order-map-list list="statusItemList"><order-by field-name="sequenceNum"/></order-map-list>
+            <script>
+                def mermaidBuilder = new StringBuilder("stateDiagram-v2\n")
+                for (statusItem in statusItemList) {
+                    mermaidBuilder.append("    ${statusItem.statusId}: ${statusItem.description}")
+                    if (statusItem.sequenceNum) mermaidBuilder.append(" (").append(statusItem.sequenceNum).append(")")
+                    mermaidBuilder.append("\n")
+                }
+                for (transition in transitionList) {
+                    mermaidBuilder.append("    ${transition.statusId} --> ${transition.toStatusId}: ${transition.transitionName}")
+                    if (transition.transitionSequence) mermaidBuilder.append(" (").append(transition.transitionSequence).append(")")
+                    mermaidBuilder.append("\n")
+                }
+                mermaidText = mermaidBuilder.toString()
+            </script>
+        </if>
+    </actions>
+    <widgets>
+        <label text="View a status flow transition diagram by selecting a Type, Flow, or both" type="p"/>
+        <form-single name="SelectStatusFlow" transition=".">
+            <field name="statusTypeId"><default-field title="Type">
+                <drop-down allow-empty="true">
+                    <entity-options key="${statusTypeId}" text="${statusTypeId}: ${description}">
+                        <entity-find entity-name="moqui.basic.StatusType">
+                            <order-by field-name="description"/></entity-find>
+                    </entity-options>
+                </drop-down>
+            </default-field></field>
+            <field name="statusFlowId"><default-field title="Flow">
+                <!-- TODO make dependent on statusTypeId, if one specied only show flows with at least one status of the given type -->
+                <drop-down allow-empty="true" no-current-selected-key="Default">
+                    <entity-options key="${statusFlowId}" text="${statusFlowId}: ${description}"><entity-find entity-name="moqui.basic.StatusFlow">
+                        <order-by field-name="description"/>
+                    </entity-find></entity-options>
+                </drop-down>
+            </default-field></field>
+            <field name="submitBtn"><default-field><submit text="View"/></default-field></field>
+        </form-single>
+
+        <section name="MermaidDisplay" condition="mermaidText"><widgets>
+            <label text="Found ${statusItemList.size()} statuses, ${transitionList.size()} transitions" type="p" condition="statusItemList != null"/>
+            <container-dialog id="MermaidText" button-text="Mermaid JS Text">
+                <label text="${mermaidText}" type="pre"/>
+            </container-dialog>
+            <render-mode>
+                <text type="qvt"><![CDATA[<m-mermaid height="800px">${mermaidText}</m-mermaid>]]></text>
+                <text type="html,vuet"><![CDATA[<p><strong>Only supported in the 'qvt' render mode, go to the same URL under /qapps (instead of /apps or /vapps)</strong></p>]]></text>
+            </render-mode>
+        </widgets></section>
+
+        <container-row><row-col md="6">
+            <form-list name="StatusItemList" list="statusItemList" skip-form="true">
+                <field name="sequenceNum"><default-field title="Seq"><display/></default-field></field>
+                <field name="description"><default-field title="Status"><display/></default-field></field>
+                <field name="statusId"><default-field title="ID"><display/></default-field></field>
+                <field name="statusCode"><default-field title="Code"><display/></default-field></field>
+                <!-- <field name="statusTypeId"><default-field><display-entity entity-name="moqui.basic.StatusType"/></default-field></field> -->
+            </form-list>
+        </row-col><row-col md="6">
+            <form-list name="TransitionList" list="transitionList" skip-form="true">
+                <field name="transitionSequence"><default-field title="Trans Seq"><display/></default-field></field>
+                <field name="fromSequenceNum"><default-field title="From Seq"><display/></default-field></field>
+                <field name="fromDescription"><default-field title="From"><display/></default-field></field>
+                <field name="transitionName"><default-field title="When"><display/></default-field></field>
+                <field name="toDescription"><default-field title="To"><display/></default-field></field>
+                <!-- <field name="statusFlowId"><default-field title="Flow"><display/></default-field></field> -->
+            </form-list>
+        </row-col></container-row>
+    </widgets>
+</screen>

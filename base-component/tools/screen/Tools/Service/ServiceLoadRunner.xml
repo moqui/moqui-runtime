@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Service Load Runner" default-menu-index="3" render-modes="vue,qvue" server-static="vue,qvue">
+
+    <transition name="getServerStatusMap">
+        <actions><script>ec.web.sendJsonResponse(ec.factory.getStatusMap(true))</script></actions>
+        <default-response type="none"/>
+    </transition>
+    <transition name="getRunnerInfo" method="get" read-only="true">
+        <!-- REST-ish endpoint -->
+        <actions><script><![CDATA[
+            import org.moqui.context.ExecutionContext
+            ExecutionContext ec = context.ec
+
+            def loadRunner = ec.service.getLoadRunner()
+            def serviceInfos = loadRunner.serviceInfos
+            def serviceInfoList = []
+            for (int i = 0; i < serviceInfos.size(); i++) {
+                def serviceInfo = serviceInfos.get(i)
+                def runsPerSecAvg = serviceInfo.totalTime ? serviceInfo.runCount / (serviceInfo.totalTime/1000) : 0
+                def timeSinceBegin = serviceInfo.lastRunTime - serviceInfo.beginTime
+                def runsPerSecTime = timeSinceBegin ? serviceInfo.runCount / (timeSinceBegin/1000) : 0
+
+                def timeBinList = serviceInfo.timeBinList?.collect({
+                    def findCountTotal = it.artifactTypeStats.entityFindOneCount + it.artifactTypeStats.entityFindListCount
+                            + it.artifactTypeStats.entityFindIteratorCount + it.artifactTypeStats.entityFindCountCount
+                    def findTimeTotal = it.artifactTypeStats.entityFindOneTime + it.artifactTypeStats.entityFindListTime
+                            + it.artifactTypeStats.entityFindIteratorTime + it.artifactTypeStats.entityFindCountTime
+                    def cudCountTotal = it.artifactTypeStats.entityCreateCount + it.artifactTypeStats.entityUpdateCount
+                            + it.artifactTypeStats.entityDeleteCount
+                    def cudTimeTotal = it.artifactTypeStats.entityCreateTime + it.artifactTypeStats.entityUpdateTime
+                            + it.artifactTypeStats.entityDeleteTime
+                    return [ runCount:it.runCount, totalTime:it.totalTime,
+                            timeAverage:(it.runCount ? it.totalTime / it.runCount : 0),
+                            runsPerSecAvg:(it.totalTime ? it.runCount / (it.totalTime/1000) : 0),
+                            entityFindsPerSec:(findTimeTotal ? findCountTotal / (findTimeTotal/1000000000) : 0),
+                            entityWritePerSec:(cudTimeTotal ? cudCountTotal / (cudTimeTotal/1000000000) : 0) ]
+                })
+                // remove the last time bin, is current and data can be weird until done
+                if (timeBinList) timeBinList.removeLast()
+
+                serviceInfoList.add([serviceName:serviceInfo.serviceName, parametersExpr:serviceInfo.parametersExpr,
+                        targetThreads:serviceInfo.targetThreads, currentThreads:serviceInfo.currentThreads.get(),
+                        runDelayMs:serviceInfo.runDelayMs, rampDelayMs:serviceInfo.rampDelayMs,
+                        timeBinLength:serviceInfo.timeBinLength, timeBinsKeep:serviceInfo.timeBinsKeep,
+                        runCount:serviceInfo.runCount, errorCount:serviceInfo.errorCount,
+                        lastResult:serviceInfo.lastResult, beginTime:serviceInfo.beginTime,
+                        lastRunTime:serviceInfo.lastRunTime, lastRunTimeStr:(new Timestamp(serviceInfo.lastRunTime).toString()),
+                        totalTime:serviceInfo.totalTime, totalSquaredTime:serviceInfo.totalSquaredTime,
+                        minTime:serviceInfo.minTime, maxTime:serviceInfo.maxTime,
+                        timeAverage:(serviceInfo.runCount ? serviceInfo.totalTime / serviceInfo.runCount : 0),
+                        timeStdDev:(serviceInfo.totalSquaredTime && serviceInfo.runCount > 1 ?
+                            Math.sqrt((serviceInfo.totalSquaredTime - ((serviceInfo.totalTime*serviceInfo.totalTime) / serviceInfo.runCount)).abs() / (serviceInfo.runCount - 1)) : null),
+                        runsPerSecAvg:runsPerSecAvg, runsPerSecTime:runsPerSecTime,
+                        busyPercent:(runsPerSecAvg ? 100*runsPerSecTime/runsPerSecAvg : 0),
+                        typeStats:objectToMap(serviceInfo.artifactTypeStats), timeBinList:timeBinList
+                ])
+            }
+
+            def executorInfo = [execIndex:loadRunner.execIndex.get(), totalThreads:loadRunner.scheduledExecutor?.getQueue()?.size(),
+                    activeThreads:loadRunner.scheduledExecutor?.getActiveCount(),
+                    executorExists:loadRunner.scheduledExecutor as boolean,
+                    running:loadRunner.scheduledExecutor && !loadRunner.scheduledExecutor.shutdown
+                            && !loadRunner.scheduledExecutor.terminated && !loadRunner.scheduledExecutor.terminating,
+                    shutdown:loadRunner.scheduledExecutor?.shutdown, terminated:loadRunner.scheduledExecutor?.terminated,
+                    terminating:loadRunner.scheduledExecutor?.terminating]
+
+            Map<String, Object> runnerInfo = [executorInfo:executorInfo, serviceInfos:serviceInfoList] as Map<String, Object>
+            ec.web.sendJsonResponse(runnerInfo)
+            ]]></script></actions>
+        <default-response type="none"/>
+    </transition>
+    <transition name="setServiceInfo" method="post">
+        <actions><script>ec.service.getLoadRunner().setServiceInfo(serviceName, parametersExpr, targetThreads as int,
+                (runDelayMs as Integer) ?: 100, (runDelayVaryMs as Integer) ?: 5, (rampDelayMs as Integer) ?: 505,
+                (timeBinLength as Integer) ?: 2000, (timeBinsKeep as Integer) ?: 20)</script></actions>
+        <default-response url="."/>
+    </transition>
+    <transition name="begin" method="post">
+        <actions><script>ec.service.getLoadRunner().begin()</script></actions>
+        <default-response url="."/>
+    </transition>
+    <transition name="stopNow" method="post">
+        <actions><script>ec.service.getLoadRunner().stopNow()</script></actions>
+        <default-response url="."/>
+    </transition>
+    <transition name="stopWait" method="post">
+        <actions><script>ec.service.getLoadRunner().stopWait()</script></actions>
+        <default-response url="."/>
+    </transition>
+
+    <actions>
+        <if condition="!ec.user.hasPermission('SERVICE_LOAD_RUNNER')">
+            <return error="true" message="User does not have permission to use Service LoadRunner"/></if>
+        <if condition="!sri.getScreenUrlInfo().isPermitted(ec, null, org.moqui.context.ArtifactExecutionInfo.AUTHZA_ALL)">
+            <return error="true" message="User must be authorized for all actions on this screen"/></if>
+    </actions>
+    <widgets>
+        <render-mode><text type="qvue"><![CDATA[
+            <template><div>
+                <q-btn dense outline no-caps color="info" type="button" label="Populate Test 1: Lookup By ID"
+                       @click.prevent="setLocal('mantle.GeneralServices.lookup#ById', '[lookupId:\'100000\']', '100', '100', '10', '255', '1000', '60')"></q-btn>
+
+                <p><strong>All delay, run, etc times are in milliseconds (ms), rates in runs per second</strong></p>
+                <q-form @submit.prevent="setServiceInfo" autocapitalize="off" autocomplete="off">
+                    <m-text-line dense outlined v-model="newServiceInfo.serviceName" name="serviceName"
+                                 stack-label label="Service Name" type="text" size="100"></m-text-line>
+                    <m-text-line dense outlined v-model="newServiceInfo.parametersExpr" name="parametersExpr"
+                                 stack-label label="Parameters Expression" type="text" size="100"></m-text-line>
+
+                    <div class="row"><div class="q-px-xs col-md-2 col-sm-4">
+                        <m-text-line dense outlined v-model="newServiceInfo.targetThreads" name="targetThreads"
+                                     stack-label label="Threads" type="text" size="10"></m-text-line>
+                    </div><div class="q-px-xs col-md-2 col-sm-4">
+                        <m-text-line dense outlined v-model="newServiceInfo.runDelayMs" name="runDelayMs"
+                                     stack-label label="Run Delay" type="text" size="10"></m-text-line>
+                    <!-- due to scheduling approach this can only be done with a random wait time, increasing the
+                            number of threads needed, better to hide this with a small minimal setting for some variation
+                    </div><div class="q-px-xs col-md-2 col-sm-4">
+                        <m-text-line dense outlined v-model="newServiceInfo.runDelayVaryMs" name="runDelayVaryMs"
+                                     stack-label label="Run Delay Vary Max" type="text" size="10"></m-text-line>
+                    -->
+                    </div><div class="q-px-xs col-md-2 col-sm-4">
+                        <m-text-line dense outlined v-model="newServiceInfo.rampDelayMs" name="rampDelayMs"
+                                     stack-label label="Ramp Delay" type="text" size="10"></m-text-line>
+                    </div><div class="q-px-xs col-md-2 col-sm-4">
+                        <m-text-line dense outlined v-model="newServiceInfo.timeBinLength" name="timeBinLength"
+                                     stack-label label="Bin Length" type="text" size="10"></m-text-line>
+                    </div><div class="q-px-xs col-md-2 col-sm-4">
+                        <m-text-line dense outlined v-model="newServiceInfo.timeBinsKeep" name="timeBinsKeep"
+                                     stack-label label="Bins Keep" type="text" size="10"></m-text-line>
+                    </div></div>
+                    <q-btn dense outline no-caps color="primary" type="submit" name="submitBtn" label="Set Service Info"></q-btn>
+                </q-form>
+                <q-btn dense outline no-caps color="positive" type="button" label="Begin" @click.prevent="callBegin"
+                        :disabled="executorInfo.executorExists"></q-btn>
+                <!-- this is best avoided, observed Bitronix blow up with heavy load: <q-btn dense outline no-caps color="negative" type="button" label="Stop Now" @click.prevent="callStopNow"></q-btn> -->
+                <q-btn dense outline no-caps color="negative" type="button" label="Stop Wait" @click.prevent="callStopWait"
+                        :disabled="!executorInfo.running"></q-btn>
+
+                <div class="row">
+                    <div class="q-px-xs col-md-2 col-sm-4"><strong>Exec Index</strong> {{executorInfo.execIndex}}</div>
+                    <div class="q-px-xs col-md-2 col-sm-4"><strong>Total Threads</strong> {{executorInfo.totalThreads}}</div>
+                    <div class="q-px-xs col-md-2 col-sm-4"><strong>Active Threads</strong> {{executorInfo.activeThreads}}</div>
+                    <div class="q-px-xs col-md-2 col-sm-4"><strong>Running</strong> {{executorInfo.running}}</div>
+
+                    <div v-if="serverStatus.System" class="q-px-xs col-md-2 col-sm-4">
+                        <strong>CPU Load</strong> {{serverStatus.System.Load}} (avg last minute)</div>
+                    <div v-if="serverStatus.System" class="q-px-xs col-md-2 col-sm-4">
+                        <strong>{{serverStatus.System.CPU}}</strong> {{serverStatus.System.Processors}} threads</div>
+                    <div v-if="serverStatus.Heap" class="q-px-xs col-md-2 col-sm-4">
+                        <strong>Heap RAM</strong> {{serverStatus.Heap.Used}}/{{serverStatus.Heap.Committed}}/{{serverStatus.Heap.Max}}</div>
+                    <div v-if="serverStatus.JavaStats" class="q-px-xs col-md-2 col-sm-4">
+                        <strong>Java GC</strong> {{serverStatus.JavaStats.GcCount}} GCs {{serverStatus.JavaStats.GcTimeSeconds}}s</div>
+                </div>
+                <div class="table q-table" id="service_table">
+                    <div class="thead">
+                        <div class="tr">
+                            <div class="th">Service &amp; Parameters</div>
+                            <div class="th">Began</div>
+                            <div class="th">Target</div>
+                            <div class="th">Current</div>
+                            <div class="th">Run Delay</div>
+                            <div class="th">Ramp Delay</div>
+                            <div class="th">Bin Length</div>
+                            <div class="th">Bins Keep</div>
+                            <div class="th">Run Count</div>
+                            <div class="th">Error Count</div>
+                            <div class="th">Time Average</div>
+                            <div class="th">Std Dev</div>
+                            <div class="th">Min</div>
+                            <div class="th">Max</div>
+                            <div class="th">Runs/Sec Avg</div>
+                            <div class="th">Runs/Sec Time</div>
+                            <div class="th">Busy Pct</div>
+                            <div class="th">Last Run</div>
+                        </div>
+                    </div>
+                    <div class="tbody">
+                        <div v-for="serviceInfo in serviceInfos" class="tr">
+                            <div class="td">
+                                <div>{{serviceInfo.serviceName}}</div>
+                                <div>{{serviceInfo.parametersExpr}}</div>
+                            </div>
+                            <div class="td text-center">{{moqui.format(serviceInfo.beginTime, null, 'time')}} - {{(Date.now() - serviceInfo.beginTime)/1000}}s</div>
+                            <div class="td text-center">{{serviceInfo.targetThreads}}</div>
+                            <div class="td text-center">{{serviceInfo.currentThreads}}</div>
+                            <div class="td text-center">{{serviceInfo.runDelayMs}}</div>
+                            <div class="td text-center">{{serviceInfo.rampDelayMs}}</div>
+                            <div class="td text-center">{{serviceInfo.timeBinLength}}</div>
+                            <div class="td text-center">{{serviceInfo.timeBinsKeep}}</div>
+                            <div class="td text-center">{{serviceInfo.runCount}}</div>
+                            <div class="td text-center">{{serviceInfo.errorCount}}</div>
+                            <div class="td text-center">{{moqui.format(serviceInfo.timeAverage, null, "bigdecimal")}}</div>
+                            <div class="td text-center">{{moqui.format(serviceInfo.timeStdDev, null, "bigdecimal")}}</div>
+                            <div class="td text-center">{{serviceInfo.minTime}}</div>
+                            <div class="td text-center">{{serviceInfo.maxTime}}</div>
+                            <div class="td text-center">{{moqui.format(serviceInfo.runsPerSecAvg, null, "bigdecimal")}}</div>
+                            <div class="td text-center">{{moqui.format(serviceInfo.runsPerSecTime, null, "bigdecimal")}}</div>
+                            <div class="td text-center">{{moqui.format(serviceInfo.busyPercent, null, "bigdecimal")}}</div>
+                            <div class="td text-center">{{serviceInfo.lastRunTimeStr}}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="q-px-xs col-xl-3 col-md-6">
+                        <p><strong>Average Run Time</strong></p>
+                        <m-chart height="500px" :config="timeAvgChartConfig"></m-chart>
+                    </div>
+                    <div class="q-px-xs col-xl-3 col-md-6">
+                        <p><strong>Runs per Second</strong></p>
+                        <m-chart height="500px" :config="runsPerSecAvgChartConfig"></m-chart>
+                    </div>
+                    <div class="q-px-xs col-xl-3 col-md-6">
+                        <p><strong>Entity Finds per Second</strong></p>
+                        <m-chart height="500px" :config="findsPerSecAvgChartConfig"></m-chart>
+                    </div>
+                    <div class="q-px-xs col-xl-3 col-md-6">
+                        <p><strong>Entity Writes per Second</strong></p>
+                        <m-chart height="500px" :config="writesPerSecAvgChartConfig"></m-chart>
+                    </div>
+                </div>
+
+                <div class="table q-table" id="service_detail_table">
+                    <div class="thead">
+                        <div class="tr">
+                            <div class="th">Service &amp; Parameters</div>
+                            <div class="th"> </div>
+                            <div class="th">Entity One</div>
+                            <div class="th">Entity List</div>
+                            <div class="th">Entity Iterator</div>
+                            <div class="th">Entity Count</div>
+                            <div class="th">Entity Create</div>
+                            <div class="th">Entity Update</div>
+                            <div class="th">Entity Delete</div>
+                            <div class="th">Service View</div>
+                            <div class="th">Service Other</div>
+                        </div>
+                    </div>
+                    <div class="tbody">
+                        <div v-for="serviceInfo in serviceInfos" class="tr">
+                            <template v-if="serviceInfo.typeStats">
+                                <div class="td">
+                                    <div>{{serviceInfo.serviceName}}</div>
+                                    <div>{{serviceInfo.parametersExpr}}</div>
+                                </div>
+                                <div class="td">
+                                    <div><strong>Runs</strong></div>
+                                    <div><strong>Average Time µs</strong></div>
+                                    <div><strong>Runs/Second</strong></div>
+                                </div>
+                                <div class="td text-center"><div>{{serviceInfo.typeStats.entityFindOneCount}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityFindOneTime / 1000, serviceInfo.typeStats.entityFindOneCount)}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityFindOneCount, serviceInfo.typeStats.entityFindOneTime / 1000000000)}}</div></div>
+                                <div class="td text-center"><div>{{serviceInfo.typeStats.entityFindListCount}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityFindListTime / 1000, serviceInfo.typeStats.entityFindListCount)}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityFindListCount, serviceInfo.typeStats.entityFindListTime / 1000000000)}}</div></div>
+                                <div class="td text-center"><div>{{serviceInfo.typeStats.entityFindIteratorCount}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityFindIteratorTime / 1000, serviceInfo.typeStats.entityFindIteratorCount)}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityFindIteratorCount, serviceInfo.typeStats.entityFindIteratorTime / 1000000000)}}</div></div>
+                                <div class="td text-center"><div>{{serviceInfo.typeStats.entityFindCountCount}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityFindCountTime / 1000, serviceInfo.typeStats.entityFindCountCount)}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityFindCountCount, serviceInfo.typeStats.entityFindCountTime / 1000000000)}}</div></div>
+                                <div class="td text-center"><div>{{serviceInfo.typeStats.entityCreateCount}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityCreateTime / 1000, serviceInfo.typeStats.entityCreateCount)}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityCreateCount, serviceInfo.typeStats.entityCreateTime / 1000000000)}}</div></div>
+                                <div class="td text-center"><div>{{serviceInfo.typeStats.entityUpdateCount}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityUpdateTime / 1000, serviceInfo.typeStats.entityUpdateCount)}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityUpdateCount, serviceInfo.typeStats.entityUpdateTime / 1000000000)}}</div></div>
+                                <div class="td text-center"><div>{{serviceInfo.typeStats.entityDeleteCount}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityDeleteTime / 1000, serviceInfo.typeStats.entityDeleteCount)}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.entityDeleteCount, serviceInfo.typeStats.entityDeleteTime / 1000000000)}}</div></div>
+                                <div class="td text-center"><div>{{serviceInfo.typeStats.serviceViewCount}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.serviceViewTime / 1000, serviceInfo.typeStats.serviceViewCount)}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.serviceViewCount, serviceInfo.typeStats.serviceViewTime / 1000000000)}}</div></div>
+                                <div class="td text-center"><div>{{serviceInfo.typeStats.serviceOtherCount}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.serviceOtherTime / 1000, serviceInfo.typeStats.serviceOtherCount)}}</div>
+                                    <div>{{safeDivide(serviceInfo.typeStats.serviceOtherCount, serviceInfo.typeStats.serviceOtherTime / 1000000000)}}</div></div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-for="serviceInfo in serviceInfos">
+                    <!-- <pre>{{JSON.stringify(serviceInfo.timeBinList, null, 2)}}</pre> -->
+                    <pre>{{JSON.stringify(serviceInfo.lastResult, null, 2)}}</pre>
+                </div>
+            </div></template>
+            <script>
+                module.exports = {
+                    data: function() { return {
+                        // NOTE: regardless of defaults elsewhere these are the ones that show on the screen
+                        newServiceInfo:{ serviceName:"", parametersExpr:"", targetThreads:"10",
+                            runDelayMs:"100", runDelayVaryMs:"5", rampDelayMs:"505", timeBinLength:"2000", timeBinsKeep:"20" },
+                        serverStatus:{}, executorInfo:{running:false}, serviceInfos:[],
+                        getInfoInterval:null, serverStatusInterval:null,
+                        timeAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }},
+                        runsPerSecAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }},
+                        findsPerSecAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }},
+                        writesPerSecAvgChartConfig:{type:'line', data:{ labels:[], datasets:[] }}
+                    } },
+                    methods: {
+                        setLocal: function(serviceName, parametersExpr, targetThreads, runDelayMs, runDelayVaryMs,
+                                rampDelayMs, timeBinLength, timeBinsKeep) {
+                            if (serviceName) this.newServiceInfo.serviceName = serviceName;
+                            if (parametersExpr) this.newServiceInfo.parametersExpr = parametersExpr;
+                            if (targetThreads) this.newServiceInfo.targetThreads = targetThreads;
+                            if (runDelayMs) this.newServiceInfo.runDelayMs = runDelayMs;
+                            if (runDelayVaryMs) this.newServiceInfo.runDelayVaryMs = runDelayVaryMs;
+                            if (rampDelayMs) this.newServiceInfo.rampDelayMs = rampDelayMs;
+                            if (timeBinLength) this.newServiceInfo.timeBinLength = timeBinLength;
+                            if (timeBinsKeep) this.newServiceInfo.timeBinsKeep = timeBinsKeep;
+                        },
+                        setServiceInfo: function() {
+                            var vm = this;
+                            $.ajax({ type:"POST", url:"/apps/tools/Service/ServiceLoadRunner/setServiceInfo",
+                                data:this.newServiceInfo, dataType:"json",
+                                headers:{ Accept:'application/json', 'X-CSRF-Token':this.$root.moquiSessionToken },
+                                error:moqui.handleAjaxError,
+                                success: function(responseObj, status, jqXHR) {
+                                    vm.getRunnerInfo();
+                                }
+                            });
+                        },
+                        getRunnerInfo: function() {
+                            var vm = this;
+                            $.ajax({ type:"GET", url:"/apps/tools/Service/ServiceLoadRunner/getRunnerInfo",
+                                dataType:"json", headers:{ Accept:'application/json' },
+                                error:moqui.handleAjaxError,
+                                success: function(responseObj, status, jqXHR) {
+                                    // update display objects
+                                    vm.executorInfo = responseObj.executorInfo
+                                    vm.serviceInfos = responseObj.serviceInfos;
+                                    // update charts
+                                    vm.updateChartData();
+                                    // if no local serviceName or parametersExpr set from server data to populate form
+                                    if (vm.serviceInfos && vm.serviceInfos.length) {
+                                        var serviceInfo = vm.serviceInfos[0];
+                                        if (!vm.newServiceInfo.serviceName || !vm.newServiceInfo.serviceName.length)
+                                            vm.newServiceInfo.serviceName = serviceInfo.serviceName || ""
+                                        if (!vm.newServiceInfo.parametersExpr || !vm.newServiceInfo.parametersExpr.length)
+                                            vm.newServiceInfo.parametersExpr = serviceInfo.parametersExpr || ""
+                                    }
+                                }
+                            });
+                            // TODO timeout after last nav and clear the interval?
+                        },
+                        getServerStatusMap: function() {
+                            var vm = this;
+                            $.ajax({ type:"GET", url:"/apps/tools/Service/ServiceLoadRunner/getServerStatusMap",
+                                dataType:"json", headers:{ Accept:'application/json' },
+                                error:moqui.handleAjaxError,
+                                success: function(responseObj, status, jqXHR) {
+                                    vm.serverStatus = responseObj;
+                                }
+                            });
+                            // TODO timeout after last nav and clear the interval?
+                        },
+                        callBegin: function() {
+                            $.ajax({ type:"POST", url:"/apps/tools/Service/ServiceLoadRunner/begin",
+                                dataType:"json", headers:{ Accept:'application/json', 'X-CSRF-Token':this.$root.moquiSessionToken },
+                                error:moqui.handleAjaxError, success: function(responseObj, status, jqXHR) { }});
+                        },
+                        callStopNow: function() {
+                            $.ajax({ type:"POST", url:"/apps/tools/Service/ServiceLoadRunner/stopNow",
+                                dataType:"json", headers:{ Accept:'application/json', 'X-CSRF-Token':this.$root.moquiSessionToken },
+                                error:moqui.handleAjaxError, success: function(responseObj, status, jqXHR) { }});
+                        },
+                        callStopWait: function() {
+                            $.ajax({ type:"POST", url:"/apps/tools/Service/ServiceLoadRunner/stopWait",
+                                dataType:"json", headers:{ Accept:'application/json', 'X-CSRF-Token':this.$root.moquiSessionToken },
+                                error:moqui.handleAjaxError, success: function(responseObj, status, jqXHR) { }});
+                        },
+                        safeDivide: function(over, under, nostring) {
+                            if (!under) return 0;
+                            if (nostring) return over / under;
+                            else return moqui.format(over / under, null, "bigdecimal");
+                        },
+                        populateChartData: function(fieldName, serviceName, timeBinList, datasetsArray) {
+                            // NOTE: change moving average lengths here; consider making these user settable
+                            var ma1Length = 7, ma2Length = 20;
+
+                            var dataArray = [], ma1DataArray = [], ma2DataArray = [];
+                            var ma1Cur = 0, ma2Cur = 0;
+                            for (var tbi = 0; timeBinList && tbi < timeBinList.length; tbi++) {
+                                var timeBin = timeBinList[tbi];
+                                dataArray.push(timeBin[fieldName]);
+                                // for rolling moving average always add current
+                                ma1Cur += timeBin[fieldName];
+                                ma2Cur += timeBin[fieldName];
+                                // for rolling moving average if more than ma periods subtract off the next one to drop
+                                if (tbi >= ma1Length) ma1Cur -= timeBinList[tbi - ma1Length][fieldName];
+                                if (tbi >= ma2Length) ma2Cur -= timeBinList[tbi - ma2Length][fieldName];
+                                ma1DataArray.push(ma1Cur / (tbi < ma1Length ? tbi+1 : ma1Length));
+                                ma2DataArray.push(ma2Cur / (tbi < ma2Length ? tbi+1 : ma2Length));
+                            }
+                            datasetsArray.push({
+                                backgroundColor:'rgba(49, 112, 143, 0.9)', borderColor:'rgba(49, 112, 143, 0.9)',
+                                label:serviceName, type:'line', fill:false, data:dataArray
+                            });
+                            datasetsArray.push({
+                                backgroundColor:'rgba(100, 112, 70, 0.9)', borderColor:'rgba(100, 112, 70, 0.9)',
+                                label:serviceName + ' MA' + ma1Length, type:'line', fill:false, data:ma1DataArray
+                            });
+                            datasetsArray.push({
+                                backgroundColor:'rgba(100, 60, 143, 0.9)', borderColor:'rgba(100, 60, 143, 0.9)',
+                                label:serviceName + ' MA' + ma2Length, type:'line', fill:false, data:ma2DataArray
+                            });
+                        },
+                        updateChartData: function() {
+                            if (!this.serviceInfos || !this.serviceInfos.length) return;
+
+                            var labelArray = [];
+                            this.serviceInfos[0].timeBinList.forEach(function (it) {
+                                labelArray.push(moqui.format(it.beginTime, null, 'time')); });
+
+                            var timeDatasetsArray = [];
+                            var rpsDatasetsArray = [];
+                            var efpsDatasetsArray = [];
+                            var ewpsDatasetsArray = [];
+                            var vm = this;
+                            this.serviceInfos.forEach(function (it) {
+                                vm.populateChartData("timeAverage", it.serviceName, it.timeBinList, timeDatasetsArray);
+                                vm.populateChartData("runsPerSecAvg", it.serviceName, it.timeBinList, rpsDatasetsArray);
+                                vm.populateChartData("entityFindsPerSec", it.serviceName, it.timeBinList, efpsDatasetsArray);
+                                vm.populateChartData("entityWritePerSec", it.serviceName, it.timeBinList, ewpsDatasetsArray);
+                            })
+                            this.timeAvgChartConfig = {
+                                type:'line', data:{ labels:labelArray, datasets:timeDatasetsArray },
+                                options:{ legend:{display:false}, scales:{ xAxes:[{display:true}] },
+                                    maintainAspectRatio:false, animation:false }
+                            };
+                            this.runsPerSecAvgChartConfig = {
+                                type:'line', data:{ labels:labelArray, datasets:rpsDatasetsArray },
+                                options:{ legend:{display:false}, scales:{ xAxes:[{display:true}] },
+                                    maintainAspectRatio:false, animation:false }
+                            };
+                            this.findsPerSecAvgChartConfig = {
+                                type:'line', data:{ labels:labelArray, datasets:efpsDatasetsArray },
+                                options:{ legend:{display:false}, scales:{ xAxes:[{display:true}] },
+                                    maintainAspectRatio:false, animation:false }
+                            };
+                            this.writesPerSecAvgChartConfig = {
+                                type:'line', data:{ labels:labelArray, datasets:ewpsDatasetsArray },
+                                options:{ legend:{display:false}, scales:{ xAxes:[{display:true}] },
+                                    maintainAspectRatio:false, animation:false }
+                            };
+                        }
+                    },
+                    mounted: function() {
+                        // get info right away
+                        this.getRunnerInfo();
+                        // kick off the runner info poller
+                        this.getInfoInterval = setInterval(this.getRunnerInfo, 2*1000)
+                        // start the server status poller
+                        this.serverStatusInterval = setInterval(this.getServerStatusMap, 2*1000)
+                    },
+                    beforeDestroy: function() {
+                        if (this.getInfoInterval) {
+                            clearInterval(this.getInfoInterval);
+                            this.getInfoInterval = null;
+                        }
+                        if (this.serverStatusInterval) {
+                            clearInterval(this.serverStatusInterval);
+                            this.serverStatusInterval = null;
+                        }
+                    }
+                }
+            </script>
+        ]]></text><text type="html,vuet"><![CDATA[
+            <p><strong>Only supported in the 'qvt' render mode, go to the same URL under /qapps (instead of /apps or /vapps)</strong></p>
+        ]]></text></render-mode>
+    </widgets>
+</screen>
