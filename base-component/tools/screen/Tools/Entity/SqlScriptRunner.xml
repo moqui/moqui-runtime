@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="SQL Script Runner" begin-transaction="false"><!-- NOTE: begin tx is false so table meta data changes, etc can be done -->
+
+    <actions>
+        <if condition="!ec.user.hasPermission('SQL_RUNNER_WEB')">
+            <return error="true" message="User does not have permission to use the SQL Runner"/></if>
+        <if condition="!sri.getScreenUrlInfo().isPermitted(ec, null, org.moqui.context.ArtifactExecutionInfo.AUTHZA_ALL)">
+            <return error="true" message="User must be authorized for all actions on this screen"/></if>
+
+        <script><![CDATA[
+            import java.sql.Connection
+            import java.sql.ResultSet
+            import java.sql.SQLWarning
+            import org.moqui.context.ExecutionContext
+
+            ExecutionContext ec = context.ec
+
+            def rs = null
+            int limitInt = 1
+
+            // make sure SQL comes in secure parameter (body, etc no URL)
+            String sqlScript = ec.web.secureRequestParameters.get("sql")
+            if (sqlScript && groupName) {
+                sqlList = sqlScript.split(';')
+                messageList = []
+                Connection con = ec.entity.getConnection(groupName)
+                try {
+                    for (sql in sqlList) {
+                        try {
+                            stmt = con.createStatement()
+
+                            boolean isResultSet = stmt.execute(sql as String)
+
+                            SQLWarning w = stmt.getWarnings()
+                            for (int j = 0; j < 100 && w != null; j++) {
+                                ec.logger.warn(w.getMessage() as String)
+                                w = w.getNextWarning()
+                            }
+                            stmt.clearWarnings()
+
+                            if (isResultSet) {
+                                rs = stmt.getResultSet()
+                                try {
+                                    // do stuff with result set (like displaying it see SqlRunner.xml)
+                                } finally {
+                                    rs.close()
+                                }
+                            } else if ((rowsAffected = stmt.getUpdateCount()) != -1){
+                                messageList.add(ec.resource.expand('Query altered ${rowsAffected} rows.',''))
+                            }
+
+                        } catch (Exception e) {
+                            messageList.add(e.toString())
+                            ec.logger.log(200, "Error running SQL query in SqlRunner", e)
+                        } finally {
+                            if (stmt != null) { try { stmt.close() } catch (Exception e) { /* Ignore */ } }
+                        }
+                    }
+                } finally {
+                    if (con != null) { try { con.close() } catch (Exception e) { /* Ignore */ } }
+                }
+
+            }
+        ]]></script>
+    </actions>
+    <widgets>
+        <form-single name="SqlOptions" transition="." body-parameters="sql">
+            <field name="groupName"><default-field><drop-down no-current-selected-key="transactional">
+                <list-options list="ec.entity.getDatasourceGroupNames()"/></drop-down></default-field></field>
+            <field name="sql"><default-field title="SQL Script" tooltip="Semicolon separated sql statements"><text-area cols="120" rows="40"/></default-field></field>
+            <field name="submitButton"><default-field title="Run SQL"><submit/></default-field></field>
+        </form-single>
+        <section-iterate name="Messages" list="messageList" entry="message"><widgets>
+            <label text="${message}" type="p" style="text-info"/>
+        </widgets></section-iterate>
+    </widgets>
+</screen>

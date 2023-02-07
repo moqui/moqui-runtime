@@ -47,21 +47,21 @@ along with this software (see the LICENSE.md file). If not, see
                             <container-dialog id="RootResourceSwaggerDialog" button-text="${resource.displayName ?: resource.name} (${resource.childMethods})">
                                 <section-iterate name="RootResourceSwaggerSection" list="resource.resourceMap.values()" entry="childResource"><widgets>
                                     <container><link url="/toolstatic/lib/swagger-ui/index.html?url=${restUrl}/service.swagger/${resource.name}/${childResource.name}"
-                                            text="${childResource.displayName ?: childResource.description ?: childResource.name} (${childResource.childMethods})"
-                                            url-type="plain" link-type="anchor" target-window="_blank"/></container>
+                                                     text="${childResource.displayName ?: childResource.description ?: childResource.name} (${childResource.childMethods})"
+                                                     url-type="plain" link-type="anchor" target-window="_blank"/></container>
                                 </widgets></section-iterate>
                             </container-dialog>
                         </widgets><fail-widgets>
                             <link url="/toolstatic/lib/swagger-ui/index.html?url=${restUrl}/service.swagger/${resource.name}" url-type="plain"
-                                    target-window="_blank" text="${resource.displayName ?: resource.name} (${resource.childMethods})"
-                                    tooltip="${resource.description ?: ''}"/>
+                                  target-window="_blank" text="${resource.displayName ?: resource.name} (${resource.childMethods})"
+                                  tooltip="${resource.description ?: ''}"/>
                         </fail-widgets></section>
                     </widgets></section-iterate>
 
                     <container-dialog id="EntitySwagger" button-text="Entity Master API">
                         <section-iterate name="EntitySwaggerSection" list="masterEntityNameList" entry="masterEntityName"><widgets>
                             <container><link url="/toolstatic/lib/swagger-ui/index.html?url=${restUrl}/master.swagger/${masterEntityName}" url-type="plain"
-                                    text="${masterEntityName}" link-type="anchor" target-window="_blank"/></container>
+                                             text="${masterEntityName}" link-type="anchor" target-window="_blank"/></container>
                         </widgets></section-iterate>
                     </container-dialog>
                     <!-- Generates enough that Swagger UI has a hard time loading it, takes a long time or fails:
@@ -77,6 +77,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <link url="../Entity/DataImport" text="Data Import"/>
                     <link url="../Entity/DataExport" text="Data Export"/>
                     <link url="../Entity/DataSnapshot" text="Data Snapshots"/>
+                    <link url="../Entity/SqlScriptRunner" text="SQL Script Runner" condition="ec.user.hasPermission('SQL_RUNNER_WEB')"/>
                     <link url="../Entity/SqlRunner" text="SQL Runner" condition="ec.user.hasPermission('SQL_RUNNER_WEB')"/>
                 </container>
                 <container>
