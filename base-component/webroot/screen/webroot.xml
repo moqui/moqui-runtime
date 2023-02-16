@@ -75,11 +75,6 @@ along with this software (see the LICENSE.md file). If not, see
         <subscreens-item name="toolstatic" location="component://tools/screen/toolstatic.xml" menu-include="false"/>
         <!-- add UNDECORATED (or self-decorating) app roots here -->
     </subscreens>
-    <pre-actions>
-        <script>
-            html_scripts.add('/r/js/handleServiceWorker.js')
-        </script>
-    </pre-actions>
     <widgets>
         <render-mode>
             <text type="html" location="component://webroot/screen/includes/Header.html.ftl" no-boundary-comment="true"/>

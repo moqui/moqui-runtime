@@ -8,8 +8,9 @@
     <#assign parentMenuName = (sri.screenUrlInfo.parentScreen.getDefaultMenuName())!"">
     <#assign defaultMenuName = sri.screenUrlInfo.targetScreen.getDefaultMenuName()>
     <title><#if html_title?has_content>${html_title}<#else><#if parentMenuName?has_content>${ec.resource.expand(parentMenuName, "")} - </#if><#if defaultMenuName?has_content>${ec.resource.expand(defaultMenuName, "")}</#if></#if></title>
-    <link rel="apple-touch-icon" href="/MoquiLogo100.png"/>
-    <#assign manifestUrl = sri.getScreenPathHasTransition("manifest.webmanifest")>
+    <#-- See: https://stackoverflow.com/questions/5110776/apple-touch-icon-for-websites and https://web.dev/learn/pwa/web-app-manifest/#icons-in-safari -->
+    <link rel="apple-touch-icon" href="/MoquiLogoMaskable180.png"/>
+    <#assign manifestUrl = sri.getScreenPathHasTransition("manifest.webmanifest")!>
     <#if manifestUrl?has_content><link rel="manifest" href="${manifestUrl}manifest.webmanifest"></#if>
 <#-- Style Sheets -->
 <#list sri.getThemeValues("STRT_STYLESHEET") as styleSheetLocation>

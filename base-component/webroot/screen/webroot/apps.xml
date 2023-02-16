@@ -37,6 +37,39 @@ along with this software (see the LICENSE.md file). If not, see
         <actions><script>ec.web.sendQzSignedResponse(message)</script></actions>
         <default-response type="none"/>
     </transition>
+    <transition name="manifest.webmanifest" read-only="true">
+        <actions><script><![CDATA[
+            def manifestOut = [
+                    name: "Moqui",
+                    short_name: "Moqui",
+                    icons: [
+                            [
+                                    // See https://web.dev/learn/pwa/web-app-manifest/#maskable-icons and https://web.dev/learn/pwa/web-app-manifest/#icons
+                                    src: '/MoquiLogoMaskable512.png',
+                                    type: "image/png",
+                                    sizes: "512x512",
+                                    // See https://web.dev/maskable-icon
+                                    purpose: "any maskable"
+                            ],
+                    ],
+                    // TODO: Figure out how to get the current screen and display the url here and possible use it as an id?
+                    start_url: '/',
+                    display: "fullscreen",
+                    prefer_related_applications: true
+            ];
+            ec.web.sendJsonResponse(manifestOut)
+            ]]></script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
+
+    <transition name="serviceWorker.js" read-only="true">
+        <actions><script><![CDATA[
+            ec.web.sendResourceResponse("component://webroot/screen/webroot/serviceWorker.js")
+            ]]></script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
 
     <subscreens default-item="AppList"/>
 
