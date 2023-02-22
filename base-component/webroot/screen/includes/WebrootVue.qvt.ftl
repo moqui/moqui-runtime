@@ -99,7 +99,11 @@ along with this software (see the LICENSE.md file). If not, see
                     <q-item v-for="histItem in notifyHistoryList"><q-item-section>
                         <#-- NOTE: don't use v-html for histItem.message, may contain input repeated back so need to encode for security (make sure scripts not run, etc) -->
                         <q-banner dense rounded class="text-white" :class="'bg-' + getQuasarColor(histItem.type)">
+                            <#-- TODO: histItem.icon see https://v1.quasar.dev/vue-components/banner-->
                             <strong>{{histItem.time}}</strong> <span>{{histItem.message}}</span>
+                            <template v-if="histItem.link != null" v-slot:action>
+                                <q-btn :to="histItem.link" flat color="white" label="View"/>
+                            </template>
                         </q-banner>
                     </q-item-section></q-item>
                 </q-list></q-menu>
