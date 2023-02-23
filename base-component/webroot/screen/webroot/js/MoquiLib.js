@@ -589,6 +589,12 @@ if (window.Inputmask) {
     });
 }
 
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+        .register('/serviceWorker.js')
+        .then(() => { console.log('Service Worker Registered'); });
+}
+
 /* doesn't work because Chart.js is loaded as needed on screens, and after this loads, leaving commented here as would be nice:
 if (window.Chart) {
     Chart.defaults.global.tooltips.callbacks.label = function(tooltipItem, data) {
