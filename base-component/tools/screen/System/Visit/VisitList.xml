@@ -43,6 +43,10 @@ along with this software (see the LICENSE.md file). If not, see
                 <header-field show-order-by="true"><text-find size="20" default-operator="begins"/></header-field>
                 <default-field><display/></default-field>
             </field>
+            <field name="sessionId">
+                <header-field show-order-by="true"><text-find size="20" default-operator="begins"/></header-field>
+                <default-field><display/></default-field>
+            </field>
             <field name="userId">
                 <header-field show-order-by="true"><text-find size="20" default-operator="begins"/></header-field>
                 <default-field>
@@ -70,7 +74,7 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="findButton"><header-field><submit text="Find"/></header-field></field>
 
             <form-list-column><field-ref name="visitId"/><field-ref name="fromDate"/></form-list-column>
-            <form-list-column><field-ref name="visitorId"/><field-ref name="userId"/></form-list-column>
+            <form-list-column><field-ref name="visitorId"/><field-ref name="sessionId"/><field-ref name="userId"/></form-list-column>
             <form-list-column><field-ref name="clientIpAddress"/><field-ref name="clientIpCountryGeoId"/></form-list-column>
             <form-list-column><field-ref name="serverIpAddress"/><field-ref name="initialRequest"/></form-list-column>
             <form-list-column><field-ref name="hitCount"/></form-list-column>
