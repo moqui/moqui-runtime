@@ -112,7 +112,7 @@ along with this software (see the LICENSE.md file). If not, see
             <container><label text="${messageInfo.message}" type="strong" style="text-${messageInfo.typeString}"/></container>
         </widgets></section-iterate>
 
-        <form-list name="LogMessageDocuments" list="documentList" paginate="true" paginate-always-show="true" skip-form="true">
+        <form-list name="LogMessageDocuments" list="documentList" paginate="true" paginate-always-show="true" skip-form="true" show-page-size="true">
             <row-actions>
                 <set field="levelStyle" from="'ERROR'.equals(level) ? 'text-danger' : ('WARN'.equals(level) ? 'text-warning' : ('INFO'.equals(level) ? 'text-success' : ''))"/>
             </row-actions>
