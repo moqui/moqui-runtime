@@ -1135,10 +1135,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign listName = formNode["@list"]>
     <#assign isServerStatic = formInstance.isServerStatic(sri.getRenderMode())>
     <#assign formDisabled = formListUrlInfo.disableLink>
-    <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
-    <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
 
 <#if isServerStatic><#-- client rendered, static -->
+    <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
+    <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
     <#-- TODO: form-list server-static needs to be revisited still for Quasar -->
     <m-form-list name="${formName}" id="${formId}" rows="${formName}" action="${formListUrlInfo.path}" :multi="${isMulti?c}"<#rt>
             <#t> :skip-form="${skipForm?c}" :skip-header="${skipHeader?c}" :header-form="${needHeaderForm?c}"
@@ -1266,22 +1266,17 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     </#if>
     <#-- first-row fields -->
     <#if formListInfo.hasFirstRow()>
-        <#-- TODO change to wrap row, use something like sri.makeFormListSingleMap() which eliminates use inline of hiddenParameterKeys, hiddenParameterMap -->
-        <#t>${sri.pushSingleFormMapContext(formNode["@map-first-row"]!"")}
         <#assign listEntryIndex = "first">
-        <#assign firstUrlInstance = sri.makeUrlByType(formNode["@transition-first-row"], "transition", null, "false")>
-        <m-form name="${formId}_first" id="${formId}_first" action="${firstUrlInstance.path}">
-            <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-            <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
-            <#assign hiddenFieldList = formListInfo.getListFirstRowHiddenFieldList()>
-            <#list hiddenFieldList as hiddenField><#recurse hiddenField["first-row-field"][0]/></#list>
-        </m-form>
-        <#assign listEntryIndex = "">
-        <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+        <#if formListInfo.isFirstRowForm()>
+            <#assign firstRowMap = sri.getSingleFormMap(formNode["@map-first-row"]!"")>
+            <#assign firstUrlInstance = sri.makeUrlByType(formNode["@transition-first-row"], "transition", null, "false")>
+            <m-form name="${formId}_first" id="${formId}_first" action="${firstUrlInstance.path}" v-slot:default="formProps"
+                :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.makeFormListSingleMap(formListInfo, firstRowMap, firstUrlInstance, "first"))}">
+        </#if>
 
         <#t>${sri.pushSingleFormMapContext(formNode["@map-first-row"]!"")}
         <#assign ownerForm = formId + "_first">
-        <#assign listEntryIndex = "first">
+        <#assign fieldsJsName = "formProps.fields">
         <tr class="first">
             <#list mainColInfoList as columnFieldList>
                 <td>
@@ -1291,30 +1286,27 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </td>
             </#list>
         </tr>
+        <#if formListInfo.isFirstRowForm()>
+            </m-form>
+        </#if>
         <#assign ownerForm = formId>
-        <#assign listEntryIndex = "">
+        <#assign fieldsJsName = "">
         <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+        <#assign listEntryIndex = "">
     </#if>
     <#-- second-row fields -->
     <#if formListInfo.hasSecondRow()>
+        <#assign listEntryIndex = "second">
         <#if formListInfo.isSecondRowForm()>
-            <#-- TODO change to wrap row, use something like sri.makeFormListSingleMap() which eliminates use inline of hiddenParameterKeys, hiddenParameterMap -->
-            <#t>${sri.pushSingleFormMapContext(formNode["@map-second-row"]!"")}
-            <#assign listEntryIndex = "second">
+            <#assign secondRowMap = sri.getSingleFormMap(formNode["@map-second-row"]!"")>
             <#assign secondUrlInstance = sri.makeUrlByType(formNode["@transition-second-row"], "transition", null, "false")>
-            <m-form name="${formId}_second" id="${formId}_second" action="${secondUrlInstance.path}">
-                <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-                <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
-                <#assign hiddenFieldList = formListInfo.getListSecondRowHiddenFieldList()>
-                <#list hiddenFieldList as hiddenField><#recurse hiddenField["second-row-field"][0]/></#list>
-            </m-form>
-            <#assign listEntryIndex = "">
-            <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+            <m-form name="${formId}_second" id="${formId}_second" action="${secondUrlInstance.path}" v-slot:default="formProps"
+                :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.makeFormListSingleMap(formListInfo, secondRowMap, secondUrlInstance, "second"))}">
         </#if>
 
         <#t>${sri.pushSingleFormMapContext(formNode["@map-second-row"]!"")}
         <#assign ownerForm = formId + "_second">
-        <#assign listEntryIndex = "second">
+        <#assign fieldsJsName = "formProps.fields">
         <tr class="second">
             <#list mainColInfoList as columnFieldList>
                 <td>
@@ -1324,9 +1316,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </td>
             </#list>
         </tr>
+        <#if formListInfo.isSecondRowForm()>
+            </m-form>
+        </#if>
         <#assign ownerForm = formId>
-        <#assign listEntryIndex = "">
+        <#assign fieldsJsName = "">
         <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+        <#assign listEntryIndex = "">
     </#if>
 
     <#-- the main list -->
@@ -1347,7 +1343,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign ownerForm = formId + "_" + listEntry_index>
             <#assign fieldsJsName = "formProps.fields">
             <m-form name="${formId}_${listEntry_index}" id="${formId}_${listEntry_index}" action="${formListUrlInfo.path}" v-slot:default="formProps"
-                    :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.makeFormListSingleMap(formListInfo, listEntry, formListUrlInfo))}">
+                    :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.makeFormListSingleMap(formListInfo, listEntry, formListUrlInfo, "row"))}">
         </#if>
         <#if isMulti>
             <#assign ownerForm = formId>
@@ -1391,22 +1387,17 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
     <#-- last-row fields -->
     <#if formListInfo.hasLastRow()>
-        <#-- TODO change to wrap row, use something like sri.makeFormListSingleMap() which eliminates use inline of hiddenParameterKeys, hiddenParameterMap -->
-        <#t>${sri.pushSingleFormMapContext(formNode["@map-last-row"]!"")}
         <#assign listEntryIndex = "last">
-        <#assign lastUrlInstance = sri.makeUrlByType(formNode["@transition-last-row"], "transition", null, "false")>
-        <m-form name="${formId}_last" id="${formId}_last" action="${lastUrlInstance.path}">
-            <#if orderByField?has_content><input type="hidden" name="orderByField" value="${orderByField}"></#if>
-            <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
-            <#assign hiddenFieldList = formListInfo.getListLastRowHiddenFieldList()>
-            <#list hiddenFieldList as hiddenField><#recurse hiddenField["last-row-field"][0]/></#list>
-        </m-form>
-        <#assign listEntryIndex = "">
-        <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+        <#if formListInfo.isLastRowForm()>
+            <#assign lastRowMap = sri.getSingleFormMap(formNode["@map-last-row"]!"")>
+            <#assign lastUrlInstance = sri.makeUrlByType(formNode["@transition-last-row"], "transition", null, "false")>
+            <m-form name="${formId}_last" id="${formId}_last" action="${lastUrlInstance.path}" v-slot:default="formProps"
+                :fields-initial="${Static["org.moqui.util.WebUtilities"].fieldValuesEncodeHtmlJsSafe(sri.makeFormListSingleMap(formListInfo, lastRowMap, lastUrlInstance, "last"))}">
+        </#if>
 
         <#t>${sri.pushSingleFormMapContext(formNode["@map-last-row"]!"")}
         <#assign ownerForm = formId + "_last">
-        <#assign listEntryIndex = "last">
+        <#assign fieldsJsName = "formProps.fields">
         <div class="tr last">
             <#list mainColInfoList as columnFieldList>
                 <div class="td">
@@ -1416,9 +1407,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 </div>
             </#list>
         </div>
+        <#if formListInfo.isLastRowForm()>
+            </m-form>
+        </#if>
         <#assign ownerForm = formId>
-        <#assign listEntryIndex = "">
+        <#assign fieldsJsName = "">
         <#t>${sri.popContext()}<#-- context was pushed for the form so pop here at the end -->
+        <#assign listEntryIndex = "">
     </#if>
 
     <#-- end/footer -->
