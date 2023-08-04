@@ -2115,6 +2115,7 @@ a => A, d => D, y => Y
     <#t><#if widgetType == "drop-down">
         <#assign ddFieldNode = widgetNode?parent?parent>
         <#assign allowMultiple = ec.getResource().expandNoL10n(widgetNode["@allow-multiple"]!, "") == "true">
+        <#assign isListOptions = widgetNode["list-options"]?has_content>
         <#assign isDynamicOptions = widgetNode["dynamic-options"]?has_content>
         <#assign options = sri.getFieldOptions(widgetNode)>
         <#assign currentValue = sri.getFieldValuePlainString(ddFieldNode, "")>
@@ -2127,7 +2128,7 @@ a => A, d => D, y => Y
         <#if !optionsHasCurrent && widgetNode["@current-description"]?has_content><#assign currentDescription = ec.getResource().expand(widgetNode["@current-description"], "")></#if>
         <#t><#if allowMultiple>
             <#list currentValueList as listValue>
-                <#t><#if isDynamicOptions>
+                <#t><#if isDynamicOptions && !isListOptions>
                     <#assign doNode = widgetNode["dynamic-options"][0]>
                     <#assign transValue = sri.getFieldTransitionValue(doNode["@transition"], doNode, listValue, doNode["@label-field"]!"label", alwaysGet)!>
                     <#t><#if transValue?has_content>${transValue}<#elseif listValue?has_content>${listValue}</#if><#if listValue_has_next>, </#if>
@@ -2137,7 +2138,7 @@ a => A, d => D, y => Y
                 </#if><#t>
             </#list>
         <#else>
-            <#t><#if isDynamicOptions>
+            <#t><#if isDynamicOptions && !isListOptions>
                 <#assign doNode = widgetNode["dynamic-options"][0]>
                 <#assign transValue = sri.getFieldTransitionValue(doNode["@transition"], doNode, currentValue, doNode["@label-field"]!"label", alwaysGet)!>
                 <#t><#if transValue?has_content>${transValue}<#elseif currentValue?has_content>${currentValue}</#if>
