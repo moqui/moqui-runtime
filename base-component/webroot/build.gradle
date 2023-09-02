@@ -88,12 +88,12 @@ def fileMap = [
 
     "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
-    "vue/2.6.10/vue.js":"",
-    "vue/2.6.10/vue.min.js":""
+    "vue/2.7.14/vue.js":"",
+    "vue/2.7.14/vue.min.js":""
 ]
 
 def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
-def jsdelivrList = ["quasar@1.15.20/dist/quasar.min.css", "quasar@1.15.20/dist/quasar.umd.min.js"]
+def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js"]
 
 String getTargetPath(String sourcePath, String targetPath) {
     if (!targetPath) {
