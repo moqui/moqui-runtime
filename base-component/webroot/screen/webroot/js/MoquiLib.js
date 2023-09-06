@@ -17,6 +17,19 @@ var moqui = {
         for (key in inObject) { value = inObject[key]; outObject[key] = moqui.deepCopy(value); }
         return outObject
     },
+    arraysEqual: function (array1, array2, ignoreOrder) {
+        if (!this.isArray(array1)) { return array1 === array2; }
+        if (!this.isArray(array2) || array1.length !== array2.length) { return false; }
+        for (var ai = 0; ai < array1.length; ai++) {
+            var array1Val = array1[ai];
+            if (ignoreOrder) {
+                if (array2.indexOf(array1Val) === -1) { return false; }
+            } else {
+                if (array2[ai] !== array1Val) { return false; }
+            }
+        }
+        return true;
+    },
     objToSearch: function(obj) {
         var search = "";
         if (moqui.isPlainObject(obj)) $.each(obj, function (key, value) { search = search + (search.length > 0 ? '&' : '') + key + '=' + value; });

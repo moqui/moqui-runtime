@@ -647,13 +647,15 @@ Vue.component('m-form', {
     props: { fieldsInitial:Object, action:{type:String,required:true}, method:{type:String,'default':'POST'},
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean,
         excludeEmptyFields:Boolean, parentCheckboxSet:Object },
-    data: function() { return { fields:Object.assign({}, this.fieldsInitial), fieldsChanged:{}, buttonClicked:null }},
+    data: function() { return { fields:Object.assign({}, this.fieldsInitial),
+        fieldsOriginal:Object.assign({}, this.fieldsInitial), buttonClicked:null }},
     // NOTE: <slot v-bind:fields="fields"> also requires prefix from caller, using <m-form v-slot:default="formProps"> in qvt.ftl macro
     // see https://vuejs.org/v2/guide/components-slots.html
     template:
         '<q-form ref="qForm" @submit.prevent="submitForm" @reset.prevent="resetForm" autocapitalize="off" autocomplete="off">' +
             '<slot :fields="fields" :checkboxAllState="checkboxAllState" :setCheckboxAllState="setCheckboxAllState"' +
-                ' :checkboxStates="checkboxStates" :addCheckboxParameters="addCheckboxParameters"></slot>' +
+                ' :checkboxStates="checkboxStates" :addCheckboxParameters="addCheckboxParameters"' +
+                ' :blurSubmitForm="blurSubmitForm" :hasFieldsChanged="hasFieldsChanged" :fieldChanged="fieldChanged"></slot>' +
         '</q-form>',
     methods: {
         submitForm: function() {
@@ -696,8 +698,16 @@ Vue.component('m-form', {
             }
         },
         resetForm: function() {
-            this.fields = Object.assign({}, this.fieldsInitial);
-            this.fieldsChanged = {};
+            this.fields = Object.assign({}, this.fieldsOriginal);
+        },
+        blurSubmitForm: function(event) {
+            // add to vue template form fields, like in DefaultScreenMacros.qvt.ftl: @blur="formProps.blurSubmitForm($event)"
+            // TODO MAYBE only send value for field changed (plus all hidden fields), where applicable will help with multi-user conflicts?
+            // FUTURE: do more than just submit the form: support submit without reload screen and only reload form data
+            if (this.hasFieldsChanged) {
+                this.submitForm();
+            }
+            return true;
         },
         submitGo: function() {
             var vm = this;
@@ -836,58 +846,39 @@ Vue.component('m-form', {
             } else if (!notified) {
                 moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOpts, { message:"Submit successful" }));
             }
+        },
+        fieldChanged: function(name) {
+            return this.fields[name] !== this.fieldsOriginal[name];
         }
-        /* TODO
-        fieldChange: function (evt) {
-            var targetDom = evt.delegateTarget; var targetEl = $(targetDom);
-            if (targetEl.hasClass("input-group") && targetEl.children("input").length) {
-                // special case for date-time using bootstrap-datetimepicker
-                targetEl = targetEl.children("input").first();
-                targetDom = targetEl.get(0);
-            }
-            var changed = false;
-            if (targetDom.nodeName === "INPUT" || targetDom.nodeName === "TEXTAREA") {
-                if (targetEl.attr("type") === "radio" || targetEl.attr("type") === "checkbox") {
-                    changed = targetDom.checked !== targetDom.defaultChecked; }
-                else { changed = targetDom.value !== targetDom.defaultValue; }
-            } else if (targetDom.nodeName === "SELECT") {
-                if (targetDom.multiple) {
-                    var optLen = targetDom.options.length;
-                    for (var i = 0; i < optLen; i++) {
-                        var opt = targetDom.options[i];
-                        if (opt.selected !== opt.defaultSelected) { changed = true; break; }
+    },
+    computed: {
+        hasFieldsChanged: function() {
+            var foundDiff = false;
+            var fieldsKeys = Object.keys(this.fields);
+            for (var fieldIdx in fieldsKeys) {
+                var name = fieldsKeys[fieldIdx];
+                var curValue = this.fields[name];
+                var originalValue = this.fieldsOriginal[name];
+                if (moqui.isArray(curValue)) {
+                    if (!moqui.arraysEqual(curValue, originalValue, true)) {
+                        foundDiff = true;
+                        break;
                     }
                 } else {
-                    changed = !targetDom.options[targetDom.selectedIndex].defaultSelected;
+                    if (curValue !== originalValue) {
+                        foundDiff = true;
+                        break;
+                    }
                 }
             }
-            // console.log("changed? " + changed + " node " + targetDom.nodeName + " type " + targetEl.attr("type") + " " + targetEl.attr("name") + " to " + targetDom.value + " default " + targetDom.defaultValue);
-            // console.log(targetDom.defaultValue);
-            if (changed) {
-                this.fieldsChanged[targetEl.attr("name")] = true;
-                targetEl.parents(".form-group").children("label").addClass("is-changed");
-                targetEl.parents(".form-group").find(".select2-selection").addClass("is-changed");
-                targetEl.addClass("is-changed");
-            } else {
-                this.fieldsChanged[targetEl.attr("name")] = false;
-                targetEl.parents(".form-group").children("label").removeClass("is-changed");
-                targetEl.parents(".form-group").find(".select2-selection").removeClass("is-changed");
-                targetEl.removeClass("is-changed");
-            }
+            return foundDiff;
         }
-         */
     },
     mounted: function() {
         var vm = this;
         var jqEl = $(this.$el);
         if (this.focusField && this.focusField.length) jqEl.find('[name^="' + this.focusField + '"]').addClass('default-focus').focus();
 
-        /* TODO: should not need to watch input fields any more
-        // watch changed fields
-        jqEl.find(':input').on('change', this.fieldChange);
-        // special case for date-time using bootstrap-datetimepicker
-        jqEl.find('div.input-group.date').on('change', this.fieldChange);
-        */
         // TODO: find other way to get button clicked (Vue event?)
         // watch button clicked
         jqEl.find('button[type="submit"], input[type="submit"], input[type="image"]').on('click', function() { vm.buttonClicked = this; });

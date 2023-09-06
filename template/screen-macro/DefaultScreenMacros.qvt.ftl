@@ -2002,6 +2002,8 @@ a => A, d => D, y => Y
                 <#t><#if .node["@cols"]?has_content> cols="${.node["@cols"]}"<#else> style="width:100%;"</#if>
                 <#t> rows="${.node["@rows"]!"3"}"<#if .node["@read-only"]! == "true"> readonly="readonly"</#if>
                 <#t><#if .node["@autogrow"]! == "true"> autogrow</#if>
+                <#-- TODO add config, etc: <#t> @blur="formProps.blurSubmitForm($event)" -->
+                <#t> :bg-color="formProps.fieldChanged('${name}')?'blue-1':''"
                 <#t><#if .node["@maxlength"]?has_content> maxlength="${.node["@maxlength"]}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
             <#if !fieldsJsName?has_content>${sri.getFieldValueString(.node)?html}</#if>
