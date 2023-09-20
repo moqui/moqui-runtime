@@ -61,7 +61,7 @@ def fileMap = [
 
     "jeditable.js/1.7.3/jeditable.min.js":"",
 
-    "jquery/3.4.1/jquery.min.js":"",
+    "jquery/3.7.1/jquery.min.js":"",
 
     "jquery.form/4.2.1/jquery.form.min.js":"",
     "jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js":"",
