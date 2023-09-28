@@ -1667,9 +1667,18 @@ a => A, d => D, y => Y
             <#if textMap?has_content><#assign fieldValue = ec.getResource().expand(.node["@text"], "", textMap)>
                 <#else><#assign fieldValue = ec.getResource().expand(.node["@text"], "")></#if>
             <#if .node["@currency-unit-field"]?has_content>
-                <#assign fieldValue = ec.getL10n().formatCurrency(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))></#if>
+                <#if .node["@currency-hide-symbol"]! == "true">
+                    <#assign fieldValue = ec.getL10n().formatCurrencyNoSymbol(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))>
+                <#else>
+                    <#assign fieldValue = ec.getL10n().formatCurrency(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))>
+                </#if>
+            </#if>
         <#elseif .node["@currency-unit-field"]?has_content>
-            <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+            <#if .node["@currency-hide-symbol"]! == "true">
+                <#assign fieldValue = ec.getL10n().formatCurrencyNoSymbol(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+            <#else>
+                <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+            </#if>
         <#else>
             <#assign fieldValue = sri.getFieldValueString(.node)>
         </#if>
@@ -1976,6 +1985,7 @@ ${sri.getFieldValueString(.node)?html}</textarea>
     <#t><#if widgetType == "drop-down">
         <#assign ddFieldNode = widgetNode?parent?parent>
         <#assign allowMultiple = ec.getResource().expandNoL10n(widgetNode["@allow-multiple"]!, "") == "true">
+        <#assign isListOptions = widgetNode["list-options"]?has_content>
         <#assign isDynamicOptions = widgetNode["dynamic-options"]?has_content>
         <#assign options = sri.getFieldOptions(widgetNode)>
         <#assign currentValue = sri.getFieldValuePlainString(ddFieldNode, "")>
@@ -1988,7 +1998,7 @@ ${sri.getFieldValueString(.node)?html}</textarea>
         <#if !optionsHasCurrent && widgetNode["@current-description"]?has_content><#assign currentDescription = ec.getResource().expand(widgetNode["@current-description"], "")></#if>
         <#t><#if allowMultiple>
             <#list currentValueList as listValue>
-                <#t><#if isDynamicOptions>
+                <#t><#if isDynamicOptions && !isListOptions>
                     <#assign doNode = widgetNode["dynamic-options"][0]>
                     <#assign transValue = sri.getFieldTransitionValue(doNode["@transition"], doNode, listValue, doNode["@label-field"]!"label", alwaysGet)!>
                     <#t><#if transValue?has_content>${transValue}<#elseif listValue?has_content>${listValue}</#if><#if listValue_has_next>, </#if>
@@ -1998,7 +2008,7 @@ ${sri.getFieldValueString(.node)?html}</textarea>
                 </#if><#t>
             </#list>
         <#else>
-            <#t><#if isDynamicOptions>
+            <#t><#if isDynamicOptions && !isListOptions>
                 <#assign doNode = widgetNode["dynamic-options"][0]>
                 <#assign transValue = sri.getFieldTransitionValue(doNode["@transition"], doNode, currentValue, doNode["@label-field"]!"label", alwaysGet)!>
                 <#t><#if transValue?has_content>${transValue}<#elseif currentValue?has_content>${currentValue}</#if>

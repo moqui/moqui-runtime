@@ -20,8 +20,8 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.github.ben-manes:gradle-versions-plugin:0.42.0'
-        classpath "org.gradle-webtools.minify:gradle-minify-plugin:1.3.1"
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.47.0'
+        classpath "org.gradle-webtools.minify:gradle-minify-plugin:1.3.2"
     }
 }
 apply plugin: "org.gradlewebtools.minify"
@@ -61,7 +61,7 @@ def fileMap = [
 
     "jeditable.js/1.7.3/jeditable.min.js":"",
 
-    "jquery/3.4.1/jquery.min.js":"",
+    "jquery/3.7.1/jquery.min.js":"",
 
     "jquery.form/4.2.1/jquery.form.min.js":"",
     "jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js":"",
@@ -88,12 +88,12 @@ def fileMap = [
 
     "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
-    "vue/2.6.10/vue.js":"",
-    "vue/2.6.10/vue.min.js":""
+    "vue/2.7.14/vue.js":"",
+    "vue/2.7.14/vue.min.js":""
 ]
 
 def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
-def jsdelivrList = ["quasar@1.15.20/dist/quasar.min.css", "quasar@1.15.20/dist/quasar.umd.min.js"]
+def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js"]
 
 String getTargetPath(String sourcePath, String targetPath) {
     if (!targetPath) {
