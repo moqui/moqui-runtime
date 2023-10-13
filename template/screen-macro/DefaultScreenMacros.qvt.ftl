@@ -523,17 +523,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign fgTitle = ec.getL10n().localize(.node["@title"]!)!>
     <#if isAccordion!false>
         <#assign accIsActive = accordionIndex?string == accordionActive>
-        <div class="panel panel-default">
-            <div class="panel-heading" role="tab" id="${accordionId}_heading${accordionIndex}"><h5 class="panel-title">
-                <a role="button" data-toggle="collapse" data-parent="#${accordionId}" href="#${accordionId}_collapse${accordionIndex}"
-                   aria-expanded="true" aria-controls="${accordionId}_collapse${accordionIndex}"<#if !accIsActive> class="collapsed"</#if>>${fgTitle!"Fields"}</a>
-            </h5></div>
-            <div id="${accordionId}_collapse${accordionIndex}" class="panel-collapse collapse<#if accIsActive> in</#if>" role="tabpanel" aria-labelledby="${accordionId}_heading${accordionIndex}">
+        <q-list bordered padding>
+            <q-expansion-item switch-toggle-side group="${accordionId}" label="${fgTitle!"Fields"}" <#if accIsActive>default-opened</#if>>
                 <div class="panel-body<#if .node["@style"]?has_content> ${.node["@style"]}</#if>">
                     <#recurse .node/>
                 </div>
-            </div>
-        </div>
+            </q-expansion-item>
+        </q-list>
         <#assign accordionIndex = accordionIndex + 1>
     <#elseif .node["@box"]! == "true">
         <div class="panel panel-default">
@@ -556,9 +552,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign accordionIndex = 1>
     <#assign accordionId = .node["@id"]!(formSingleId + "_accordion")>
     <#assign accordionActive = .node["@active"]!"1">
-    <div class="panel-group" id="${accordionId}" role="tablist" aria-multiselectable="true">
+    <q-list>
         <#recurse .node/>
-    </div><!-- accordionId ${accordionId} -->
+    </q-list><!-- accordionId ${accordionId} -->
     <#assign isAccordion = false>
 </#macro>
 <#macro "field-col-row">
