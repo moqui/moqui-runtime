@@ -20,6 +20,7 @@
 <div class="text-center form-signin">
     <ul class="nav nav-tabs" role="tablist">
         <li role="presentation"><a href="#login" aria-controls="login" role="tab" data-toggle="tab">${ec.l10n.localize("Login")}</a></li>
+        <#if authFlowList?has_content && !authFlowList.isEmpty()><li role="presentation"><a href="#sso" aria-controls="sso" role="tab" data-toggle="tab">${ec.l10n.localize("SSO")}</a></li></#if>
         <li role="presentation"><a href="#reset" aria-controls="reset" role="tab" data-toggle="tab">${ec.l10n.localize("Reset Password")}</a></li>
         <li role="presentation"><a href="#change" aria-controls="change" role="tab" data-toggle="tab">${ec.l10n.localize("Change Password")}</a></li>
     </ul>
@@ -57,6 +58,16 @@
             <#if passwordChangeRequired><p class="text-warning text-center">WARNING: Password change required</p></#if>
         </form>
     </div>
+    <#if authFlowList?has_content && !authFlowList.isEmpty()>
+        <div id="sso" class="tab-pane">
+            <#list authFlowList as authFlow>
+                <form method="post" action="/sso/login" class="form-signin">
+                    <input type="hidden" name="authFlowId" value="${authFlow.authFlowId}">
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">${authFlow.description}</button>
+                </form>
+            </#list>
+        </div>
+    </#if>
     <div id="reset" class="tab-pane">
         <form method="post" action="${sri.buildUrl("resetPassword").url}" class="form-signin" id="reset_form">
             <p class="text-muted text-center">${ec.l10n.localize("Enter your username to email a reset password")}</p>
