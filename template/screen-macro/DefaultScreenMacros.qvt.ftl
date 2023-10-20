@@ -1755,9 +1755,18 @@ a => A, d => D, y => Y
             <#if textMap?has_content><#assign fieldValue = ec.getResource().expand(.node["@text"], "", textMap)>
                 <#else><#assign fieldValue = ec.getResource().expand(.node["@text"], "")></#if>
             <#if .node["@currency-unit-field"]?has_content>
-                <#assign fieldValue = ec.getL10n().formatCurrency(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))></#if>
+                <#if .node["@currency-hide-symbol"]! == "true">
+                    <#assign fieldValue = ec.getL10n().formatCurrencyNoSymbol(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))>
+                <#else>
+                    <#assign fieldValue = ec.getL10n().formatCurrency(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))>
+                </#if>
+            </#if>
         <#elseif .node["@currency-unit-field"]?has_content>
-            <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+            <#if .node["@currency-hide-symbol"]! == "true">
+                <#assign fieldValue = ec.getL10n().formatCurrencyNoSymbol(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+            <#else>
+                <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+            </#if>
         <#else>
             <#assign fieldValue = sri.getFieldValueString(.node)>
         </#if>
@@ -2001,6 +2010,7 @@ a => A, d => D, y => Y
                 <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${name}"</#if><#if formDisabled!> disable</#if>
                 <#t><#if .node["@cols"]?has_content> cols="${.node["@cols"]}"<#else> style="width:100%;"</#if>
                 <#t> rows="${.node["@rows"]!"3"}"<#if .node["@read-only"]! == "true"> readonly="readonly"</#if>
+                <#t><#if .node["@autogrow"]! == "true"> autogrow</#if>
                 <#t><#if .node["@maxlength"]?has_content> maxlength="${.node["@maxlength"]}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
             <#if !fieldsJsName?has_content>${sri.getFieldValueString(.node)?html}</#if>
