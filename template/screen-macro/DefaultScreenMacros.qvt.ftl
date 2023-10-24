@@ -87,9 +87,12 @@ ${sri.renderSectionInclude(.node)}
 
 <#macro container>
     <#assign contDivId><@nodeId .node/></#assign>
-    <${.node["@type"]!"div"}<#if contDivId?has_content> id="${contDivId}"</#if><#if .node["@style"]?has_content> class="${ec.getResource().expandNoL10n(.node["@style"], "")}"</#if>>
-    <#recurse>
-    </${.node["@type"]!"div"}>
+    <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
+    <#if conditionResult>
+        <${ec.getResource().expand(.node["@type"]!"div", "")}<#if contDivId?has_content> id="${contDivId}"</#if><#if .node["@style"]?has_content> class="${ec.getResource().expandNoL10n(.node["@style"], "")}"</#if>>
+        <#recurse>
+        </${.node["@type"]!"div"}>
+    </#if>
 </#macro>
 
 <#macro "container-box">
