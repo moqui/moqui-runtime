@@ -213,7 +213,7 @@ a.jstree-anchor { white-space: normal; }
 
 .ScreenTreeNested { margin: 4px 0 4px 12px; padding: 0 0 0 12px; border-left: 1px dashed lightgrey; }
 
-.Login .form-signin { display: block; width: 340px; padding: 10px; margin: 0 auto; border-radius: 3px; }
+.Login .form-signin { display: block; width: 380px; padding: 10px; margin: 0 auto; border-radius: 3px; }
 .Login .form-signin input { width: 100%; height: auto; font-size: 1.2em; }
 .Login .form-signin input.top { margin-bottom: -1px; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 .Login .form-signin input.middle { margin-bottom: -1px; border-radius: 0; }

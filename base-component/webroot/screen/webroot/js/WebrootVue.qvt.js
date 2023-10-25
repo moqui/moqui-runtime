@@ -367,8 +367,11 @@ Vue.component('m-container-box', {
             '<slot name="header"></slot>' +
             '<q-space></q-space>' +
             '<slot name="toolbar"></slot>' +
+            '  <q-btn color="grey"  round flat dense :icon="isBodyOpen ? \'keyboard_arrow_up\' : \'keyboard_arrow_down\'" @click="toggleBody" />' +            
         '</q-card-actions>' +
+        '  <div v-show="isBodyOpen">' +
         '<q-card-section :class="{in:isBodyOpen}"><slot></slot></q-card-section>' +
+                        '  </div>' +
     '</q-card>',
     methods: { toggleBody: function() { this.isBodyOpen = !this.isBodyOpen; } }
 });
