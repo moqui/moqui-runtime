@@ -1086,7 +1086,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign buttonText = ec.getResource().expand(dialogNode["@button-text"], "")>
                 <#assign title = ec.getResource().expand(dialogNode["@title"], "")>
                 <#if !title?has_content><#assign title = buttonText></#if>
-                <m-container-dialog color="<@getQuasarColor ec.getResource().expandNoL10n(dialogNode["@button-type"]!"primary", "")/>"
+                <#-- add my-md and my-sm spacing to match inline form-single with field-row-big -->
+                <span class="q-my-md"><div class="q-ma-sm">
+                    <m-container-dialog color="<@getQuasarColor ec.getResource().expandNoL10n(dialogNode["@button-type"]!"primary", "")/>"
                         width="${dialogNode["@width"]!""}" title="${title}" button-text="${buttonText}"
                         button-class="${ec.getResource().expandNoL10n(dialogNode["@button-style"]!"", "")}">
             </#if>
@@ -1096,7 +1098,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign _formListSelectedForm = false>
 
             <#if dialogNodes?has_content>
-                </m-container-dialog>
+                    </m-container-dialog>
+                </div></span>
             </#if>
         </#list>
     </q-card-section></q-card>
@@ -1132,7 +1135,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign isServerStatic = formInstance.isServerStatic(sri.getRenderMode())>
     <#assign formDisabled = formListUrlInfo.disableLink>
 
-<#if isServerStatic><#-- client rendered, static -->
+<#if isServerStatic><#-- client rendered, server static -->
     <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
     <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
     <#-- TODO: form-list server-static needs to be revisited still for Quasar -->
@@ -1274,6 +1277,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign ownerForm = formId + "_first">
         <#assign fieldsJsName = "formProps.fields">
         <tr class="first">
+            <#if isRowSelection>
+                <div class="td"> </div>
+            </#if>
             <#list mainColInfoList as columnFieldList>
                 <td>
                     <#list columnFieldList as fieldNode>
@@ -1304,6 +1310,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign ownerForm = formId + "_second">
         <#assign fieldsJsName = "formProps.fields">
         <tr class="second">
+            <#if isRowSelection>
+                <div class="td"> </div>
+            </#if>
             <#list mainColInfoList as columnFieldList>
                 <td>
                     <#list columnFieldList as fieldNode>
@@ -1395,6 +1404,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign ownerForm = formId + "_last">
         <#assign fieldsJsName = "formProps.fields">
         <div class="tr last">
+            <#if isRowSelection>
+                <div class="td"> </div>
+            </#if>
             <#list mainColInfoList as columnFieldList>
                 <div class="td">
                     <#list columnFieldList as fieldNode>
