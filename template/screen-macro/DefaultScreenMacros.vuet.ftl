@@ -265,7 +265,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#if linkNode["image"]?has_content>
                     <#t><img src="${sri.makeUrlByType(imageNode["@url"],imageNode["@url-type"]!"content",null,"true")}"<#if imageNode["@alt"]?has_content> alt="${imageNode["@alt"]}"</#if>/>
                 <#else>
-                    <#t>${linkText}
+                    <#t><span v-pre>${linkText}</span>
                 </#if>
             <#t><#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if>
             <#t></button>
