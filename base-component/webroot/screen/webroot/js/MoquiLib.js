@@ -598,3 +598,124 @@ if (window.Chart) {
     };
 }
 */
+window.addEventListener('keydown', function(event) {
+    let e = event || window.event;
+    if (e == null) return
+    let keyUpper
+    if (e.key !== undefined) {
+        keyUpper = e.key.toUpperCase();
+    } else if (e.which !== undefined) {
+        keyUpper = String.fromCharCode(e.which).toUpperCase();
+    }
+
+    let altDown = e.altKey;
+    let ctrlDown = e.ctrlKey;
+    let processed = false;
+
+   //alt key
+    if(altDown){
+        if((keyUpper>="A" && keyUpper <="Z") || (keyUpper>="0" && keyUpper<="9") ){
+            let focusList = $(`input[moqui-key="${keyUpper}"], textarea[moqui-key="${keyUpper}"], div[moqui-key="${keyUpper}"], select[moqui-key="${keyUpper}"]`)
+            if(focusList && focusList.length == 0) return
+
+            let totalCount = focusList.length
+            let focusIndex = 0
+            if(moqui.moquiTraceFocusInputElement){
+                if(totalCount > 1){
+                    for(i=0;i<totalCount;i++){
+                        if(focusList[i] == moqui.moquiTraceFocusInputElement){
+                            break
+                        }
+                    }
+                    if(i <= totalCount-2) {
+                        focusIndex = i+1
+                    }
+                }
+
+            }
+            moqui.moquiTraceFocusInputElement = focusList[focusIndex]
+            focusList[focusIndex].focus();
+
+            processed = true;
+
+        }
+    }
+    //ctrl key
+    if(ctrlDown){
+        //char "`" stand for open left menu
+        if((keyUpper>="A" && keyUpper <="Z") || (keyUpper>="0" && keyUpper<="9") || (keyUpper == "`") ){
+
+            let curEl = $(`button[moqui-key="${keyUpper}"], a[moqui-key="${keyUpper}"]`)
+            if(curEl && curEl.length == 0){
+                curEl = $(`span[moqui-key="${keyUpper}"]`) //m-container-dialog
+            }
+            if(curEl && curEl.length == 0 ) return;
+            //maybe many EL, but what is it for?
+            curEl[0].click();
+            processed = true;
+        }
+
+    }
+
+    //Enter key
+    if(keyUpper === "ENTER"){
+
+
+        let curInput = e.target;
+        if(curInput == null) return
+
+        if(e.target.tagName != "INPUT") {
+            console.log(`Current target tagName is ${e.target.tagName}, not INPUT `)
+            return
+        }
+
+        if(curInput.form == null) return
+        let inputList = curInput.form.querySelectorAll("input,textarea");
+
+        let availableInputList = [];
+        inputList.forEach(function(item){
+            let available = true;
+            if (item.readOnly) available = false;
+            if (item.disabled) available = false;
+            if (available){
+                //quasar's checkbox and radio are special
+                if ((item.className.indexOf("q-checkbox__native")!== -1) || (item.className.indexOf("q-radio__native") !== -1)){
+                    availableInputList.push(item.parentElement.parentElement)
+                }else{
+                     availableInputList.push(item);
+                }
+
+            }
+
+        })
+
+        //if only one INPUT, don't process
+        if (availableInputList.length<=1) return;
+
+
+        //Loop in the same form
+        let curIndex = 0;
+        for(let i =0; i< availableInputList.length; i++){
+            if(availableInputList[i] === curInput){
+                curIndex = i;
+                break;
+            }
+        }
+        if (curIndex == availableInputList.length - 1){
+            curIndex = -1;
+        }
+
+        availableInputList[curIndex+1].focus();
+        processed = true;
+
+    }
+
+    //prevent default
+    if(processed){
+        if (e.preventDefault){
+            e.preventDefault()
+        }else {
+            window.event.returnValue = false;
+        }
+    }
+  });

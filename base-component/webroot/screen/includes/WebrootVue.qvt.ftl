@@ -34,7 +34,7 @@ along with this software (see the LICENSE.md file). If not, see
     <#-- to build a layout use the handy Quasar tool: https://quasar.dev/layout-builder -->
     <q-layout view="hHh LpR fFf">
         <q-header reveal bordered class="${headerClass}" id="top"><q-toolbar style="font-size:15px;">
-            <q-btn dense flat icon="menu" @click="toggleLeftOpen()"></q-btn>
+            <q-btn dense flat icon="menu" @click="toggleLeftOpen()" moqui-key="`"></q-btn>
 
             <#assign headerLogoList = sri.getThemeValues("STRT_HEADER_LOGO")>
             <#if headerLogoList?has_content>

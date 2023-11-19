@@ -25,7 +25,10 @@ along with this software (see the LICENSE.md file). If not, see
     <#recurse>
     <#if sri.doBoundaryComments()><!-- END   screen[@location=${sri.getActiveScreenDef().location}].fail-widgets --></#if>
 </#macro>
-
+<#macro getMoquiKey curNode>
+    <#assign moquiKey = curNode["@moqui-key"]! >
+    <#if moquiKey?has_content> <#assign moquiKey=moquiKey?substring(0,1)?upper_case > </#if>
+</#macro>
 <#-- ================ Subscreens ================ -->
 <#macro "subscreens-menu"><#if hideNav! != "true">
     <#if .node["@type"]! == "popup"><#-- NOTE: popup menus no longer handled here, how handled dynamically in navbar.html.ftl -->
@@ -149,7 +152,15 @@ ${sri.renderSectionInclude(.node)}
         <#assign title = ec.getResource().expand(.node["@title"], "")>
         <#if !title?has_content><#assign title = buttonText></#if>
         <#assign cdDivId><@nodeId .node/></#assign>
-        <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${ec.getResource().expandNoL10n(.node["@type"]!"primary", "")} btn-sm ${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}"><i class="${iconClass}"></i> ${buttonText}</button>
+        <@getMoquiKey .node/>
+
+        <button id="${cdDivId}-button" type="button" data-toggle="modal" data-target="#${cdDivId}" data-original-title="${buttonText}"
+            data-placement="bottom" class="btn btn-${ec.getResource().expandNoL10n(.node["@type"]!"primary", "")} btn-sm ${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}"
+            <#t><#if moquiKey?has_content> moqui-key=${moquiKey} </#if>
+        >
+            <i class="${iconClass}"></i> ${buttonText}
+            <#t><#if moquiKey?has_content><span> ( <span style="text-decoration:underline">${moquiKey}</span> )</span> </#if>
+        </button>
         <container-dialog id="${cdDivId}" width="${.node["@width"]!"760"}" title="${title}"<#if _openDialog! == cdDivId> :openDialog="true"</#if>>
             <#recurse>
         </container-dialog>
@@ -164,6 +175,7 @@ ${sri.renderSectionInclude(.node)}
     <#assign iconClass = "fa fa-external-link">
     <#if .node["@icon"]?has_content><#assign iconClass = .node["@icon"]></#if>
     <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
+    <@getMoquiKey .node/>
     <#if conditionResult>
         <#assign buttonText = ec.getResource().expand(.node["@button-text"], "")>
         <#assign title = ec.getResource().expand(.node["@title"], "")>
@@ -171,9 +183,19 @@ ${sri.renderSectionInclude(.node)}
         <#assign urlInstance = sri.makeUrlByType(.node["@transition"], "transition", .node, "true")>
         <#assign ddDivId><@nodeId .node/></#assign>
         <#if urlInstance.disableLink>
-            <button id="${ddDivId}-button" type="button" class="disabled text-muted btn btn-${.node["@type"]!"primary"} btn-sm ${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}"><i class="${iconClass}"></i> ${buttonText}</button>
+            <button id="${ddDivId}-button" type="button" class="disabled text-muted btn btn-${.node["@type"]!"primary"} btn-sm ${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}"
+                <#t><#if moquiKey?has_content> moqui-key=${moquiKey} </#if>
+            >
+                <i class="${iconClass}"></i> ${buttonText}
+                <#t><#if moquiKey?has_content><span> ( <span style="text-decoration:underline">${moquiKey}</span> )</span> </#if>
+            </button>
         <#else>
-            <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm ${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}"><i class="${iconClass}"></i> ${buttonText}</button>
+            <button id="${ddDivId}-button" type="button" data-toggle="modal" data-target="#${ddDivId}" data-original-title="${buttonText}" data-placement="bottom" class="btn btn-${.node["@type"]!"primary"} btn-sm ${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}"
+                <#t><#if moquiKey?has_content> moqui-key=${moquiKey} </#if>
+            >
+                <i class="${iconClass}"></i> ${buttonText}
+                <#t><#if moquiKey?has_content><span> ( <span style="text-decoration:underline">${moquiKey}</span> )</span> </#if>
+            </button>
             <#assign afterFormText>
             <dynamic-dialog id="${ddDivId}" url="${urlInstance.urlWithParams}" width="${.node["@width"]!"760"}" title="${title}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></dynamic-dialog>
             </#assign>
@@ -235,6 +257,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if !iconClass?has_content && linkNode["@text"]?has_content><#assign iconClass = sri.getThemeIconClass(linkNode["@text"])!></#if>
     <#assign iconClass = ec.getResource().expandNoL10n(iconClass!, "")/>
     <#assign badgeMessage = ec.getResource().expand(linkNode["@badge"]!, "")/>
+    <@getMoquiKey linkNode/>
     <#if urlInstance.disableLink>
         <a href="#"<#if linkFormId?has_content> id="${linkFormId}"</#if> class="disabled text-muted <#if linkNode["@link-type"]! != "anchor" && linkNode["@link-type"]! != "hidden-form-link">btn btn-${linkNode["@btn-type"]!"primary"} btn-sm</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"><#if iconClass?has_content><i class="${iconClass}"></i></#if><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if></a>
     <#else>
@@ -251,23 +274,33 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#t><#if linkNode["@dynamic-load-id"]?has_content> load-id="${linkNode["@dynamic-load-id"]}"</#if>
                 <#t><#if confirmationMessage?has_content><#if linkElement == "m-link"> :confirmation="'${confirmationMessage?js_string}'"<#else> onclick="return confirm('${confirmationMessage?js_string}')"</#if></#if>
                 <#t> class="<#if linkNode["@link-type"]! != "anchor">btn btn-${linkNode["@btn-type"]!"primary"} btn-sm</#if><#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"
-                <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
+                <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>
+                <#t> <#if moquiKey?has_content> moqui-key="${moquiKey}" </#if>
+            <#t>>
                 <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if><#rt>
-                <#t><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else><span v-pre>${linkText}</span></#if>
+                <#t><#if linkNode["image"]?has_content>
+                    <#t><#visit linkNode["image"][0]>
+                <#t><#else>
+                    <#t><span v-pre>${linkText}</span>
+                    <#t><#if moquiKey?has_content><span> ( <span style="text-decoration:underline">${moquiKey}</span> )</span> </#if>
+                <#t></#if>
                 <#t><#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if>
-                <#t></${linkElement}>
+            <#t></${linkElement}>
         <#else>
             <#if linkFormId?has_content>
             <#rt><button type="submit" form="${linkFormId}" id="${linkFormId}_button" class="btn btn-${linkNode["@btn-type"]!"primary"} btn-sm<#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"
                     <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>
-                    <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
-                <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if>
-                <#if linkNode["image"]?has_content>
-                    <#t><img src="${sri.makeUrlByType(imageNode["@url"],imageNode["@url-type"]!"content",null,"true")}"<#if imageNode["@alt"]?has_content> alt="${imageNode["@alt"]}"</#if>/>
-                <#else>
-                    <#t>${linkText}
-                </#if>
-            <#t><#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if>
+                    <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>
+                    <#t><#if moquiKey?has_content> moqui-key="${moquiKey}" </#if>
+                >
+                    <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if>
+                    <#if linkNode["image"]?has_content>
+                        <#t><img src="${sri.makeUrlByType(imageNode["@url"],imageNode["@url-type"]!"content",null,"true")}"<#if imageNode["@alt"]?has_content> alt="${imageNode["@alt"]}"</#if>/>
+                    <#else>
+                        <#t>${linkText}
+                        <#t><#if moquiKey?has_content><span> ( <span style="text-decoration:underline">${moquiKey}</span> )</span> </#if>
+                    </#if>
+                    <#t><#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if>
             <#t></button>
             </#if>
         </#if>
@@ -290,10 +323,18 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#assign iconClass = linkNode["@icon"]!>
                     <#if !iconClass?has_content && linkNode["@text"]?has_content><#assign iconClass = sri.getThemeIconClass(linkNode["@text"])!></#if>
                     <#assign badgeMessage = ec.getResource().expand(linkNode["@badge"]!, "")/>
+                    <@getMoquiKey linkNode?parent/>
+
                     <#rt><button type="submit" class="<#if linkNode["@link-type"]! == "hidden-form-link">button-plain<#else>btn btn-${linkNode["@btn-type"]!"primary"} btn-sm</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"
-                        <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>
-                        <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
-                        <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if>${linkText}<#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if></button>
+                            <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>
+                            <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>
+                            <#t><#if moquiKey?has_content> moqui-key=${moquiKey} </#if>
+                        >
+                            <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if>
+                            ${linkText}
+                            <#t><#if moquiKey?has_content><span> ( <span style="text-decoration:underline">${moquiKey}</span> )</span> </#if>
+                            <#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if>
+                        </button>
                 </#if>
             </#if>
         </${linkFormType}>
@@ -358,6 +399,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#else><#assign linkText = ec.getResource().expand(.node["@text"]!"", "")></#if>
 
     <#if linkText == "null"><#assign linkText = ""></#if>
+
+    <@getMoquiKey .node/>
     <#if linkText?has_content || .node["image"]?has_content || .node["@icon"]?has_content>
         <#if .node["@encode"]! != "false"><#assign linkText = linkText?html></#if>
         <#assign iconClass = .node["@icon"]!>
@@ -366,9 +409,18 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
         <#-- TODO: tooltip, doesn't work when using data-toggle for dropdown! <#if .node["@tooltip"]?has_content>${ec.getResource().expand(.node["@tooltip"], "")}</#if> -->
         <div class="btn-group">
-            <button type="button" class="btn btn-${.node["@btn-type"]!"primary"} dropdown-toggle<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button type="button" class="btn btn-${.node["@btn-type"]!"primary"} dropdown-toggle<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"
+                <#t> data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                <#t><#if moquiKey?has_content> moqui-key=${moquiKey} </#if>
+            >
                 <#if iconClass?has_content><i class="${iconClass}"></i></#if>
-                <#if .node["image"]?has_content><#visit .node["image"][0]><#else>${linkText}</#if>
+                <#if .node["image"]?has_content>
+                    <#visit .node["image"][0]>
+                <#else>
+                    ${linkText}
+                    <#t><#if moquiKey?has_content><span> ( <span style="text-decoration:underline">${moquiKey}</span> )</span> </#if>
+                </#if>
+
                 <#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if>
                 <span class="caret"></span>
             </button>
@@ -553,11 +605,19 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if fieldSubNode["hidden"]?has_content><#recurse fieldSubNode/><#return></#if>
     <#assign containerStyle = ec.getResource().expandNoL10n(fieldSubNode["@container-style"]!, "")>
     <#assign curFieldTitle><@fieldTitle fieldSubNode/></#assign>
+
+    <#assign validationClasses = formInstance.getFieldValidationClasses(fieldSubNode)>
+    <@getMoquiKey fieldSubNode/>
+
     <#if bigRow>
         <div class="big-row-item">
             <div class="form-group">
                 <#if curFieldTitle?has_content && !fieldSubNode["submit"]?has_content>
-                    <label class="control-label" for="${formSingleId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
+                    <label class="control-label" for="${formSingleId}_${fieldSubParent["@name"]}">
+                        ${curFieldTitle}
+                        <#t><#if moquiKey?has_content><span> ( <span style="text-decoration:underline">${moquiKey}</span> )</span> </#if>
+                        <#t><#if validationClasses?contains("required")> <em style="color:red"> * </em></#if>
+                    </label><#-- was form-title -->
                 </#if>
     <#else>
         <#-- NOTE: this style is only good for 2 fields in a field-row! in field-row cols are double size because are inside a ${colPrefix}-6 element -->
@@ -574,7 +634,11 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <div class="${widgetClass}<#if containerStyle?has_content> ${containerStyle}</#if>">
         <#elseif curFieldTitle?has_content>
         <div class="form-group">
-            <label class="control-label ${labelClass}" for="${formSingleId}_${fieldSubParent["@name"]}">${curFieldTitle}</label><#-- was form-title -->
+            <label class="control-label ${labelClass}" for="${formSingleId}_${fieldSubParent["@name"]}">
+                ${curFieldTitle}
+                <#t><#if moquiKey?has_content><span> ( <span style="text-decoration:underline">${moquiKey}</span> )</span> </#if>
+                <#t><#if validationClasses?contains("required")> <em style="color:red"> * </em></#if>
+            </label><#-- was form-title -->
             <div class="${widgetClass}<#if containerStyle?has_content> ${containerStyle}</#if>">
         </#if>
     </#if>
@@ -653,7 +717,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#assign screenScheduled = formListInfo.getScreenForm().getFormListFindScreenScheduled(activeFormListFind.formListFindId, ec)!>
                     <div><strong>${ec.getL10n().localize("Active Saved Find:")} ${activeFormListFind.description?html}</strong></div>
                     <#if screenScheduled?has_content>
-                        <p>(Scheduled for <#if screenScheduled.renderMode! == 'xsl-fo'>PDF<#else>${screenScheduled.renderMode!?upper_case}</#if><#rt>
+                        <p>(Scheduled for <#if screenScheduled.renderMode! == 'xsl-fo'>PDF<#else>${screenScheduled.renderMode!}</#if><#rt>
                             <#t> ${Static["org.moqui.impl.service.ScheduledJobRunner"].getCronDescription(screenScheduled.cronExpression, ec.user.getLocale(), true)!})</p>
                     <#else>
                         <m-form class="form-inline" id="${formId}_SCHED" action="${formSaveFindUrl}">
@@ -1553,18 +1617,30 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 <#macro "default-field"><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 <#macro set><#-- shouldn't be called directly, but just in case --><#recurse/></#macro>
 
+
 <#macro check>
+    <#assign ckSubFieldNode = .node?parent>
     <#assign options = sri.getFieldOptions(.node)>
     <#assign currentValue = sri.getFieldValueString(.node)>
     <#if !currentValue?has_content><#assign currentValue = ec.getResource().expandNoL10n(.node["@no-current-selected-key"]!, "")/></#if>
     <#assign tlId><@fieldId .node/></#assign>
     <#assign curName><@fieldName .node/></#assign>
     <#assign containerStyle = ec.getResource().expandNoL10n(.node["@container-style"]!, "")>
+    <@getMoquiKey ckSubFieldNode/>
+
     <#list (options.keySet())! as key>
         <#assign allChecked = ec.getResource().expandNoL10n(.node["@all-checked"]!, "")>
         <#assign fullId = tlId>
         <#if (key_index > 0)><#assign fullId = tlId + "_" + key_index></#if>
-        <span id="${fullId}"<#if containerStyle?has_content> class="${containerStyle}"</#if>><input type="checkbox" name="${curName}" value="${key?html}"<#if allChecked! == "true"> checked="checked"<#elseif currentValue?has_content && (currentValue==key || currentValue.contains(key))> checked="checked"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>><#if options.get(key)! != ""><span class="checkbox-label" onclick="$('#${fullId}').children('input[type=checkbox]').click()" style="cursor: default">${options.get(key)}</span></#if></span>
+        <span id="${fullId}"<#if containerStyle?has_content> class="${containerStyle}"</#if>>
+            <input type="checkbox" name="${curName}" value="${key?html}"
+                <#t><#if allChecked! == "true"> checked="checked"<#elseif currentValue?has_content && (currentValue==key || currentValue.contains(key))> checked="checked"</#if>
+                <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
+                <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>
+                <#t><#if moquiKey?has_content> moqui-key = "${moquiKey}"</#if>
+            >
+            <#if options.get(key)! != ""><span class="checkbox-label" onclick="$('#${fullId}').children('input[type=checkbox]').click()" style="cursor: default">${options.get(key)}</span></#if>
+        </span>
     </#list>
 </#macro>
 
@@ -1643,10 +1719,14 @@ a => A, d => D, y => Y
     </#if>
     <#assign fieldValue = sri.getFieldValueString(dtFieldNode, .node["@default-value"]!"", javaFormat)>
     <#assign validationClasses = formInstance.getFieldValidationClasses(dtSubFieldNode)>
+    <@getMoquiKey dtSubFieldNode/>
+
     <date-time id="<@fieldId .node/>" name="<@fieldName .node/>" value="${fieldValue?html}" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
         <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
         <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>
-        <#t><#if validationClasses?contains("required")> required="required"</#if> auto-year="${.node["@auto-year"]!"true"}" :minuteStep="${.node["@minute-stepping"]!"5"}"/>
+        <#t><#if validationClasses?contains("required")> required="required"</#if>
+        <#lt><#if moquiKey?has_content>moquiKey = "${moquiKey}"</#if>
+        auto-year="${.node["@auto-year"]!"true"}" :minuteStep="${.node["@minute-stepping"]!"5"}"/>
 </#macro>
 
 <#macro display>
@@ -1773,6 +1853,8 @@ a => A, d => D, y => Y
         <#assign doUrlParameterMap = doUrlInfo.getParameterMap()>
         <#if currentValue?has_content && !currentDescription?has_content><#assign currentDescription><@widgetTextValue .node true/></#assign></#if>
     </#if>
+    <@getMoquiKey ddSubFieldNode/>
+
     <drop-down name="${name}" id="${tlId}" class="<#if isDynamicOptions> dynamic-options</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if><#if validationClasses?has_content> ${validationClasses}</#if>"<#rt>
             <#t><#if allowMultiple> multiple="multiple"</#if><#if allowEmpty> :allow-empty="true"</#if><#if .node["@combo-box"]! == "true"> :combo="true"</#if>
             <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
@@ -1788,7 +1870,9 @@ a => A, d => D, y => Y
             <#t></#if>
                 :options="[<#if currentValue?has_content && !allowMultiple && !optionsHasCurrent>{id:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentValue)}',text:'<#if currentDescription?has_content>${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentDescription!)}<#else>${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(currentValue)}</#if>'},</#if><#rt>
                     <#t><#list (options.keySet())! as key>{id:'<#if key?has_content>${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(key)}<#else>\u00a0</#if>',text:'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(options.get(key)!)}'}<#sep>,</#list>]"
-            <#lt>>
+            <#lt>
+            <#t><#if moquiKey?has_content>moquiKey = "${moquiKey}"</#if>
+    >
             <#-- support <#if .node["@current"]! == "first-in-list"> again? -->
     </drop-down>
     <#if ec.getResource().expandNoL10n(.node["@show-not"]!, "") == "true"><span><input type="checkbox" class="form-control" name="${name}_not" value="Y"<#if ec.getWeb().parameters.get(name + "_not")! == "Y"> checked="checked"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>&nbsp;${ec.getL10n().localize("Not")}</span></#if>
@@ -1812,13 +1896,25 @@ a => A, d => D, y => Y
 </#macro>
 
 <#macro radio>
+    <#assign rdSubFieldNode = .node?parent>
     <#assign options = sri.getFieldOptions(.node)/>
     <#assign currentValue = sri.getFieldValueString(.node)/>
     <#if !currentValue?has_content><#assign currentValue = ec.getResource().expandNoL10n(.node["@no-current-selected-key"]!, "")/></#if>
     <#assign tlId><@fieldId .node/></#assign>
     <#assign curName><@fieldName .node/></#assign>
+    <@getMoquiKey rdSubFieldNode/>
+
+
     <#list (options.keySet())! as key>
-        <span id="${tlId}<#if (key_index > 0)>_${key_index}</#if>"><input type="radio" name="${curName}" value="${key?html}"<#if currentValue?has_content && currentValue==key> checked="checked"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>&nbsp;${options.get(key)!""}</span>
+        <span id="${tlId}<#if (key_index > 0)>_${key_index}</#if>">
+            <input type="radio" name="${curName}" value="${key?html}"
+                <#t><#if currentValue?has_content && currentValue==key> checked="checked"</#if>
+                <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
+                <#t><#if ownerForm?has_content> form="${ownerForm}" </#if>
+                <#t><#if moquiKey?has_content>moqui-key = "${moquiKey}"</#if>
+            >
+            &nbsp;${options.get(key)!""}
+        </span>
     </#list>
 </#macro>
 
@@ -1833,33 +1929,64 @@ a => A, d => D, y => Y
 </span>
 </#macro>
 
-<#macro reset><input type="reset" name="<@fieldName .node/>" value="<@fieldTitle .node?parent/>" id="<@fieldId .node/>"<#if .node["@icon"]?has_content> iconcls="ui-icon-${.node["@icon"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>></#macro>
+<#macro reset>
+    <#assign buttonText><#if .node["@text"]?has_content>${ec.getResource().expand(.node["@text"], "")}<#else><@fieldTitle .node?parent/></#if></#assign>
+    <@getMoquiKey .node?parent/>
+
+    <button type="reset" name="<@fieldName .node/>" value="<@fieldName .node/>" id="<@fieldId .node/>"
+        <#if .node["@icon"]?has_content> iconcls="ui-icon-${.node["@icon"]}"</#if>
+        <#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
+        <#if ownerForm?has_content> form="${ownerForm}"</#if>
+        <#t><#if moquiKey?has_content> moquiKey="${moquiKey}"</#if>
+    >
+        <#t>${buttonText}
+        <#t><#if moquiKey?has_content><span> ( <span style="text-decoration:underline">${moquiKey}</span> )</span> </#if>
+    </button>
+</#macro>
 
 <#macro submit>
     <#assign confirmationMessage = ec.getResource().expand(.node["@confirmation"]!, "")/>
     <#assign buttonText><#if .node["@text"]?has_content>${ec.getResource().expand(.node["@text"], "")}<#else><@fieldTitle .node?parent/></#if></#assign>
     <#assign iconClass = .node["@icon"]!>
     <#if !iconClass?has_content><#assign iconClass = sri.getThemeIconClass(buttonText)!></#if>
+    <@getMoquiKey .node?parent/>
+
     <button type="submit" name="<@fieldName .node/>" value="<@fieldName .node/>" id="<@fieldId .node/>"<#rt>
             <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}');"</#if>
             <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
             <#t> class="btn btn-${ec.getResource().expandNoL10n(.node["@type"]!"primary", "")} btn-sm"
-            <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>><#if iconClass?has_content><i class="${iconClass}"></i> </#if>
-    <#if .node["image"]?has_content><#assign imageNode = .node["image"][0]>
-        <img src="${sri.makeUrlByType(imageNode["@url"],imageNode["@url-type"]!"content",null,"true")}" alt="<#if imageNode["@alt"]?has_content>${imageNode["@alt"]}<#else><@fieldTitle .node?parent/></#if>"<#if imageNode["@width"]?has_content> width="${imageNode["@width"]}"</#if><#if imageNode["@height"]?has_content> height="${imageNode["@height"]}"</#if>>
-    <#else>
-        <#t>${buttonText}
-    </#if>
+            <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>
+            <#t><#if moquiKey?has_content> moqui-key="${moquiKey}"</#if>
+    >
+        <#if iconClass?has_content><i class="${iconClass}"></i> </#if>
+        <#if .node["image"]?has_content><#assign imageNode = .node["image"][0]>
+            <img src="${sri.makeUrlByType(imageNode["@url"],imageNode["@url-type"]!"content",null,"true")}"
+                    alt="<#if imageNode["@alt"]?has_content>${imageNode["@alt"]}<#else><@fieldTitle .node?parent/></#if>"
+                    <#if imageNode["@width"]?has_content> width="${imageNode["@width"]}"</#if>
+                    <#if imageNode["@height"]?has_content> height="${imageNode["@height"]}"</#if>
+            >
+        <#else>
+            <#t>${buttonText}
+            <#if moquiKey?has_content><span> ( <span style="text-decoration:underline">${moquiKey}</span> )</span> </#if>
+        </#if>
     </button>
 </#macro>
 
 <#macro "text-area">
+    <#assign taSubFieldNode = .node?parent>
     <#assign textAreaId><@fieldId .node/></#assign>
     <#assign editorType = ec.getResource().expand(.node["@editor-type"]!"", "")>
+    <@getMoquiKey taSubFieldNode/>
+
     <textarea v-pre class="form-control" name="<@fieldName .node/>" id="${textAreaId}" <#if .node["@cols"]?has_content>cols="${.node["@cols"]}"<#else>style="width:100%;"</#if>
-        rows="${.node["@rows"]!"3"}"<#if .node["@read-only"]! == "true"> readonly="readonly"</#if><#if .node["@maxlength"]?has_content> maxlength="${.node["@maxlength"]}"</#if>
-        <#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>><#rt>
-${sri.getFieldValueString(.node)?html}</textarea>
+        <#t> rows="${.node["@rows"]!"3"}"<#if .node["@read-only"]! == "true"> readonly="readonly"</#if><#if .node["@maxlength"]?has_content> maxlength="${.node["@maxlength"]}"</#if>
+        <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
+        <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>
+        <#lt><#if moquiKey?has_content>moqui-key = "${moquiKey}"</#if>
+    ><#rt>
+        ${sri.getFieldValueString(.node)?html}
+    </textarea>
+
     <#if editorType == "html">
         <#-- support CSS from editorScreenThemeId with resourceTypeEnumId=STRT_STYLESHEET, like: contentsCss:['/css/mysitestyles.css','/css/anotherfile.css']; -->
         <#-- see: https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_config.html#cfg-contentsCss -->
@@ -1891,6 +2018,8 @@ ${sri.getFieldValueString(.node)?html}</textarea>
     <#assign regexpInfo = formInstance.getFieldValidationRegexpInfo(tlSubFieldNode)!>
     <#assign inputType><#if .node["@input-type"]?has_content>${.node["@input-type"]}<#else><#rt>
         <#lt><#if validationClasses?contains("email")>email<#elseif validationClasses?contains("url")>url<#else>text</#if></#if></#assign>
+    <@getMoquiKey  tlSubFieldNode  />
+
     <#-- NOTE: removed number type (<#elseif validationClasses?contains("number")>number) because on Safari, maybe others, ignores size and behaves funny for decimal values -->
     <#if .node["@ac-transition"]?has_content>
         <#assign acUrlInfo = sri.makeUrlByType(.node["@ac-transition"], "transition", .node, "false")>
@@ -1913,17 +2042,21 @@ ${sri.getFieldValueString(.node)?html}</textarea>
                 <#t> :depends-on="{<#list depNodeList as depNode><#local depNodeField = depNode["@field"]>'${depNode["@parameter"]!depNodeField}':'<@fieldIdByName depNodeField/>'<#sep>, </#list>}"
                 <#t> :ac-parameters="{<#list acUrlParameterMap.keySet() as parameterKey><#if acUrlParameterMap.get(parameterKey)?has_content>'${parameterKey}':'${acUrlParameterMap.get(parameterKey)}', </#if></#list>}"
                 <#t><#if .node["@ac-delay"]?has_content> :delay="${.node["@ac-delay"]}"</#if>
-                <#t><#if .node["@ac-initial-text"]?has_content> :skip-initial="true"</#if>/>
+                <#t><#if .node["@ac-initial-text"]?has_content> :skip-initial="true"</#if>
+                <#t><#if moquiKey?has_content> moquiKey = "${moquiKey}"</#if>
+        />
     <#else>
         <#assign tlAlign = tlFieldNode["@align"]!"left">
         <#t><input id="${tlId}" <#--v-model="fields.${name}"--> type="${inputType}" autocapitalize="off" autocomplete="off"
-            <#t> name="${name}" <#if fieldValue?html == fieldValue>value="${fieldValue}"<#else>:value="'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(fieldValue)}'"</#if>
-            <#t> <#if .node.@size?has_content>size="${.node.@size}"<#else>style="width:100%;"</#if><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
-            <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if>
-            <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
-            <#t><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}" data-msg-pattern="${regexpInfo.message!"Invalid format"}"</#if>
-            <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
-            <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>>
+                <#t> name="${name}" <#if fieldValue?html == fieldValue>value="${fieldValue}"<#else>:value="'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(fieldValue)}'"</#if>
+                <#t> <#if .node.@size?has_content>size="${.node.@size}"<#else>style="width:100%;"</#if><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
+                <#t><#if ec.getResource().condition(.node.@disabled!"false", "")> disabled="disabled"</#if>
+                <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
+                <#t><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}" data-msg-pattern="${regexpInfo.message!"Invalid format"}"</#if>
+                <#t><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
+                <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>
+                <#t><#if moquiKey?has_content>moqui-key = "${moquiKey}"</#if>
+            >
         <#assign expandedMask = ec.getResource().expandNoL10n(.node["@mask"], "")!>
         <#if expandedMask?has_content><m-script>$('#${tlId}').inputmask("${expandedMask}");</m-script></#if>
         <#if .node["@default-transition"]?has_content>

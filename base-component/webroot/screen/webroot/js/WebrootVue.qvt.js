@@ -445,11 +445,25 @@ Vue.component('m-dialog', {
 Vue.component('m-container-dialog', {
     name: "mContainerDialog",
     props: { id:String, color:String, buttonText:String, buttonClass:String, title:String, width:{type:String},
-        openDialog:{type:Boolean,'default':false}, buttonIcon:{type:String,'default':'open_in_new'} },
+        openDialog:{type:Boolean,'default':false}, buttonIcon:{type:String,'default':'open_in_new'}, moquiKey:String },
     data: function() { return { isShown:false }},
+    computed: {
+        upperCaseMoquiKey: function(){
+            if(this.moquiKey){
+                return this.moquiKey.toUpperCase();
+            }else{
+                return null;
+            }
+        }
+    },
     template:
     '<span>' +
-        '<span @click="show()"><slot name="button"><q-btn dense outline no-caps :icon="buttonIcon" :label="buttonText" :color="color" :class="buttonClass"></q-btn></slot></span>' +
+        '<span @click="show()"  :moqui-key="upperCaseMoquiKey"><slot name="button"> '+
+            '<q-btn dense outline no-caps :icon="buttonIcon"  :color="color" :class="buttonClass"> '+
+                '{{buttonText}} '+
+                '<span v-if ="moquiKey"> ( <span style="text-decoration:underline">{{upperCaseMoquiKey}}</span> )</span> '+
+            '</q-btn>' +
+        '</slot></span>' +
         '<m-dialog v-model="isShown" :id="id" :title="title" :color="color" :width="width"><slot></slot></m-dialog>' +
     '</span>',
     methods: { show: function() { this.isShown = true; }, hide: function() { this.isShown = false; } },
@@ -471,11 +485,23 @@ Vue.component('m-dynamic-container', {
 Vue.component('m-dynamic-dialog', {
     name: "mDynamicDialog",
     props: { id:{type:String}, url:{type:String,required:true}, color:String, buttonText:String, buttonClass:String, title:String, width:{type:String},
-        openDialog:{type:Boolean,'default':false}, dynamicParams:{type:Object,'default':null} },
+        openDialog:{type:Boolean,'default':false}, dynamicParams:{type:Object,'default':null}, moquiKey:String },
     data: function() { return { curComponent:moqui.EmptyComponent, curUrl:"", isShown:false} },
+    computed: {
+        upperCaseMoquiKey: function(){
+            if(this.moquiKey){
+                return this.moquiKey.toUpperCase();
+            }else{
+                return null;
+            }
+        }
+    },
     template:
     '<span>' +
-        '<q-btn dense outline no-caps icon="open_in_new" :label="buttonText" :color="color" :class="buttonClass" @click="isShown = true"></q-btn>' +
+        '<q-btn dense outline no-caps icon="open_in_new" :color="color" :class="buttonClass" @click="isShown = true" :moqui-key="upperCaseMoquiKey" > '+
+                '{{buttonText}} '+
+                '<span v-if ="moquiKey"> ( <span style="text-decoration:underline">{{upperCaseMoquiKey}}</span> )</span> '+
+        '</q-btn>' +
         '<m-dialog ref="dialog" v-model="isShown" :id="id" :title="title" :color="color" :width="width"><component :is="curComponent"></component></m-dialog>' +
     '</span>',
     methods: {
@@ -1241,12 +1267,18 @@ Vue.component('m-date-time', {
     name: "mDateTime",
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'}, label:String,
         size:String, format:String, tooltip:String, form:String, required:String, rules:Array, disable:Boolean, autoYear:String,
-        minuteStep:{type:Number,'default':5} },
+        minuteStep:{type:Number,'default':5}, moquiKey:String  },
     template:
     // NOTE: tried :fill-mask="formatVal" but results in all Y, only supports single character for mask placeholder... how to show more helpful date mask?
     // TODO: add back @focus="focusDate" @blur="blurDate" IFF needed given different mask/etc behavior
-    '<q-input dense outlined stack-label :label="label" v-bind:value="value" v-on:input="$emit(\'input\', $event)" :rules="rules"' +
-            ' :mask="inputMask" fill-mask :id="id" :name="name" :form="form" :disable="disable" :size="sizeVal" style="max-width:max-content;">' +
+    '<q-input dense outlined stack-label label-slot v-bind:value="value" v-on:input="$emit(\'input\', $event)" :rules="rules"' +
+            ' :mask="inputMask" fill-mask :id="id" :name="name" :form="form" :disable="disable" :size="sizeVal" style="max-width:max-content;" :moqui-key="upperCaseMoquiKey">' +
+        '<template v-slot:label> '+
+            '<div > {{label}} '+
+            '<span v-if ="moquiKey"> ( <span style="text-decoration:underline">{{upperCaseMoquiKey}}</span> )</span> '+
+            '<em class="text-red" v-if ="required"> * </em>' +
+            '</div> ' +
+        '</template>' +
         '<template v-slot:prepend v-if="type==\'date\' || type==\'date-time\' || !type">' +
             '<q-icon name="event" class="cursor-pointer">' +
                 '<q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">' +
@@ -1294,7 +1326,14 @@ Vue.component('m-date-time', {
             (this.type === 'date' ? ['l', 'L', 'YYYY-MM-DD'] : ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD HH:mm:ss', 'MM/DD/YYYY HH:mm']); },
         sizeVal: function() { var size = this.size; if (size && size.length) { return size; }
             return this.type === 'time' ? '9' : (this.type === 'date' ? '10' : '16'); },
-        timePattern: function() { return '^(?:(?:([01]?\\d|2[0-3]):)?([0-5]?\\d):)?([0-5]?\\d)$'; }
+        timePattern: function() { return '^(?:(?:([01]?\\d|2[0-3]):)?([0-5]?\\d):)?([0-5]?\\d)$'; },
+        upperCaseMoquiKey: function(){
+            if(this.moquiKey){
+                return this.moquiKey.toUpperCase();
+            }else{
+                return null;
+            }
+        }
     },
     mounted: function() {
         var vm = this;
@@ -1499,8 +1538,17 @@ Vue.component('m-drop-down', {
         serverSearch:Boolean, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
         labelField:{type:String,'default':'label'}, valueField:{type:String,'default':'value'},
         dependsOn:Object, dependsOptional:Boolean, form:String, fields:{type:Object},
-        tooltip:String, label:String, name:String, id:String, disable:Boolean, onSelectGoTo:String },
+        tooltip:String, label:String, name:String, id:String, disable:Boolean, onSelectGoTo:String, required:Boolean, moquiKey:String },
     data: function() { return { curOptions:this.options, allOptions:this.options, lastVal:null, lastSearch:null, loading:false } },
+    computed: {
+        upperCaseMoquiKey: function(){
+            if(this.moquiKey){
+                return this.moquiKey.toUpperCase();
+            }else{
+                return null;
+            }
+        }
+    },
     template:
         // was: ':fill-input="!multiple" hide-selected' changed to ':hide-selected="multiple"' to show selected to the left of input,
         //     fixes issues with fill-input where set values would sometimes not be displayed
@@ -1509,7 +1557,7 @@ Vue.component('m-drop-down', {
                 ' input-debounce="500" @filter="filterFn" :clearable="allowEmpty||multiple" :disable="disable"' +
                 ' :multiple="multiple" :emit-value="!onSelectGoTo" map-options behavior="menu"' +
                 ' :rules="[val => allowEmpty||multiple||val===\'\'||(val&&val.length)||\'Please select an option\']"' +
-                ' stack-label :label="label" :loading="loading" :options="curOptions">' +
+                ' stack-label label-slot :loading="loading" :options="curOptions" :moqui-key="upperCaseMoquiKey" >' +
             '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
             '<template v-slot:no-option><q-item><q-item-section class="text-grey">No results</q-item-section></q-item></template>' +
             '<template v-if="multiple" v-slot:prepend><div>' +
@@ -1518,6 +1566,12 @@ Vue.component('m-drop-down', {
             '<template v-slot:append><slot name="append"></slot></template>' +
             '<template v-slot:after>' +
                 '<slot name="after"></slot>' +
+            '</template>' +
+            '<template v-slot:label> '+
+                '<div> {{label}} '+
+                    '<span v-if ="moquiKey"> ( <span style="text-decoration:underline">{{upperCaseMoquiKey}}</span> )</span> '+
+                    '<em class="text-red" v-if ="required"> * </em>' +
+                '</div> ' +
             '</template>' +
         '</q-select>',
         // TODO: how to add before slot pass through without the small left margin when nothing in the slot? <template v-slot:before><slot name="before"></slot></template>
@@ -1783,13 +1837,29 @@ Vue.component('m-text-line', {
     name: "mTextLine",
     props: { value:String, type:{type:String,'default':'text'}, id:String, name:String, size:String, fields:{type:Object},
         label:String, tooltip:String, prefix:String, disable:Boolean, mask:String, fillMask:String, reverseFillMask:Boolean, rules:Array,
-        defaultUrl:String, defaultParameters:Object, dependsOn:Object, dependsOptional:Boolean, defaultLoadInit:Boolean },
+        defaultUrl:String, defaultParameters:Object, dependsOn:Object, dependsOptional:Boolean, defaultLoadInit:Boolean,
+         required:Boolean, moquiKey:String },
     data: function() { return { loading:false } },
+    computed: {
+        upperCaseMoquiKey: function(){
+            if(this.moquiKey){
+                return this.moquiKey.toUpperCase();
+            }else{
+                return null;
+            }
+        }
+    },
     template:
-        '<q-input dense outlined stack-label :label="label" :prefix="prefix" v-bind:value="value" v-on:input="$emit(\'input\', $event)" :type="type"' +
+        '<q-input dense outlined stack-label label-slot :prefix="prefix" v-bind:value="value" v-on:input="$emit(\'input\', $event)" :type="type"' +
                 ' :id="id" :name="name" :size="size" :loading="loading" :rules="rules" :disable="disable"' +
                 ' :mask="mask" :fill-mask="fillMask" :reverse-fill-mask="reverseFillMask"' +
-                ' autocapitalize="off" autocomplete="off">' +
+                ' autocapitalize="off" autocomplete="off" :moqui-key="upperCaseMoquiKey" >' +
+                '<template v-slot:label> '+
+                '<div > {{label}} '+
+                '<span v-if ="moquiKey"> ( <span style="text-decoration:underline">{{upperCaseMoquiKey}}</span> )</span> '+
+                '<em class="text-red" v-if ="required"> * </em>' +
+                '</div> ' +
+                '</template>' +
             '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
         '</q-input>',
     methods: {

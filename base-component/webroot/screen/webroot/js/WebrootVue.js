@@ -336,16 +336,30 @@ Vue.component('box-body', {
     data: function() { return this.height ? { dialogStyle:{'max-height':this.height+'px', 'overflow-y':'auto'}} : {dialogStyle:{}}},
     template: '<div class="panel-body" :style="dialogStyle"><slot></slot></div>'
 });
+
+//todo maybe no need moquiKey in container-dialog because moquiKey is processed in DefaultScreenMacros.vuet.FTL
 Vue.component('container-dialog', {
-    props: { id:{type:String,required:true}, title:String, width:{type:String,'default':'760'}, openDialog:{type:Boolean,'default':false} },
+    props: { id:{type:String,required:true}, title:String, width:{type:String,'default':'760'}, openDialog:{type:Boolean,'default':false}, moquiKey:String },
     data: function() {
         var viewportWidth = $(window).width();
         return { isHidden:true, dialogStyle:{width:(this.width < viewportWidth ? this.width : viewportWidth) + 'px'}}},
+    computed: {
+        upperCaseMoquiKey: function(){
+            if(this.moquiKey){
+                return this.moquiKey.toUpperCase();
+            }else{
+                return null;
+            }
+        }
+    },
     template:
     '<div :id="id" class="modal dynamic-dialog" aria-hidden="true" style="display:none;" tabindex="-1">' +
         '<div class="modal-dialog" :style="dialogStyle"><div class="modal-content">' +
-            '<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>' +
-                '<h4 class="modal-title">{{title}}</h4></div>' +
+            '<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true" :moqui-key="upperCaseMoquiKey">&times;</button>' +
+                '<h4 class="modal-title">' +
+                '{{title}}' +
+                '<span v-if ="moquiKey"> ( <span style="text-decoration:underline">{{upperCaseMoquiKey}}</span> )</span> '+
+                '</h4></div>' +
             '<div class="modal-body"><slot></slot></div>' +
         '</div></div>' +
     '</div>',
@@ -845,14 +859,14 @@ Vue.component('form-list', {
 /* ========== form field widget components ========== */
 Vue.component('date-time', {
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'},
-        size:String, format:String, tooltip:String, form:String, required:String, autoYear:String, minuteStep:{type:Number,'default':5} },
+        size:String, format:String, tooltip:String, form:String, required:String, autoYear:String, minuteStep:{type:Number,'default':5}, moquiKey:String },
     template:
     '<div v-if="type==\'time\'" class="input-group time" :id="id">' +
-        '<input type="text" class="form-control" :pattern="timePattern" :id="id?(id+\'_itime\'):\'\'" :name="name" :value="value" :size="sizeVal" :form="form">' +
+        '<input type="text" class="form-control" :pattern="timePattern" :id="id?(id+\'_itime\'):\'\'" :name="name" :value="value" :size="sizeVal" :form="form" :moqui-key="upperCaseMoquiKey">' +
         '<span class="input-group-addon"><span class="fa fa-clock-o"></span></span>' +
     '</div>' +
     '<div v-else class="input-group date" :id="id">' +
-        '<input ref="dateInput" @focus="focusDate" @blur="blurDate" type="text" class="form-control" :id="id?(id+\'_idate\'):\'\'" :name="name" :value="value" :size="sizeVal" :form="form" :required="required == \'required\' ? true : false">' +
+        '<input ref="dateInput" @focus="focusDate" @blur="blurDate" type="text" class="form-control" :id="id?(id+\'_idate\'):\'\'" :name="name" :value="value" :size="sizeVal" :form="form" :required="required == \'required\' ? true : false" :moqui-key="upperCaseMoquiKey">' +
         '<span class="input-group-addon"><span class="fa fa-calendar"></span></span>' +
     '</div>',
     methods: {
@@ -883,7 +897,14 @@ Vue.component('date-time', {
             (this.type === 'date' ? ['l', 'L', 'YYYY-MM-DD'] : ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD HH:mm:ss', 'MM/DD/YYYY HH:mm']); },
         sizeVal: function() { var size = this.size; if (size && size.length > 0) { return size; }
             return this.type === 'time' ? '9' : (this.type === 'date' ? '10' : '16'); },
-        timePattern: function() { return '^(?:(?:([01]?\\d|2[0-3]):)?([0-5]?\\d):)?([0-5]?\\d)$'; }
+        timePattern: function() { return '^(?:(?:([01]?\\d|2[0-3]):)?([0-5]?\\d):)?([0-5]?\\d)$'; },
+        upperCaseMoquiKey: function(){
+            if(this.moquiKey){
+                return this.moquiKey.toUpperCase();
+            }else{
+                return null;
+            }
+        }
     },
     mounted: function() {
         var vm = this;
@@ -950,9 +971,9 @@ Vue.component('drop-down', {
     props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String, submitOnSelect:Boolean, optionsUrl:String,
         serverSearch:{type:Boolean,'default':false}, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
         optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object, dependsOptional:Boolean,
-        optionsLoadInit:Boolean, form:String, tooltip:String },
+        optionsLoadInit:Boolean, form:String, tooltip:String, moquiKey:String },
     data: function() { return { curData:null, s2Opts:null, lastVal:null } },
-    template: '<select :form="form" :data-title="tooltip"><slot></slot></select>',
+    template: '<select :form="form" :data-title="tooltip" :moqui-key="upperCaseMoquiKey" ><slot></slot></select>',
     methods: {
         processOptionList: function(list, page, term) {
             var newData = [];
@@ -1056,7 +1077,16 @@ Vue.component('drop-down', {
         }
     },
     computed: { curVal: { get: function() { return $(this.$el).select2().val(); },
-        set: function(value) { $(this.$el).val(value).trigger('change'); /* console.log('set ' + $(this.$el).attr('name') + ' to ' + this.curVal); */ } } },
+        set: function(value) { $(this.$el).val(value).trigger('change'); /* console.log('set ' + $(this.$el).attr('name') + ' to ' + this.curVal); */ } },
+        upperCaseMoquiKey: function(){
+            if(this.moquiKey){
+                return this.moquiKey.toUpperCase();
+            }else{
+                return null;
+            }
+        }
+
+        },
     watch: {
         value: function(value) { this.curVal = value; },
         options: function(options) { this.curData = options; },
@@ -1090,18 +1120,25 @@ Vue.component('text-autocomplete', {
         type:String, size:String, maxlength:String, disabled:Boolean, validationClasses:String, dataVvValidation:String,
         required:Boolean, pattern:String, tooltip:String, form:String, delay:{type:Number,'default':300},
         url:{type:String,required:true}, dependsOn:Object, acParameters:Object, minLength:{type:Number,'default':1},
-        showValue:Boolean, useActual:Boolean, skipInitial:Boolean },
+        showValue:Boolean, useActual:Boolean, skipInitial:Boolean, moquiKey:String },
     data: function () { return { delayTimeout:null } },
     template:
     '<span><input ref="acinput" :id="acId" :name="acName" :type="type" :value="valueText" :size="size" :maxlength="maxlength" :disabled="disabled"' +
         ' :class="allClasses" :data-vv-validation="validationClasses" :required="required" :pattern="pattern"' +
-        ' :data-toggle="tooltipToggle" :title="tooltip" autocomplete="off" :form="form">' +
+        ' :data-toggle="tooltipToggle" :title="tooltip" autocomplete="off" :form="form" :moqui-key="upperCaseMoquiKey" >' +
         '<input ref="hidden" :id="id" type="hidden" :name="name" :value="value" :form="form">' +
         '<span ref="show" v-if="showValue" :id="showId" class="form-autocomplete-value">{{valueText}}</span>' +
     '</span>',
     computed: { acId: function() { return this.id + '_ac'; }, acName: function() { return this.name + '_ac'; },
         allClasses: function() { return 'form-control typeahead' + (this.validationClasses ? ' ' + this.validationClasses : ''); },
-        showId: function() { return this.id + '_show'; }, tooltipToggle: function() { return this.tooltip && this.tooltip.length > 0 ? 'tooltip' : null; }
+        showId: function() { return this.id + '_show'; }, tooltipToggle: function() { return this.tooltip && this.tooltip.length > 0 ? 'tooltip' : null; },
+        upperCaseMoquiKey: function(){
+            if(this.moquiKey){
+                return this.moquiKey.toUpperCase();
+            }else{
+                return null;
+            }
+        }
     },
     methods: { fetchResults: function(query, syncResults, asyncResults) {
         if (this.delayTimeout) { clearTimeout(this.delayTimeout); }

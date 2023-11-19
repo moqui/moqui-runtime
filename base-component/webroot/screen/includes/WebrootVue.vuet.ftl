@@ -26,14 +26,14 @@ along with this software (see the LICENSE.md file). If not, see
     <div id="top"><nav class="navbar navbar-inverse navbar-fixed-top"><#--  navbar-fixed-top navbar-static-top --><div class="container-fluid">
         <#-- Brand and toggle get grouped for better mobile display -->
         <header class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse" >
                 <span class="sr-only">Toggle navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
         <#assign headerLogoList = sri.getThemeValues("STRT_HEADER_LOGO")>
-        <#if headerLogoList?has_content><m-link href="/apps" class="navbar-brand"><img src="${sri.buildUrl(headerLogoList?first).getUrl()}" alt="Home"></m-link></#if>
+        <#if headerLogoList?has_content><m-link href="/apps" class="navbar-brand" moqui-key="`"><img src="${sri.buildUrl(headerLogoList?first).getUrl()}" alt="Home"></m-link></#if>
         <#assign headerTitleList = sri.getThemeValues("STRT_HEADER_TITLE")>
         <#if headerTitleList?has_content><div class="navbar-brand">${ec.resource.expand(headerTitleList?first, "")}</div></#if>
         </header>
