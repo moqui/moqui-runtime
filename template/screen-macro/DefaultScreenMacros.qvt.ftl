@@ -333,13 +333,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                             <#t> color="<@getQuasarColor linkNode["@btn-type"]!"primary"/>" class="m-link<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"
                             <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>>
                         <#t><#if linkNode["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(linkNode["@tooltip"], "")}</span></q-tooltip></#if>
-<<<<<<< HEAD
                         <#t><#if iconClass?has_content><i class="${iconClass} q-icon
                         <#t><#if linkText?? && linkText?trim?has_content> on-left</#if>"></i> </#if>
                         <#t><span v-pre>${linkText}</span>
-=======
-                        <#t><#if iconClass?has_content><i class="${iconClass} q-icon<#if linkText?? && linkText?trim?has_content> on-left</#if>"></i> </#if>${linkText}
->>>>>>> e449510 (In qvt and vuet screen macros add span v-pre around one more place in link macros, in qvt add span v-pre around all q-tooltip text)
                         <#t><#if badgeMessage?has_content> <q-badge class="on-right" transparent>${badgeMessage}</q-badge></#if>
                     <#t></q-btn>
                 </#if>
