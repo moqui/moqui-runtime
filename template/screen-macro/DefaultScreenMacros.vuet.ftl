@@ -293,7 +293,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#rt><button type="submit" class="<#if linkNode["@link-type"]! == "hidden-form-link">button-plain<#else>btn btn-${linkNode["@btn-type"]!"primary"} btn-sm</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"
                         <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>
                         <#t><#if linkNode["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(linkNode["@tooltip"], "")}"</#if>>
-                        <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if>${linkText}<#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if></button>
+                        <#t><#if iconClass?has_content><i class="${iconClass}"></i> </#if>
+                        <#t><span v-pre>${linkText}</span><#if badgeMessage?has_content> <span class="badge">${badgeMessage}</span></#if></button>
                 </#if>
             </#if>
         </${linkFormType}>
