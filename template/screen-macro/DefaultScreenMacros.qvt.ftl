@@ -1140,6 +1140,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign isServerStatic = formInstance.isServerStatic(sri.getRenderMode())>
     <#assign formDisabled = formListUrlInfo.disableLink>
 
+
 <#if isServerStatic><#-- client rendered, server static -->
     <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
     <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
