@@ -260,7 +260,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#t><#if linkFormId?has_content> id="${linkFormId}"</#if><#if linkText?has_content> label="${linkText}"</#if>>
                 <#if iconClass?has_content><i class="${iconClass}"></i></#if><#if linkNode["image"]?has_content><#visit linkNode["image"][0]></#if>
             </q-btn>
-            <#t><#if linkNode["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(linkNode["@tooltip"], "")}</q-tooltip></#if>
+            <#t><#if linkNode["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(linkNode["@tooltip"], "")}</span></q-tooltip></#if>
         </span>
     <#else>
         <#assign confirmationMessage = ec.getResource().expand(linkNode["@confirmation"]!, "")/>
@@ -284,9 +284,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#else>
                     <#t> class="<#if linkNode["@style"]?has_content> ${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>">
                 </#if>
-                <#t><#if linkNode["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(linkNode["@tooltip"], "")}</q-tooltip></#if>
+                <#t><#if linkNode["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(linkNode["@tooltip"], "")}</span></q-tooltip></#if>
                 <#t><#if iconClass?has_content><i class="${iconClass} q-icon<#if linkText?? && linkText?trim?has_content> on-left</#if>"></i> </#if><#rt>
-                <#t><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else>${linkText}</#if>
+                <#t><#if linkNode["image"]?has_content><#visit linkNode["image"][0]><#else><span v-pre>${linkText}</span></#if>
                 <#t><#if badgeMessage?has_content> <q-badge class="on-right" transparent>${badgeMessage}</q-badge></#if>
                 <#if linkNode["@link-type"]! != "anchor"></q-btn></#if>
             <#t></${linkElement}>
@@ -295,12 +295,12 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#rt><q-btn dense outline no-caps type="submit" form="${linkFormId}" id="${linkFormId}_button" color="<@getQuasarColor linkNode["@btn-type"]!"primary"/>"
                     <#t> class="<#if linkNode["@style"]?has_content>${ec.getResource().expandNoL10n(linkNode["@style"], "")}</#if>"
                     <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>>
-                    <#t><#if linkNode["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(linkNode["@tooltip"], "")}</q-tooltip></#if>
+                    <#t><#if linkNode["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(linkNode["@tooltip"], "")}</span></q-tooltip></#if>
                 <#t><#if iconClass?has_content><i class="${iconClass} q-icon<#if linkText?? && linkText?trim?has_content> on-left</#if>"></i> </#if>
                 <#if linkNode["image"]?has_content>
                     <#t><img src="${sri.makeUrlByType(imageNode["@url"],imageNode["@url-type"]!"content",null,"true")}"<#if imageNode["@alt"]?has_content> alt="${imageNode["@alt"]}"</#if>/>
                 <#else>
-                    <#t>${linkText}
+                    <#t><span v-pre>${linkText}</span>
                 </#if>
                 <#t><#if badgeMessage?has_content> <q-badge class="on-right" transparent>${badgeMessage}</q-badge></#if>
             <#t></q-btn>
@@ -332,8 +332,10 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#rt><q-btn dense no-caps type="submit" <#if linkNode["@link-type"]! == "hidden-form-link">flat<#else>outline</#if>
                             <#t> color="<@getQuasarColor linkNode["@btn-type"]!"primary"/>" class="m-link<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"
                             <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}')"</#if>>
-                        <#t><#if linkNode["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(linkNode["@tooltip"], "")}</q-tooltip></#if>
-                        <#t><#if iconClass?has_content><i class="${iconClass} q-icon<#if linkText?? && linkText?trim?has_content> on-left</#if>"></i> </#if>${linkText}
+                        <#t><#if linkNode["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(linkNode["@tooltip"], "")}</span></q-tooltip></#if>
+                        <#t><#if iconClass?has_content><i class="${iconClass} q-icon
+                        <#t><#if linkText?? && linkText?trim?has_content> on-left</#if>"></i> </#if>
+                        <#t><span v-pre>${linkText}</span>
                         <#t><#if badgeMessage?has_content> <q-badge class="on-right" transparent>${badgeMessage}</q-badge></#if>
                     <#t></q-btn>
                 </#if>
@@ -363,7 +365,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if labelValue?trim?has_content || .node["@condition"]?has_content>
             <#if .node["@encode"]! != "false"><#assign labelValue = labelValue?html>
                 <#if labelType != 'code' && labelType != 'pre'><#assign labelValue = labelValue?replace("\n", "<br>")></#if></#if>
-<${labelType}<#if labelDivId?has_content> id="${labelDivId}"</#if> class="text-inline <#if .node["@style"]?has_content>${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"<#if .node["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node["@tooltip"], "")}"</#if>>${labelValue}</${labelType}>
+<${labelType}<#if labelDivId?has_content> id="${labelDivId}"</#if> v-pre class="text-inline <#if .node["@style"]?has_content>${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>"<#if .node["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node["@tooltip"], "")}"</#if>>${labelValue}</${labelType}>
         </#if>
     </#if>
 </#macro>
@@ -410,7 +412,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <q-btn-dropdown dense outline no-caps color="<@getQuasarColor .node["@btn-type"]!"primary"/>"<#rt>
                 <#lt><#if .node["@style"]?has_content> class="${ec.getResource().expandNoL10n(.node["@style"], "")}"</#if>>
             <template v-slot:label>
-                <#if .node["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node["@tooltip"], "")}</q-tooltip></#if>
+                <#if .node["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node["@tooltip"], "")}</span></q-tooltip></#if>
                 <#if iconClass?has_content><i class="${iconClass} q-icon<#if linkText?? && linkText?trim?has_content> on-left</#if>"></i></#if>
                 <#if .node["image"]?has_content><#visit .node["image"][0]><#else>${linkText}</#if>
                 <#if badgeMessage?has_content><q-badge class="on-right" transparent>${badgeMessage}</q-badge></#if>
@@ -1086,7 +1088,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign buttonText = ec.getResource().expand(dialogNode["@button-text"], "")>
                 <#assign title = ec.getResource().expand(dialogNode["@title"], "")>
                 <#if !title?has_content><#assign title = buttonText></#if>
-                <m-container-dialog color="<@getQuasarColor ec.getResource().expandNoL10n(dialogNode["@button-type"]!"primary", "")/>"
+                <#-- add my-md and my-sm spacing to match inline form-single with field-row-big -->
+                <span class="q-my-md"><div class="q-ma-sm">
+                    <m-container-dialog color="<@getQuasarColor ec.getResource().expandNoL10n(dialogNode["@button-type"]!"primary", "")/>"
                         width="${dialogNode["@width"]!""}" title="${title}" button-text="${buttonText}"
                         button-class="${ec.getResource().expandNoL10n(dialogNode["@button-style"]!"", "")}">
             </#if>
@@ -1096,7 +1100,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign _formListSelectedForm = false>
 
             <#if dialogNodes?has_content>
-                </m-container-dialog>
+                    </m-container-dialog>
+                </div></span>
             </#if>
         </#list>
     </q-card-section></q-card>
@@ -1132,7 +1137,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign isServerStatic = formInstance.isServerStatic(sri.getRenderMode())>
     <#assign formDisabled = formListUrlInfo.disableLink>
 
-<#if isServerStatic><#-- client rendered, static -->
+<#if isServerStatic><#-- client rendered, server static -->
     <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
     <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
     <#-- TODO: form-list server-static needs to be revisited still for Quasar -->
@@ -1274,6 +1279,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign ownerForm = formId + "_first">
         <#assign fieldsJsName = "formProps.fields">
         <tr class="first">
+            <#if isRowSelection>
+                <div class="td"> </div>
+            </#if>
             <#list mainColInfoList as columnFieldList>
                 <td>
                     <#list columnFieldList as fieldNode>
@@ -1304,6 +1312,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign ownerForm = formId + "_second">
         <#assign fieldsJsName = "formProps.fields">
         <tr class="second">
+            <#if isRowSelection>
+                <div class="td"> </div>
+            </#if>
             <#list mainColInfoList as columnFieldList>
                 <td>
                     <#list columnFieldList as fieldNode>
@@ -1395,6 +1406,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#assign ownerForm = formId + "_last">
         <#assign fieldsJsName = "formProps.fields">
         <div class="tr last">
+            <#if isRowSelection>
+                <div class="td"> </div>
+            </#if>
             <#list mainColInfoList as columnFieldList>
                 <div class="td">
                     <#list columnFieldList as fieldNode>
@@ -1621,7 +1635,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#assign useWrapper = (.node["@no-wrapper"]!"false") != "true">
     <#if useWrapper>
     <q-field dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if><#if containerStyle?has_content> class="${containerStyle}"</#if><#if formDisabled!false> disable</#if>>
-        <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
+        <#if .node?parent["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node?parent["@tooltip"], "")}</span></q-tooltip></#if>
         <template v-slot:control>
     </#if>
             <#list (options.keySet())! as key>
@@ -1820,13 +1834,13 @@ a => A, d => D, y => Y
         <#t><q-input dense outlined readonly<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if> id="${dispFieldId}_display"
                 <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${dispFieldName}_display"</#if>
                 <#t>class="<#if dispAlign == "center"> text-center<#elseif dispAlign == "right"> text-right</#if><#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>">
-            <#if dispSubFieldNode["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(dispSubFieldNode["@tooltip"], "")}</q-tooltip></#if>
+            <#if dispSubFieldNode["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(dispSubFieldNode["@tooltip"], "")}</span></q-tooltip></#if>
             <#-- TODO not sure if this will be used, might be for plain forms (not m-form or m-form-link) but need to find way to display like v-model as this ends up looking funny -->
             <#t><#if !fieldsJsName?has_content && fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if>
         <#t></q-input>
     <#else>
         <#t><span class="text-inline<#if .node["@style"]?has_content> ${ec.getResource().expandNoL10n(.node["@style"], "")}</#if>">
-            <#if dispSubFieldNode["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(dispSubFieldNode["@tooltip"], "")}</q-tooltip></#if>
+            <#if dispSubFieldNode["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(dispSubFieldNode["@tooltip"], "")}</span></q-tooltip></#if>
             <#if fieldValue?has_content><#if .node["@encode"]! == "false">${fieldValue}<#else>${fieldValue?html?replace("\n", "<br>")}</#if><#else>&nbsp;</#if></span>
     </#if>
 
@@ -1901,7 +1915,7 @@ a => A, d => D, y => Y
     <#assign acceptText = ec.getResource().expand(.node.@accept, "")>
     <q-file dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}"</#if><#if formDisabled!> disable</#if>
             name="<@fieldName .node/>" size="${.node.@size!"30"}"<#if .node.@multiple! == "true"> multiple</#if><#if .node.@accept?has_content> accept="${acceptText}"</#if><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-        <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
+        <#if .node?parent["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node?parent["@tooltip"], "")}</span></q-tooltip></#if>
     </q-file>
 </#macro>
 
@@ -1924,7 +1938,7 @@ a => A, d => D, y => Y
             <#t> class="form-control<#if validationClasses?has_content> ${validationClasses}</#if>" size="${.node.@size!"25"}"
             <#t><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
             <#t><#if validationClasses?contains("required")> required</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-        <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
+        <#if .node?parent["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node?parent["@tooltip"], "")}</span></q-tooltip></#if>
     </q-input>
 </#macro>
 
@@ -1936,7 +1950,7 @@ a => A, d => D, y => Y
     <#assign curName><@fieldName .node/></#assign>
     <#assign fieldLabel><@fieldTitle .node?parent/></#assign>
     <q-field dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if><#if formDisabled!> disable</#if>>
-        <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
+        <#if .node?parent["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node?parent["@tooltip"], "")}</span></q-tooltip></#if>
         <template v-slot:control>
         <#list (options.keySet())! as key>
             <q-radio size="xs" val="${key?html}" label="${(options.get(key)!"")?html}" name="${curName}" id="${tlId}<#if (key_index > 0)>_${key_index}</#if>"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
@@ -1955,12 +1969,12 @@ a => A, d => D, y => Y
     <q-input dense outlined stack-label label="${fieldLabel} ${ec.getL10n().localize('From')}" name="${curFieldName}_from" id="${tlId}_from"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
             <#t> size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
             <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_from"<#else> value="${ec.getContext().get(curFieldName + "_from")!?default(.node["@default-value-from"]!"")?html}"</#if>>
-        <#if curTooltip?has_content><q-tooltip>${curTooltip}</q-tooltip></#if>
+        <#if curTooltip?has_content><q-tooltip><span v-pre>${curTooltip}</span></q-tooltip></#if>
     </q-input>
     <q-input class="q-pl-xs" dense outlined stack-label label="${fieldLabel} ${ec.getL10n().localize('Thru')}" name="${curFieldName}_thru" id="${tlId}_thru"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
             <#t> size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
             <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_thru"<#else> value="${ec.getContext().get(curFieldName + "_thru")!?default(.node["@default-value-thru"]!"")?html}"</#if>>
-        <#if curTooltip?has_content><q-tooltip>${curTooltip}</q-tooltip></#if>
+        <#if curTooltip?has_content><q-tooltip><span v-pre>${curTooltip}</span></q-tooltip></#if>
     </q-input>
 </div>
 </#macro>
@@ -1977,7 +1991,7 @@ a => A, d => D, y => Y
             <#t><#if confirmationMessage?has_content> onclick="return confirm('${confirmationMessage?js_string}');"</#if>
             <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if !.node["image"]?has_content> label="${buttonText}"</#if>>
         <#if iconClass?has_content><i class="${iconClass}"></i></#if>
-        <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
+        <#if .node?parent["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node?parent["@tooltip"], "")}</span></q-tooltip></#if>
     <#if .node["image"]?has_content><#assign imageNode = .node["image"][0]>
         <img src="${sri.makeUrlByType(imageNode["@url"],imageNode["@url-type"]!"content",null,"true")}" alt="<#if imageNode["@alt"]?has_content>${imageNode["@alt"]}<#else><@fieldTitle .node?parent/></#if>"<#if imageNode["@width"]?has_content> width="${imageNode["@width"]}"</#if><#if imageNode["@height"]?has_content> height="${imageNode["@height"]}"</#if>>
     </#if>
@@ -2008,7 +2022,7 @@ a => A, d => D, y => Y
                 <#t> rows="${.node["@rows"]!"3"}"<#if .node["@read-only"]! == "true"> readonly="readonly"</#if>
                 <#t><#if .node["@autogrow"]! == "true"> autogrow</#if>
                 <#t><#if .node["@maxlength"]?has_content> maxlength="${.node["@maxlength"]}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
-            <#if .node?parent["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node?parent["@tooltip"], "")}</q-tooltip></#if>
+            <#if .node?parent["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node?parent["@tooltip"], "")}</span></q-tooltip></#if>
             <#if !fieldsJsName?has_content>${sri.getFieldValueString(.node)?html}</#if>
         </q-input>
     </#if>
@@ -2089,7 +2103,7 @@ a => A, d => D, y => Y
             <#t> size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if> id="<@fieldId .node/>"
             <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>
             <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}"<#else> value="${sri.getFieldValueString(.node)?html}"</#if>>
-        <#if .node["@tooltip"]?has_content><q-tooltip>${ec.getResource().expand(.node["@tooltip"], "")}</q-tooltip></#if>
+        <#if .node["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node["@tooltip"], "")}</q-tooltip></#if>
         <#if hideOptions != "true" && (hideOptions != "ignore-case" || hideOptions != "operator")>
         <template v-slot:after>
             <#if hideOptions != "operator">
