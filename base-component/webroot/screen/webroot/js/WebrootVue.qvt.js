@@ -853,7 +853,8 @@ Vue.component('m-form', {
         fieldChanged: function(name) {
             var curValue = this.fields[name];
             var originalValue = this.fieldsOriginal[name];
-            return moqui.isArray(curValue) ? !moqui.arraysEqual(curValue, originalValue, true) : curValue !== originalValue;
+            return moqui.isArray(curValue) ? !moqui.arraysEqual(curValue, originalValue, true) :
+                !moqui.equalsOrPlaceholder(curValue, originalValue);
         }
     },
     computed: {
@@ -974,7 +975,8 @@ Vue.component('m-form-link', {
         fieldChanged: function(name) {
             var curValue = this.fields[name];
             var originalValue = this.fieldsOriginal[name];
-            return moqui.isArray(curValue) ? !moqui.arraysEqual(curValue, originalValue, true) : curValue !== originalValue;
+            return moqui.isArray(curValue) ? !moqui.arraysEqual(curValue, originalValue, true) :
+                !moqui.equalsOrPlaceholder(curValue, originalValue);
         }
     },
     computed: {
@@ -1324,6 +1326,7 @@ Vue.component('m-date-time', {
         // TODO if (format === "YYYY-MM-DD HH:mm") { jqEl.find('input').inputmask("yyyy-mm-dd hh:mm", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
     }
 });
+
 moqui.dateOffsets = [{value:'0',label:'This'},{value:'-1',label:'Last'},{value:'1',label:'Next'},
     {value:'-2',label:'-2'},{value:'2',label:'+2'},{value:'-3',label:'-3'},{value:'-4',label:'-4'},{value:'-6',label:'-6'},{value:'-12',label:'-12'}];
 moqui.datePeriods = [{value:'day',label:'Day'},{value:'7d',label:'7 Days'},{value:'30d',label:'30 Days'},{value:'week',label:'Week'},{value:'weeks',label:'Weeks'},

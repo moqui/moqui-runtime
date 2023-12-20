@@ -1666,7 +1666,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
       <m-date-time id="<@fieldId .node/>_from" name="${curFieldName}_from" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
           <#t> label="${curFieldTitle} ${ec.getL10n().localize("From")}"
           <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_from"<#else> value="${fieldValueFrom?html}"</#if>
-          <#-- TODO-FC <#t> :bg-color="formProps.fieldChanged('${curFieldName}_from')?'blue-1':''" -->
+          <#t> :bg-color="formProps.fieldChanged('${curFieldName}_from')?'blue-1':''"
           <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
           <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>></m-date-time>
     </span>
@@ -1674,7 +1674,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
       <m-date-time id="<@fieldId .node/>_thru" name="${curFieldName}_thru" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
           <#t> label="${curFieldTitle} ${ec.getL10n().localize("Thru")}"
           <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_thru"<#else> value="${fieldValueThru?html}"</#if>
-          <#-- TODO-FC <#t> :bg-color="formProps.fieldChanged('${curFieldName}_thru')?'blue-1':''" -->
+          <#t> :bg-color="formProps.fieldChanged('${curFieldName}_thru')?'blue-1':''"
           <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
           <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>></m-date-time>
     </span>
