@@ -30,6 +30,27 @@ var moqui = {
         }
         return true;
     },
+    fieldValuesDiff: function(fields, fieldsOriginal) {
+        var foundDiff = false;
+        var fieldsKeys = Object.keys(fields);
+        for (var fieldIdx in fieldsKeys) {
+            var name = fieldsKeys[fieldIdx];
+            var curValue = fields[name];
+            var originalValue = fieldsOriginal[name];
+            if (moqui.isArray(curValue)) {
+                if (!moqui.arraysEqual(curValue, originalValue, true)) {
+                    foundDiff = true;
+                    break;
+                }
+            } else {
+                if (curValue !== originalValue) {
+                    foundDiff = true;
+                    break;
+                }
+            }
+        }
+        return foundDiff;
+    },
     objToSearch: function(obj) {
         var search = "";
         if (moqui.isPlainObject(obj)) $.each(obj, function (key, value) { search = search + (search.length > 0 ? '&' : '') + key + '=' + value; });

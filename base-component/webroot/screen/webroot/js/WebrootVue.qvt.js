@@ -851,30 +851,14 @@ Vue.component('m-form', {
             }
         },
         fieldChanged: function(name) {
-            return this.fields[name] !== this.fieldsOriginal[name];
+            var curValue = this.fields[name];
+            var originalValue = this.fieldsOriginal[name];
+            return moqui.isArray(curValue) ? !moqui.arraysEqual(curValue, originalValue, true) : curValue !== originalValue;
         }
     },
     computed: {
         hasFieldsChanged: function() {
-            var foundDiff = false;
-            var fieldsKeys = Object.keys(this.fields);
-            for (var fieldIdx in fieldsKeys) {
-                var name = fieldsKeys[fieldIdx];
-                var curValue = this.fields[name];
-                var originalValue = this.fieldsOriginal[name];
-                if (moqui.isArray(curValue)) {
-                    if (!moqui.arraysEqual(curValue, originalValue, true)) {
-                        foundDiff = true;
-                        break;
-                    }
-                } else {
-                    if (curValue !== originalValue) {
-                        foundDiff = true;
-                        break;
-                    }
-                }
-            }
-            return foundDiff;
+            return moqui.fieldValuesDiff(this.fields, this.fieldsOriginal);
         }
     },
     mounted: function() {
@@ -890,10 +874,10 @@ Vue.component('m-form', {
 Vue.component('m-form-link', {
     name: "mFormLink",
     props: { fieldsInitial:Object, action:{type:String,required:true}, focusField:String, noValidate:Boolean, bodyParameterNames:Array },
-    data: function() { return { fields:Object.assign({}, this.fieldsInitial) }},
+    data: function() { return { fields:Object.assign({}, this.fieldsInitial), fieldsOriginal:Object.assign({}, this.fieldsInitial) }},
     template:
         '<q-form ref="qForm" @submit.prevent="submitForm" @reset.prevent="resetForm" autocapitalize="off" autocomplete="off">' +
-            '<slot :clearForm="clearForm" :fields="fields"></slot></q-form>',
+            '<slot :clearForm="clearForm" :fields="fields" :hasFieldsChanged="hasFieldsChanged" :fieldChanged="fieldChanged"></slot></q-form>',
     methods: {
         submitForm: function() {
             if (this.noValidate) {
@@ -986,6 +970,16 @@ Vue.component('m-form-link', {
         clearForm: function() {
             // TODO: probably need to iterate over object and clear each value
             this.fields = {};
+        },
+        fieldChanged: function(name) {
+            var curValue = this.fields[name];
+            var originalValue = this.fieldsOriginal[name];
+            return moqui.isArray(curValue) ? !moqui.arraysEqual(curValue, originalValue, true) : curValue !== originalValue;
+        }
+    },
+    computed: {
+        hasFieldsChanged: function() {
+            return moqui.fieldValuesDiff(this.fields, this.fieldsOriginal);
         }
     },
     mounted: function() {
@@ -1232,12 +1226,13 @@ Vue.component('m-date-time', {
     name: "mDateTime",
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'}, label:String,
         size:String, format:String, tooltip:String, form:String, required:String, rules:Array, disable:Boolean, autoYear:String,
-        minuteStep:{type:Number,'default':5} },
+        minuteStep:{type:Number,'default':5}, bgColor:String },
     template:
     // NOTE: tried :fill-mask="formatVal" but results in all Y, only supports single character for mask placeholder... how to show more helpful date mask?
     // TODO: add back @focus="focusDate" @blur="blurDate" IFF needed given different mask/etc behavior
     '<q-input dense outlined stack-label :label="label" v-bind:value="value" v-on:input="$emit(\'input\', $event)" :rules="rules"' +
-            ' :mask="inputMask" fill-mask :id="id" :name="name" :form="form" :disable="disable" :size="sizeVal" style="max-width:max-content;">' +
+            ' :mask="inputMask" fill-mask :id="id" :name="name" :form="form" :disable="disable" :size="sizeVal"' +
+            ' style="max-width:max-content;" :bg-color="bgColor">' +
         '<template v-slot:prepend v-if="type==\'date\' || type==\'date-time\' || !type">' +
             '<q-icon name="event" class="cursor-pointer">' +
                 '<q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">' +
@@ -1490,7 +1485,7 @@ Vue.component('m-drop-down', {
         serverSearch:Boolean, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
         labelField:{type:String,'default':'label'}, valueField:{type:String,'default':'value'},
         dependsOn:Object, dependsOptional:Boolean, form:String, fields:{type:Object},
-        tooltip:String, label:String, name:String, id:String, disable:Boolean, onSelectGoTo:String },
+        tooltip:String, label:String, name:String, id:String, disable:Boolean, bgColor:String, onSelectGoTo:String },
     data: function() { return { curOptions:this.options, allOptions:this.options, lastVal:null, lastSearch:null, loading:false } },
     template:
         // was: ':fill-input="!multiple" hide-selected' changed to ':hide-selected="multiple"' to show selected to the left of input,
@@ -1500,7 +1495,7 @@ Vue.component('m-drop-down', {
                 ' input-debounce="500" @filter="filterFn" :clearable="allowEmpty||multiple" :disable="disable"' +
                 ' :multiple="multiple" :emit-value="!onSelectGoTo" map-options behavior="menu"' +
                 ' :rules="[val => allowEmpty||multiple||val===\'\'||(val&&val.length)||\'Please select an option\']"' +
-                ' stack-label :label="label" :loading="loading" :options="curOptions">' +
+                ' stack-label :label="label" :loading="loading" :bg-color="bgColor" :options="curOptions">' +
             '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
             '<template v-slot:no-option><q-item><q-item-section class="text-grey">No results</q-item-section></q-item></template>' +
             '<template v-if="multiple" v-slot:prepend><div>' +
