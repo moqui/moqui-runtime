@@ -650,13 +650,15 @@ Vue.component('m-form', {
     props: { fieldsInitial:Object, action:{type:String,required:true}, method:{type:String,'default':'POST'},
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean,
         excludeEmptyFields:Boolean, parentCheckboxSet:Object },
-    data: function() { return { fields:Object.assign({}, this.fieldsInitial), fieldsChanged:{}, buttonClicked:null }},
+    data: function() { return { fields:Object.assign({}, this.fieldsInitial),
+        fieldsOriginal:Object.assign({}, this.fieldsInitial), buttonClicked:null }},
     // NOTE: <slot v-bind:fields="fields"> also requires prefix from caller, using <m-form v-slot:default="formProps"> in qvt.ftl macro
     // see https://vuejs.org/v2/guide/components-slots.html
     template:
         '<q-form ref="qForm" @submit.prevent="submitForm" @reset.prevent="resetForm" autocapitalize="off" autocomplete="off">' +
             '<slot :fields="fields" :checkboxAllState="checkboxAllState" :setCheckboxAllState="setCheckboxAllState"' +
-                ' :checkboxStates="checkboxStates" :addCheckboxParameters="addCheckboxParameters"></slot>' +
+                ' :checkboxStates="checkboxStates" :addCheckboxParameters="addCheckboxParameters"' +
+                ' :blurSubmitForm="blurSubmitForm" :hasFieldsChanged="hasFieldsChanged" :fieldChanged="fieldChanged"></slot>' +
         '</q-form>',
     methods: {
         submitForm: function() {
@@ -699,8 +701,16 @@ Vue.component('m-form', {
             }
         },
         resetForm: function() {
-            this.fields = Object.assign({}, this.fieldsInitial);
-            this.fieldsChanged = {};
+            this.fields = Object.assign({}, this.fieldsOriginal);
+        },
+        blurSubmitForm: function(event) {
+            // add to vue template form fields, like in DefaultScreenMacros.qvt.ftl: @blur="formProps.blurSubmitForm($event)"
+            // TODO MAYBE only send value for field changed (plus all hidden fields), where applicable will help with multi-user conflicts?
+            // FUTURE: do more than just submit the form: support submit without reload screen and only reload form data
+            if (this.hasFieldsChanged) {
+                this.submitForm();
+            }
+            return true;
         },
         submitGo: function() {
             var vm = this;
@@ -839,58 +849,24 @@ Vue.component('m-form', {
             } else if (!notified) {
                 moqui.webrootVue.$q.notify($.extend({}, moqui.notifyOpts, { message:"Submit successful" }));
             }
+        },
+        fieldChanged: function(name) {
+            var curValue = this.fields[name];
+            var originalValue = this.fieldsOriginal[name];
+            return moqui.isArray(curValue) ? !moqui.arraysEqual(curValue, originalValue, true) :
+                !moqui.equalsOrPlaceholder(curValue, originalValue);
         }
-        /* TODO
-        fieldChange: function (evt) {
-            var targetDom = evt.delegateTarget; var targetEl = $(targetDom);
-            if (targetEl.hasClass("input-group") && targetEl.children("input").length) {
-                // special case for date-time using bootstrap-datetimepicker
-                targetEl = targetEl.children("input").first();
-                targetDom = targetEl.get(0);
-            }
-            var changed = false;
-            if (targetDom.nodeName === "INPUT" || targetDom.nodeName === "TEXTAREA") {
-                if (targetEl.attr("type") === "radio" || targetEl.attr("type") === "checkbox") {
-                    changed = targetDom.checked !== targetDom.defaultChecked; }
-                else { changed = targetDom.value !== targetDom.defaultValue; }
-            } else if (targetDom.nodeName === "SELECT") {
-                if (targetDom.multiple) {
-                    var optLen = targetDom.options.length;
-                    for (var i = 0; i < optLen; i++) {
-                        var opt = targetDom.options[i];
-                        if (opt.selected !== opt.defaultSelected) { changed = true; break; }
-                    }
-                } else {
-                    changed = !targetDom.options[targetDom.selectedIndex].defaultSelected;
-                }
-            }
-            // console.log("changed? " + changed + " node " + targetDom.nodeName + " type " + targetEl.attr("type") + " " + targetEl.attr("name") + " to " + targetDom.value + " default " + targetDom.defaultValue);
-            // console.log(targetDom.defaultValue);
-            if (changed) {
-                this.fieldsChanged[targetEl.attr("name")] = true;
-                targetEl.parents(".form-group").children("label").addClass("is-changed");
-                targetEl.parents(".form-group").find(".select2-selection").addClass("is-changed");
-                targetEl.addClass("is-changed");
-            } else {
-                this.fieldsChanged[targetEl.attr("name")] = false;
-                targetEl.parents(".form-group").children("label").removeClass("is-changed");
-                targetEl.parents(".form-group").find(".select2-selection").removeClass("is-changed");
-                targetEl.removeClass("is-changed");
-            }
+    },
+    computed: {
+        hasFieldsChanged: function() {
+            return moqui.fieldValuesDiff(this.fields, this.fieldsOriginal);
         }
-         */
     },
     mounted: function() {
         var vm = this;
         var jqEl = $(this.$el);
         if (this.focusField && this.focusField.length) jqEl.find('[name^="' + this.focusField + '"]').addClass('default-focus').focus();
 
-        /* TODO: should not need to watch input fields any more
-        // watch changed fields
-        jqEl.find(':input').on('change', this.fieldChange);
-        // special case for date-time using bootstrap-datetimepicker
-        jqEl.find('div.input-group.date').on('change', this.fieldChange);
-        */
         // TODO: find other way to get button clicked (Vue event?)
         // watch button clicked
         jqEl.find('button[type="submit"], input[type="submit"], input[type="image"]').on('click', function() { vm.buttonClicked = this; });
@@ -899,10 +875,10 @@ Vue.component('m-form', {
 Vue.component('m-form-link', {
     name: "mFormLink",
     props: { fieldsInitial:Object, action:{type:String,required:true}, focusField:String, noValidate:Boolean, bodyParameterNames:Array },
-    data: function() { return { fields:Object.assign({}, this.fieldsInitial) }},
+    data: function() { return { fields:Object.assign({}, this.fieldsInitial), fieldsOriginal:Object.assign({}, this.fieldsInitial) }},
     template:
         '<q-form ref="qForm" @submit.prevent="submitForm" @reset.prevent="resetForm" autocapitalize="off" autocomplete="off">' +
-            '<slot :clearForm="clearForm" :fields="fields"></slot></q-form>',
+            '<slot :clearForm="clearForm" :fields="fields" :hasFieldsChanged="hasFieldsChanged" :fieldChanged="fieldChanged"></slot></q-form>',
     methods: {
         submitForm: function() {
             if (this.noValidate) {
@@ -995,6 +971,17 @@ Vue.component('m-form-link', {
         clearForm: function() {
             // TODO: probably need to iterate over object and clear each value
             this.fields = {};
+        },
+        fieldChanged: function(name) {
+            var curValue = this.fields[name];
+            var originalValue = this.fieldsOriginal[name];
+            return moqui.isArray(curValue) ? !moqui.arraysEqual(curValue, originalValue, true) :
+                !moqui.equalsOrPlaceholder(curValue, originalValue);
+        }
+    },
+    computed: {
+        hasFieldsChanged: function() {
+            return moqui.fieldValuesDiff(this.fields, this.fieldsOriginal);
         }
     },
     mounted: function() {
@@ -1241,12 +1228,13 @@ Vue.component('m-date-time', {
     name: "mDateTime",
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'}, label:String,
         size:String, format:String, tooltip:String, form:String, required:String, rules:Array, disable:Boolean, autoYear:String,
-        minuteStep:{type:Number,'default':5} },
+        minuteStep:{type:Number,'default':5}, bgColor:String },
     template:
     // NOTE: tried :fill-mask="formatVal" but results in all Y, only supports single character for mask placeholder... how to show more helpful date mask?
     // TODO: add back @focus="focusDate" @blur="blurDate" IFF needed given different mask/etc behavior
     '<q-input dense outlined stack-label :label="label" v-bind:value="value" v-on:input="$emit(\'input\', $event)" :rules="rules"' +
-            ' :mask="inputMask" fill-mask :id="id" :name="name" :form="form" :disable="disable" :size="sizeVal" style="max-width:max-content;">' +
+            ' :mask="inputMask" fill-mask :id="id" :name="name" :form="form" :disable="disable" :size="sizeVal"' +
+            ' style="max-width:max-content;" :bg-color="bgColor">' +
         '<template v-slot:prepend v-if="type==\'date\' || type==\'date-time\' || !type">' +
             '<q-icon name="event" class="cursor-pointer">' +
                 '<q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">' +
@@ -1338,6 +1326,7 @@ Vue.component('m-date-time', {
         // TODO if (format === "YYYY-MM-DD HH:mm") { jqEl.find('input').inputmask("yyyy-mm-dd hh:mm", { clearIncomplete:false, clearMaskOnLostFocus:true, showMaskOnFocus:true, showMaskOnHover:false, removeMaskOnSubmit:false }); }
     }
 });
+
 moqui.dateOffsets = [{value:'0',label:'This'},{value:'-1',label:'Last'},{value:'1',label:'Next'},
     {value:'-2',label:'-2'},{value:'2',label:'+2'},{value:'-3',label:'-3'},{value:'-4',label:'-4'},{value:'-6',label:'-6'},{value:'-12',label:'-12'}];
 moqui.datePeriods = [{value:'day',label:'Day'},{value:'7d',label:'7 Days'},{value:'30d',label:'30 Days'},{value:'week',label:'Week'},{value:'weeks',label:'Weeks'},
@@ -1345,14 +1334,17 @@ moqui.datePeriods = [{value:'day',label:'Day'},{value:'7d',label:'7 Days'},{valu
 moqui.emptyOpt = {value:'',label:''};
 Vue.component('m-date-period', {
     name: "mDatePeriod",
-    props: { fields:{type:Object,required:true}, name:{type:String,required:true}, id:String, allowEmpty:Boolean,
-        fromThruType:{type:String,'default':'date'}, form:String, tooltip:String, label:String },
-    data: function() { return { fromThruMode:false, dateOffsets:moqui.dateOffsets.slice(), datePeriods:moqui.datePeriods.slice() } },
+    props: { fields:{type:Object,required:true}, name:{type:String,required:true}, id:String,
+        allowEmpty:Boolean, fromThruType:{type:String,'default':'date'}, form:String, tooltip:String, label:String },
+    data: function() { return { fromThruMode:false, dateOffsets:moqui.dateOffsets.slice(),
+        datePeriods:moqui.datePeriods.slice(), fieldsOriginal:Object.assign({}, this.fields) } },
     template:
     '<div v-if="fromThruMode" class="row">' +
-        '<m-date-time :name="name+\'_from\'" :id="id+\'_from\'" :label="label+\' From\'" :form="form" :type="fromThruType" v-model="fields[name+\'_from\']"></m-date-time>' +
+        '<m-date-time :name="name+\'_from\'" :id="id+\'_from\'" :label="label+\' From\'" :form="form" :type="fromThruType"' +
+            ' v-model="fields[name+\'_from\']" :bg-color="fieldChanged(name+\'_from\')?\'blue-1\':\'\'"></m-date-time>' +
         '<q-icon class="q-my-auto" name="remove"></q-icon>' +
-        '<m-date-time :name="name+\'_thru\'" :id="id+\'_thru\'" :label="label+\' Thru\'" :form="form" :type="fromThruType" v-model="fields[name+\'_thru\']">' +
+        '<m-date-time :name="name+\'_thru\'" :id="id+\'_thru\'" :label="label+\' Thru\'" :form="form" :type="fromThruType"' +
+            ' v-model="fields[name+\'_thru\']" :bg-color="fieldChanged(name+\'_thru\')?\'blue-1\':\'\'">' +
             '<template v-slot:after>' +
                 '<q-btn dense flat icon="calendar_view_day" @click="toggleMode"><q-tooltip>Period Select Mode</q-tooltip></q-btn>' +
                 '<q-btn dense flat icon="clear" @click="clearAll"><q-tooltip>Clear</q-tooltip></q-btn>' +
@@ -1360,12 +1352,15 @@ Vue.component('m-date-period', {
         '</m-date-time>' +
     '</div>' +
     '<div v-else class="row"><q-input dense outlined stack-label :label="label" v-model="fields[name+\'_pdate\']"' +
-            ' mask="####-##-##" fill-mask :id="id" :name="name+\'_pdate\'" :form="form" style="max-width:max-content;">' +
+            ' mask="####-##-##" fill-mask :id="id" :name="name+\'_pdate\'" :form="form" style="max-width:max-content;"' +
+            ' :bg-color="fieldChanged(name+\'_pdate\')?\'blue-1\':\'\'">' +
         '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
         '<template v-slot:before>' +
-            '<q-select class="q-pr-xs" dense outlined options-dense emit-value map-options v-model="fields[name+\'_poffset\']" :name="name+\'_poffset\'"' +
+            '<q-select class="q-pr-xs" dense outlined options-dense emit-value map-options v-model="fields[name+\'_poffset\']"' +
+                ' :name="name+\'_poffset\'" :bg-color="fieldChanged(name+\'_poffset\')?\'blue-1\':\'\'"' +
                 ' stack-label label="Offset" :options="dateOffsets" :form="form" behavior="menu"></q-select>' +
-            '<q-select dense outlined options-dense emit-value map-options v-model="fields[name+\'_period\']" :name="name+\'_period\'"' +
+            '<q-select dense outlined options-dense emit-value map-options v-model="fields[name+\'_period\']"' +
+                ' :name="name+\'_period\'" :bg-color="fieldChanged(name+\'_period\')?\'blue-1\':\'\'"' +
                 ' stack-label label="Period" :options="datePeriods" :form="form" behavior="menu"></q-select>' +
         '</template>' +
         '<template v-slot:prepend>' +
@@ -1385,6 +1380,9 @@ Vue.component('m-date-period', {
         clearAll: function() {
             this.fields[this.name+'_pdate'] = null; this.fields[this.name+'_poffset'] = null; this.fields[this.name+'_period'] = null;
             this.fields[this.name+'_from'] = null; this.fields[this.name+'_thru'] = null;
+        },
+        fieldChanged: function(name) {
+            return !moqui.equalsOrPlaceholder(this.fields[name], this.fieldsOriginal[name]);
         }
     },
     mounted: function() {
@@ -1499,7 +1497,7 @@ Vue.component('m-drop-down', {
         serverSearch:Boolean, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
         labelField:{type:String,'default':'label'}, valueField:{type:String,'default':'value'},
         dependsOn:Object, dependsOptional:Boolean, form:String, fields:{type:Object},
-        tooltip:String, label:String, name:String, id:String, disable:Boolean, onSelectGoTo:String },
+        tooltip:String, label:String, name:String, id:String, disable:Boolean, bgColor:String, onSelectGoTo:String },
     data: function() { return { curOptions:this.options, allOptions:this.options, lastVal:null, lastSearch:null, loading:false } },
     template:
         // was: ':fill-input="!multiple" hide-selected' changed to ':hide-selected="multiple"' to show selected to the left of input,
@@ -1509,7 +1507,7 @@ Vue.component('m-drop-down', {
                 ' input-debounce="500" @filter="filterFn" :clearable="allowEmpty||multiple" :disable="disable"' +
                 ' :multiple="multiple" :emit-value="!onSelectGoTo" map-options behavior="menu"' +
                 ' :rules="[val => allowEmpty||multiple||val===\'\'||(val&&val.length)||\'Please select an option\']"' +
-                ' stack-label :label="label" :loading="loading" :options="curOptions">' +
+                ' stack-label :label="label" :loading="loading" :bg-color="bgColor" :options="curOptions">' +
             '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
             '<template v-slot:no-option><q-item><q-item-section class="text-grey">No results</q-item-section></q-item></template>' +
             '<template v-if="multiple" v-slot:prepend><div>' +
@@ -1782,11 +1780,13 @@ Vue.component('m-drop-down', {
 Vue.component('m-text-line', {
     name: "mTextLine",
     props: { value:String, type:{type:String,'default':'text'}, id:String, name:String, size:String, fields:{type:Object},
+        dense:Boolean, outlined:Boolean, bgColor:String,
         label:String, tooltip:String, prefix:String, disable:Boolean, mask:String, fillMask:String, reverseFillMask:Boolean, rules:Array,
         defaultUrl:String, defaultParameters:Object, dependsOn:Object, dependsOptional:Boolean, defaultLoadInit:Boolean },
     data: function() { return { loading:false } },
     template:
-        '<q-input dense outlined stack-label :label="label" :prefix="prefix" v-bind:value="value" v-on:input="$emit(\'input\', $event)" :type="type"' +
+        '<q-input :dense="dense" :outlined="outlined" :bg-color="bgColor" stack-label :label="label" :prefix="prefix"' +
+                ' v-bind:value="value" v-on:input="$emit(\'input\', $event)" :type="type"' +
                 ' :id="id" :name="name" :size="size" :loading="loading" :rules="rules" :disable="disable"' +
                 ' :mask="mask" :fill-mask="fillMask" :reverse-fill-mask="reverseFillMask"' +
                 ' autocapitalize="off" autocomplete="off">' +
