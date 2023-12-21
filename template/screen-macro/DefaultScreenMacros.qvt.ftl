@@ -1697,7 +1697,6 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign fvThruDate = ec.getContext().get(curFieldName + "_thru")!"">
             :fields="{'${curFieldName}_poffset':'${fvOffset}','${curFieldName}_period':'${fvPeriod}','${curFieldName}_pdate':'${fvDate}','${curFieldName}_from':'${fvFromDate}','${curFieldName}_thru':'${fvThruDate}'}"
         </#if>
-        <#-- TODO-FC, more complex here: <#t> :bg-color="formProps.fieldChanged('${name}')?'blue-1':''" -->
         <#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>></m-date-period>
 </#macro>
 
@@ -1912,8 +1911,9 @@ a => A, d => D, y => Y
             <#-- support <#if .node["@current"]! == "first-in-list"> again? -->
             <#if ec.getResource().expandNoL10n(.node["@show-not"]!, "") == "true">
             <template v-slot:after>
-                <q-checkbox size="xs" name="${name}_not" label="${ec.getL10n().localize("Not")}"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
-                    <#t><#if fieldsJsName?has_content> true-value="Y" false-value="N" v-model="${fieldsJsName}.${name}_not"<#else> value="Y"<#if ec.getWeb().parameters.get(name + "_not")! == "Y"> checked="checked"</#if></#if>></q-checkbox>
+                <q-field dense outlined :bg-color="formProps.fieldChanged('${name}_not')?'blue-1':''">
+                    <#t><q-checkbox size="xs" name="${name}_not" label="${ec.getL10n().localize("Not")}"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
+                    <#t><#if fieldsJsName?has_content> true-value="Y" false-value="N" v-model="${fieldsJsName}.${name}_not"<#else> value="Y"<#if ec.getWeb().parameters.get(name + "_not")! == "Y"> checked="checked"</#if></#if>></q-checkbox></q-field>
             </template>
             </#if>
     </m-drop-down>
@@ -1980,13 +1980,13 @@ a => A, d => D, y => Y
 <div class="row">
     <q-input dense outlined stack-label label="${fieldLabel} ${ec.getL10n().localize('From')}" name="${curFieldName}_from" id="${tlId}_from"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
             <#t> size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
-            <#-- TODO-FC <#t> :bg-color="formProps.fieldChanged('${name}')?'blue-1':''" -->
+            <#t> :bg-color="formProps.fieldChanged('${curFieldName}_from')?'blue-1':''"
             <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_from"<#else> value="${ec.getContext().get(curFieldName + "_from")!?default(.node["@default-value-from"]!"")?html}"</#if>>
         <#if curTooltip?has_content><q-tooltip><span v-pre>${curTooltip}</span></q-tooltip></#if>
     </q-input>
     <q-input class="q-pl-xs" dense outlined stack-label label="${fieldLabel} ${ec.getL10n().localize('Thru')}" name="${curFieldName}_thru" id="${tlId}_thru"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
             <#t> size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
-            <#-- TODO-FC <#t> :bg-color="formProps.fieldChanged('${name}')?'blue-1':''" -->
+            <#t> :bg-color="formProps.fieldChanged('${curFieldName}_thru')?'blue-1':''"
             <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_thru"<#else> value="${ec.getContext().get(curFieldName + "_thru")!?default(.node["@default-value-thru"]!"")?html}"</#if>>
         <#if curTooltip?has_content><q-tooltip><span v-pre>${curTooltip}</span></q-tooltip></#if>
     </q-input>

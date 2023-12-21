@@ -55,12 +55,10 @@ var moqui = {
         return foundDiff;
     },
     equalsOrPlaceholder: function(obj1, obj2) {
-        if (!obj1 && obj2 && !obj2.length) { return true; }
-        if (!obj2 && obj1 && !obj1.length) { return true; }
-        if (moqui.isString(obj1) && moqui.isString(obj2)) {
-            if (!obj1.length && obj2.length >= 2 && obj2.slice(0,2) === "__") return true;
-            if (!obj2.length && obj1.length >= 2 && obj1.slice(0,2) === "__") return true;
-        }
+        if (!obj1 && (!obj2 || !obj2.length)) { return true; }
+        if (!obj2 && (!obj1 || !obj1.length)) { return true; }
+        if ((!obj1 || !obj1.length) && obj2 && obj2.length >= 2 && obj2.slice(0,2) === "__") return true;
+        if ((!obj2 || !obj2.length) && obj1 && obj1.length >= 2 && obj1.slice(0,2) === "__") return true;
         return obj1 === obj2;
     },
     objToSearch: function(obj) {
