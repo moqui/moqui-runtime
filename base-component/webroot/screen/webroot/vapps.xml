@@ -37,7 +37,7 @@ along with this software (see the LICENSE.md file). If not, see
         } else {
             /* ========== Dev Mode ========== */
             // Vue JS
-            footer_scripts.add('/libs/vue/vue.js')
+            footer_scripts.add('/libs/vue/vue.runtime.global.js')
             // http-vue-loader
             footer_scripts.add('/js/http-vue-loader/httpVueLoader.js')
             // Webroot Vue instance, in footer so runs after page loaded
@@ -50,7 +50,7 @@ along with this software (see the LICENSE.md file). If not, see
             footer_scripts.add('/js/qz-tray/qz-tray.min.js')
             footer_scripts.add('/js/qz-tray/MoquiQzComponent.js')
         }
-    ]]></script></pre-actions>
+        ]]></script></pre-actions>
 
     <widgets>
         <render-mode>

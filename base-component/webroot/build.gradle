@@ -20,8 +20,8 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.github.ben-manes:gradle-versions-plugin:0.47.0'
-        classpath "org.gradle-webtools.minify:gradle-minify-plugin:1.3.2"
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.42.0'
+        classpath "org.gradle-webtools.minify:gradle-minify-plugin:1.3.1"
     }
 }
 apply plugin: "org.gradlewebtools.minify"
@@ -35,65 +35,65 @@ def webrootPath = "screen/webroot"
 def libsPath = webrootPath + "/libs"
 def downloadBase = "http://cdnjs.cloudflare.com/ajax/libs/"
 def fileMap = [
-    "rsvp/4.8.3/rsvp.min.js":"",
+        "rsvp/4.8.3/rsvp.min.js":"",
 
-    "twitter-bootstrap/3.4.1/css/bootstrap.min.css":"",
-    "twitter-bootstrap/3.4.1/js/bootstrap.min.js":"",
-    "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.eot":"",
-    "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.svg":"",
-    "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.ttf":"",
-    "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.woff":"",
-    "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.woff2":"",
+        "twitter-bootstrap/3.4.1/css/bootstrap.min.css":"",
+        "twitter-bootstrap/3.4.1/js/bootstrap.min.js":"",
+        "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.eot":"",
+        "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.svg":"",
+        "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.ttf":"",
+        "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.woff":"",
+        "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.woff2":"",
 
-    "bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css":"",
-    // js/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js 4.17.47 has a small change so that keyBinds are handled properly
-    // "bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js":"",
+        "bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css":"",
+        // js/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js 4.17.47 has a small change so that keyBinds are handled properly
+        // "bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js":"",
 
-    "mouse0270-bootstrap-notify/3.1.7/bootstrap-notify.min.js":"",
+        "mouse0270-bootstrap-notify/3.1.7/bootstrap-notify.min.js":"",
 
-    "font-awesome/4.7.0/css/font-awesome.min.css":"",
-    "font-awesome/4.7.0/fonts/FontAwesome.otf":"",
-    "font-awesome/4.7.0/fonts/fontawesome-webfont.eot":"",
-    "font-awesome/4.7.0/fonts/fontawesome-webfont.svg":"",
-    "font-awesome/4.7.0/fonts/fontawesome-webfont.ttf":"",
-    "font-awesome/4.7.0/fonts/fontawesome-webfont.woff":"",
-    "font-awesome/4.7.0/fonts/fontawesome-webfont.woff2":"",
+        "font-awesome/4.7.0/css/font-awesome.min.css":"",
+        "font-awesome/4.7.0/fonts/FontAwesome.otf":"",
+        "font-awesome/4.7.0/fonts/fontawesome-webfont.eot":"",
+        "font-awesome/4.7.0/fonts/fontawesome-webfont.svg":"",
+        "font-awesome/4.7.0/fonts/fontawesome-webfont.ttf":"",
+        "font-awesome/4.7.0/fonts/fontawesome-webfont.woff":"",
+        "font-awesome/4.7.0/fonts/fontawesome-webfont.woff2":"",
 
-    "jeditable.js/1.7.3/jeditable.min.js":"",
+        "jeditable.js/1.7.3/jeditable.min.js":"",
 
-    "jquery/3.7.1/jquery.min.js":"",
+        "jquery/3.4.1/jquery.min.js":"",
 
-    "jquery.form/4.2.1/jquery.form.min.js":"",
-    "jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js":"",
+        "jquery.form/4.2.1/jquery.form.min.js":"",
+        "jquery.inputmask/3.3.4/jquery.inputmask.bundle.min.js":"",
 
-    // can get jquery-sortable-lists from cdnjs? http://camohub.github.io/jquery-sortable-lists/
+        // can get jquery-sortable-lists from cdnjs? http://camohub.github.io/jquery-sortable-lists/
 
-    "jquery-validate/1.17.0/jquery.validate.min.js":"",
-    "jquery-validate/1.17.0/additional-methods.min.js":"",
+        "jquery-validate/1.17.0/jquery.validate.min.js":"",
+        "jquery-validate/1.17.0/additional-methods.min.js":"",
 
-    "jstree/3.3.8/jstree.min.js":"",
-    "jstree/3.3.8/themes/default/style.min.css":"",
-    "jstree/3.3.8/themes/default/32px.png":"",
-    "jstree/3.3.8/themes/default/40px.png":"",
-    "jstree/3.3.8/themes/default/throbber.gif":"",
+        "jstree/3.3.8/jstree.min.js":"",
+        "jstree/3.3.8/themes/default/style.min.css":"",
+        "jstree/3.3.8/themes/default/32px.png":"",
+        "jstree/3.3.8/themes/default/40px.png":"",
+        "jstree/3.3.8/themes/default/throbber.gif":"",
 
-    "moment.js/2.24.0/moment-with-locales.min.js":"",
+        "moment.js/2.24.0/moment-with-locales.min.js":"",
 
-    // js/select2/select2.min.js 4.0.3 has small changes so that widths are handled properly, so not in download list
-    "select2/4.0.3/css/select2.min.css":"",
-    "select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css":"",
+        // js/select2/select2.min.js 4.0.3 has small changes so that widths are handled properly, so not in download list
+        "select2/4.0.3/css/select2.min.css":"",
+        "select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css":"",
 
-    "Selectivity.js/2.1.0/selectivity-full.min.js":"",
-    "Selectivity.js/2.1.0/selectivity-full.min.css":"",
+        "Selectivity.js/2.1.0/selectivity-full.min.js":"",
+        "Selectivity.js/2.1.0/selectivity-full.min.css":"",
 
-    "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
+        "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
-    "vue/2.7.14/vue.js":"",
-    "vue/2.7.14/vue.min.js":""
+        "vue/3.4.7/vue.runtime.global.js":"",
+        "vue/3.4.7/vue.runtime.global.prod.min.js":""
 ]
 
 def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
-def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js"]
+def jsdelivrList = ["quasar@1.15.20/dist/quasar.min.css", "quasar@1.15.20/dist/quasar.umd.min.js", "@vue/compat@3.4.7/dist/vue.global.min.js"]
 
 String getTargetPath(String sourcePath, String targetPath) {
     if (!targetPath) {
@@ -170,7 +170,7 @@ htmlJs.add(libsPath + '/jstree/jstree.min.js')
 
 def vuetJs = []
 // Vue JS
-vuetJs.add(libsPath + '/vue/vue.min.js')
+vuetJs.add(libsPath + '/vue/vue.runtime.global.prod.min.js')
 // http-vue-loader
 vuetJs.add(webrootPath + '/js/http-vue-loader/httpVueLoader.js')
 // Vue root component instance, in footer so runs after page loaded

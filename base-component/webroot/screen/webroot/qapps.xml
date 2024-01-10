@@ -28,7 +28,7 @@ along with this software (see the LICENSE.md file). If not, see
             /* ========== Production Mode ========== */
             html_scripts.add('/js/MoquiLib.min.js')
             // Vue JS
-            footer_scripts.add('/libs/vue/vue.min.js')
+            footer_scripts.add('/libs/vue/vue.runtime.global.prod.min.js')
             // http-vue-loader
             footer_scripts.add('/js/http-vue-loader/httpVueLoader.js')
             // Quasar
@@ -39,7 +39,7 @@ along with this software (see the LICENSE.md file). If not, see
             /* ========== Dev Mode ========== */
             html_scripts.add('/js/MoquiLib.js')
             // Vue JS
-            footer_scripts.add('/libs/vue/vue.js')
+            footer_scripts.add('/libs/vue/vue.runtime.global.js')
             // http-vue-loader
             footer_scripts.add('/js/http-vue-loader/httpVueLoader.js')
             // Quasar
@@ -55,7 +55,7 @@ along with this software (see the LICENSE.md file). If not, see
             // TODO migrate MoquiQzComponent.js to MoquiQzComponent.qvt.js
             footer_scripts.add('/js/qz-tray/MoquiQzComponent.js')
         }
-    ]]></script></pre-actions>
+        ]]></script></pre-actions>
 
     <widgets>
         <render-mode>
