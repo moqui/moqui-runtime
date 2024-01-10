@@ -55,7 +55,7 @@ along with this software (see the LICENSE.md file). If not, see
             // TODO migrate MoquiQzComponent.js to MoquiQzComponent.qvt.js
             footer_scripts.add('/js/qz-tray/MoquiQzComponent.js')
         }
-        ]]></script></pre-actions>
+    ]]></script></pre-actions>
 
     <widgets>
         <render-mode>
