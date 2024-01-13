@@ -52,8 +52,8 @@ if (!window.define) window.define = function(name, deps, callback) {
     if (!moqui.isArray(deps)) { callback = deps; deps = null; }
     if (moqui.isFunction(callback)) { return callback(); } else { return callback }
 };
-Vue.filter('decodeHtml', moqui.htmlDecode);
-Vue.filter('format', moqui.format);
+// Vue.filter('decodeHtml', moqui.htmlDecode);
+// Vue.filter('format', moqui.format);
 
 /* ========== notify and error handling ========== */
 moqui.notifyOpts = { delay:1500, timer:500, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'success',
@@ -270,8 +270,8 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
 };
 
 /* ========== placeholder components ========== */
-moqui.NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
-moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' });
+// moqui.NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
+// moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' });
 
 /* ========== inline components ========== */
 Vue.component('m-link', {
@@ -1213,10 +1213,10 @@ Vue.component('subscreens-active', {
 });
 moqui.webrootVue = new Vue({
     el: '#apps-root',
-    data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
+    data() { return { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
         navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[],
         lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
-        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null },
+        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null } },
     methods: {
         setUrl: function(url, bodyParameters) {
             // make sure any open modals are closed before setting current URL
@@ -1385,61 +1385,87 @@ moqui.webrootVue = new Vue({
         }
     },
     watch: {
-        navMenuList: function(newList) { if (newList.length > 0) {
-            var cur = newList[newList.length - 1];
-            var par = newList.length > 1 ? newList[newList.length - 2] : null;
-            // if there is an extraPathList set it now
-            if (cur.extraPathList) this.extraPathList = cur.extraPathList;
-            // make sure full currentPathList and activeSubscreens is populated (necessary for minimal path urls)
-            // fullPathList is the path after the base path, menu and link paths are in the screen tree context only so need to subtract off the appRootPath (Servlet Context Path)
-            var basePathSize = this.basePathSize;
-            var fullPathList = cur.path.split('/').slice(basePathSize + 1);
-            console.info('nav updated fullPath ' + JSON.stringify(fullPathList) + ' currentPathList ' + JSON.stringify(this.currentPathList) + ' cur.path ' + cur.path + ' basePathSize ' + basePathSize);
-            this.currentPathList = fullPathList;
-            this.reloadSubscreens();
+        navMenuList: {
+            handler(newList) {
+                if (newList.length > 0) {
+                    var cur = newList[newList.length - 1];
+                    var par = newList.length > 1 ? newList[newList.length - 2] : null;
+                    // if there is an extraPathList set it now
+                    if (cur.extraPathList) this.extraPathList = cur.extraPathList;
+                    // make sure full currentPathList and activeSubscreens is populated (necessary for minimal path urls)
+                    // fullPathList is the path after the base path, menu and link paths are in the screen tree context only so need to subtract off the appRootPath (Servlet Context Path)
+                    var basePathSize = this.basePathSize;
+                    var fullPathList = cur.path.split('/').slice(basePathSize + 1);
+                    console.info('nav updated fullPath ' + JSON.stringify(fullPathList) + ' currentPathList ' + JSON.stringify(this.currentPathList) + ' cur.path ' + cur.path + ' basePathSize ' + basePathSize);
+                    this.currentPathList = fullPathList;
+                    this.reloadSubscreens();
 
-            // update history and document.title
-            var newTitle = (par ? par.title + ' - ' : '') + cur.title;
-            var curUrl = cur.pathWithParams;
-            var questIdx = curUrl.indexOf("?");
-            if (questIdx > 0) {
-                var excludeKeys = ["pageIndex", "orderBySelect", "orderByField", "moquiSessionToken"];
-                var parmList = curUrl.substring(questIdx+1).split("&");
-                curUrl = curUrl.substring(0, questIdx);
-                var dpCount = 0;
-                var titleParms = "";
-                for (var pi=0; pi<parmList.length; pi++) {
-                    var parm = parmList[pi];
-                    if (curUrl.indexOf("?") === -1) { curUrl += "?"; } else { curUrl += "&"; }
-                    curUrl += parm;
-                    // from here down only add to title parms
-                    if (dpCount > 3) continue; // add up to 4 parms to the title
-                    var eqIdx = parm.indexOf("=");
-                    if (eqIdx > 0) {
-                        var key = parm.substring(0, eqIdx);
-                        var value = parm.substring(eqIdx + 1);
-                        if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || excludeKeys.indexOf(key) >= 0 || key === value) continue;
-                        if (titleParms.length > 0) titleParms += ", ";
-                        titleParms += decodeURIComponent(value);
-                        dpCount++;
+                    // update history and document.title
+                    var newTitle = (par ? par.title + ' - ' : '') + cur.title;
+                    var curUrl = cur.pathWithParams;
+                    var questIdx = curUrl.indexOf("?");
+                    if (questIdx > 0) {
+                        var excludeKeys = ["pageIndex", "orderBySelect", "orderByField", "moquiSessionToken"];
+                        var parmList = curUrl.substring(questIdx + 1).split("&");
+                        curUrl = curUrl.substring(0, questIdx);
+                        var dpCount = 0;
+                        var titleParms = "";
+                        for (var pi = 0; pi < parmList.length; pi++) {
+                            var parm = parmList[pi];
+                            if (curUrl.indexOf("?") === -1) {
+                                curUrl += "?";
+                            } else {
+                                curUrl += "&";
+                            }
+                            curUrl += parm;
+                            // from here down only add to title parms
+                            if (dpCount > 3) continue; // add up to 4 parms to the title
+                            var eqIdx = parm.indexOf("=");
+                            if (eqIdx > 0) {
+                                var key = parm.substring(0, eqIdx);
+                                var value = parm.substring(eqIdx + 1);
+                                if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || excludeKeys.indexOf(key) >= 0 || key === value) continue;
+                                if (titleParms.length > 0) titleParms += ", ";
+                                titleParms += decodeURIComponent(value);
+                                dpCount++;
+                            }
+                        }
+                        if (titleParms.length > 0) {
+                            if (titleParms.length > 70) titleParms = titleParms.substring(0, 70) + "...";
+                            newTitle = newTitle + " (" + titleParms + ")";
+                        }
                     }
+                    var navHistoryList = this.navHistoryList;
+                    for (var hi = 0; hi < navHistoryList.length;) {
+                        if (navHistoryList[hi].pathWithParams === curUrl) {
+                            navHistoryList.splice(hi, 1);
+                        } else {
+                            hi++;
+                        }
+                    }
+                    navHistoryList.unshift({
+                        title: newTitle,
+                        pathWithParams: curUrl,
+                        image: cur.image,
+                        imageType: cur.imageType
+                    });
+                    while (navHistoryList.length > 25) {
+                        navHistoryList.pop();
+                    }
+                    document.title = newTitle;
                 }
-                if (titleParms.length > 0) {
-                    if (titleParms.length > 70) titleParms = titleParms.substring(0, 70) + "...";
-                    newTitle = newTitle + " (" + titleParms + ")";
+            },
+            deep: true
+        },
+        currentPathList: {
+            handler(newList) {
+                // console.info('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
+                var lastPath = newList[newList.length - 1];
+                if (lastPath) {
+                    $(this.$el).removeClass().addClass(lastPath);
                 }
-            }
-            var navHistoryList = this.navHistoryList;
-            for (var hi=0; hi<navHistoryList.length;) {
-                if (navHistoryList[hi].pathWithParams === curUrl) { navHistoryList.splice(hi,1); } else { hi++; } }
-            navHistoryList.unshift({ title:newTitle, pathWithParams:curUrl, image:cur.image, imageType:cur.imageType });
-            while (navHistoryList.length > 25) { navHistoryList.pop(); }
-            document.title = newTitle;
-        }},
-        currentPathList: function(newList) {
-            // console.info('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
-            var lastPath = newList[newList.length - 1];
-            if (lastPath) { $(this.$el).removeClass().addClass(lastPath); }
+            },
+            deep: true
         }
     },
     computed: {

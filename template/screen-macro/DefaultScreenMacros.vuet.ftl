@@ -1660,7 +1660,8 @@ a => A, d => D, y => Y
     <#assign fieldValue = "">
     <#if fieldsJsName?has_content>
         <#assign format = .node["@format"]!>
-        <#assign fieldValue>{{${fieldsJsName}.${dispFieldName} | format<#if format?has_content>("${format}")</#if>}}</#assign>
+        <#-- TODO: Verify this works see: https://v3-migration.vuejs.org/breaking-changes/filters.html -->
+        <#assign fieldValue>{{{{ $filters.format(${fieldsJsName}.${dispFieldName})<#if format?has_content>("${format}")</#if>}}</#assign>
     <#else>
         <#if .node["@text"]?has_content>
             <#assign textMap = "">
