@@ -731,13 +731,13 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign curUrlInstance = sri.getCurrentScreenUrl()>
                 <#assign skipFormSave = skipForm!false>
                 <#assign skipForm = false>
-                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}"><template slot-scope="props">
+                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}"><template v-slot:default="slotProps"><#-- See for why v-if="true" https://stackoverflow.com/questions/76297774/nested-template-tag-does-not-render-page-in-vuejs-3 -->
                     <#if formListFindId?has_content><input type="hidden" name="formListFindId" value="${formListFindId}"></#if>
                     <#if context[listName + "PageSize"]??><input type="hidden" name="pageSize" value="${context[listName + "PageSize"]?c}"></#if>
                     <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
                     <fieldset class="form-horizontal">
                         <div class="form-group"><div class="col-sm-2">&nbsp;</div><div class="col-sm-10">
-                            <button type="button" name="clearParameters" class="btn btn-primary btn-sm" @click.prevent="props.clearForm">${ec.getL10n().localize("Clear Parameters")}</button></div></div>
+                            <button type="button" name="clearParameters" class="btn btn-primary btn-sm" @click.prevent="slotProps.clearForm">${ec.getL10n().localize("Clear Parameters")}</button></div></div>
 
                         <#-- Always add an orderByField to select one or more columns to order by -->
                         <div class="form-group">

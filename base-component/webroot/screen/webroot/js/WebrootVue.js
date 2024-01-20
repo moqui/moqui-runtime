@@ -367,10 +367,31 @@ Vue.component('dynamic-container', {
     template: '<component :is="curComponent"></component>',
     methods: { reload: function() { var saveUrl = this.curUrl; this.curUrl = ""; var vm = this; setTimeout(function() { vm.curUrl = saveUrl; }, 20); },
         load: function(url) { if (this.curUrl === url) { this.reload(); } else { this.curUrl = url; } }},
-    watch: { curUrl: function(newUrl) {
-        if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
-        var vm = this; moqui.loadComponent(newUrl, function(comp) { vm.curComponent = comp; }, this.id);
-    }},
+    watch: { curUrl: {
+            handler(newUrl) {
+                if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
+                var vm = this;
+                if (moqui.isPlainObject(this.dynamicParams)) {
+                    var dpStr = '';
+                    $.each(this.dynamicParams, function (key, value) {
+                        var dynVal = $("#" + value).val();
+                        if (dynVal && dynVal.length) dpStr = dpStr + (dpStr.length > 0 ? '&' : '') + key + '=' + dynVal;
+                    });
+                    if (dpStr.length) newUrl = newUrl + (newUrl.indexOf("?") > 0 ? '&' : '?') + dpStr;
+                }
+                moqui.loadComponent(newUrl, function(comp) {
+                    comp.mounted = function() {
+                        var jqEl = $(vm.$el);
+                        jqEl.find(":not(.noResetSelect2)>select:not(.noResetSelect2)").select2({ });
+                        var defFocus = jqEl.find(".default-focus");
+                        // console.log(defFocus);
+                        if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
+                    };
+                    vm.curComponent = comp;
+                }, this.id);
+            },
+            deep: true
+        }},
     mounted: function() { this.$root.addContainer(this.id, this); this.curUrl = this.url; }
 });
 Vue.component('dynamic-dialog', {
@@ -391,28 +412,38 @@ Vue.component('dynamic-dialog', {
         reload: function() { if (!this.isHidden) { var jqEl = $(this.$el); jqEl.modal('hide'); jqEl.modal('show'); }},
         load: function(url) { this.curUrl = url; }, hide: function() { $(this.$el).modal('hide'); }
     },
-    watch: { curUrl: function (newUrl) {
-        if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
-        var vm = this;
-        if (moqui.isPlainObject(this.dynamicParams)) {
-            var dpStr = '';
-            $.each(this.dynamicParams, function (key, value) {
-                var dynVal = $("#" + value).val();
-                if (dynVal && dynVal.length) dpStr = dpStr + (dpStr.length > 0 ? '&' : '') + key + '=' + dynVal;
-            });
-            if (dpStr.length) newUrl = newUrl + (newUrl.indexOf("?") > 0 ? '&' : '?') + dpStr;
-        }
-        moqui.loadComponent(newUrl, function(comp) {
-            comp.mounted = function() {
-                var jqEl = $(vm.$el);
-                jqEl.find(":not(.noResetSelect2)>select:not(.noResetSelect2)").select2({ });
-                var defFocus = jqEl.find(".default-focus");
-                // console.log(defFocus);
-                if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
-            };
-            vm.curComponent = comp;
-        }, this.id);
-    }},
+    watch: { curUrl: {
+            handler(newUrl) {
+                if (!newUrl || newUrl.length === 0) {
+                    this.curComponent = moqui.EmptyComponent;
+                    return;
+                }
+                var vm = this;
+                if (moqui.isPlainObject(this.dynamicParams)) {
+                    var dpStr = '';
+                    $.each(this.dynamicParams, function (key, value) {
+                        var dynVal = $("#" + value).val();
+                        if (dynVal && dynVal.length) dpStr = dpStr + (dpStr.length > 0 ? '&' : '') + key + '=' + dynVal;
+                    });
+                    if (dpStr.length) newUrl = newUrl + (newUrl.indexOf("?") > 0 ? '&' : '?') + dpStr;
+                }
+                moqui.loadComponent(newUrl, function (comp) {
+                    comp.mounted = function () {
+                        var jqEl = $(vm.$el);
+                        jqEl.find(":not(.noResetSelect2)>select:not(.noResetSelect2)").select2({});
+                        var defFocus = jqEl.find(".default-focus");
+                        // console.log(defFocus);
+                        if (defFocus.length) {
+                            defFocus.focus();
+                        } else {
+                            jqEl.find('form :input:visible:first').focus();
+                        }
+                    };
+                    vm.curComponent = comp;
+                }, this.id);
+            },
+            deep: true
+        }},
     mounted: function() {
         this.$root.addContainer(this.id, this); var jqEl = $(this.$el); var vm = this;
         jqEl.on("show.bs.modal", function() { vm.curUrl = vm.url; });
@@ -454,17 +485,38 @@ Vue.component('tree-item', {
         hasChildren: function() { var children = this.model.children; return moqui.isArray(children) && children.length > 0; },
         selected: function() { return this.top.currentPath === this.model.id; }
     },
-    watch: { open: function(newVal) { if (newVal) {
-        var children = this.model.children;
-        var url = this.top.items;
-        if (this.open && children && moqui.isBoolean(children) && moqui.isString(url)) {
-            var li_attr = this.model.li_attr;
-            var allParms = $.extend({ moquiSessionToken:this.$root.moquiSessionToken, treeNodeId:this.model.id,
-                treeNodeName:(li_attr && li_attr.treeNodeName ? li_attr.treeNodeName : ''), treeOpenPath:this.top.currentPath }, this.top.parameters);
-            var vm = this; $.ajax({ type:'POST', dataType:'json', url:url, headers:{Accept:'application/json'}, data:allParms,
-                error:moqui.handleAjaxError, success:function(resp) { vm.model.children = resp; } });
+    watch: {
+        open: {
+            handler(newVal) {
+                if (newVal) {
+                    var children = this.model.children;
+                    var url = this.top.items;
+                    if (this.open && children && moqui.isBoolean(children) && moqui.isString(url)) {
+                        var li_attr = this.model.li_attr;
+                        var allParms = $.extend({
+                            moquiSessionToken: this.$root.moquiSessionToken,
+                            treeNodeId: this.model.id,
+                            treeNodeName: (li_attr && li_attr.treeNodeName ? li_attr.treeNodeName : ''),
+                            treeOpenPath: this.top.currentPath
+                        }, this.top.parameters);
+                        var vm = this;
+                        $.ajax({
+                            type: 'POST',
+                            dataType: 'json',
+                            url: url,
+                            headers: {Accept: 'application/json'},
+                            data: allParms,
+                            error: moqui.handleAjaxError,
+                            success: function (resp) {
+                                vm.model.children = resp;
+                            }
+                        });
+                    }
+                }
+            },
+            deep: true
         }
-    }}},
+    },
     methods: {
         toggle: function() { if (this.isFolder) { this.open = !this.open; } },
         setSelected: function() { this.top.currentPath = this.model.id; this.open = true; }
@@ -606,6 +658,8 @@ Vue.component('m-form', {
             // console.log("changed? " + changed + " node " + targetDom.nodeName + " type " + targetEl.attr("type") + " " + targetEl.attr("name") + " to " + targetDom.value + " default " + targetDom.defaultValue);
             // console.log(targetDom.defaultValue);
             if (changed) {
+                console.log('targetEl.attr("name")')
+                console.log(targetEl.attr("name"))
                 this.$set(this.fieldsChanged, targetEl.attr("name"), true);
                 targetEl.parents(".form-group").children("label").addClass("is-changed");
                 targetEl.parents(".form-group").find(".select2-selection").addClass("is-changed");
@@ -833,8 +887,23 @@ Vue.component('form-list', {
         }
     },
     watch: {
-        rows: function(newRows) { if (moqui.isArray(newRows)) { this.rowList = newRows; } else { this.fetchRows(); } },
-        search: function () { this.fetchRows(); }
+        // Determine if deep is needed may have performance hit: https://v3-migration.vuejs.org/breaking-changes/watch.html
+        rows: {
+            handler(newRows) {
+                if (moqui.isArray(newRows)) {
+                    this.rowList = newRows;
+                } else {
+                    this.fetchRows();
+                }
+            },
+            deep: true
+        },
+        search: {
+            handler() {
+                this.fetchRows();
+            },
+            deep: true
+        }
     },
     mounted: function() {
         if (this.search) { this.searchObj = this.search; } else { this.searchObj = this.$root.currentParameters; }
@@ -1058,32 +1127,58 @@ Vue.component('drop-down', {
     computed: { curVal: { get: function() { return $(this.$el).select2().val(); },
         set: function(value) { $(this.$el).val(value).trigger('change'); /* console.log('set ' + $(this.$el).attr('name') + ' to ' + this.curVal); */ } } },
     watch: {
-        value: function(value) { this.curVal = value; },
-        options: function(options) { this.curData = options; },
-        curData: function(options) {
-            var jqEl = $(this.$el); var vm = this;
-            var wasFocused = jqEl.next().hasClass('select2-container--focus');
-            // save the lastVal if there is one to remember what was selected even if new options don't have it, just in case options change again
-            var saveVal = jqEl.select2().val(); if (saveVal && saveVal.length > 1) this.lastVal = saveVal;
-            jqEl.select2('destroy'); jqEl.empty();
-            this.s2Opts.data = options;
-            jqEl.select2(this.s2Opts).on('change', function () { vm.$emit('input', this.value); });
-            if (this.tooltip && this.tooltip.length) jqEl.next().tooltip({ title: function() { return $(this).prev().attr("data-title"); }, placement: "auto" });
-            if (wasFocused) jqEl.focus();
-            setTimeout(function() {
-                var setVal = vm.lastVal; if (!setVal || setVal.length < 2) { setVal = vm.value; }
-                if (setVal) {
-                    var isInList = false;
-                    var setValIsArray = moqui.isArray(setVal);
-                    $.each(options, function(idx, curObj) {
-                        if (setValIsArray ? setVal.includes(curObj.id) : curObj.id === setVal) isInList = true; });
-                    if (isInList) jqEl.val(setVal);
-                }
-                jqEl.trigger('change');
-            }, 50);
+        value: {
+            handler(value) {
+                this.curVal = value;
+            },
+            deep: true
+        },
+        options: {
+            handler(options) {
+                this.curData = options;
+            },
+            deep: true
+        },
+        curData: {
+            handler(options) {
+                var jqEl = $(this.$el);
+                var vm = this;
+                var wasFocused = jqEl.next().hasClass('select2-container--focus');
+                // save the lastVal if there is one to remember what was selected even if new options don't have it, just in case options change again
+                var saveVal = jqEl.select2().val();
+                if (saveVal && saveVal.length > 1) this.lastVal = saveVal;
+                jqEl.select2('destroy');
+                jqEl.empty();
+                this.s2Opts.data = options;
+                jqEl.select2(this.s2Opts).on('change', function () {
+                    vm.$emit('input', this.value);
+                });
+                if (this.tooltip && this.tooltip.length) jqEl.next().tooltip({
+                    title: function () {
+                        return $(this).prev().attr("data-title");
+                    }, placement: "auto"
+                });
+                if (wasFocused) jqEl.focus();
+                setTimeout(function () {
+                    var setVal = vm.lastVal;
+                    if (!setVal || setVal.length < 2) {
+                        setVal = vm.value;
+                    }
+                    if (setVal) {
+                        var isInList = false;
+                        var setValIsArray = moqui.isArray(setVal);
+                        $.each(options, function (idx, curObj) {
+                            if (setValIsArray ? setVal.includes(curObj.id) : curObj.id === setVal) isInList = true;
+                        });
+                        if (isInList) jqEl.val(setVal);
+                    }
+                    jqEl.trigger('change');
+                }, 50);
+            },
+            deep: true
         }
     },
-    destroyed: function() { $(this.$el).off().select2('destroy'); }
+    unmounted: function() { $(this.$el).off().select2('destroy'); }
 });
 Vue.component('text-autocomplete', {
     props: { id:{type:String,required:true}, name:{type:String,required:true}, value:String, valueText:String,
