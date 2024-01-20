@@ -97,8 +97,8 @@ ${sri.renderSectionInclude(.node)}
     <#if !boxType?has_content><#assign boxType = "default"></#if>
     <container-box<#if contBoxDivId?has_content> id="${contBoxDivId}"</#if> type="${boxType}"<#if boxHeader??> title="${ec.getResource().expand(boxHeader["@title"]!"", "")?html}"</#if> :initial-open="<#if ec.getResource().expandNoL10n(.node["@initial"]!, "") == "closed">false<#else>true</#if>">
         <#-- NOTE: direct use of the container-box component would not use template elements but rather use the 'slot' attribute directly on the child elements which we can't do here -->
-        <#if boxHeader??><template slot="header"><#recurse boxHeader></template></#if>
-        <#if .node["box-toolbar"]?has_content><template slot="toolbar"><#recurse .node["box-toolbar"][0]></template></#if>
+        <#if boxHeader??><template v-slot:header><#recurse boxHeader></template></#if>
+        <#if .node["box-toolbar"]?has_content><template v-slot:toolbar><#recurse .node["box-toolbar"][0]></template></#if>
         <#if .node["box-body"]?has_content><box-body<#if .node["box-body"][0]["@height"]?has_content> height="${.node["box-body"][0]["@height"]}"</#if>><#recurse .node["box-body"][0]></box-body></#if>
         <#if .node["box-body-nopad"]?has_content><#recurse .node["box-body-nopad"][0]></#if>
     </container-box>
@@ -1114,14 +1114,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#t> :select-columns="${(formNode["@select-columns"]! == "true")?c}" :all-button="${(formNode["@show-all-button"]! == "true")?c}"
             <#t> :csv-button="${(formNode["@show-csv-button"]! == "true")?c}" :text-button="${(formNode["@show-text-button"]! == "true")?c}"
             <#lt> :pdf-button="${(formNode["@show-pdf-button"]! == "true")?c}" columns="${numColumns}">
-        <template slot="headerForm" slot-scope="header">
+        <template v-slot:headerForm v-slot:headerForm="header">
             <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#assign fieldsJsName = "header.search">
             <#assign hiddenFieldList = formListInfo.getListHeaderHiddenFieldList()>
             <#list hiddenFieldList as hiddenField><#recurse hiddenField["header-field"][0]/></#list>
             <#assign fieldsJsName = "">
         </template>
-        <template slot="header" slot-scope="header">
+        <template v-slot:header v-slot:header="header">
             <#assign fieldsJsName = "header.search"><#assign ownerForm = headerFormId>
             <tr><#list mainColInfoList as columnFieldList>
                 <th><#list columnFieldList as fieldNode>
@@ -1140,7 +1140,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign fieldsJsName = ""><#assign ownerForm = "">
         </template>
         <#-- for adding more to form-list nav bar <template slot="nav"></template> -->
-        <template slot="rowForm" slot-scope="row">
+        <template v-slot:rowForm v-slot:rowForm="row">
             <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
@@ -1148,7 +1148,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign fieldsJsName = ""><#assign ownerForm = "">
         </template>
         <#-- TODO: add first-row, second-row, last-row forms and rows, here and in form-list Vue component; support add from first, second (or last?) row with add to client list and server submit -->
-        <template slot="row" slot-scope="row">
+        <template v-slot:row v-slot:row="row">
             <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
             <#list mainColInfoList as columnFieldList>
                 <td><#list columnFieldList as fieldNode>

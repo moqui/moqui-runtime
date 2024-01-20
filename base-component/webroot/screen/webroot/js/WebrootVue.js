@@ -52,8 +52,8 @@ if (!window.define) window.define = function(name, deps, callback) {
     if (!moqui.isArray(deps)) { callback = deps; deps = null; }
     if (moqui.isFunction(callback)) { return callback(); } else { return callback }
 };
-// Vue.filter('decodeHtml', moqui.htmlDecode);
-// Vue.filter('format', moqui.format);
+Vue.filter('decodeHtml', moqui.htmlDecode);
+Vue.filter('format', moqui.format);
 
 /* ========== notify and error handling ========== */
 moqui.notifyOpts = { delay:1500, timer:500, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'success',
@@ -270,8 +270,8 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
 };
 
 /* ========== placeholder components ========== */
-// moqui.NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
-// moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' });
+moqui.NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
+moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' });
 
 /* ========== inline components ========== */
 Vue.component('m-link', {
@@ -387,7 +387,7 @@ Vue.component('dynamic-container', {
                         // console.log(defFocus);
                         if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
                     };
-                    vm.curComponent = comp;
+                    vm.curComponent = Vue.markRaw(comp);
                 }, this.id);
             },
             deep: true
@@ -439,7 +439,7 @@ Vue.component('dynamic-dialog', {
                             jqEl.find('form :input:visible:first').focus();
                         }
                     };
-                    vm.curComponent = comp;
+                    vm.curComponent = Vue.markRaw(comp);
                 }, this.id);
             },
             deep: true
@@ -540,7 +540,8 @@ Vue.component('m-editable', {
         }
         $(this.$el).editable(this.url, edConfig);
     },
-    render: function(createEl) { return createEl(this.labelType, { attrs:{ id:this.id, 'class':'editable-label' }, domProps: { innerHTML:this.labelValue } }); }
+    // TODO: Once global component is registered do: https://v3-migration.vuejs.org/breaking-changes/render-function-api.html
+    render: function(createEl) { return createEl(this.labelType, {id:this.id, 'class': 'editable-label',innerHTML:this.labelValue}); }
 });
 
 /* ========== form components ========== */
@@ -658,14 +659,12 @@ Vue.component('m-form', {
             // console.log("changed? " + changed + " node " + targetDom.nodeName + " type " + targetEl.attr("type") + " " + targetEl.attr("name") + " to " + targetDom.value + " default " + targetDom.defaultValue);
             // console.log(targetDom.defaultValue);
             if (changed) {
-                console.log('targetEl.attr("name")')
-                console.log(targetEl.attr("name"))
-                this.$set(this.fieldsChanged, targetEl.attr("name"), true);
+                this.fieldsChanged[targetEl.attr("name")] = true
                 targetEl.parents(".form-group").children("label").addClass("is-changed");
                 targetEl.parents(".form-group").find(".select2-selection").addClass("is-changed");
                 targetEl.addClass("is-changed");
             } else {
-                this.$set(this.fieldsChanged, targetEl.attr("name"), false);
+                this.fieldsChanged[targetEl.attr("name")] = false
                 targetEl.parents(".form-group").children("label").removeClass("is-changed");
                 targetEl.parents(".form-group").find(".select2-selection").removeClass("is-changed");
                 targetEl.removeClass("is-changed");
@@ -1299,7 +1298,7 @@ Vue.component('subscreens-active', {
         root.loading++;
         root.currentLoadRequest = moqui.loadComponent(urlInfo, function(comp) {
             root.currentLoadRequest = null;
-            vm.activeComponent = comp;
+            vm.activeComponent = Vue.markRaw(comp);
             root.loading--;
         });
         return true;
@@ -1426,7 +1425,7 @@ moqui.webrootVue = new Vue({
             if (contComp) { contComp.reload(); } else { console.error("Container with ID " + contId + " not found, not reloading"); }},
         loadContainer: function(contId, url) { var contComp = this.activeContainers[contId];
             if (contComp) { contComp.load(url); } else { console.error("Container with ID " + contId + " not found, not loading url " + url); }},
-        addNavPlugin: function(url) { var vm = this; moqui.loadComponent(this.appRootPath + url, function(comp) { vm.navPlugins.push(comp); }) },
+        addNavPlugin: function(url) { var vm = this; moqui.loadComponent(this.appRootPath + url, function(comp) { vm.navPlugins.push(Vue.markRaw(comp)); }) },
         addNavPluginsWait: function(urlList, urlIndex) { if (urlList && urlList.length > urlIndex) {
             this.addNavPlugin(urlList[urlIndex]);
             var vm = this;
