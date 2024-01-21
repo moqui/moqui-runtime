@@ -43,6 +43,344 @@
  - screen structure for any client library (Angular2, React, etc) possible?
    - goal would be to use FTL macros to transform more detailed XML into library specific output
  */
+const { createApp } = Vue
+/* ========== webroot component ========== */
+moqui.webrootVue = createApp({
+    data() { return { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
+        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[],
+        lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
+        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null } },
+    methods: {
+        setUrl: function(url, bodyParameters) {
+            // make sure any open modals are closed before setting current URL
+            $('.modal.in').modal('hide');
+            // cancel current load if needed
+            if (this.currentLoadRequest) {
+                console.log("Aborting current page load currentLinkUrl " + this.currentLinkUrl + " url " + url);
+                this.currentLoadRequest.abort();
+                this.currentLoadRequest = null;
+                this.loading = 0;
+            }
+            // always set bodyParameters, setting to null when not specified to clear out previous
+            this.bodyParameters = bodyParameters;
+            url = this.getLinkPath(url);
+            // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
+            if (this.currentLinkUrl === url && url !== this.linkBasePath) {
+                this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */
+            } else {
+                var href = url;
+                var ssIdx = href.indexOf('://');
+                if (ssIdx >= 0) {
+                    var slIdx = href.indexOf('/', ssIdx + 3);
+                    if (slIdx === -1) return;
+                    href = href.slice(slIdx);
+                }
+                var splitHref = href.split("?");
+                // clear out extra path, to be set from nav menu data if needed
+                this.extraPathList = [];
+                // set currentSearch before currentPath so that it is available when path updates
+                if (splitHref.length > 1 && splitHref[1].length > 0) { this.currentSearch = splitHref[1]; } else { this.currentSearch = ""; }
+                this.currentPath = splitHref[0];
+                // with url cleaned up through setters now get current screen url for menu
+                var srch = this.currentSearch;
+                var screenUrl = this.currentPath + (srch.length > 0 ? '?' + srch : '');
+                if (!screenUrl || screenUrl.length === 0) return;
+                console.info("current URL changing to " + screenUrl);
+                this.lastNavTime = Date.now();
+                // TODO: somehow only clear out activeContainers that are in subscreens actually reloaded? may cause issues if any but last screen have dynamic-container
+                this.activeContainers = {};
+
+                // update menu, which triggers update of screen/subscreen components
+                var vm = this;
+                var menuDataUrl = this.appRootPath && this.appRootPath.length && screenUrl.indexOf(this.appRootPath) === 0 ?
+                    this.appRootPath + "/menuData" + screenUrl.slice(this.appRootPath.length) : "/menuData" + screenUrl;
+                $.ajax({ type:"GET", url:menuDataUrl, dataType:"text", error:moqui.handleAjaxError, success: function(outerListText) {
+                        var outerList = null;
+                        // console.log("menu response " + outerListText);
+                        try { outerList = JSON.parse(outerListText); } catch (e) { console.info("Error parson menu list JSON: " + e); }
+                        if (outerList && moqui.isArray(outerList)) {
+                            vm.navMenuList = outerList;
+                            /* console.info('navMenuList ' + JSON.stringify(outerList)); */
+                        }
+                    }});
+
+                // set the window URL
+                window.history.pushState(null, this.ScreenTitle, url);
+                // notify url listeners
+                this.urlListeners.forEach(function(callback) { callback(url, this) }, this);
+                // scroll to top
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+            }
+        },
+        setParameters: function(parmObj) {
+            if (parmObj) {
+                this.$root.currentParameters = $.extend({}, this.$root.currentParameters, parmObj);
+                // no path change so just need to update parameters on most recent history item
+                var curUrl = this.currentLinkUrl;
+                var curHistoryItem = this.navHistoryList[0];
+                curHistoryItem.pathWithParams = curUrl;
+                window.history.pushState(null, curHistoryItem.title || '', curUrl);
+            }
+            this.$root.reloadSubscreens();
+        },
+        addSubscreen: function(saComp) {
+            var pathIdx = this.activeSubscreens.length;
+            // console.info('addSubscreen idx ' + pathIdx + ' pathName ' + this.currentPathList[pathIdx]);
+            saComp.pathIndex = pathIdx;
+            // setting pathName here handles initial load of subscreens-active; this may be undefined if we have more activeSubscreens than currentPathList items
+            saComp.loadActive();
+            this.activeSubscreens.push(saComp);
+        },
+        reloadSubscreens: function() {
+            // console.info('reloadSubscreens path ' + JSON.stringify(this.currentPathList) + ' currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
+            var fullPathList = this.currentPathList;
+            var activeSubscreens = this.activeSubscreens;
+            console.info("reloadSubscreens currentPathList " + JSON.stringify(this.currentPathList));
+            if (fullPathList.length === 0 && activeSubscreens.length > 0) {
+                activeSubscreens.splice(1);
+                activeSubscreens[0].loadActive();
+                return;
+            }
+            for (var i=0; i<activeSubscreens.length; i++) {
+                if (i >= fullPathList.length) break;
+                // always try loading the active subscreen and see if actually loaded
+                var loaded = activeSubscreens[i].loadActive();
+                // clear out remaining activeSubscreens, after first changed loads its placeholders will register and load
+                if (loaded) activeSubscreens.splice(i+1);
+            }
+        },
+        goPreviousScreen: function() {
+            var currentPath = this.currentPath;
+            var navHistoryList = this.navHistoryList;
+            var prevHist;
+            for (var hi = 0; hi < navHistoryList.length; hi++) {
+                if (navHistoryList[hi].pathWithParams.indexOf(currentPath) < 0) { prevHist = navHistoryList[hi]; break; } }
+            if (prevHist && prevHist.pathWithParams && prevHist.pathWithParams.length) this.setUrl(prevHist.pathWithParams)
+        },
+        // all container components added with this must have reload() and load(url) methods
+        addContainer: function(contId, comp) { this.activeContainers[contId] = comp; },
+        reloadContainer: function(contId) { var contComp = this.activeContainers[contId];
+            if (contComp) { contComp.reload(); } else { console.error("Container with ID " + contId + " not found, not reloading"); }},
+        loadContainer: function(contId, url) { var contComp = this.activeContainers[contId];
+            if (contComp) { contComp.load(url); } else { console.error("Container with ID " + contId + " not found, not loading url " + url); }},
+        addNavPlugin: function(url) { var vm = this; moqui.loadComponent(this.appRootPath + url, function(comp) { vm.navPlugins.push(Vue.markRaw(comp)); }) },
+        addNavPluginsWait: function(urlList, urlIndex) { if (urlList && urlList.length > urlIndex) {
+            this.addNavPlugin(urlList[urlIndex]);
+            var vm = this;
+            if (urlList.length > (urlIndex + 1)) { setTimeout(function(){ vm.addNavPluginsWait(urlList, urlIndex + 1); }, 500); }
+        } },
+        addUrlListener: function(urlListenerFunction) {
+            if (this.urlListeners.indexOf(urlListenerFunction) >= 0) return;
+            this.urlListeners.push(urlListenerFunction);
+        },
+        addNotify: function(message, type) {
+            var histList = this.notifyHistoryList.slice(0);
+            var nowDate = new Date();
+            var nh = nowDate.getHours(); if (nh < 10) nh = '0' + nh;
+            var nm = nowDate.getMinutes(); if (nm < 10) nm = '0' + nm;
+            // var ns = nowDate.getSeconds(); if (ns < 10) ns = '0' + ns;
+            histList.unshift({message:message, type:type, time:(nh + ':' + nm)}); //  + ':' + ns
+            while (histList.length > 25) { histList.pop(); }
+            this.notifyHistoryList = histList;
+        },
+        switchDarkLight: function() {
+            var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
+            var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
+            $.ajax({ type:'POST', url:(this.appRootPath + '/apps/setPreference'), error:moqui.handleAjaxError,
+                data:{ moquiSessionToken:this.moquiSessionToken, preferenceKey:'OUTER_STYLE', preferenceValue:currentStyle } });
+        },
+        showScreenDocDialog: function(docIndex) {
+            $("#screen-document-dialog").modal("show");
+            $("#screen-document-dialog-body").load(this.currentPath + '/screenDoc?docIndex=' + docIndex);
+        },
+        stopProp: function (e) { e.stopPropagation(); },
+        getNavHref: function(navIndex) {
+            if (!navIndex) navIndex = this.navMenuList.length - 1;
+            var navMenu = this.navMenuList[navIndex];
+            if (navMenu.extraPathList && navMenu.extraPathList.length) {
+                var href = navMenu.path + '/' + navMenu.extraPathList.join('/');
+                var questionIdx = navMenu.pathWithParams.indexOf("?");
+                if (questionIdx > 0) { href += navMenu.pathWithParams.slice(questionIdx); }
+                return href;
+            } else {
+                return navMenu.pathWithParams || navMenu.path;
+            }
+        },
+        getLinkPath: function(path) {
+            if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
+            var pathList = path.split('/');
+            // element 0 in array after split is empty string from leading '/'
+            var wrapperIdx = this.appRootPath.split('/').length;
+            pathList[wrapperIdx] = this.linkBasePath.split('/').slice(-1);
+            path = pathList.join("/");
+            return path;
+        }
+    },
+    watch: {
+        navMenuList: {
+            handler(newList) {
+                if (newList.length > 0) {
+                    var cur = newList[newList.length - 1];
+                    var par = newList.length > 1 ? newList[newList.length - 2] : null;
+                    // if there is an extraPathList set it now
+                    if (cur.extraPathList) this.extraPathList = cur.extraPathList;
+                    // make sure full currentPathList and activeSubscreens is populated (necessary for minimal path urls)
+                    // fullPathList is the path after the base path, menu and link paths are in the screen tree context only so need to subtract off the appRootPath (Servlet Context Path)
+                    var basePathSize = this.basePathSize;
+                    var fullPathList = cur.path.split('/').slice(basePathSize + 1);
+                    console.info('nav updated fullPath ' + JSON.stringify(fullPathList) + ' currentPathList ' + JSON.stringify(this.currentPathList) + ' cur.path ' + cur.path + ' basePathSize ' + basePathSize);
+                    this.currentPathList = fullPathList;
+                    this.reloadSubscreens();
+
+                    // update history and document.title
+                    var newTitle = (par ? par.title + ' - ' : '') + cur.title;
+                    var curUrl = cur.pathWithParams;
+                    var questIdx = curUrl.indexOf("?");
+                    if (questIdx > 0) {
+                        var excludeKeys = ["pageIndex", "orderBySelect", "orderByField", "moquiSessionToken"];
+                        var parmList = curUrl.substring(questIdx + 1).split("&");
+                        curUrl = curUrl.substring(0, questIdx);
+                        var dpCount = 0;
+                        var titleParms = "";
+                        for (var pi = 0; pi < parmList.length; pi++) {
+                            var parm = parmList[pi];
+                            if (curUrl.indexOf("?") === -1) {
+                                curUrl += "?";
+                            } else {
+                                curUrl += "&";
+                            }
+                            curUrl += parm;
+                            // from here down only add to title parms
+                            if (dpCount > 3) continue; // add up to 4 parms to the title
+                            var eqIdx = parm.indexOf("=");
+                            if (eqIdx > 0) {
+                                var key = parm.substring(0, eqIdx);
+                                var value = parm.substring(eqIdx + 1);
+                                if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || excludeKeys.indexOf(key) >= 0 || key === value) continue;
+                                if (titleParms.length > 0) titleParms += ", ";
+                                titleParms += decodeURIComponent(value);
+                                dpCount++;
+                            }
+                        }
+                        if (titleParms.length > 0) {
+                            if (titleParms.length > 70) titleParms = titleParms.substring(0, 70) + "...";
+                            newTitle = newTitle + " (" + titleParms + ")";
+                        }
+                    }
+                    var navHistoryList = this.navHistoryList;
+                    for (var hi = 0; hi < navHistoryList.length;) {
+                        if (navHistoryList[hi].pathWithParams === curUrl) {
+                            navHistoryList.splice(hi, 1);
+                        } else {
+                            hi++;
+                        }
+                    }
+                    navHistoryList.unshift({
+                        title: newTitle,
+                        pathWithParams: curUrl,
+                        image: cur.image,
+                        imageType: cur.imageType
+                    });
+                    while (navHistoryList.length > 25) {
+                        navHistoryList.pop();
+                    }
+                    document.title = newTitle;
+                }
+            },
+            deep: true
+        },
+        currentPathList: {
+            handler(newList) {
+                // console.info('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
+                var lastPath = newList[newList.length - 1];
+                if (lastPath) {
+                    $(this.$el).removeClass().addClass(lastPath);
+                }
+            },
+            deep: true
+        }
+    },
+    computed: {
+        currentPath: {
+            get: function() { var curPath = this.currentPathList; var extraPath = this.extraPathList;
+                return this.basePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
+                    (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : ''); },
+            set: function(newPath) {
+                if (!newPath || newPath.length === 0) { this.currentPathList = []; return; }
+                if (newPath.slice(newPath.length - 1) === '/') newPath = newPath.slice(0, newPath.length - 1);
+                if (newPath.indexOf(this.linkBasePath) === 0) { newPath = newPath.slice(this.linkBasePath.length + 1); }
+                else if (newPath.indexOf(this.basePath) === 0) { newPath = newPath.slice(this.basePath.length + 1); }
+                this.currentPathList = newPath.split('/');
+            }
+        },
+        currentLinkPath: function() {
+            var curPath = this.currentPathList; var extraPath = this.extraPathList;
+            return this.linkBasePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
+                (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : '');
+        },
+        currentSearch: {
+            get: function() { return moqui.objToSearch(this.currentParameters); },
+            set: function(newSearch) { this.currentParameters = moqui.searchToObj(newSearch); }
+        },
+        currentLinkUrl: function() { var search = this.currentSearch; return this.currentLinkPath + (search.length > 0 ? '?' + search : ''); },
+        basePathSize: function() { return this.basePath.split('/').length - this.appRootPath.split('/').length; },
+        ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; },
+        documentMenuList: function() {
+            var docList = [];
+            for (var i = 0; i < this.navMenuList.length; i++) {
+                var screenDocList = this.navMenuList[i].screenDocList;
+                if (screenDocList && screenDocList.length) { screenDocList.forEach(function(el) { docList.push(el);}); }
+            }
+            return docList;
+        }
+    },
+    created: function() {
+        this.moquiSessionToken = $("#confMoquiSessionToken").val();
+        this.appHost = $("#confAppHost").val(); this.appRootPath = $("#confAppRootPath").val();
+        this.basePath = $("#confBasePath").val(); this.linkBasePath = $("#confLinkBasePath").val();
+        this.userId = $("#confUserId").val();
+        this.locale = $("#confLocale").val(); if (moqui.localeMap[this.locale]) this.locale = moqui.localeMap[this.locale];
+
+        var confOuterStyle = $("#confOuterStyle").val();
+        if (confOuterStyle) {
+            var jqBody = $("body");
+            var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
+            if (currentStyle !== confOuterStyle) { jqBody.removeClass(currentStyle); jqBody.addClass(confOuterStyle); }
+        }
+
+        this.notificationClient = new moqui.NotificationClient((location.protocol === 'https:' ? 'wss://' : 'ws://') + this.appHost + this.appRootPath + "/notws");
+
+        var navPluginUrlList = [];
+        $('.confNavPluginUrl').each(function(idx, el) { navPluginUrlList.push($(el).val()); });
+        this.addNavPluginsWait(navPluginUrlList, 0);
+    },
+    mounted: function() {
+        var jqEl = $(this.$el);
+        jqEl.find('.navbar [data-toggle="tooltip"]').tooltip({ placement:'bottom', trigger:'hover' });
+        jqEl.find('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        jqEl.find('#notify-history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        jqEl.find('#document-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        // load the current screen
+        this.setUrl(window.location.pathname + window.location.search);
+        // init the NotificationClient and register 'displayNotify' as the default listener
+        this.notificationClient.registerListener("ALL");
+
+        $("#screen-document-dialog").on("hidden.bs.modal", function () { var jqEl = $("#screen-document-dialog-body");
+            jqEl.empty(); jqEl.append('<div class="spinner"><div>Loading…</div></div>'); });
+
+        // request Notification permission on load if not already granted or denied
+        if (window.Notification && Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission(function (status) {
+                if (status === "granted") {
+                    moqui.notifyMessages("Browser notifications enabled, if you don't want them use browser notification settings to block");
+                } else if (status === "denied") {
+                    moqui.notifyMessages("Browser notifications disabled, if you want them use browser notification settings to allow");
+                }
+            });
+        }
+    }
+});
 
 moqui.urlExtensions = { js:'js', vue:'vue', vuet:'vuet' }
 
@@ -1305,342 +1643,6 @@ Vue.component('subscreens-active', {
     }},
     mounted: function() { this.$root.addSubscreen(this); }
 });
-moqui.webrootVue = new Vue({
-    el: '#apps-root',
-    data() { return { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
-        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[],
-        lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
-        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null } },
-    methods: {
-        setUrl: function(url, bodyParameters) {
-            // make sure any open modals are closed before setting current URL
-            $('.modal.in').modal('hide');
-            // cancel current load if needed
-            if (this.currentLoadRequest) {
-                console.log("Aborting current page load currentLinkUrl " + this.currentLinkUrl + " url " + url);
-                this.currentLoadRequest.abort();
-                this.currentLoadRequest = null;
-                this.loading = 0;
-            }
-            // always set bodyParameters, setting to null when not specified to clear out previous
-            this.bodyParameters = bodyParameters;
-            url = this.getLinkPath(url);
-            // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
-            if (this.currentLinkUrl === url && url !== this.linkBasePath) {
-                this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */
-            } else {
-                var href = url;
-                var ssIdx = href.indexOf('://');
-                if (ssIdx >= 0) {
-                    var slIdx = href.indexOf('/', ssIdx + 3);
-                    if (slIdx === -1) return;
-                    href = href.slice(slIdx);
-                }
-                var splitHref = href.split("?");
-                // clear out extra path, to be set from nav menu data if needed
-                this.extraPathList = [];
-                // set currentSearch before currentPath so that it is available when path updates
-                if (splitHref.length > 1 && splitHref[1].length > 0) { this.currentSearch = splitHref[1]; } else { this.currentSearch = ""; }
-                this.currentPath = splitHref[0];
-                // with url cleaned up through setters now get current screen url for menu
-                var srch = this.currentSearch;
-                var screenUrl = this.currentPath + (srch.length > 0 ? '?' + srch : '');
-                if (!screenUrl || screenUrl.length === 0) return;
-                console.info("current URL changing to " + screenUrl);
-                this.lastNavTime = Date.now();
-                // TODO: somehow only clear out activeContainers that are in subscreens actually reloaded? may cause issues if any but last screen have dynamic-container
-                this.activeContainers = {};
 
-                // update menu, which triggers update of screen/subscreen components
-                var vm = this;
-                var menuDataUrl = this.appRootPath && this.appRootPath.length && screenUrl.indexOf(this.appRootPath) === 0 ?
-                    this.appRootPath + "/menuData" + screenUrl.slice(this.appRootPath.length) : "/menuData" + screenUrl;
-                $.ajax({ type:"GET", url:menuDataUrl, dataType:"text", error:moqui.handleAjaxError, success: function(outerListText) {
-                    var outerList = null;
-                    // console.log("menu response " + outerListText);
-                    try { outerList = JSON.parse(outerListText); } catch (e) { console.info("Error parson menu list JSON: " + e); }
-                    if (outerList && moqui.isArray(outerList)) {
-                        vm.navMenuList = outerList;
-                        /* console.info('navMenuList ' + JSON.stringify(outerList)); */
-                    }
-                }});
-
-                // set the window URL
-                window.history.pushState(null, this.ScreenTitle, url);
-                // notify url listeners
-                this.urlListeners.forEach(function(callback) { callback(url, this) }, this);
-                // scroll to top
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0;
-            }
-        },
-        setParameters: function(parmObj) {
-            if (parmObj) {
-                this.$root.currentParameters = $.extend({}, this.$root.currentParameters, parmObj);
-                // no path change so just need to update parameters on most recent history item
-                var curUrl = this.currentLinkUrl;
-                var curHistoryItem = this.navHistoryList[0];
-                curHistoryItem.pathWithParams = curUrl;
-                window.history.pushState(null, curHistoryItem.title || '', curUrl);
-            }
-            this.$root.reloadSubscreens();
-        },
-        addSubscreen: function(saComp) {
-            var pathIdx = this.activeSubscreens.length;
-            // console.info('addSubscreen idx ' + pathIdx + ' pathName ' + this.currentPathList[pathIdx]);
-            saComp.pathIndex = pathIdx;
-            // setting pathName here handles initial load of subscreens-active; this may be undefined if we have more activeSubscreens than currentPathList items
-            saComp.loadActive();
-            this.activeSubscreens.push(saComp);
-        },
-        reloadSubscreens: function() {
-            // console.info('reloadSubscreens path ' + JSON.stringify(this.currentPathList) + ' currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
-            var fullPathList = this.currentPathList;
-            var activeSubscreens = this.activeSubscreens;
-            console.info("reloadSubscreens currentPathList " + JSON.stringify(this.currentPathList));
-            if (fullPathList.length === 0 && activeSubscreens.length > 0) {
-                activeSubscreens.splice(1);
-                activeSubscreens[0].loadActive();
-                return;
-            }
-            for (var i=0; i<activeSubscreens.length; i++) {
-                if (i >= fullPathList.length) break;
-                // always try loading the active subscreen and see if actually loaded
-                var loaded = activeSubscreens[i].loadActive();
-                // clear out remaining activeSubscreens, after first changed loads its placeholders will register and load
-                if (loaded) activeSubscreens.splice(i+1);
-            }
-        },
-        goPreviousScreen: function() {
-            var currentPath = this.currentPath;
-            var navHistoryList = this.navHistoryList;
-            var prevHist;
-            for (var hi = 0; hi < navHistoryList.length; hi++) {
-                if (navHistoryList[hi].pathWithParams.indexOf(currentPath) < 0) { prevHist = navHistoryList[hi]; break; } }
-            if (prevHist && prevHist.pathWithParams && prevHist.pathWithParams.length) this.setUrl(prevHist.pathWithParams)
-        },
-        // all container components added with this must have reload() and load(url) methods
-        addContainer: function(contId, comp) { this.activeContainers[contId] = comp; },
-        reloadContainer: function(contId) { var contComp = this.activeContainers[contId];
-            if (contComp) { contComp.reload(); } else { console.error("Container with ID " + contId + " not found, not reloading"); }},
-        loadContainer: function(contId, url) { var contComp = this.activeContainers[contId];
-            if (contComp) { contComp.load(url); } else { console.error("Container with ID " + contId + " not found, not loading url " + url); }},
-        addNavPlugin: function(url) { var vm = this; moqui.loadComponent(this.appRootPath + url, function(comp) { vm.navPlugins.push(Vue.markRaw(comp)); }) },
-        addNavPluginsWait: function(urlList, urlIndex) { if (urlList && urlList.length > urlIndex) {
-            this.addNavPlugin(urlList[urlIndex]);
-            var vm = this;
-            if (urlList.length > (urlIndex + 1)) { setTimeout(function(){ vm.addNavPluginsWait(urlList, urlIndex + 1); }, 500); }
-        } },
-        addUrlListener: function(urlListenerFunction) {
-            if (this.urlListeners.indexOf(urlListenerFunction) >= 0) return;
-            this.urlListeners.push(urlListenerFunction);
-        },
-        addNotify: function(message, type) {
-            var histList = this.notifyHistoryList.slice(0);
-            var nowDate = new Date();
-            var nh = nowDate.getHours(); if (nh < 10) nh = '0' + nh;
-            var nm = nowDate.getMinutes(); if (nm < 10) nm = '0' + nm;
-            // var ns = nowDate.getSeconds(); if (ns < 10) ns = '0' + ns;
-            histList.unshift({message:message, type:type, time:(nh + ':' + nm)}); //  + ':' + ns
-            while (histList.length > 25) { histList.pop(); }
-            this.notifyHistoryList = histList;
-        },
-        switchDarkLight: function() {
-            var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
-            var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
-            $.ajax({ type:'POST', url:(this.appRootPath + '/apps/setPreference'), error:moqui.handleAjaxError,
-                data:{ moquiSessionToken:this.moquiSessionToken, preferenceKey:'OUTER_STYLE', preferenceValue:currentStyle } });
-        },
-        showScreenDocDialog: function(docIndex) {
-            $("#screen-document-dialog").modal("show");
-            $("#screen-document-dialog-body").load(this.currentPath + '/screenDoc?docIndex=' + docIndex);
-        },
-        stopProp: function (e) { e.stopPropagation(); },
-        getNavHref: function(navIndex) {
-            if (!navIndex) navIndex = this.navMenuList.length - 1;
-            var navMenu = this.navMenuList[navIndex];
-            if (navMenu.extraPathList && navMenu.extraPathList.length) {
-                var href = navMenu.path + '/' + navMenu.extraPathList.join('/');
-                var questionIdx = navMenu.pathWithParams.indexOf("?");
-                if (questionIdx > 0) { href += navMenu.pathWithParams.slice(questionIdx); }
-                return href;
-            } else {
-                return navMenu.pathWithParams || navMenu.path;
-            }
-        },
-        getLinkPath: function(path) {
-            if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
-            var pathList = path.split('/');
-            // element 0 in array after split is empty string from leading '/'
-            var wrapperIdx = this.appRootPath.split('/').length;
-            pathList[wrapperIdx] = this.linkBasePath.split('/').slice(-1);
-            path = pathList.join("/");
-            return path;
-        }
-    },
-    watch: {
-        navMenuList: {
-            handler(newList) {
-                if (newList.length > 0) {
-                    var cur = newList[newList.length - 1];
-                    var par = newList.length > 1 ? newList[newList.length - 2] : null;
-                    // if there is an extraPathList set it now
-                    if (cur.extraPathList) this.extraPathList = cur.extraPathList;
-                    // make sure full currentPathList and activeSubscreens is populated (necessary for minimal path urls)
-                    // fullPathList is the path after the base path, menu and link paths are in the screen tree context only so need to subtract off the appRootPath (Servlet Context Path)
-                    var basePathSize = this.basePathSize;
-                    var fullPathList = cur.path.split('/').slice(basePathSize + 1);
-                    console.info('nav updated fullPath ' + JSON.stringify(fullPathList) + ' currentPathList ' + JSON.stringify(this.currentPathList) + ' cur.path ' + cur.path + ' basePathSize ' + basePathSize);
-                    this.currentPathList = fullPathList;
-                    this.reloadSubscreens();
-
-                    // update history and document.title
-                    var newTitle = (par ? par.title + ' - ' : '') + cur.title;
-                    var curUrl = cur.pathWithParams;
-                    var questIdx = curUrl.indexOf("?");
-                    if (questIdx > 0) {
-                        var excludeKeys = ["pageIndex", "orderBySelect", "orderByField", "moquiSessionToken"];
-                        var parmList = curUrl.substring(questIdx + 1).split("&");
-                        curUrl = curUrl.substring(0, questIdx);
-                        var dpCount = 0;
-                        var titleParms = "";
-                        for (var pi = 0; pi < parmList.length; pi++) {
-                            var parm = parmList[pi];
-                            if (curUrl.indexOf("?") === -1) {
-                                curUrl += "?";
-                            } else {
-                                curUrl += "&";
-                            }
-                            curUrl += parm;
-                            // from here down only add to title parms
-                            if (dpCount > 3) continue; // add up to 4 parms to the title
-                            var eqIdx = parm.indexOf("=");
-                            if (eqIdx > 0) {
-                                var key = parm.substring(0, eqIdx);
-                                var value = parm.substring(eqIdx + 1);
-                                if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || excludeKeys.indexOf(key) >= 0 || key === value) continue;
-                                if (titleParms.length > 0) titleParms += ", ";
-                                titleParms += decodeURIComponent(value);
-                                dpCount++;
-                            }
-                        }
-                        if (titleParms.length > 0) {
-                            if (titleParms.length > 70) titleParms = titleParms.substring(0, 70) + "...";
-                            newTitle = newTitle + " (" + titleParms + ")";
-                        }
-                    }
-                    var navHistoryList = this.navHistoryList;
-                    for (var hi = 0; hi < navHistoryList.length;) {
-                        if (navHistoryList[hi].pathWithParams === curUrl) {
-                            navHistoryList.splice(hi, 1);
-                        } else {
-                            hi++;
-                        }
-                    }
-                    navHistoryList.unshift({
-                        title: newTitle,
-                        pathWithParams: curUrl,
-                        image: cur.image,
-                        imageType: cur.imageType
-                    });
-                    while (navHistoryList.length > 25) {
-                        navHistoryList.pop();
-                    }
-                    document.title = newTitle;
-                }
-            },
-            deep: true
-        },
-        currentPathList: {
-            handler(newList) {
-                // console.info('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
-                var lastPath = newList[newList.length - 1];
-                if (lastPath) {
-                    $(this.$el).removeClass().addClass(lastPath);
-                }
-            },
-            deep: true
-        }
-    },
-    computed: {
-        currentPath: {
-            get: function() { var curPath = this.currentPathList; var extraPath = this.extraPathList;
-                return this.basePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
-                    (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : ''); },
-            set: function(newPath) {
-                if (!newPath || newPath.length === 0) { this.currentPathList = []; return; }
-                if (newPath.slice(newPath.length - 1) === '/') newPath = newPath.slice(0, newPath.length - 1);
-                if (newPath.indexOf(this.linkBasePath) === 0) { newPath = newPath.slice(this.linkBasePath.length + 1); }
-                else if (newPath.indexOf(this.basePath) === 0) { newPath = newPath.slice(this.basePath.length + 1); }
-                this.currentPathList = newPath.split('/');
-            }
-        },
-        currentLinkPath: function() {
-            var curPath = this.currentPathList; var extraPath = this.extraPathList;
-            return this.linkBasePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
-                (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : '');
-        },
-        currentSearch: {
-            get: function() { return moqui.objToSearch(this.currentParameters); },
-            set: function(newSearch) { this.currentParameters = moqui.searchToObj(newSearch); }
-        },
-        currentLinkUrl: function() { var search = this.currentSearch; return this.currentLinkPath + (search.length > 0 ? '?' + search : ''); },
-        basePathSize: function() { return this.basePath.split('/').length - this.appRootPath.split('/').length; },
-        ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; },
-        documentMenuList: function() {
-            var docList = [];
-            for (var i = 0; i < this.navMenuList.length; i++) {
-                var screenDocList = this.navMenuList[i].screenDocList;
-                if (screenDocList && screenDocList.length) { screenDocList.forEach(function(el) { docList.push(el);}); }
-            }
-            return docList;
-        }
-    },
-    created: function() {
-        this.moquiSessionToken = $("#confMoquiSessionToken").val();
-        this.appHost = $("#confAppHost").val(); this.appRootPath = $("#confAppRootPath").val();
-        this.basePath = $("#confBasePath").val(); this.linkBasePath = $("#confLinkBasePath").val();
-        this.userId = $("#confUserId").val();
-        this.locale = $("#confLocale").val(); if (moqui.localeMap[this.locale]) this.locale = moqui.localeMap[this.locale];
-
-        var confOuterStyle = $("#confOuterStyle").val();
-        if (confOuterStyle) {
-            var jqBody = $("body");
-            var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
-            if (currentStyle !== confOuterStyle) { jqBody.removeClass(currentStyle); jqBody.addClass(confOuterStyle); }
-        }
-
-        this.notificationClient = new moqui.NotificationClient((location.protocol === 'https:' ? 'wss://' : 'ws://') + this.appHost + this.appRootPath + "/notws");
-
-        var navPluginUrlList = [];
-        $('.confNavPluginUrl').each(function(idx, el) { navPluginUrlList.push($(el).val()); });
-        this.addNavPluginsWait(navPluginUrlList, 0);
-    },
-    mounted: function() {
-        var jqEl = $(this.$el);
-        jqEl.find('.navbar [data-toggle="tooltip"]').tooltip({ placement:'bottom', trigger:'hover' });
-        jqEl.find('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
-        jqEl.find('#notify-history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
-        jqEl.find('#document-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
-        // load the current screen
-        this.setUrl(window.location.pathname + window.location.search);
-        // init the NotificationClient and register 'displayNotify' as the default listener
-        this.notificationClient.registerListener("ALL");
-
-        $("#screen-document-dialog").on("hidden.bs.modal", function () { var jqEl = $("#screen-document-dialog-body");
-                jqEl.empty(); jqEl.append('<div class="spinner"><div>Loading…</div></div>'); });
-
-        // request Notification permission on load if not already granted or denied
-        if (window.Notification && Notification.permission !== "granted" && Notification.permission !== "denied") {
-            Notification.requestPermission(function (status) {
-                if (status === "granted") {
-                    moqui.notifyMessages("Browser notifications enabled, if you don't want them use browser notification settings to block");
-                } else if (status === "denied") {
-                    moqui.notifyMessages("Browser notifications disabled, if you want them use browser notification settings to allow");
-                }
-            });
-        }
-    }
-
-});
+moqui.webrootVue.mount('#apps-root')
 window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.location.pathname + window.location.search); });
