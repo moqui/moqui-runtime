@@ -28,7 +28,7 @@ along with this software (see the LICENSE.md file). If not, see
             /* ========== Production Mode ========== */
             html_scripts.add('/js/MoquiLib.min.js')
             // Vue JS
-            footer_scripts.add('/libs/vue/vue.runtime.global.prod.min.js')
+            footer_scripts.add('/libs/vue/vue.global.prod.min.js')
             // Vue JS compat
             footer_scripts.add('/libs/vue.global.min.js')
             // http-vue-loader
@@ -41,7 +41,7 @@ along with this software (see the LICENSE.md file). If not, see
             /* ========== Dev Mode ========== */
             html_scripts.add('/js/MoquiLib.js')
             // Vue JS
-            footer_scripts.add('/libs/vue/vue.runtime.global.js')
+            footer_scripts.add('/libs/vue/vue.global.js')
             // Vue JS compat
             footer_scripts.add('/libs/vue.global.min.js')
             // http-vue-loader

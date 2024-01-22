@@ -43,6 +43,7 @@
  - screen structure for any client library (Angular2, React, etc) possible?
    - goal would be to use FTL macros to transform more detailed XML into library specific output
  */
+// const { createApp, defineComponent, configureCompat } = Vue
 const { createApp, defineComponent } = Vue
 /* ========== webroot component ========== */
 moqui.webrootVue = createApp({
@@ -382,6 +383,9 @@ moqui.webrootVue = createApp({
     }
 });
 moqui.webrootVue.config.compilerOptions.whitespace = 'preserve'
+// configureCompat({
+//     MODE: 3,
+// })
 
 moqui.urlExtensions = { js:'js', vue:'vue', vuet:'vuet' }
 
