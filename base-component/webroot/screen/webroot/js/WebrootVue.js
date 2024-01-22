@@ -43,7 +43,7 @@
  - screen structure for any client library (Angular2, React, etc) possible?
    - goal would be to use FTL macros to transform more detailed XML into library specific output
  */
-const { createApp } = Vue
+const { createApp, defineComponent } = Vue
 /* ========== webroot component ========== */
 moqui.webrootVue = createApp({
     data() { return { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
@@ -381,6 +381,7 @@ moqui.webrootVue = createApp({
         }
     }
 });
+moqui.webrootVue.config.compilerOptions.whitespace = 'preserve'
 
 moqui.urlExtensions = { js:'js', vue:'vue', vuet:'vuet' }
 
@@ -390,8 +391,13 @@ if (!window.define) window.define = function(name, deps, callback) {
     if (!moqui.isArray(deps)) { callback = deps; deps = null; }
     if (moqui.isFunction(callback)) { return callback(); } else { return callback }
 };
-Vue.filter('decodeHtml', moqui.htmlDecode);
-Vue.filter('format', moqui.format);
+// I believe this isn't needed anymore because it was used in Moqui Quasar and is no longer see: https://github.com/search?q=org%3Amoqui+decodeHtml&type=code
+// Vue.filter('decodeHtml', moqui.htmlDecode);
+moqui.webrootVue.config.globalProperties.$filters = {
+    format(value) {
+        return moqui.format(value);
+    }
+}
 
 /* ========== notify and error handling ========== */
 moqui.notifyOpts = { delay:1500, timer:500, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'success',
@@ -608,11 +614,11 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
 };
 
 /* ========== placeholder components ========== */
-moqui.NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
-moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' });
+moqui.NotFound = defineComponent(Vue.markRaw({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' }));
+moqui.EmptyComponent = defineComponent(Vue.markRaw({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' }));
 
 /* ========== inline components ========== */
-Vue.component('m-link', {
+moqui.webrootVue.component('m-link', {
     props: { href:{type:String,required:true}, loadId:String, confirmation:String },
     template: '<a :href="linkHref" @click.prevent="go"><slot></slot></a>',
     methods: { go: function(event) {
@@ -630,7 +636,7 @@ Vue.component('m-link', {
     }},
     computed: { linkHref: function () { return this.$root.getLinkPath(this.href); } }
 });
-Vue.component('m-script', {
+moqui.webrootVue.component('m-script', {
     props: { src:String, type:{type:String,'default':'text/javascript'} },
     template: '<div :type="type" style="display:none;"><slot></slot></div>',
     created: function() { if (this.src && this.src.length > 0) { moqui.loadScript(this.src); } },
@@ -648,13 +654,13 @@ Vue.component('m-script', {
         // maybe better not to, nice to see in dom: $(this.$el).remove();
     }
 });
-Vue.component('m-stylesheet', {
+moqui.webrootVue.component('m-stylesheet', {
     props: { href:{type:String,required:true}, rel:{type:String,'default':'stylesheet'}, type:{type:String,'default':'text/css'} },
     template: '<div :type="type" style="display:none;"></div>',
     created: function() { moqui.loadStylesheet(this.href, this.rel, this.type); }
 });
 /* ========== layout components ========== */
-Vue.component('container-box', {
+moqui.webrootVue.component('container-box', {
     props: { type:{type:String,'default':'default'}, title:String, initialOpen:{type:Boolean,'default':true} },
     data: function() { return { isBodyOpen:this.initialOpen }},
     template:
@@ -669,12 +675,12 @@ Vue.component('container-box', {
     '</div>',
     methods: { toggleBody: function() { this.isBodyOpen = !this.isBodyOpen; } }
 });
-Vue.component('box-body', {
+moqui.webrootVue.component('box-body', {
     props: { height:String },
     data: function() { return this.height ? { dialogStyle:{'max-height':this.height+'px', 'overflow-y':'auto'}} : {dialogStyle:{}}},
     template: '<div class="panel-body" :style="dialogStyle"><slot></slot></div>'
 });
-Vue.component('container-dialog', {
+moqui.webrootVue.component('container-dialog', {
     props: { id:{type:String,required:true}, title:String, width:{type:String,'default':'760'}, openDialog:{type:Boolean,'default':false} },
     data: function() {
         var viewportWidth = $(window).width();
@@ -699,7 +705,7 @@ Vue.component('container-dialog', {
         if (this.openDialog) { jqEl.modal('show'); }
     }
 });
-Vue.component('dynamic-container', {
+moqui.webrootVue.component('dynamic-container', {
     props: { id:{type:String,required:true}, url:{type:String} },
     data: function() { return { curComponent:moqui.EmptyComponent, curUrl:"" } },
     template: '<component :is="curComponent"></component>',
@@ -732,7 +738,7 @@ Vue.component('dynamic-container', {
         }},
     mounted: function() { this.$root.addContainer(this.id, this); this.curUrl = this.url; }
 });
-Vue.component('dynamic-dialog', {
+moqui.webrootVue.component('dynamic-dialog', {
     props: { id:{type:String,required:true}, url:{type:String,required:true}, title:String, width:{type:String,'default':'760'},
         openDialog:{type:Boolean,'default':false}, dynamicParams:{type:Object,'default':null} },
     data: function() {
@@ -790,7 +796,7 @@ Vue.component('dynamic-dialog', {
         if (this.openDialog) { jqEl.modal('show'); }
     }
 });
-Vue.component('tree-top', {
+moqui.webrootVue.component('tree-top', {
     template: '<ul :id="id" class="tree-list"><tree-item v-for="model in itemList" :key="model.id" :model="model" :top="top"/></ul>',
     props: { id:{type:String,required:true}, items:{type:[String,Array],required:true}, openPath:String, parameters:Object },
     data: function() { return { urlItems:null, currentPath:null, top:this }},
@@ -805,7 +811,7 @@ Vue.component('tree-top', {
             error:moqui.handleAjaxError, success:function(resp) { vm.urlItems = resp; /*console.info('tree-top response ' + JSON.stringify(resp));*/ } });
     }}
 });
-Vue.component('tree-item', {
+moqui.webrootVue.component('tree-item', {
     template:
     '<li :id="model.id">' +
         '<i v-if="isFolder" @click="toggle" class="fa" :class="{\'fa-chevron-right\':!open, \'fa-chevron-down\':open}"></i>' +
@@ -862,7 +868,7 @@ Vue.component('tree-item', {
     mounted: function() { if (this.model.state && this.model.state.opened) { this.open = true; } }
 });
 /* ========== general field components ========== */
-Vue.component('m-editable', {
+moqui.webrootVue.component('m-editable', {
     props: { id:{type:String,required:true}, labelType:{type:String,'default':'span'}, labelValue:{type:String,required:true},
         url:{type:String,required:true}, urlParameters:{type:Object,'default':{}},
         parameterName:{type:String,'default':'value'}, widgetType:{type:String,'default':'textarea'},
@@ -883,7 +889,7 @@ Vue.component('m-editable', {
 });
 
 /* ========== form components ========== */
-Vue.component('m-form', {
+moqui.webrootVue.component('m-form', {
     props: { action:{type:String,required:true}, method:{type:String,'default':'POST'}, excludeEmptyFields:Boolean,
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean },
     data: function() { return { fields:{}, fieldsChanged:{}, buttonClicked:null }},
@@ -1026,7 +1032,7 @@ Vue.component('m-form', {
         jqEl.find('button[type="submit"], input[type="submit"], input[type="image"]').on('click', function() { vm.buttonClicked = this; });
     }
 });
-Vue.component('form-link', {
+moqui.webrootVue.component('form-link', {
     props: { action:{type:String,required:true}, focusField:String, noValidate:Boolean, bodyParameterNames:Array },
     data: function() { return { fields:{} }},
     template: '<form @submit.prevent="submitForm" autocapitalize="off" autocomplete="off"><slot :clearForm="clearForm"></slot></form>',
@@ -1098,7 +1104,7 @@ Vue.component('form-link', {
     }
 });
 
-Vue.component('form-paginate', {
+moqui.webrootVue.component('form-paginate', {
     props: { paginate:Object, formList:Object },
     template:
     '<ul v-if="paginate" class="pagination">' +
@@ -1131,7 +1137,7 @@ Vue.component('form-paginate', {
         if (this.formList) { this.formList.setPageIndex(newIndex); } else { this.$root.setParameters({pageIndex:newIndex}); }
     }}
 });
-Vue.component('form-go-page', {
+moqui.webrootVue.component('form-go-page', {
     props: { idVal:{type:String,required:true}, maxIndex:Number, formList:Object },
     template:
     '<form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage" class="form-inline" :id="idVal+\'_GoPage\'">' +
@@ -1153,7 +1159,7 @@ Vue.component('form-go-page', {
         }
     }}
 });
-Vue.component('form-list', {
+moqui.webrootVue.component('form-list', {
     // rows can be a full path to a REST service or transition, a plain form name on the current screen, or a JS Array with the actual rows
     props: { name:{type:String,required:true}, id:String, rows:{type:[String,Array],required:true}, search:{type:Object},
             action:String, multi:Boolean, skipForm:Boolean, skipHeader:Boolean, headerForm:Boolean, headerDialog:Boolean,
@@ -1249,7 +1255,7 @@ Vue.component('form-list', {
 });
 
 /* ========== form field widget components ========== */
-Vue.component('date-time', {
+moqui.webrootVue.component('date-time', {
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'},
         size:String, format:String, tooltip:String, form:String, required:String, autoYear:String, minuteStep:{type:Number,'default':5} },
     template:
@@ -1336,7 +1342,7 @@ moqui.dateOffsets = [{id:'0',text:'This'},{id:'-1',text:'Last'},{id:'1',text:'Ne
 moqui.datePeriods = [{id:'day',text:'Day'},{id:'7d',text:'7 Days'},{id:'30d',text:'30 Days'},{id:'week',text:'Week'},{id:'weeks',text:'Weeks'},
     {id:'month',text:'Month'},{id:'months',text:'Months'},{id:'quarter',text:'Quarter'},{id:'year',text:'Year'},{id:'7r',text:'+/-7d'},{id:'30r',text:'+/-30d'}];
 moqui.emptyOpt = {id:'',text:'\u00a0'};
-Vue.component('date-period', {
+moqui.webrootVue.component('date-period', {
     props: { name:{type:String,required:true}, id:String, allowEmpty:Boolean, offset:String, period:String, date:String,
         fromDate:String, thruDate:String, fromThruType:{type:String,'default':'date'}, form:String },
     data: function() { return { fromThruMode:false, dateOffsets:moqui.dateOffsets.slice(), datePeriods:moqui.datePeriods.slice() } },
@@ -1352,7 +1358,7 @@ Vue.component('date-period', {
     methods: { toggleMode: function() { this.fromThruMode = !this.fromThruMode; } },
     beforeMount: function() { if (((this.fromDate && this.fromDate.length) || (this.thruDate && this.thruDate.length))) this.fromThruMode = true; }
 });
-Vue.component('drop-down', {
+moqui.webrootVue.component('drop-down', {
     props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String, submitOnSelect:Boolean, optionsUrl:String,
         serverSearch:{type:Boolean,'default':false}, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
         optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object, dependsOptional:Boolean,
@@ -1517,7 +1523,7 @@ Vue.component('drop-down', {
     },
     unmounted: function() { $(this.$el).off().select2('destroy'); }
 });
-Vue.component('text-autocomplete', {
+moqui.webrootVue.component('text-autocomplete', {
     props: { id:{type:String,required:true}, name:{type:String,required:true}, value:String, valueText:String,
         type:String, size:String, maxlength:String, disabled:Boolean, validationClasses:String, dataVvValidation:String,
         required:Boolean, pattern:String, tooltip:String, form:String, delay:{type:Number,'default':300},
@@ -1581,7 +1587,7 @@ Vue.component('text-autocomplete', {
 });
 
 /* ========== webrootVue - root Vue component with router ========== */
-Vue.component('subscreens-tabs', {
+moqui.webrootVue.component('subscreens-tabs', {
     data: function() { return { pathIndex:-1 }},
     template:
     '<ul v-if="subscreens.length > 1" class="nav nav-tabs" role="tablist">' +
@@ -1599,7 +1605,7 @@ Vue.component('subscreens-tabs', {
     // this approach to get pathIndex won't work if the subscreens-active tag comes before subscreens-tabs
     mounted: function() { this.pathIndex = this.$root.activeSubscreens.length; }
 });
-Vue.component('subscreens-active', {
+moqui.webrootVue.component('subscreens-active', {
     data: function() { return { activeComponent:moqui.EmptyComponent, pathIndex:-1, pathName:null } },
     template: '<component :is="activeComponent"></component>',
     // method instead of a watch on pathName so that it runs even when newPath is the same for non-static reloading
@@ -1643,6 +1649,6 @@ Vue.component('subscreens-active', {
     }},
     mounted: function() { this.$root.addSubscreen(this); }
 });
-
 moqui.webrootVue.mount('#apps-root')
+
 window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.location.pathname + window.location.search); });
