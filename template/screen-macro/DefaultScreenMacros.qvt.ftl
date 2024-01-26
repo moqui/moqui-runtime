@@ -857,7 +857,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </#if>
                     <#if currentFindUrlParms?has_content>
                         <#if activeFormListFind?has_content><hr></#if>
-                        <p>${curFindSummary!""}</p>
+                        <p v-pre>${curFindSummary!""}</p>
 
                         <m-form class="form-inline" id="${formId}_NewFind" action="${formSaveFindUrl}" v-slot:default="formProps"
                                 :fields-initial="{formLocation:'${formListInfo.getSavedFindFullLocation()}',_findDescription:'',<#rt>
@@ -1060,7 +1060,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
 
         <#if isHeaderDialog>
         <tr><th colspan="${numColumns}" style="font-weight: normal">
-            ${curFindSummary!""}
+            <span v-pre>${curFindSummary!""}</span>
             <#if haveFilters>
                 <#assign hiddenParameterMap = sri.getFormHiddenParameters(formNode)>
                 <#assign hiddenParameterKeys = hiddenParameterMap.keySet()>
