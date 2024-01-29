@@ -594,13 +594,26 @@ moqui.checkboxSetMixin = {
     data: function() {
         var checkboxStates = [];
         for (var i = 0; i < this.checkboxCount; i++) checkboxStates[i] = false;
-        return { checkboxAllState:false, checkboxStates:checkboxStates }
+        return { checkboxAllState:false, checkboxLastIndex:null, checkboxLastChange:null, checkboxStates:checkboxStates }
     },
     methods: {
         setCheckboxAllState: function(newState) {
             this.checkboxAllState = newState;
             var csSize = this.checkboxStates.length;
             for (var i = 0; i < csSize; i++) this.checkboxStates[i] = newState;
+        },
+        clickCheckbox: function(event, index) {
+            console.warn("clickCheckbox idx " + index + " shift " + event.shiftKey + " lastIdx " + this.checkboxLastIndex + " lastChange " + this.checkboxLastChange);
+            if (event.shiftKey && (null != this.checkboxLastIndex) && (this.checkboxLastIndex !== index)) {
+                var dir = index > this.checkboxLastIndex ? 1 : -1;
+                var change = this.checkboxLastChange;
+                for (var i = this.checkboxLastIndex; i !== index; i += dir) {
+                    this.checkboxStates[i] = change;
+                }
+            }
+            this.checkboxLastIndex = index;
+            // onclick is triggered before the default change hence the !
+            this.checkboxLastChange = !this.checkboxStates[index].checked;
         },
         getCheckboxValueArray: function() {
             if (!this.checkboxValues) return [];
@@ -641,7 +654,7 @@ Vue.component('m-checkbox-set', {
     name: "mCheckboxSet",
     mixins:[moqui.checkboxSetMixin],
     template: '<span class="checkbox-set"><slot :checkboxAllState="checkboxAllState" :setCheckboxAllState="setCheckboxAllState"' +
-        ' :checkboxStates="checkboxStates" :addCheckboxParameters="addCheckboxParameters"></slot></span>'
+        ' :checkboxStates="checkboxStates" :clickCheckbox="clickCheckbox" :addCheckboxParameters="addCheckboxParameters"></slot></span>'
 });
 
 Vue.component('m-form', {
@@ -657,7 +670,7 @@ Vue.component('m-form', {
     template:
         '<q-form ref="qForm" @submit.prevent="submitForm" @reset.prevent="resetForm" autocapitalize="off" autocomplete="off">' +
             '<slot :fields="fields" :checkboxAllState="checkboxAllState" :setCheckboxAllState="setCheckboxAllState"' +
-                ' :checkboxStates="checkboxStates" :addCheckboxParameters="addCheckboxParameters"' +
+                ' :checkboxStates="checkboxStates" :clickCheckbox="clickCheckbox" :addCheckboxParameters="addCheckboxParameters"' +
                 ' :blurSubmitForm="blurSubmitForm" :hasFieldsChanged="hasFieldsChanged" :fieldChanged="fieldChanged"></slot>' +
         '</q-form>',
     methods: {
