@@ -1346,7 +1346,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if isRowSelection>
             <div class="td">
             <#if listEntry[checkboxIdField]?has_content>
-                <div class="q-my-auto"><input type="checkbox" v-model="formProps.checkboxStates[${listEntry_index?c}]" @click="formProps.clickCheckbox($event, ${listEntry_index?c})"></div></#if>
+                <div class="q-my-auto"><input style="transform: scale(1.3);-ms-transform: scale(1.3);-webkit-transform: scale(1.3);" type="checkbox" v-model="formProps.checkboxStates[${listEntry_index?c}]" @click="formProps.clickCheckbox($event, ${listEntry_index?c})"></div></#if>
             </div>
         </#if>
         <#if !(isMulti || skipForm)>
