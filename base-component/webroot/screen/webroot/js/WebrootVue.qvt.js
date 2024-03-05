@@ -13,8 +13,13 @@ if (!window.define) window.define = function(name, deps, callback) {
     if (!moqui.isArray(deps)) { callback = deps; deps = null; }
     if (moqui.isFunction(callback)) { return callback(); } else { return callback }
 };
-Vue.filter('decodeHtml', moqui.htmlDecode);
-Vue.filter('format', moqui.format);
+// I believe this isn't needed anymore because it was used in Moqui Quasar and is no longer see: https://github.com/search?q=org%3Amoqui+decodeHtml&type=code
+// Vue.filter('decodeHtml', moqui.htmlDecode);
+moqui.webrootVue.config.globalProperties.$filters = {
+    format(value) {
+        return moqui.format(value);
+    }
+}
 
 moqui.getQuasarColor = function(bootstrapColor) {
     // Quasar colors (https://quasar.dev/style/color-palette): primary, secondary, accent, dark, positive, negative, info, warning
@@ -279,8 +284,8 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
 };
 
 /* ========== placeholder components ========== */
-moqui.NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
-moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' });
+moqui.NotFound = defineComponent({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
+moqui.EmptyComponent = defineComponent({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' });
 
 /* ========== inline components ========== */
 Vue.component('m-link', {
@@ -358,7 +363,7 @@ Vue.component('m-stylesheet', {
 Vue.component('m-container-box', {
     name: "mContainerBox",
     props: { type:{type:String,'default':'default'}, title:String, initialOpen:{type:Boolean,'default':true} },
-    data: function() { return { isBodyOpen:this.initialOpen }},
+    data() { return { isBodyOpen:this.initialOpen }},
     // TODO: handle type better, have text color (use text- additional styles instead of Bootstrap to Quasar mapping), can collor the border too?
     template:
     '<q-card flat bordered class="q-ma-sm m-container-box">' +
@@ -378,13 +383,13 @@ Vue.component('m-container-box', {
 Vue.component('m-box-body', {
     name: "mBoxBody",
     props: { height:String },
-    data: function() { return this.height ? { dialogStyle:{'max-height':this.height+'px', 'overflow-y':'auto'}} : {dialogStyle:{}}},
+    data() { return this.height ? { dialogStyle:{'max-height':this.height+'px', 'overflow-y':'auto'}} : {dialogStyle:{}}},
     template: '<div class="q-pa-xs" :style="dialogStyle"><slot></slot></div>'
 });
 Vue.component('m-dialog', {
     name: "mDialog",
     props: { draggable:{type:Boolean,'default':true}, value:{type:Boolean,'default':false}, id:String, color:String, width:{type:String}, title:{type:String} },
-    data: function() { return { isShown:false }; },
+    data() { return { isShown:false }; },
     template:
     '<q-dialog v-bind:value="value" v-on:input="$emit(\'input\', $event)" :id="id" @show="onShow" @hide="onHide" :maximized="$q.platform.is.mobile">' +
         '<q-card ref="dialogCard" flat bordered :style="{width:((width||760)+\'px\'),\'max-width\':($q.platform.is.mobile?\'100vw\':\'90vw\')}">' +
@@ -446,7 +451,7 @@ Vue.component('m-container-dialog', {
     name: "mContainerDialog",
     props: { id:String, color:String, buttonText:String, buttonClass:String, title:String, width:{type:String},
         openDialog:{type:Boolean,'default':false}, buttonIcon:{type:String,'default':'open_in_new'} },
-    data: function() { return { isShown:false }},
+    data() { return { isShown:false }},
     template:
     '<span>' +
         '<span @click="show()"><slot name="button"><q-btn dense outline no-caps :icon="buttonIcon" :label="buttonText" :color="color" :class="buttonClass"></q-btn></slot></span>' +
@@ -458,21 +463,21 @@ Vue.component('m-container-dialog', {
 Vue.component('m-dynamic-container', {
     name: "mDynamicContainer",
     props: { id:{type:String,required:true}, url:{type:String} },
-    data: function() { return { curComponent:moqui.EmptyComponent, curUrl:"" } },
+    data() { return { curComponent:moqui.EmptyComponent, curUrl:"" } },
     template: '<component :is="curComponent"></component>',
     methods: { reload: function() { var saveUrl = this.curUrl; this.curUrl = ""; var vm = this; setTimeout(function() { vm.curUrl = saveUrl; }, 20); },
         load: function(url) { if (this.curUrl === url) { this.reload(); } else { this.curUrl = url; } }},
-    watch: { curUrl: function(newUrl) {
+    watch: { curUrl: { handler(newUrl) {
         if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
         var vm = this; moqui.loadComponent(newUrl, function(comp) { vm.curComponent = comp; }, this.id);
-    }},
+    }}, deep: true },
     mounted: function() { this.$root.addContainer(this.id, this); this.curUrl = this.url; }
 });
 Vue.component('m-dynamic-dialog', {
     name: "mDynamicDialog",
     props: { id:{type:String}, url:{type:String,required:true}, color:String, buttonText:String, buttonClass:String, title:String, width:{type:String},
         openDialog:{type:Boolean,'default':false}, dynamicParams:{type:Object,'default':null} },
-    data: function() { return { curComponent:moqui.EmptyComponent, curUrl:"", isShown:false} },
+    data() { return { curComponent:moqui.EmptyComponent, curUrl:"", isShown:false} },
     template:
     '<span>' +
         '<q-btn dense outline no-caps icon="open_in_new" :label="buttonText" :color="color" :class="buttonClass" @click="isShown = true"></q-btn>' +
@@ -484,7 +489,7 @@ Vue.component('m-dynamic-dialog', {
         hide: function() { this.isShown = false; }
     },
     watch: {
-        curUrl: function(newUrl) {
+        curUrl: { handler(newUrl) {
             if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
             var vm = this;
             if (moqui.isPlainObject(this.dynamicParams)) {
@@ -499,7 +504,7 @@ Vue.component('m-dynamic-dialog', {
                 comp.mounted = function() { this.$nextTick(function () { vm.$refs.dialog.focusFirst(); }); };
                 vm.curComponent = comp;
             }, this.id);
-        },
+        }, deep: true },
         isShown: function(newShown) {
             if (newShown) {
                 this.curUrl = this.url;
@@ -517,7 +522,7 @@ Vue.component('m-tree-top', {
     name: "mTreeTop",
     template: '<ul :id="id" class="tree-list"><m-tree-item v-for="model in itemList" :key="model.id" :model="model" :top="top"/></ul>',
     props: { id:{type:String,required:true}, items:{type:[String,Array],required:true}, openPath:String, parameters:Object },
-    data: function() { return { urlItems:null, currentPath:null, top:this }},
+    data() { return { urlItems:null, currentPath:null, top:this }},
     computed: {
         itemList: function() { if (this.urlItems) { return this.urlItems; } return moqui.isArray(this.items) ? this.items : []; }
     },
@@ -541,14 +546,14 @@ Vue.component('m-tree-item', {
         '</span>' +
         '<ul v-show="open" v-if="hasChildren"><m-tree-item v-for="model in model.children" :key="model.id" :model="model" :top="top"/></ul></li>',
     props: { model:Object, top:Object },
-    data: function() { return { open:false }},
+    data() { return { open:false }},
     computed: {
         isFolder: function() { var children = this.model.children; if (!children) { return false; }
             if (moqui.isArray(children)) { return children.length > 0 } return true; },
         hasChildren: function() { var children = this.model.children; return moqui.isArray(children) && children.length > 0; },
         selected: function() { return this.top.currentPath === this.model.id; }
     },
-    watch: { open: function(newVal) { if (newVal) {
+    watch: { open: {handler(newVal) { if (newVal) {
         var children = this.model.children;
         var url = this.top.items;
         if (this.open && children && moqui.isBoolean(children) && moqui.isString(url)) {
@@ -558,7 +563,7 @@ Vue.component('m-tree-item', {
             var vm = this; $.ajax({ type:'POST', dataType:'json', url:url, headers:{Accept:'application/json'}, data:allParms,
                 error:moqui.handleAjaxError, success:function(resp) { vm.model.children = resp; } });
         }
-    }}},
+    }}, deep: true}},
     methods: {
         toggle: function() { if (this.isFolder) { this.open = !this.open; } },
         setSelected: function() { this.top.currentPath = this.model.id; this.open = true; }
@@ -591,7 +596,7 @@ Vue.component('m-editable', {
 moqui.checkboxSetMixin = {
     // NOTE: checkboxCount is used to init the checkbox state array, defaults to 100 and must be greater than or equal to the actual number of checkboxes (not including the All checkbox)
     props: { checkboxCount:{type:Number,'default':100}, checkboxParameter:String, checkboxListMode:Boolean, checkboxValues:Array },
-    data: function() {
+    data() {
         var checkboxStates = [];
         for (var i = 0; i < this.checkboxCount; i++) checkboxStates[i] = false;
         return { checkboxAllState:false, checkboxStates:checkboxStates }
@@ -650,7 +655,7 @@ Vue.component('m-form', {
     props: { fieldsInitial:Object, action:{type:String,required:true}, method:{type:String,'default':'POST'},
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean,
         excludeEmptyFields:Boolean, parentCheckboxSet:Object },
-    data: function() { return { fields:Object.assign({}, this.fieldsInitial),
+    data() { return { fields:Object.assign({}, this.fieldsInitial),
         fieldsOriginal:Object.assign({}, this.fieldsInitial), buttonClicked:null }},
     // NOTE: <slot v-bind:fields="fields"> also requires prefix from caller, using <m-form v-slot:default="formProps"> in qvt.ftl macro
     // see https://vuejs.org/v2/guide/components-slots.html
@@ -875,7 +880,7 @@ Vue.component('m-form', {
 Vue.component('m-form-link', {
     name: "mFormLink",
     props: { fieldsInitial:Object, action:{type:String,required:true}, focusField:String, noValidate:Boolean, bodyParameterNames:Array },
-    data: function() { return { fields:Object.assign({}, this.fieldsInitial), fieldsOriginal:Object.assign({}, this.fieldsInitial) }},
+    data() { return { fields:Object.assign({}, this.fieldsInitial), fieldsOriginal:Object.assign({}, this.fieldsInitial) }},
     template:
         '<q-form ref="qForm" @submit.prevent="submitForm" @reset.prevent="resetForm" autocapitalize="off" autocomplete="off">' +
             '<slot :clearForm="clearForm" :fields="fields" :hasFieldsChanged="hasFieldsChanged" :fieldChanged="fieldChanged"></slot></q-form>',
@@ -1032,7 +1037,7 @@ Vue.component('m-form-paginate', {
 Vue.component('m-form-go-page', {
     name: "mFormGoPage",
     props: { idVal:{type:String,required:true}, maxIndex:Number, formList:Object },
-    data: function() { return { pageIndex:"" } },
+    data() { return { pageIndex:"" } },
     template:
     '<q-form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage">' +
         '<q-input dense v-model="pageIndex" type="text" size="4" name="pageIndex" placeholder="Page #"' +
@@ -1052,7 +1057,7 @@ Vue.component('m-form-column-config', {
     name: "mFormColumnConfig",
     // column entry Object fields: id, label, children[]
     props: { id:String, action:String, columnsInitial:{type:Array,required:true}, formLocation:{type:String,required:true}, findParameters:Object },
-    data: function() { return { columns:moqui.deepCopy(this.columnsInitial) } },
+    data() { return { columns:moqui.deepCopy(this.columnsInitial) } },
     template:
         '<m-form ref="mForm" :id="id" :action="action">' +
             '<q-list v-for="(column, columnIdx) in columns" :key="column.id" bordered dense>' +
@@ -1149,7 +1154,7 @@ Vue.component('m-form-list', {
         action:String, multi:Boolean, skipForm:Boolean, skipHeader:Boolean, headerForm:Boolean, headerDialog:Boolean,
         savedFinds:Boolean, selectColumns:Boolean, allButton:Boolean, csvButton:Boolean, textButton:Boolean, pdfButton:Boolean,
         columns:[String,Number] },
-    data: function() { return { rowList:[], paginate:null, searchObj:null, moqui:moqui } },
+    data() { return { rowList:[], paginate:null, searchObj:null, moqui:moqui } },
     // slots (props): headerForm (search), header (search), nav (), rowForm (fields), row (fields)
     // TODO: QuickSavedFind drop-down
     // TODO: change find options form to update searchObj and run fetchRows instead of changing main page and reloading
@@ -1214,8 +1219,8 @@ Vue.component('m-form-list', {
         }
     },
     watch: {
-        rows: function(newRows) { if (moqui.isArray(newRows)) { this.rowList = newRows; } else { this.fetchRows(); } },
-        search: function () { this.fetchRows(); }
+        rows: {handler(newRows) { if (moqui.isArray(newRows)) { this.rowList = newRows; } else { this.fetchRows(); } }, deep: true},
+        search: {handler() { this.fetchRows(); }, deep: true},
     },
     mounted: function() {
         if (this.search) { this.searchObj = this.search; } else { this.searchObj = this.$root.currentParameters; }
@@ -1336,7 +1341,7 @@ Vue.component('m-date-period', {
     name: "mDatePeriod",
     props: { fields:{type:Object,required:true}, name:{type:String,required:true}, id:String,
         allowEmpty:Boolean, fromThruType:{type:String,'default':'date'}, form:String, tooltip:String, label:String },
-    data: function() { return { fromThruMode:false, dateOffsets:moqui.dateOffsets.slice(),
+    data() { return { fromThruMode:false, dateOffsets:moqui.dateOffsets.slice(),
         datePeriods:moqui.datePeriods.slice(), fieldsOriginal:Object.assign({}, this.fields) } },
     template:
     '<div v-if="fromThruMode" class="row">' +
@@ -1396,7 +1401,7 @@ Vue.component('m-display', {
     name: "mDisplay",
     props: { value:String, display:String, valueUrl:String, valueParameters:Object, dependsOn:Object, dependsOptional:Boolean, valueLoadInit:Boolean,
         fields:{type:Object}, tooltip:String, label:String, labelWrapper:Boolean, name:String, id:String },
-    data: function() { return { curDisplay:this.display, loading:false } },
+    data() { return { curDisplay:this.display, loading:false } },
     template:
         '<q-input v-if="labelWrapper" dense outlined readonly stack-label autogrow :value="displayValue" :label="label" :id="id" :name="name" :loading="loading">' +
             '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
@@ -1498,7 +1503,7 @@ Vue.component('m-drop-down', {
         labelField:{type:String,'default':'label'}, valueField:{type:String,'default':'value'},
         dependsOn:Object, dependsOptional:Boolean, form:String, fields:{type:Object},
         tooltip:String, label:String, name:String, id:String, disable:Boolean, bgColor:String, onSelectGoTo:String },
-    data: function() { return { curOptions:this.options, allOptions:this.options, lastVal:null, lastSearch:null, loading:false } },
+    data() { return { curOptions:this.options, allOptions:this.options, lastVal:null, lastSearch:null, loading:false } },
     template:
         // was: ':fill-input="!multiple" hide-selected' changed to ':hide-selected="multiple"' to show selected to the left of input,
         //     fixes issues with fill-input where set values would sometimes not be displayed
@@ -1768,10 +1773,11 @@ Vue.component('m-drop-down', {
     /* probably don't need, remove sometime:
     watch: {
         // need to watch for change to options prop? options: function(options) { this.curOptions = options; },
-        curOptionsFoo: function(options) {
+        curOptionsFoo: { handler(options) {
             // save the lastVal if there is one to remember what was selected even if new options don't have it, just in case options change again
             if (this.value && this.value.length) this.lastVal = this.value;
 
+        }, deep: true
         }
     }
      */
@@ -1783,7 +1789,7 @@ Vue.component('m-text-line', {
         dense:Boolean, outlined:Boolean, bgColor:String,
         label:String, tooltip:String, prefix:String, disable:Boolean, mask:String, fillMask:String, reverseFillMask:Boolean, rules:Array,
         defaultUrl:String, defaultParameters:Object, dependsOn:Object, dependsOptional:Boolean, defaultLoadInit:Boolean },
-    data: function() { return { loading:false } },
+    data() { return { loading:false } },
     template:
         '<q-input :dense="dense" :outlined="outlined" :bg-color="bgColor" stack-label :label="label" :prefix="prefix"' +
                 ' v-bind:value="value" v-on:input="$emit(\'input\', $event)" :type="type"' +
@@ -1860,7 +1866,7 @@ Vue.component('m-chart', {
     name: 'mChart',
     props: { config:{type:Object,required:true}, height:{type:String,'default':'400px'}, width:{type:String,'default':'100%'} },
     template: '<div class="chart-container" style="position:relative;" :style="{height:height,width:width}"><canvas ref="canvas"></canvas></div>',
-    data: function() { return { instance:null } },
+    data() { return { instance:null } },
     mounted: function() {
         var vm = this;
         moqui.loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js', function(err) {
@@ -1872,7 +1878,7 @@ Vue.component('m-chart', {
         }, function() { return !!window.Chart; });
     },
     watch: {
-        config: function (val) {
+        config: { handler(val) {
             if (this.instance) {
                 // console.info("updating m-chart")
                 if (val.type) this.instance.type = val.type;
@@ -1881,7 +1887,7 @@ Vue.component('m-chart', {
                 if (val.options) this.instance.options = val.options;
                 this.instance.update();
             }
-        }
+        }, deep: true }
     }
 });
 /* Lazy loading Mermaid JS wrapper component; for config options see https://mermaid.js.org/config/usage.html */
@@ -1904,7 +1910,7 @@ Vue.component('m-ck-editor', {
     name: 'mCkEditor',
     template:'<div><textarea ref="area"></textarea></div>',
     props: { value:{type:String,'default':''}, useInline:Boolean, config:Object, readOnly:{type:Boolean,'default':null} },
-    data: function() { return { destroyed:false, ckeditor:null } },
+    data() { return { destroyed:false, ckeditor:null } },
     mounted: function() {
         var vm = this;
         moqui.loadScript('https://cdn.ckeditor.com/4.14.1/standard-all/ckeditor.js', function(err) {
@@ -1940,13 +1946,13 @@ Vue.component('m-ck-editor', {
             });
         }, function() { return !!window.CKEDITOR; });
     },
-    beforeDestroy: function() {
+    beforeUnmount: function() {
         if (this.ckeditor) { this.ckeditor.destroy(); }
         this.destroyed = true;
     },
     watch: {
-        value: function(val) { if (this.ckeditor && this.ckeditor.getData() !== val) this.ckeditor.setData(val); },
-        readOnly: function(val) { if (this.ckeditor) this.ckeditor.setReadOnly( val ); }
+        value: { handler(val) { if (this.ckeditor && this.ckeditor.getData() !== val) this.ckeditor.setData(val); }, deep: true },
+        readOnly: { handler(val) { if (this.ckeditor) this.ckeditor.setReadOnly( val ); }, deep: true}
     }
 });
 /* Lazy loading Simple MDE wrapper component */
@@ -1954,7 +1960,7 @@ Vue.component('m-simple-mde', {
     name: 'mSimpleMde',
     template:'<div><textarea ref="area"></textarea></div>',
     props: { value:{type:String,'default':''}, config:Object },
-    data: function() { return { simplemde:null } },
+    data() { return { simplemde:null } },
     mounted: function() {
         var vm = this;
         moqui.loadStylesheet('https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css');
@@ -1980,14 +1986,14 @@ Vue.component('m-simple-mde', {
             vm.$nextTick(function() { vm.$emit('initialized', editor); });
         }, function() { return !!window.SimpleMDE; });
     },
-    watch: { value: function(val) { if (this.simplemde && this.simplemde.value() !== val) this.simplemde.value(val); } }
+    watch: { value: { handler(val) { if (this.simplemde && this.simplemde.value() !== val) this.simplemde.value(val); }, deep: true} }
 });
 
 
 /* ========== webrootVue - root Vue component with router ========== */
 Vue.component('m-subscreens-tabs', {
     name: "mSubscreensTabs",
-    data: function() { return { pathIndex:-1 }},
+    data() { return { pathIndex:-1 }},
     /* NOTE DEJ 20200729 In theory could use q-route-tab and show active automatically, attempted to mimic Vue Router sufficiently for this to work but no luck yet:
     '<div v-if="subscreens.length > 0"><q-tabs dense no-caps align="left" active-color="primary" indicator-color="primary">' +
         '<q-route-tab v-for="tab in subscreens" :key="tab.name" :name="tab.name" :label="tab.title" :disable="tab.disableLink" :to="tab.pathWithParams"></q-route-tab>' +
@@ -2021,7 +2027,7 @@ Vue.component('m-subscreens-tabs', {
 });
 Vue.component('m-subscreens-active', {
     name: "mSubscreensActive",
-    data: function() { return { activeComponent:moqui.EmptyComponent, pathIndex:-1, pathName:null } },
+    data() { return { activeComponent:moqui.EmptyComponent, pathIndex:-1, pathName:null } },
     template: '<component :is="activeComponent" style="height:100%;width:100%;"></component>',
     // method instead of a watch on pathName so that it runs even when newPath is the same for non-static reloading
     methods: { loadActive: function() {
@@ -2125,12 +2131,12 @@ Vue.component('m-menu-item-content', {
 
 moqui.webrootVue = new Vue({
     el: '#apps-root',
-    data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], currentParameters:{}, bodyParameters:null,
+    data() { return { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], currentParameters:{}, bodyParameters:null,
         activeSubscreens:[], navMenuList:[], navHistoryList:[], navPlugins:[], accountPlugins:[], notifyHistoryList:[],
         lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", username:"", locale:"en",
         reLoginShow:false, reLoginPassword:null, reLoginMfaData:null, reLoginOtp:null,
-        notificationClient:null, sessionTokenBc:null, qzVue:null, leftOpen:false, moqui:moqui },
+        notificationClient:null, sessionTokenBc:null, qzVue:null, leftOpen:false, moqui:moqui }},
     methods: {
         setUrl: function(url, bodyParameters, onComplete) {
             // cancel current load if needed
@@ -2436,7 +2442,7 @@ moqui.webrootVue = new Vue({
         }
     },
     watch: {
-        navMenuList: function(newList) { if (newList.length > 0) {
+        navMenuList: { handler(newList) { if (newList.length > 0) {
             var cur = newList[newList.length - 1];
             var par = newList.length > 1 ? newList[newList.length - 2] : null;
             // if there is an extraPathList set it now
@@ -2486,12 +2492,12 @@ moqui.webrootVue = new Vue({
             navHistoryList.unshift({ title:newTitle, pathWithParams:curUrl, image:cur.image, imageType:cur.imageType });
             while (navHistoryList.length > 25) { navHistoryList.pop(); }
             document.title = newTitle;
-        }},
-        currentPathList: function(newList) {
+        }}, deep: true },
+        currentPathList: { handler(newList) {
             // console.info('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
             var lastPath = newList[newList.length - 1];
             if (lastPath) { $(this.$el).removeClass().addClass(lastPath); }
-        }
+        }, deep: true }
     },
     computed: {
         currentPath: {
@@ -2571,7 +2577,7 @@ moqui.webrootVue = new Vue({
             });
         }
     },
-    beforeDestroy: function() {
+    beforeUnmount: function() {
         this.sessionTokenBc.close();
     }
 
