@@ -171,7 +171,7 @@ htmlJs.add(libsPath + '/jstree/jstree.min.js')
 
 def vuetJs = []
 // Vue JS
-vuetJs.add(libsPath + '/vue/vue.runtime.global.prod.min.js')
+vuetJs.add(libsPath + '/vue/vue.global.prod.min.js')
 // http-vue-loader
 vuetJs.add(webrootPath + '/js/http-vue-loader/httpVueLoader.js')
 // Vue root component instance, in footer so runs after page loaded
