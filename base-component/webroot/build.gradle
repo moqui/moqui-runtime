@@ -88,8 +88,8 @@ def fileMap = [
 
     "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
-    "vue/3.4.7/vue.runtime.global.js":"",
-    "vue/3.4.7/vue.runtime.global.prod.min.js":""
+    "vue/3.4.7/vue.global.js":"",
+    "vue/3.4.7/vue.global.prod.min.js":"",
 ]
 
 def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
