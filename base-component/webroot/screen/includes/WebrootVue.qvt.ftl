@@ -27,7 +27,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#assign accountCompList = sri.getThemeValues("STRT_HEADER_ACCOUNT_COMP")>
 <#list accountCompList! as accountCompUrl><input type="hidden" class="confAccountPluginUrl" value="${accountCompUrl}"></#list>
 
-<div id="apps-root" style="display:none;"><#-- NOTE: webrootVue component attaches here, uses this and below for template -->
+<div id="apps-root"><#-- NOTE: webrootVue component attaches here, uses this and below for template -->
 
     <#assign headerClass = "bg-black text-white">
 

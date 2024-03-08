@@ -426,7 +426,8 @@ moqui.webrootVue = createApp({
 
         var navPluginUrlList = [];
         $('.confNavPluginUrl').each(function(idx, el) { navPluginUrlList.push($(el).val()); });
-        this.addNavPluginsWait(navPluginUrlList, 0);
+        // TODO: Uncomment this
+        // this.addNavPluginsWait(navPluginUrlList, 0);
 
         var accountPluginUrlList = [];
         $('.confAccountPluginUrl').each(function(idx, el) { accountPluginUrlList.push($(el).val()); });
@@ -2630,10 +2631,10 @@ moqui.webrootRouter = {
     replace: function(location, onComplete, onAbort) { moqui.webrootVue.setUrl(location, null, onComplete); },
     push: function(location, onComplete, onAbort) { moqui.webrootVue.setUrl(location, null, onComplete); }
 }
-// TODO: This breaks stuff
-Object.defineProperty(Vue.prototype, '$router', {
-    get: function get() { return moqui.webrootRouter; }
-});
-Object.defineProperty(Vue.prototype, '$route', {
-    get: function get() { return moqui.webrootVue.getRoute(); }
-});
+// TODO: Uncomment this
+// Object.defineProperty(Vue.prototype, '$router', {
+//     get: function get() { return moqui.webrootRouter; }
+// });
+// Object.defineProperty(Vue.prototype, '$route', {
+//     get: function get() { return moqui.webrootVue.getRoute(); }
+// });
