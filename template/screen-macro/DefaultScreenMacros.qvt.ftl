@@ -1639,7 +1639,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
     <#if useWrapper>
     <q-field dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if>
         <#t><#if containerStyle?has_content> class="${containerStyle}"</#if><#if formDisabled!false> disable</#if>
-        <#t> :bg-color="formProps.fieldChanged('${curName}')?'blue-1':''">
+        <#t> :bg-color="formProps.fieldChanged('${curName}')?($q.dark.isActive?'blue-10':'blue-1'):''">
         <#if .node?parent["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node?parent["@tooltip"], "")}</span></q-tooltip></#if>
         <template v-slot:control>
     </#if>
@@ -1666,7 +1666,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
       <m-date-time id="<@fieldId .node/>_from" name="${curFieldName}_from" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
           <#t> label="${curFieldTitle} ${ec.getL10n().localize("From")}"
           <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_from"<#else> value="${fieldValueFrom?html}"</#if>
-          <#t> :bg-color="formProps.fieldChanged('${curFieldName}_from')?'blue-1':''"
+          <#t> :bg-color="formProps.fieldChanged('${curFieldName}_from')?($q.dark.isActive?'blue-10':'blue-1'):''"
           <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
           <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>></m-date-time>
     </span>
@@ -1674,7 +1674,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
       <m-date-time id="<@fieldId .node/>_thru" name="${curFieldName}_thru" type="${.node["@type"]!""}" size="${.node["@size"]!""}"<#rt>
           <#t> label="${curFieldTitle} ${ec.getL10n().localize("Thru")}"
           <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_thru"<#else> value="${fieldValueThru?html}"</#if>
-          <#t> :bg-color="formProps.fieldChanged('${curFieldName}_thru')?'blue-1':''"
+          <#t> :bg-color="formProps.fieldChanged('${curFieldName}_thru')?($q.dark.isActive?'blue-10':'blue-1'):''"
           <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
           <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>></m-date-time>
     </span>
@@ -1742,7 +1742,7 @@ a => A, d => D, y => Y
     <#assign validationClasses = formInstance.getFieldValidationClasses(dtSubFieldNode)>
     <m-date-time id="<@fieldId .node/>" name="${curName}" type="${.node["@type"]!""}" size="${.node["@size"]!""}" label="<@fieldTitle dtSubFieldNode/>"<#if formDisabled!> disable</#if><#rt>
         <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curName}"<#else> value="${sri.getFieldValueString(dtFieldNode, .node["@default-value"]!"", javaFormat)?html}"</#if>
-        <#t> :bg-color="formProps.fieldChanged('${curName}')?'blue-1':''"
+        <#t> :bg-color="formProps.fieldChanged('${curName}')?($q.dark.isActive?'blue-10':'blue-1'):''"
         <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
         <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if javaFormat?has_content> format="<@getMomentDateFormat javaFormat/>"</#if>
         <#t><#if validationClasses?contains("required")> required="required"</#if><#if .node.@rules?has_content> :rules="[${.node.@rules}]"</#if>
@@ -1895,7 +1895,7 @@ a => A, d => D, y => Y
             <#t><#if allowMultiple> :multiple="true"</#if><#if allowEmpty> :allow-empty="true"</#if><#if .node["@combo-box"]! == "true"> :combo="true"</#if>
             <#t><#if .node["@required-manual-select"]! == "true"> :required-manual-select="true"</#if>
             <#t><#if .node["@submit-on-select"]! == "true"> :submit-on-select="true"</#if>
-            <#t> :bg-color="formProps.fieldChanged('${name}')?'blue-1':''"
+            <#t> :bg-color="formProps.fieldChanged('${name}')?($q.dark.isActive?'blue-10':'blue-1'):''"
             <#t><#if .node?parent["@tooltip"]?has_content> tooltip="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if>
             <#t><#if ownerForm?has_content> form="${ownerForm}"</#if><#if .node["@size"]?has_content> size="${.node["@size"]}"</#if>
             <#if isDynamicOptions> options-url="${doUrlInfo.url}" value-field="${doNode["@value-field"]!"value"}" label-field="${doNode["@label-field"]!"label"}"<#if doNode["@depends-optional"]! == "true"> :depends-optional="true"</#if>
@@ -1911,7 +1911,7 @@ a => A, d => D, y => Y
             <#-- support <#if .node["@current"]! == "first-in-list"> again? -->
             <#if ec.getResource().expandNoL10n(.node["@show-not"]!, "") == "true">
             <template v-slot:after>
-                <q-field dense outlined :bg-color="formProps.fieldChanged('${name}_not')?'blue-1':''">
+                <q-field dense outlined :bg-color="formProps.fieldChanged('${name}_not')?($q.dark.isActive?'blue-10':'blue-1'):''">
                     <#t><q-checkbox size="xs" name="${name}_not" label="${ec.getL10n().localize("Not")}"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
                     <#t><#if fieldsJsName?has_content> true-value="Y" false-value="N" v-model="${fieldsJsName}.${name}_not"<#else> value="Y"<#if ec.getWeb().parameters.get(name + "_not")! == "Y"> checked="checked"</#if></#if>></q-checkbox></q-field>
             </template>
@@ -1924,7 +1924,7 @@ a => A, d => D, y => Y
     <#assign fieldLabel><@fieldTitle .node?parent/></#assign>
     <#assign acceptText = ec.getResource().expand(.node.@accept, "")>
     <q-file dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}"</#if><#if formDisabled!> disable</#if>
-            <#-- TODO-FC <#t> :bg-color="formProps.fieldChanged('${name}')?'blue-1':''" -->
+            <#-- TODO-FC <#t> :bg-color="formProps.fieldChanged('${name}')?($q.dark.isActive?'blue-10':'blue-1'):''" -->
             <#t> name="<@fieldName .node/>" size="${.node.@size!"30"}"<#if .node.@multiple! == "true"> multiple</#if><#if .node.@accept?has_content> accept="${acceptText}"</#if><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
         <#if .node?parent["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node?parent["@tooltip"], "")}</span></q-tooltip></#if>
     </q-file>
@@ -1961,7 +1961,7 @@ a => A, d => D, y => Y
     <#assign curName><@fieldName .node/></#assign>
     <#assign fieldLabel><@fieldTitle .node?parent/></#assign>
     <q-field dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if><#if formDisabled!> disable</#if>
-        <#t> :bg-color="formProps.fieldChanged('${curName}')?'blue-1':''">
+        <#t> :bg-color="formProps.fieldChanged('${curName}')?($q.dark.isActive?'blue-10':'blue-1'):''">
         <#if .node?parent["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node?parent["@tooltip"], "")}</span></q-tooltip></#if>
         <template v-slot:control>
         <#list (options.keySet())! as key>
@@ -1980,13 +1980,13 @@ a => A, d => D, y => Y
 <div class="row">
     <q-input dense outlined stack-label label="${fieldLabel} ${ec.getL10n().localize('From')}" name="${curFieldName}_from" id="${tlId}_from"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
             <#t> size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
-            <#t> :bg-color="formProps.fieldChanged('${curFieldName}_from')?'blue-1':''"
+            <#t> :bg-color="formProps.fieldChanged('${curFieldName}_from')?($q.dark.isActive?'blue-10':'blue-1'):''"
             <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_from"<#else> value="${ec.getContext().get(curFieldName + "_from")!?default(.node["@default-value-from"]!"")?html}"</#if>>
         <#if curTooltip?has_content><q-tooltip><span v-pre>${curTooltip}</span></q-tooltip></#if>
     </q-input>
     <q-input class="q-pl-xs" dense outlined stack-label label="${fieldLabel} ${ec.getL10n().localize('Thru')}" name="${curFieldName}_thru" id="${tlId}_thru"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
             <#t> size="${.node.@size!"10"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
-            <#t> :bg-color="formProps.fieldChanged('${curFieldName}_thru')?'blue-1':''"
+            <#t> :bg-color="formProps.fieldChanged('${curFieldName}_thru')?($q.dark.isActive?'blue-10':'blue-1'):''"
             <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_thru"<#else> value="${ec.getContext().get(curFieldName + "_thru")!?default(.node["@default-value-thru"]!"")?html}"</#if>>
         <#if curTooltip?has_content><q-tooltip><span v-pre>${curTooltip}</span></q-tooltip></#if>
     </q-input>
@@ -2036,7 +2036,7 @@ a => A, d => D, y => Y
                 <#t> rows="${.node["@rows"]!"3"}"<#if .node["@read-only"]! == "true"> readonly="readonly"</#if>
                 <#t><#if .node["@autogrow"]! == "true"> autogrow</#if>
                 <#-- TODO add config, etc: <#t> @blur="formProps.blurSubmitForm($event)" -->
-                <#t> :bg-color="formProps.fieldChanged('${name}')?'blue-1':''"
+                <#t> :bg-color="formProps.fieldChanged('${name}')?($q.dark.isActive?'blue-10':'blue-1'):''"
                 <#t><#if .node["@maxlength"]?has_content> maxlength="${.node["@maxlength"]}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>
             <#if .node?parent["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node?parent["@tooltip"], "")}</span></q-tooltip></#if>
             <#if !fieldsJsName?has_content>${sri.getFieldValueString(.node)?html}</#if>
@@ -2095,7 +2095,7 @@ a => A, d => D, y => Y
                 <#t> <#if fieldsJsName?has_content>v-model="${fieldsJsName}.${name}" :fields="${fieldsJsName}"<#else><#if fieldValue?html == fieldValue>value="${fieldValue}"<#else>:value="'${Static["org.moqui.util.WebUtilities"].encodeHtmlJsSafe(fieldValue)}'"</#if></#if>
                 <#t><#if .node.@size?has_content> size="${.node.@size}"<#else> style="width:100%;"</#if><#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if>
                 <#t><#if formDisabled! || ec.getResource().condition(.node.@disabled!"false", "")> disable</#if>
-                <#t> :bg-color="formProps.fieldChanged('${name}')?'blue-1':''"
+                <#t> :bg-color="formProps.fieldChanged('${name}')?($q.dark.isActive?'blue-10':'blue-1'):''"
                 <#t> class="<#if validationClasses?has_content>${validationClasses}</#if><#if tlAlign == "center"> text-center<#elseif tlAlign == "right"> text-right</#if>"
                 <#t><#if validationClasses?contains("required")> required</#if><#if regexpInfo?has_content> pattern="${regexpInfo.regexp}" data-msg-pattern="${regexpInfo.message!"Invalid format"}"</#if>
                 <#t><#if expandedMask?has_content> mask="${expandedMask}" fill-mask="_"<#if validationClasses?contains("number")> :reverse-fill-mask="true"</#if></#if>
@@ -2118,7 +2118,7 @@ a => A, d => D, y => Y
     <#assign hideOptions = .node["@hide-options"]!"false">
     <q-input dense outlined<#if fieldLabel?has_content> stack-label label="${fieldLabel}"</#if> name="${curFieldName}"<#rt>
             <#t> size="${.node.@size!"30"}"<#if .node.@maxlength?has_content> maxlength="${.node.@maxlength}"</#if> id="<@fieldId .node/>"
-            <#t> :bg-color="formProps.fieldChanged('${curFieldName}')?'blue-1':''"
+            <#t> :bg-color="formProps.fieldChanged('${curFieldName}')?($q.dark.isActive?'blue-10':'blue-1'):''"
             <#t><#if ownerForm?has_content> form="${ownerForm}"</#if>
             <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}"<#else> value="${sri.getFieldValueString(.node)?html}"</#if>>
         <#if .node["@tooltip"]?has_content><q-tooltip><span v-pre>${ec.getResource().expand(.node["@tooltip"], "")}</q-tooltip></#if>
@@ -2126,21 +2126,21 @@ a => A, d => D, y => Y
         <template v-slot:after>
             <#if hideOptions != "operator">
                 <#assign defaultOperator = .node["@default-operator"]!"contains">
-                <q-field dense outlined :bg-color="formProps.fieldChanged('${curFieldName}_not')?'blue-1':''">
+                <q-field dense outlined :bg-color="formProps.fieldChanged('${curFieldName}_not')?($q.dark.isActive?'blue-10':'blue-1'):''">
                     <q-checkbox class="on-left" size="xs" name="${curFieldName}_not" label="${ec.getL10n().localize("Not")}"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
                     <#t><#if fieldsJsName?has_content> true-value="Y" false-value="N" v-model="${fieldsJsName}.${curFieldName}_not"<#else>
                     <#t> value="Y"<#if ec.getWeb().parameters.get(curFieldName + "_not")! == "Y"> checked="checked"</#if></#if>></q-checkbox>
                 </q-field>
                 <q-select class="on-left" dense outlined options-dense emit-value map-options name="${curFieldName}_op"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
-                    <#t> :bg-color="formProps.fieldChanged('${curFieldName}_op')?'blue-1':''"
+                    <#t> :bg-color="formProps.fieldChanged('${curFieldName}_op')?($q.dark.isActive?'blue-10':'blue-1'):''"
                     <#t><#if fieldsJsName?has_content> v-model="${fieldsJsName}.${curFieldName}_op"<#else> value="${ec.web.parameters.get(curFieldName + "_op")!defaultOperator!""}"</#if>
                     <#t> :options="[{value:'equals',label:'${ec.getL10n().localize("Equals")}'},{value:'like',label:'${ec.getL10n().localize("Like")}'},{value:'contains',label:'${ec.getL10n().localize("Contains")}'},{value:'begins',label:'${ec.getL10n().localize("Begins With")}'},{value:'empty',label:'${ec.getL10n().localize("Empty")}'}]"></q-select>
             </#if>
             <#if hideOptions != "ignore-case">
                 <#assign ignoreCase = (ec.getWeb().parameters.get(curFieldName + "_ic")! == "Y") || !(.node["@ignore-case"]?has_content) || (.node["@ignore-case"] == "true")>
-                <q-field dense outlined :bg-color="formProps.fieldChanged('${curFieldName}_ic')?'blue-1':''">
+                <q-field dense outlined :bg-color="formProps.fieldChanged('${curFieldName}_ic')?($q.dark.isActive?'blue-10':'blue-1'):''">
                     <q-checkbox size="xs" name="${curFieldName}_ic" label="${ec.getL10n().localize("Ignore Case")}"<#if ownerForm?has_content> form="${ownerForm}"</#if><#rt>
-                    <#t> :label-color="formProps.fieldChanged('${curFieldName}_ic')?'blue-1':''"
+                    <#t> :label-color="formProps.fieldChanged('${curFieldName}_ic')?($q.dark.isActive?'blue-10':'blue-1'):''"
                     <#t><#if fieldsJsName?has_content> true-value="Y" false-value="N" v-model="${fieldsJsName}.${curFieldName}_ic"<#else> value="Y"<#if ignoreCase> checked="checked"</#if></#if>></q-checkbox>
                 </q-field>
             </#if>
