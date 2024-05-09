@@ -594,13 +594,26 @@ moqui.checkboxSetMixin = {
     data: function() {
         var checkboxStates = [];
         for (var i = 0; i < this.checkboxCount; i++) checkboxStates[i] = false;
-        return { checkboxAllState:false, checkboxStates:checkboxStates }
+        return { checkboxAllState:false, checkboxLastIndex:null, checkboxLastChange:null, checkboxStates:checkboxStates }
     },
     methods: {
         setCheckboxAllState: function(newState) {
             this.checkboxAllState = newState;
             var csSize = this.checkboxStates.length;
             for (var i = 0; i < csSize; i++) this.checkboxStates[i] = newState;
+        },
+        clickCheckbox: function(event, index) {
+            console.warn("clickCheckbox idx " + index + " shift " + event.shiftKey + " lastIdx " + this.checkboxLastIndex + " lastChange " + this.checkboxLastChange);
+            if (event.shiftKey && (null != this.checkboxLastIndex) && (this.checkboxLastIndex !== index)) {
+                var dir = index > this.checkboxLastIndex ? 1 : -1;
+                var change = this.checkboxLastChange;
+                for (var i = this.checkboxLastIndex; i !== index; i += dir) {
+                    this.checkboxStates[i] = change;
+                }
+            }
+            this.checkboxLastIndex = index;
+            // onclick is triggered before the default change hence the !
+            this.checkboxLastChange = !this.checkboxStates[index].checked;
         },
         getCheckboxValueArray: function() {
             if (!this.checkboxValues) return [];
@@ -641,7 +654,7 @@ Vue.component('m-checkbox-set', {
     name: "mCheckboxSet",
     mixins:[moqui.checkboxSetMixin],
     template: '<span class="checkbox-set"><slot :checkboxAllState="checkboxAllState" :setCheckboxAllState="setCheckboxAllState"' +
-        ' :checkboxStates="checkboxStates" :addCheckboxParameters="addCheckboxParameters"></slot></span>'
+        ' :checkboxStates="checkboxStates" :clickCheckbox="clickCheckbox" :addCheckboxParameters="addCheckboxParameters"></slot></span>'
 });
 
 Vue.component('m-form', {
@@ -657,7 +670,7 @@ Vue.component('m-form', {
     template:
         '<q-form ref="qForm" @submit.prevent="submitForm" @reset.prevent="resetForm" autocapitalize="off" autocomplete="off">' +
             '<slot :fields="fields" :checkboxAllState="checkboxAllState" :setCheckboxAllState="setCheckboxAllState"' +
-                ' :checkboxStates="checkboxStates" :addCheckboxParameters="addCheckboxParameters"' +
+                ' :checkboxStates="checkboxStates" :clickCheckbox="clickCheckbox" :addCheckboxParameters="addCheckboxParameters"' +
                 ' :blurSubmitForm="blurSubmitForm" :hasFieldsChanged="hasFieldsChanged" :fieldChanged="fieldChanged"></slot>' +
         '</q-form>',
     methods: {
@@ -1341,10 +1354,10 @@ Vue.component('m-date-period', {
     template:
     '<div v-if="fromThruMode" class="row">' +
         '<m-date-time :name="name+\'_from\'" :id="id+\'_from\'" :label="label+\' From\'" :form="form" :type="fromThruType"' +
-            ' v-model="fields[name+\'_from\']" :bg-color="fieldChanged(name+\'_from\')?\'blue-1\':\'\'"></m-date-time>' +
+        ' v-model="fields[name+\'_from\']" :bg-color="fieldChanged(name+\'_from\')?($q.dark.isActive?\'blue-10\':\'blue-1\'):\'\'"></m-date-time>' +
         '<q-icon class="q-my-auto" name="remove"></q-icon>' +
         '<m-date-time :name="name+\'_thru\'" :id="id+\'_thru\'" :label="label+\' Thru\'" :form="form" :type="fromThruType"' +
-            ' v-model="fields[name+\'_thru\']" :bg-color="fieldChanged(name+\'_thru\')?\'blue-1\':\'\'">' +
+            ' v-model="fields[name+\'_thru\']" :bg-color="fieldChanged(name+\'_thru\')?($q.dark.isActive?\'blue-10\':\'blue-1\'):\'\'">' +
             '<template v-slot:after>' +
                 '<q-btn dense flat icon="calendar_view_day" @click="toggleMode"><q-tooltip>Period Select Mode</q-tooltip></q-btn>' +
                 '<q-btn dense flat icon="clear" @click="clearAll"><q-tooltip>Clear</q-tooltip></q-btn>' +
@@ -1353,14 +1366,14 @@ Vue.component('m-date-period', {
     '</div>' +
     '<div v-else class="row"><q-input dense outlined stack-label :label="label" v-model="fields[name+\'_pdate\']"' +
             ' mask="####-##-##" fill-mask :id="id" :name="name+\'_pdate\'" :form="form" style="max-width:max-content;"' +
-            ' :bg-color="fieldChanged(name+\'_pdate\')?\'blue-1\':\'\'">' +
+            ' :bg-color="fieldChanged(name+\'_pdate\')?($q.dark.isActive?\'blue-10\':\'blue-1\'):\'\'">' +
         '<q-tooltip v-if="tooltip">{{tooltip}}</q-tooltip>' +
         '<template v-slot:before>' +
             '<q-select class="q-pr-xs" dense outlined options-dense emit-value map-options v-model="fields[name+\'_poffset\']"' +
-                ' :name="name+\'_poffset\'" :bg-color="fieldChanged(name+\'_poffset\')?\'blue-1\':\'\'"' +
+                ' :name="name+\'_poffset\'" :bg-color="fieldChanged(name+\'_poffset\')?($q.dark.isActive?\'blue-10\':\'blue-1\'):\'\'"' +
                 ' stack-label label="Offset" :options="dateOffsets" :form="form" behavior="menu"></q-select>' +
             '<q-select dense outlined options-dense emit-value map-options v-model="fields[name+\'_period\']"' +
-                ' :name="name+\'_period\'" :bg-color="fieldChanged(name+\'_period\')?\'blue-1\':\'\'"' +
+                ' :name="name+\'_period\'" :bg-color="fieldChanged(name+\'_period\')?($q.dark.isActive?\'blue-10\':\'blue-1\'):\'\'"' +
                 ' stack-label label="Period" :options="datePeriods" :form="form" behavior="menu"></q-select>' +
         '</template>' +
         '<template v-slot:prepend>' +
