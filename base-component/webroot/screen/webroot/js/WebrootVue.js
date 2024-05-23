@@ -44,7 +44,7 @@
    - goal would be to use FTL macros to transform more detailed XML into library specific output
  */
 // const { createApp, defineComponent, configureCompat } = Vue
-const { createApp, defineComponent } = Vue
+const { h, createApp, defineComponent } = Vue
 /* ========== webroot component ========== */
 moqui.webrootVue = createApp({
     data() { return { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
@@ -889,7 +889,7 @@ moqui.webrootVue.component('m-editable', {
         $(this.$el).editable(this.url, edConfig);
     },
     // TODO: Once global component is registered do: https://v3-migration.vuejs.org/breaking-changes/render-function-api.html
-    render: function(createEl) { return createEl(this.labelType, {id:this.id, 'class': 'editable-label',innerHTML:this.labelValue}); }
+    render: function() { return h(this.labelType, {id:this.id, 'class': 'editable-label',innerHTML:this.labelValue}); }
 });
 
 /* ========== form components ========== */
