@@ -419,16 +419,16 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
                 if (moqui.isPlainObject(messageItem)) {
                     var msgType = messageItem.type; if (!msgType || !msgType.length) msgType = 'info';
                     $.notify(new moqui.NotifyOptions(messageItem.message, null, msgType, null), $.extend({}, moqui.notifyOptsInfo, { type:msgType }));
-                    moqui.webrootVue.addNotify(messageItem.message, msgType);
+                    moquiWebrootApp.addNotify(messageItem.message, msgType);
                 } else {
                     $.notify(new moqui.NotifyOptions(messageItem, null, 'info', null), moqui.notifyOptsInfo);
-                    moqui.webrootVue.addNotify(messageItem, 'info');
+                    moquiWebrootApp.addNotify(messageItem, 'info');
                 }
                 notified = true;
             }
         } else {
             $.notify(new moqui.NotifyOptions(messages, null, 'info', null), moqui.notifyOptsInfo);
-            moqui.webrootVue.addNotify(messages, 'info');
+            moquiWebrootApp.addNotify(messages, 'info');
             notified = true;
         }
     }
@@ -436,12 +436,12 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
         if (moqui.isArray(errors)) {
             for (var ei=0; ei < errors.length; ei++) {
                 $.notify(new moqui.NotifyOptions(errors[ei], null, 'info', null), moqui.notifyOptsError);
-                moqui.webrootVue.addNotify(errors[ei], 'danger');
+                moquiWebrootApp.addNotify(errors[ei], 'danger');
                 notified = true;
             }
         } else {
             $.notify(new moqui.NotifyOptions(errors, null, 'info', null), moqui.notifyOptsError);
-            moqui.webrootVue.addNotify(errors, 'danger');
+            moquiWebrootApp.addNotify(errors, 'danger');
             notified = true;
         }
     }
@@ -459,7 +459,7 @@ moqui.notifyValidationError = function(valError) {
         if (valError.fieldPretty && valError.fieldPretty.length) message = message + " (for field " + valError.fieldPretty + ")";
     }
     $.notify(new moqui.NotifyOptions(message, null, 'info', null), moqui.notifyOptsError);
-    moqui.webrootVue.addNotify(message, 'danger');
+    moquiWebrootApp.addNotify(message, 'danger');
 
 };
 moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
@@ -481,17 +481,17 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
 
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status === 401) {
-        if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); }
+        if (moqui.webrootVue) { window.location.href = moquiWebrootApp.currentLinkUrl; } else { window.location.reload(true); }
     } else if (jqXHR.status === 0) {
         if (errorThrown.indexOf('abort') < 0) {
             var msg = 'Could not connect to server';
             $.notify(new moqui.NotifyOptions(msg, null, 'danger', null), moqui.notifyOptsError);
-            moqui.webrootVue.addNotify(msg, 'danger');
+            moquiWebrootApp.addNotify(msg, 'danger');
         }
     } else if (!notified) {
         var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
         $.notify(new moqui.NotifyOptions(errMsg, null, 'danger', null), moqui.notifyOptsError);
-        moqui.webrootVue.addNotify(errMsg, 'danger');
+        moquiWebrootApp.addNotify(errMsg, 'danger');
     }
 };
 
@@ -546,7 +546,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
         var vueAjaxSettings = { type:"GET", url:url, error:moqui.handleLoadError, success: function(resp, status, jqXHR) {
                 if (jqXHR.status === 205) {
                     var redirectTo = jqXHR.getResponseHeader("X-Redirect-To")
-                    moqui.webrootVue.setUrl(redirectTo);
+                    moquiWebrootApp.setUrl(redirectTo);
                     return;
                 }
                 // console.info(resp);
@@ -578,7 +578,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
     var ajaxSettings = { type:"GET", url:url, error:moqui.handleLoadError, success: function(resp, status, jqXHR) {
         if (jqXHR.status === 205) {
             var redirectTo = jqXHR.getResponseHeader("X-Redirect-To")
-            moqui.webrootVue.setUrl(redirectTo);
+            moquiWebrootApp.setUrl(redirectTo);
             return;
         }
         // console.info(resp);
@@ -609,7 +609,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
                 callback(compObj);
             }
         } else if (moqui.isPlainObject(resp)) {
-            if (resp.screenUrl && resp.screenUrl.length) { moqui.webrootVue.setUrl(resp.screenUrl); }
+            if (resp.screenUrl && resp.screenUrl.length) { moquiWebrootApp.setUrl(resp.screenUrl); }
             else if (resp.redirectUrl && resp.redirectUrl.length) { window.location.replace(resp.redirectUrl); }
         } else { callback(moqui.NotFound); }
     }};
@@ -975,7 +975,7 @@ moqui.webrootVue.component('m-form', {
                 var responseText = resp; // this is set for backward compatibility in case message relies on responseText as in old JS
                 var message = eval('"' + subMsg + '"');
                 $.notify(new moqui.NotifyOptions(message, null, 'success', null), moqui.notifyOpts);
-                moqui.webrootVue.addNotify(message, 'success');
+                moquiWebrootApp.addNotify(message, 'success');
             } else if (!notified) {
                 $.notify(new moqui.NotifyOptions("Submit successful", null, 'success', null), moqui.notifyOpts);
             }
@@ -1655,4 +1655,4 @@ moqui.webrootVue.component('subscreens-active', {
 });
 const moquiWebrootApp = moqui.webrootVue.mount('#apps-root')
 
-window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.location.pathname + window.location.search); });
+window.addEventListener('popstate', function() { moquiWebrootApp.setUrl(window.location.pathname + window.location.search); });
