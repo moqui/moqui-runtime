@@ -1653,6 +1653,6 @@ moqui.webrootVue.component('subscreens-active', {
     }},
     mounted: function() { this.$root.addSubscreen(this); }
 });
-moqui.webrootVue.mount('#apps-root')
+const moquiWebrootApp = moqui.webrootVue.mount('#apps-root')
 
 window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.location.pathname + window.location.search); });
