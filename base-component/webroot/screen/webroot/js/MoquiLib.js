@@ -346,13 +346,13 @@ var moqui = {
         if (window.Notification && Notification.permission === "granted") {
             var notif = new Notification(jsonObj.title, notificationOptions);
             if (jsonObj.link && jsonObj.link.length) notif.onclick = function () { window.open(jsonObj.link); };
-            if (moqui.webrootVue) { moqui.webrootVue.addNotify(jsonObj.title, jsonObj.type); }
+            if (moquiWebrootApp) { moquiWebrootApp.addNotify(jsonObj.title, jsonObj.type); }
         } else if (window.Notification && Notification.permission !== "denied") {
             Notification.requestPermission(function (status) {
                 if (status === "granted") {
                     var notif = new Notification(jsonObj.title, notificationOptions);
                     if (jsonObj.link && jsonObj.link.length) notif.onclick = function () { window.open(jsonObj.link); };
-                    if (moqui.webrootVue) { moqui.webrootVue.addNotify(jsonObj.title, jsonObj.type); }
+                    if (moquiWebrootApp) { moquiWebrootApp.addNotify(jsonObj.title, jsonObj.type); }
                 } else { fallback(jsonObj); }
             });
         } else { fallback(jsonObj); }
@@ -386,7 +386,7 @@ var moqui = {
         var notifySettings = new moqui.NotifySettings(jsonObj.type);
         if (jsonObj.alertNoAutoHide === true) { notifySettings.delay = 0; }
         $.notify(new moqui.NotifyOptions(jsonObj.title, jsonObj.link, jsonObj.type, jsonObj.icon), notifySettings);
-        if (moqui.webrootVue) { moqui.webrootVue.addNotify(jsonObj.title, jsonObj.type); }
+        if (moquiWebrootApp) { moquiWebrootApp.addNotify(jsonObj.title, jsonObj.type); }
     },
 
     /* NotificationClient, note does not connect the WebSocket until notificationClient.registerListener() is called the first time */

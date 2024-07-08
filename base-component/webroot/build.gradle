@@ -33,7 +33,7 @@ dependencyUpdates.resolutionStrategy = { componentSelection { rules -> rules.all
 
 def webrootPath = "screen/webroot"
 def libsPath = webrootPath + "/libs"
-def downloadBase = "http://cdnjs.cloudflare.com/ajax/libs/"
+def downloadBase = "https://cdnjs.cloudflare.com/ajax/libs/"
 def fileMap = [
     "rsvp/4.8.3/rsvp.min.js":"",
 
@@ -93,7 +93,7 @@ def fileMap = [
 ]
 
 def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
-def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js"]
+def jsdelivrList = ["quasar@2.16.5/dist/quasar.prod.css", "quasar@2.16.5/dist/quasar.umd.prod.js"]
 //def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js", "@vue/compat@3.4.7/dist/vue.global.min.js"]
 
 String getTargetPath(String sourcePath, String targetPath) {
