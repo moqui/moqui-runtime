@@ -730,7 +730,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
                 console.info("loaded HTML template from " + url + (divId ? " id " + divId : "") /*+ ": " + templateText*/);
                 // using this fixes encoded values in attributes and such that Vue does not decode (but is decoded in plain HTML),
                 //     but causes many other problems as all needed encoding is lost too: moqui.decodeHtml(templateText)
-                var compObj = { template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' };
+                var compObj = Vue.markRaw({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' });
                 if (isServerStatic) { moqui.componentCache.put(path, compObj); }
                 callback(compObj);
             }
