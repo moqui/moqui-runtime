@@ -2599,7 +2599,7 @@ moqui.webrootRouter = {
         var location = moqui.isString(to) ? moqui.parseHref(to) : to;
 
         var path = location.path;
-        if (moqui.webrootVue) location.path = path = moqui.webrootVue.getLinkPath(path);
+        if (moqui.webrootVue) location.path = path = moquiWebrootApp.getLinkPath(path);
 
         var lslIdx = path.lastIndexOf("/");
         var name = lslIdx === -1 ? path : path.slice(lslIdx+1);
@@ -2608,8 +2608,8 @@ moqui.webrootRouter = {
             hash:location.hash||"", query:location.query||"", params: {}, fullPath:path, matched:[] };
         return { location:location, route:route, href:moqui.makeHref(location), normalizedTo:location, resolved:route }
     },
-    replace: function(location, onComplete, onAbort) { moqui.webrootVue.setUrl(location, null, onComplete); },
-    push: function(location, onComplete, onAbort) { moqui.webrootVue.setUrl(location, null, onComplete); }
+    replace: function(location, onComplete, onAbort) { moquiWebrootApp.setUrl(location, null, onComplete); },
+    push: function(location, onComplete, onAbort) { moquiWebrootApp.setUrl(location, null, onComplete); }
 }
 /*
 Object.defineProperty(Vue.prototype, '$router', {
@@ -2619,3 +2619,9 @@ Object.defineProperty(Vue.prototype, '$route', {
     get: function get() { return moqui.webrootVue.getRoute(); }
 });
 */
+moqui.webrootVue.config.globalProperties.$router = moqui.webrootRouter;
+Object.defineProperty(moqui.webrootVue.config.globalProperties, '$route', {
+    get() {
+        return moquiWebrootApp.getRoute();
+    }
+});
