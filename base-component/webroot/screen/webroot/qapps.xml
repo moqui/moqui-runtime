@@ -32,7 +32,9 @@ along with this software (see the LICENSE.md file). If not, see
             // Vue JS compat
             footer_scripts.add('/libs/vue/vue.global.js')
             // http-vue-loader
-            footer_scripts.add('/js/http-vue-loader/httpVueLoader.js')
+//            footer_scripts.add('/js/http-vue-loader/httpVueLoader.js')
+            // vue3-sfc-loader
+            footer_scripts.add('/libs/vue3-sfc-loader/vue3-sfc-loader.min.js')
             // Quasar
             footer_scripts.add("/libs/quasar/quasar.umd.prod.js")
             // Webroot Quasar-Vue instance, in footer so runs after page loaded
@@ -45,7 +47,9 @@ along with this software (see the LICENSE.md file). If not, see
             // Vue JS compat
             footer_scripts.add('/libs/vue/vue.global.js')
             // http-vue-loader
-            footer_scripts.add('/js/http-vue-loader/httpVueLoader.js')
+//            footer_scripts.add('/js/http-vue-loader/httpVueLoader.js')
+            // vue3-sfc-loader
+            footer_scripts.add('/libs/vue3-sfc-loader/vue3-sfc-loader.min.js')
             // Quasar
             footer_scripts.add("/libs/quasar/quasar.umd.prod.js")
             // Webroot Quasar-Vue instance, in footer so runs after page loaded

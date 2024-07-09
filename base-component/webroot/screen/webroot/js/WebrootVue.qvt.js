@@ -1,6 +1,7 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
 const { h, createApp, defineComponent } = Vue
+const { loadModule } = window['vue3-sfc-loader'];
 moqui.webrootVue = createApp({
     data() { return { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], currentParameters:{}, bodyParameters:null,
         activeSubscreens:[], navMenuList:[], navHistoryList:[], navPlugins:[], accountPlugins:[], notifyHistoryList:[],
@@ -422,12 +423,15 @@ moqui.webrootVue = createApp({
         this.sessionTokenBc.onmessage = this.receiveBcCsrfToken;
 
         var navPluginUrlList = [];
-        $('.confNavPluginUrl').each(function(idx, el) { navPluginUrlList.push($(el).val()); });
-        this.addNavPluginsWait(navPluginUrlList, 0);
+        $('.confNavPluginUrl').each(function(idx, el) {
+            Vue.defineAsyncComponent(() => loadModule($(el).val(), moqui.vue3options))
+        });
 
         var accountPluginUrlList = [];
-        $('.confAccountPluginUrl').each(function(idx, el) { accountPluginUrlList.push($(el).val()); });
-        this.addAccountPluginsWait(accountPluginUrlList, 0);
+        $('.confAccountPluginUrl').each(function(idx, el) {
+            Vue.defineAsyncComponent(() => loadModule($(el).val(), moqui.vue3options))
+        });
+
     },
     mounted: function() {
         var jqEl = $(this.$el);
@@ -626,6 +630,15 @@ moqui.handleLoadError = function (jqXHR, textStatus, errorThrown) {
     moqui.webrootVue.loading = 0;
     moqui.handleAjaxError(jqXHR, textStatus, errorThrown);
 };
+moqui.vue3options = {
+    moduleCache: { vue: Vue },
+    getFile (url) {
+        console.warn("getFile " + url);
+        const option = moqui.loadComponent(url);
+        return option;
+    },
+    addStyle: () => {},
+}
 // NOTE: this may eventually split to change the activeSubscreens only on currentPathList change (for screens that support it)
 //     and if ever needed some sort of data refresh if currentParameters changes
 moqui.loadComponent = function(urlInfo, callback, divId) {
@@ -679,9 +692,9 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
                 if (!resp) { callback(moqui.NotFound); }
                 var isServerStatic = (jqXHR.getResponseHeader("Cache-Control").indexOf("max-age") >= 0);
                 if (moqui.isString(resp) && resp.length > 0) {
-                    var vueCompObj = httpVueLoader.parse(resp, url.substr(0, url.lastIndexOf('/')+1));
-                    if (isServerStatic) { moqui.componentCache.put(path, vueCompObj); }
-                    callback(vueCompObj);
+                    console.warn("loadComponent " + url);
+                    // if (isServerStatic) { moqui.componentCache.put(path, vueCompObj); }
+                    return resp;
                 } else { callback(moqui.NotFound); }
             }};
         if (bodyParameters && !$.isEmptyObject(bodyParameters)) { vueAjaxSettings.type = "POST"; vueAjaxSettings.data = bodyParameters; }
@@ -699,7 +712,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
     if (extraPath && extraPath.length > 0) url += ('/' + extraPath);
     if (search && search.length > 0) url += ('?' + search);
 
-    console.info("loadComponent " + url + (divId ? " id " + divId : ''));
+    console.info("loadComponent2 " + url + (divId ? " id " + divId : ''));
     var ajaxSettings = { type:"GET", url:url, error:moqui.handleLoadError, success: function(resp, status, jqXHR) {
         if (jqXHR.status === 205) {
             var redirectTo = jqXHR.getResponseHeader("X-Redirect-To")

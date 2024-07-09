@@ -22,12 +22,12 @@ along with this software (see the LICENSE.md file). If not, see
 <input type="hidden" id="confLocale" value="${ec.user.locale.toLanguageTag()}">
 <input type="hidden" id="confDarkMode" value="${ec.user.getPreference("QUASAR_DARK")!"false"}">
 <input type="hidden" id="confLeftOpen" value="${ec.user.getPreference("QUASAR_LEFT_OPEN")!"false"}">
+<#assign navbarCompList = sri.getThemeValues("STRT_HEADER_NAVBAR_COMP")>
+<#list navbarCompList! as navbarCompUrl><input type="hidden" class="confNavPluginUrl" value="${navbarCompUrl}"></#list>
+<#assign accountCompList = sri.getThemeValues("STRT_HEADER_ACCOUNT_COMP")>
+<#list accountCompList! as accountCompUrl><input type="hidden" class="confAccountPluginUrl" value="${accountCompUrl}"></#list>
 <div id="apps-root"><#-- NOTE: webrootVue component attaches here, uses this and below for template -->
 
-    <#assign navbarCompList = sri.getThemeValues("STRT_HEADER_NAVBAR_COMP")>
-    <#list navbarCompList! as navbarCompUrl><input type="hidden" class="confNavPluginUrl" value="${navbarCompUrl}"></#list>
-    <#assign accountCompList = sri.getThemeValues("STRT_HEADER_ACCOUNT_COMP")>
-    <#list accountCompList! as accountCompUrl><input type="hidden" class="confAccountPluginUrl" value="${accountCompUrl}"></#list>
 
     <#assign headerClass = "bg-black text-white">
 
@@ -163,7 +163,8 @@ along with this software (see the LICENSE.md file). If not, see
 
         <q-drawer v-model="leftOpen" side="left" bordered><#-- no 'overlay', for those who want to keep it open better to compress main area -->
             <q-btn dense flat icon="menu" @click="toggleLeftOpen()" class="lt-sm"></q-btn>
-            <q-list dense padding><m-menu-nav-item :menu-index="0"></m-menu-nav-item></q-list>
+            <#-- TODO: Fix this so that the menu works -->
+<#--            <q-list dense padding><m-menu-nav-item :menu-index="0"></m-menu-nav-item></q-list>-->
         </q-drawer>
 
         <q-page-container class="q-ma-sm"><q-page>

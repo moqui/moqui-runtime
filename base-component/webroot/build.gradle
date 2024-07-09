@@ -88,13 +88,13 @@ def fileMap = [
 
     "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
-    "vue/3.4.7/vue.global.js":"",
-    "vue/3.4.7/vue.global.prod.min.js":"",
+    "vue/3.4.31/vue.global.js":"",
+    "vue/3.4.31/vue.global.prod.min.js":"",
 ]
 
 def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
-def jsdelivrList = ["quasar@2.16.5/dist/quasar.prod.css", "quasar@2.16.5/dist/quasar.umd.prod.js"]
-//def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js", "@vue/compat@3.4.7/dist/vue.global.min.js"]
+def jsdelivrList = ["quasar@2.16.5/dist/quasar.prod.css", "quasar@2.16.5/dist/quasar.umd.prod.js", "vue3-sfc-loader@0.9.5/dist/vue3-sfc-loader.min.js"]
+//def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js", "@vue/compat@3.4.31/dist/vue.global.min.js"]
 
 String getTargetPath(String sourcePath, String targetPath) {
     if (!targetPath) {
@@ -173,7 +173,7 @@ def vuetJs = []
 // Vue JS
 vuetJs.add(libsPath + '/vue/vue.global.prod.min.js')
 // http-vue-loader
-vuetJs.add(webrootPath + '/js/http-vue-loader/httpVueLoader.js')
+//vuetJs.add(webrootPath + '/js/http-vue-loader/httpVueLoader.js')
 // Vue root component instance, in footer so runs after page loaded
 vuetJs.add(webrootPath + '/js/WebrootVue.min.js')
 
@@ -197,7 +197,7 @@ task minifyJsDir(type: org.gradlewebtools.minify.JsMinifyTask) {
         file(webrootPath + '/js/select2/select2.min.js')
                 .renameTo(file(webrootPath + '/js/select2.min.js'))
         // delete the min files we don't need/want
-        file(webrootPath + '/js/http-vue-loader/httpVueLoader.min.js').delete()
+//        file(webrootPath + '/js/http-vue-loader/httpVueLoader.min.js').delete()
         file(webrootPath + '/js/qz-tray/MoquiQzComponent.min.js').delete()
     }
 }
