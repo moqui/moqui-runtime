@@ -17,6 +17,50 @@ var moqui = {
         for (key in inObject) { value = inObject[key]; outObject[key] = moqui.deepCopy(value); }
         return outObject
     },
+    arraysEqual: function (array1, array2, ignoreOrder) {
+        if (!array1 && !array2) return true;
+        if (!array1 && array2 && !array2.length) { return true; }
+        if (!array2 && array1 && !array1.length) { return true; }
+        if (!this.isArray(array1)) { return array1 === array2; }
+        if (!this.isArray(array2) || array1.length !== array2.length) { return false; }
+        for (var ai = 0; ai < array1.length; ai++) {
+            var array1Val = array1[ai];
+            if (ignoreOrder) {
+                if (array2.indexOf(array1Val) === -1) { return false; }
+            } else {
+                if (array2[ai] !== array1Val) { return false; }
+            }
+        }
+        return true;
+    },
+    fieldValuesDiff: function(fields, fieldsOriginal) {
+        var foundDiff = false;
+        var fieldsKeys = Object.keys(fields);
+        for (var fieldIdx in fieldsKeys) {
+            var name = fieldsKeys[fieldIdx];
+            var curValue = fields[name];
+            var originalValue = fieldsOriginal[name];
+            if (moqui.isArray(curValue)) {
+                if (!moqui.arraysEqual(curValue, originalValue, true)) {
+                    foundDiff = true;
+                    break;
+                }
+            } else {
+                if (!moqui.equalsOrPlaceholder(curValue, originalValue)) {
+                    foundDiff = true;
+                    break;
+                }
+            }
+        }
+        return foundDiff;
+    },
+    equalsOrPlaceholder: function(obj1, obj2) {
+        if (!obj1 && (!obj2 || !obj2.length)) { return true; }
+        if (!obj2 && (!obj1 || !obj1.length)) { return true; }
+        if ((!obj1 || !obj1.length) && obj2 && obj2.length >= 2 && obj2.slice(0,2) === "__") return true;
+        if ((!obj2 || !obj2.length) && obj1 && obj1.length >= 2 && obj1.slice(0,2) === "__") return true;
+        return obj1 === obj2;
+    },
     objToSearch: function(obj) {
         var search = "";
         if (moqui.isPlainObject(obj)) $.each(obj, function (key, value) { search = search + (search.length > 0 ? '&' : '') + key + '=' + value; });

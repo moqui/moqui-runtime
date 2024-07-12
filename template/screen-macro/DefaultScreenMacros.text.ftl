@@ -281,10 +281,18 @@ along with this software (see the LICENSE.md file). If not, see
             <#assign fieldValue = ec.getResource().expand(.node["@text"], "")>
         </#if>
         <#if .node["@currency-unit-field"]?has_content>
-            <#assign fieldValue = ec.getL10n().formatCurrency(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))>
+            <#if .node["@currency-hide-symbol"]! == "true">
+                <#assign fieldValue = ec.getL10n().formatCurrencyNoSymbol(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))>
+            <#else>
+                <#assign fieldValue = ec.getL10n().formatCurrency(fieldValue, ec.getResource().expression(.node["@currency-unit-field"], ""))>
+            </#if>
         </#if>
     <#elseif .node["@currency-unit-field"]?has_content>
-        <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+        <#if .node["@currency-hide-symbol"]! == "true">
+            <#assign fieldValue = ec.getL10n().formatCurrencyNoSymbol(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+        <#else>
+            <#assign fieldValue = ec.getL10n().formatCurrency(sri.getFieldValue(dispFieldNode, ""), ec.getResource().expression(.node["@currency-unit-field"], ""))>
+        </#if>
     <#else>
         <#assign fieldValue = sri.getFieldValueString(.node)>
     </#if>

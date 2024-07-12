@@ -21,7 +21,7 @@ h6, .text-h6 { font-size:1.0rem; line-height:1.0rem; letter-spacing:initial; mar
 p { margin-bottom:8px; } /* orig 16px */
 pre { text-wrap: normal; white-space: pre-line; word-wrap: normal; word-break: normal; }
 
-body.dev #top { background: #0c1b29!important; }
+body.dev #top { background: #5d5d5d!important; }
 body.test #top { background: #224422!important; }
 
 /* example for header that changes light and dark along with rest of screen:
@@ -38,7 +38,9 @@ body.test.body--dark #top { background:#224422!important; color:white; }
 .body--dark .q-menu { background-color:black; }
 .body--dark img.invertible { -webkit-filter: invert(90%); filter: invert(90%); }
 
-.q-dark, .q-card { background:transparent; }
+@media (min-width:576px) {
+    .q-dark, .q-card { background:transparent; }
+}
 .q-card__actions h5 { font-size: 1.1rem; display:inline-block; margin-block-start:0; margin-block-end:0; }
 .q-dialog .q-card { background-color:white; }
 .body--dark .q-dialog .q-card { background-color:black; }
