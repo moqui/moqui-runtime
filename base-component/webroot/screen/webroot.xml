@@ -25,7 +25,8 @@ along with this software (see the LICENSE.md file). If not, see
     </always-actions>
     <transition name="status">
         <actions>
-            <set field="allowed_ips" from="System.getProperty('webapp_status_ips')? System.getProperty('webapp_status_ips').replaceAll('\\s', '').split(',')+['127.0.0.1']: ['127.0.0.1']"/>
+            <!-- 0:0:0:0:0:0:0:1 is the new docker compose ip for querying /status -->
+            <set field="allowed_ips" from="System.getProperty('webapp_status_ips')? System.getProperty('webapp_status_ips').replaceAll('\\s', '').split(',')+['127.0.0.1','0:0:0:0:0:0:0:1']: ['127.0.0.1','0:0:0:0:0:0:0:1']"/>
             <if condition="ec.user.getClientIp() in allowed_ips"><then>
                 <script>ec.web.sendJsonResponse(ec.factory.getStatusMap())</script>
             </then><else>
@@ -38,7 +39,7 @@ along with this software (see the LICENSE.md file). If not, see
         <actions><script><![CDATA[
             List menuDataList = sri.getMenuData(sri.screenUrlInfo.extraPathNameList)
             if (menuDataList != null) ec.web.sendJsonResponse(menuDataList)
-        ]]></script></actions>
+            ]]></script></actions>
         <!-- NOTE DEJ 20200806 use save-parameters="true" to re-save parameters otherwise lost from the menuData request under vapps, qapps, etc -->
         <default-response type="none" save-parameters="true"/>
     </transition>
@@ -54,7 +55,7 @@ along with this software (see the LICENSE.md file). If not, see
             outWriter.append("user-agent: *\n")
             for (disPath in disallowList) outWriter.append("disallow: /${disPath}\n")
             ec.web.sendTextResponse(outWriter.toString())
-        ]]></script>
+            ]]></script>
         </actions>
         <default-response type="none"/>
     </transition>
