@@ -1,10 +1,10 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
-a { color:var(--q-color-primary); text-decoration:none; }
+a { color:var(--q-primary); text-decoration:none; }
 .q-menu a, .q-toolbar a { color:inherit; }
 
-.text-success { color:var(--q-color-positive); }
-.text-danger { color:var(--q-color-negative); }
+.text-success { color:var(--q-positive); }
+.text-danger { color:var(--q-negative); }
 .text-mono { font-family: monospace,monospace; }
 strong, .text-strong { font-weight:bold; }
 
@@ -79,7 +79,7 @@ form.q-form { width:100%; }
 .q-field--disabled .q-field__control > div { opacity:1 !important; }
 /* END q-field label move */
 
-.q-field--focused .q-field__input { border-bottom: var(--q-color-primary) solid 1px; margin-left:8px; }
+.q-field--focused .q-field__input { border-bottom: var(--q-primary) solid 1px; margin-left:8px; }
 
 .q-field--dense .q-field__marginal { height:auto; min-height:40px; }
 .q-field__prepend { max-width:75%; }
