@@ -37,12 +37,9 @@ along with this software (see the LICENSE.md file). If not, see
             if (sqlScript && groupName) {
                 sqlList = sqlScript.split(';')
                 messageList = []
-                Connection con = ec.entity.getConnection(groupName)
-                try {
+                try (Connection con = ec.entity.getConnection(groupName)) {
                     for (sql in sqlList) {
-                        try {
-                            stmt = con.createStatement()
-
+                        try (stmt = con.createStatement()) {
                             boolean isResultSet = stmt.execute(sql as String)
 
                             SQLWarning w = stmt.getWarnings()
@@ -53,11 +50,8 @@ along with this software (see the LICENSE.md file). If not, see
                             stmt.clearWarnings()
 
                             if (isResultSet) {
-                                rs = stmt.getResultSet()
-                                try {
+                                try (rs = stmt.getResultSet()) {
                                     // do stuff with result set (like displaying it see SqlRunner.xml)
-                                } finally {
-                                    rs.close()
                                 }
                             } else if ((rowsAffected = stmt.getUpdateCount()) != -1){
                                 messageList.add(ec.resource.expand('Query altered ${rowsAffected} rows.',''))
@@ -66,12 +60,8 @@ along with this software (see the LICENSE.md file). If not, see
                         } catch (Exception e) {
                             messageList.add(e.toString())
                             ec.logger.log(200, "Error running SQL query in SqlRunner", e)
-                        } finally {
-                            if (stmt != null) { try { stmt.close() } catch (Exception e) { /* Ignore */ } }
                         }
                     }
-                } finally {
-                    if (con != null) { try { con.close() } catch (Exception e) { /* Ignore */ } }
                 }
 
             }
