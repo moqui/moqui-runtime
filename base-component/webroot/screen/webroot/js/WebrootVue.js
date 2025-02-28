@@ -1218,7 +1218,7 @@ moqui.webrootVue = new Vue({
         lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null },
     methods: {
-        setUrl: function(url, bodyParameters) {
+        setUrl: function(url, bodyParameters, onComplete, pushState=true) {
             // make sure any open modals are closed before setting current URL
             $('.modal.in').modal('hide');
             // cancel current load if needed
@@ -1271,8 +1271,10 @@ moqui.webrootVue = new Vue({
                     }
                 }});
 
-                // set the window URL
-                window.history.pushState(null, this.ScreenTitle, url);
+                if (pushState) {
+                    // set the window URL
+                    window.history.pushState(null, this.ScreenTitle, url);
+                }
                 // notify url listeners
                 this.urlListeners.forEach(function(callback) { callback(url, this) }, this);
                 // scroll to top
@@ -1523,4 +1525,4 @@ moqui.webrootVue = new Vue({
     }
 
 });
-window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.location.pathname + window.location.search); });
+window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.location.pathname + window.location.search, null, null, false); });
