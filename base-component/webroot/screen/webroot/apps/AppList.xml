@@ -86,9 +86,10 @@ along with this software (see the LICENSE.md file). If not, see
                 </widgets>
             </section-iterate>
             <render-mode>
-                <text type="html"><![CDATA[<p>&nbsp;</p><div>You are using the <strong>standard</strong> UI</div><div><a href="/vapps">Switch to the dynamic Bootstrap UI</a></div><div><a href="/qapps">Switch to the dynamic Material UI</a></div>]]></text>
-                <text type="vuet"><![CDATA[<p>&nbsp;</p><div>You are using the <strong>dynamic Bootstrap</strong> UI</div><div><a href="/apps">Switch to the standard UI</a></div><div><a href="/qapps">Switch to the dynamic Material UI</a></div>]]></text>
-                <text type="qvt"><![CDATA[<p>&nbsp;</p><div>You are using the <strong>dynamic Material</strong> UI</div><div><a href="/apps">Switch to the standard UI</a></div><div><a href="/vapps">Switch to the dynamic Bootstrap UI</a></div>]]></text>
+                <text type="html"><![CDATA[<p>&nbsp;</p><div>You are using the <strong>standard</strong> UI</div><div><a href="/qapps2">Switch to the dynamic Material UI 2</a></div><div><a href="/vapps">Switch to the dynamic Bootstrap UI</a></div><div><a href="/qapps">Switch to the dynamic Material UI</a></div>]]></text>
+                <text type="vuet"><![CDATA[<p>&nbsp;</p><div>You are using the <strong>dynamic Bootstrap</strong> UI</div><div><a href="/qapps2">Switch to the dynamic Material UI 2</a></div><div><a href="/apps">Switch to the standard UI</a></div><div><a href="/qapps">Switch to the dynamic Material UI</a></div>]]></text>
+                <text type="qvt"><![CDATA[<p>&nbsp;</p><div>You are using the <strong>dynamic Material</strong> UI</div><div><a href="/qapps2">Switch to the dynamic Material UI 2</a></div><div><a href="/apps">Switch to the standard UI</a></div><div><a href="/vapps">Switch to the dynamic Bootstrap UI</a></div>]]></text>
+                <text type="qvt2"><![CDATA[<p>&nbsp;</p><div>You are using the <strong>dynamic Material</strong> UI 2</div><div><a href="/apps">Switch to the standard UI</a></div><div><a href="/vapps">Switch to the dynamic Bootstrap UI</a></div><div><a href="/qapps">Switch to the dynamic Material UI</a></div>]]></text>
             </render-mode>
         </container>
     </widgets>

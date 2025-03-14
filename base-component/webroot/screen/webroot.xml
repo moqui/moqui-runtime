@@ -70,6 +70,38 @@ along with this software (see the LICENSE.md file). If not, see
         </actions>
         <default-response type="none"/>
     </transition>
+    <transition name="routes.js" read-only="true">
+        <actions>
+            <set field="webappName" from="ec.web.request.servletContext.getInitParameter('moqui-name')"/>
+            <set field="rootScreenLocation" from="ec.screen.rootScreenFromHost(ec.web.request.getServerName(), webappName)"/>
+            <set field="rootScreenDef" from="ec.screen.getScreenDefinition(rootScreenLocation)"/>
+            <set field="rootScreenLocationList" from="ec.screen.getAllRootScreenLocations()"/>
+            <script><![CDATA[
+                def getSubscreenPaths (org.moqui.impl.screen.ScreenDefinition currentScreenDefinition,List<String> pathList,String basePath) {
+                    screenUrlInfo = org.moqui.impl.screen.ScreenUrlInfo.getScreenUrlInfo(ec.screen, rootScreenDef, currentScreenDefinition, null, null, 0)
+
+                    def subscreenList = currentScreenDefinition?.getSubscreensItemsSorted()
+                    for (subscreen in subscreenList) {
+                        if (subscreen.location == null) { continue }
+                        subscreenDefinition = ec.screen.getScreenDefinition(subscreen.location)
+
+                        pathList = getSubscreenPaths(subscreenDefinition,pathList,(basePath+currentScreenDefinition.getScreenName() == '/webroot' ? basePath : basePath+currentScreenDefinition.getScreenName()+'/'))
+                    }
+                    return pathList + [basePath+currentScreenDefinition.getScreenName() == '/webroot' ? basePath : basePath+currentScreenDefinition.getScreenName()]
+                }
+
+                pathNameList = getSubscreenPaths(rootScreenDef,[],'/')
+                pathList = []
+                for (pathName in pathNameList) {
+                    pathList.add([path:pathName, component:''])
+                }
+
+                template = ec.resource.template('component://webroot/template/screen/routes.js.ftl', '.ftl')
+                ec.web.sendTextResponse(template, "application/javascript", "routes.js")
+            ]]></script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
 
     <subscreens default-item="qapps">
         <subscreens-item name="toolstatic" location="component://tools/screen/toolstatic.xml" menu-include="false"/>
