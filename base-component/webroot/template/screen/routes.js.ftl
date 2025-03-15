@@ -3,7 +3,7 @@ const { h, createApp, defineComponent } = Vue
 
 moqui.routes = [
     {
-        path:'/qapps2/:pathMatch(.*)*', component: defineComponent({
+        path:'/qapps2/:pathMatch(.*)*', component: Vue.markRaw(defineComponent({
     data() {
         return {
             component: null
@@ -12,13 +12,15 @@ moqui.routes = [
     async created() {
         // Load the component from server
         this.screenPath = this.$route.path.replace('/qapps2', '/apps') + '.qvt2'
+        console.log('Loading screen', this.screenPath)
         const response = await fetch(this.screenPath)
         const template = await response.text()
         
-        // Create dynamic component
-        this.component = defineComponent({
+        // Create dynamic component and mark as raw to avoid reactivity
+        console.log('Creating dynamic component', template)
+        this.component = Vue.markRaw(defineComponent({
             template: template
-        })
+        }))
     },
     render() {
         if (!this.component) {
@@ -26,7 +28,7 @@ moqui.routes = [
         }
         return h(this.component)
     }
-})
+}))
     },
     <#--  {path: '${realPath}', component: defineComponent({
         template: `<div>
@@ -45,21 +47,3 @@ const router = VueRouter.createRouter({
     history: VueRouter.createWebHistory(),
     routes: moqui.routes,
 })
-
-<#--  router.beforeEach((to, from, next) => {
-    if (!router.getRoutes().find(r => r.path === from.path) && from.path !== '/') {
-        router.addRoute({
-            path: from.path,
-            component: defineComponent({
-                template: `<div>
-                    <q-btn to="/qapps2/marble/dashboard" label="Go to Marble Dashboard" color="primary" />
-                </div>`
-            })
-        })
-    } else {
-        console.log('route already exists', to, from)
-    }
-    console.log('beforeEach', to, from)
-
-    next()
-})  -->

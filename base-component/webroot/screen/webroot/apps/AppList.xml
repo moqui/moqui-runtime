@@ -31,18 +31,9 @@ along with this software (see the LICENSE.md file). If not, see
                     <set field="currentScreenPath" value="/apps/${currentSubscreensItem.name}"/>
                     <set field="currentUrlInstance" from="sri.buildUrl(currentScreenPath)"/>
                     <!-- The screen isn't actually under qapps2, so we need to grab the path from /apps and change the first url segment to qapps2 -->
-                    <log level="warn" message="sri.renderMode: ${sri.renderMode}"/>
                     <if condition="sri.renderMode == 'qvt2'">
                         <set field="qvt2ScreenPath" from="currentUrlInstance.path.replace('/apps', '/qapps2')"/>
                     </if>
-
-
-                    <log level="warn" message="currentSubscreensItem.name: ${currentSubscreensItem.name}"/>
-                    <log level="warn" message="currentUrlInstance.path: ${currentUrlInstance.path}"/>
-
-                    <log level="warn" message="qvt2ScreenPath: ${qvt2ScreenPath}"/>
-                    <log level="warn" message="currentScreenPath: ${currentScreenPath}"/>
-
                 </actions>
                 <widgets>
                     <section name="ScreenItemRender">

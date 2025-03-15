@@ -37,7 +37,7 @@ moqui.webrootVue = createApp({
             // always set bodyParameters, setting to null when not specified to clear out previous
             this.bodyParameters = bodyParameters;
             url = this.getLinkPath(url);
-            // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
+            console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
             if (this.currentLinkUrl === url && url !== this.linkBasePath) {
                 this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */
                 if (onComplete) this.callOnComplete(onComplete, this.currentPath);
@@ -105,6 +105,7 @@ moqui.webrootVue = createApp({
             this.$root.reloadSubscreens();
         },
         addSubscreen: function(saComp) {
+            // Calling this seems to result in an error, but not sure why
             var pathIdx = this.activeSubscreens.length;
             // console.info('addSubscreen idx ' + pathIdx + ' pathName ' + this.currentPathList[pathIdx]);
             saComp.pathIndex = pathIdx;
@@ -207,7 +208,6 @@ moqui.webrootVue = createApp({
             // appRootPath is '/moqui/v1' or '/moqui'. wrapper means 'qapps'
             pathList[wrapperIdx] = this.linkBasePath.split('/').slice(-1);
             path = pathList.join("/");
-            console.log("getLinkPath path", path);
             return path;
         },
         getQuasarColor: function(bootstrapColor) { return moqui.getQuasarColor(bootstrapColor); },
@@ -775,10 +775,6 @@ moqui.EmptyComponent = defineComponent(Vue.markRaw({ template: '<div id="current
 moqui.webrootVue.component('m-link', {
     props: { href:{type:String,required:true}, loadId:String, confirmation:String },
     template: '<a :href="linkHref" @click.prevent="go" class="q-link"><slot></slot></a>',
-    created() {
-        console.log('m-link href:', this.href);
-        console.log('m-link linkHref:', this.linkHref);
-    },
     methods: { go: function(event) {
         if (event.button !== 0) { return; }
         if (this.confirmation && this.confirmation.length) { if (!window.confirm(this.confirmation)) { return; } }
@@ -2528,7 +2524,8 @@ moqui.webrootVue.component('m-subscreens-active', {
 
             if (!newPath || newPath.length === 0) {
                 console.info("in m-subscreens-active newPath is empty, loading EmptyComponent and returning true");
-                this.$router.replace({ name: 'empty' });
+                console.log('would have run this.$router.replace({ name: \'empty\' })');
+                // this.$router.replace({ name: 'empty' });
                 return true;
             }
 
@@ -2551,14 +2548,17 @@ moqui.webrootVue.component('m-subscreens-active', {
 
             console.info('m-subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
             
+            qapps2FullPath = fullPath.replace('/apps', '/qapps2');
             root.loading++;
             root.currentLoadRequest = moqui.loadComponent(urlInfo, function(comp) {
                 root.currentLoadRequest = null;
+                console.log('running this.$router.addRoute({ path: '+qapps2FullPath+', component: '+comp+' });');
                 vm.$router.addRoute({
-                    path: fullPath,
+                    path: qapps2FullPath,
                     component: comp
                 });
-                vm.$router.replace(fullPath);
+                console.log('running this.$router.replace('+qapps2FullPath+');');
+                vm.$router.replace(qapps2FullPath);
                 root.loading--;
             });
             return true;
@@ -2567,11 +2567,12 @@ moqui.webrootVue.component('m-subscreens-active', {
     mounted: function() {
         this.$root.addSubscreen(this);
         // Add default empty route
-        this.$router.addRoute({
-            name: 'empty',
-            path: '',
-            component: moqui.EmptyComponent
-        });
+        console.log('would have run this.$router.addRoute({ name: \'empty\', path: \'\', component: moqui.EmptyComponent });');
+        // this.$router.addRoute({
+        //     name: 'empty',
+        //     path: '',
+        //     component: moqui.EmptyComponent
+        // });
     }
 });
 
