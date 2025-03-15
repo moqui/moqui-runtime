@@ -39,7 +39,7 @@ along with this software (see the LICENSE.md file). If not, see
 
             <#assign headerLogoList = sri.getThemeValues("STRT_HEADER_LOGO")>
             <#if headerLogoList?has_content>
-                <m-link href="/apps"><div class="q-mx-md q-mt-sm">
+                <m-link href="/qapps2"><div class="q-mx-md q-mt-sm">
                     <img src="${sri.buildUrl(headerLogoList?first).getUrl()}" alt="Home" height="32">
                 </div></m-link>
             </#if>
@@ -167,7 +167,7 @@ along with this software (see the LICENSE.md file). If not, see
         </q-drawer>
 
         <q-page-container class="q-ma-sm"><q-page>
-                <m-subscreens-active></m-subscreens-active>
+            <m-subscreens-active></m-subscreens-active>
         </q-page></q-page-container>
 
         <q-footer reveal bordered class="bg-grey-9 text-white row q-pa-xs" id="footer">
@@ -217,5 +217,4 @@ along with this software (see the LICENSE.md file). If not, see
         loadingBar: { color:'primary' }, // settings for LoadingBar Quasar plugin
         // ..and many more (check Installation card on each Quasar component/directive/plugin)
     }
-    console.log("moqui.routes", moqui.routes);
 </script>

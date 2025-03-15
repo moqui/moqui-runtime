@@ -42,6 +42,14 @@ along with this software (see the LICENSE.md file). If not, see
         <!-- NOTE DEJ 20200806 use save-parameters="true" to re-save parameters otherwise lost from the menuData request under vapps, qapps, etc -->
         <default-response type="none" save-parameters="true"/>
     </transition>
+    <transition name="menuDataQapps2" read-only="true" begin-transaction="false">
+        <actions><script><![CDATA[
+            List menuDataList = sri.getMenuData(sri.screenUrlInfo.extraPathNameList, true)
+            if (menuDataList != null) ec.web.sendJsonResponse(menuDataList)
+        ]]></script></actions>
+        <!-- NOTE DEJ 20200806 use save-parameters="true" to re-save parameters otherwise lost from the menuData request under vapps, qapps, etc -->
+        <default-response type="none" save-parameters="true"/>
+    </transition>
     <transition name="email"><path-parameter name="emailMessageId"/><actions><script>ec.web.viewEmailMessage()</script></actions>
         <default-response type="none"/></transition>
 
@@ -76,6 +84,13 @@ along with this software (see the LICENSE.md file). If not, see
             <set field="rootScreenLocation" from="ec.screen.rootScreenFromHost(ec.web.request.getServerName(), webappName)"/>
             <set field="rootScreenDef" from="ec.screen.getScreenDefinition(rootScreenLocation)"/>
             <set field="rootScreenLocationList" from="ec.screen.getAllRootScreenLocations()"/>
+            <set field="realPathList" from="sri.screenUrlInfo.fullPathNameList.subList(1, sri.screenUrlInfo.fullPathNameList.size())"/>
+            <set field="realPath" value="/${realPathList.join('/')}"/>
+            <set field="appPathList" from="realPathList"/>
+            <if condition="appPathList.size() &gt; 0 &amp;&amp; appPathList[0] == 'qapps2'">
+                <set field="appPathList" from="['apps'] + appPathList.subList(1, appPathList.size())"/>
+            </if>
+            <set field="appPath" value="/${appPathList.join('/')}"/>
             <script><![CDATA[
                 def getSubscreenPaths (org.moqui.impl.screen.ScreenDefinition currentScreenDefinition,List<String> pathList,String basePath) {
                     screenUrlInfo = org.moqui.impl.screen.ScreenUrlInfo.getScreenUrlInfo(ec.screen, rootScreenDef, currentScreenDefinition, null, null, 0)

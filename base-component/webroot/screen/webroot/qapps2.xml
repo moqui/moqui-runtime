@@ -40,7 +40,7 @@ along with this software (see the LICENSE.md file). If not, see
             // vue3-sfc-loader
             footer_scripts.add('/libs/vue3-sfc-loader/vue3-sfc-loader.min.js')
             // routes.js
-            footer_scripts.add('/routes.js')
+            footer_scripts.add('/routes.js' + ec.web.request.pathInfo)
             // Webroot Quasar-Vue instance, in footer so runs after page loaded
             footer_scripts.add('/js/WebrootVue.qvt2.min.js')
         } else {
@@ -59,7 +59,7 @@ along with this software (see the LICENSE.md file). If not, see
             // vue3-sfc-loader
             footer_scripts.add('/libs/vue3-sfc-loader/vue3-sfc-loader.min.js')
             // routes.js
-            footer_scripts.add('/routes.js')
+            footer_scripts.add('/routes.js' + ec.web.request.pathInfo)
             // Webroot Quasar-Vue instance, in footer so runs after page loaded
             footer_scripts.add('/js/WebrootVue.qvt2.js')
         }

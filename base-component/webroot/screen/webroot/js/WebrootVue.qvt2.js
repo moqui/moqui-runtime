@@ -1,5 +1,4 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
-const { h, createApp, defineComponent } = Vue
 
 /* Placeholder for non visited path
 - get data about itself and it's children from the server
@@ -27,7 +26,7 @@ moqui.webrootVue = createApp({
         reLoginShow:false, reLoginPassword:null, reLoginMfaData:null, reLoginOtp:null,
         notificationClient:null, sessionTokenBc:null, qzVue:null, leftOpen:false, moqui:moqui }},
     methods: {
-        setUrl: function(url, bodyParameters, onComplete) {
+        setUrl: function(url, bodyParameters, onComplete, pushState=true) {
             // cancel current load if needed
             if (this.currentLoadRequest) {
                 console.log("Aborting current page load currentLinkUrl " + this.currentLinkUrl + " url " + url);
@@ -62,8 +61,8 @@ moqui.webrootVue = createApp({
                 // update menu, which triggers update of screen/subscreen components
                 var vm = this;
                 var menuDataUrl = this.appRootPath && this.appRootPath.length && screenUrl.indexOf(this.appRootPath) === 0 ?
-                    this.appRootPath + "/menuData" + screenUrl.slice(this.appRootPath.length) : "/menuData" + screenUrl;
-                $.ajax({ type:"GET", url:menuDataUrl, dataType:"text", error:moqui.handleAjaxError, success: function(outerListText) {
+                    this.appRootPath + "/menuDataQapps2" + screenUrl.slice(this.appRootPath.length) : "/menuDataQapps2" + screenUrl;
+                $.ajax({ type:"GET", url:menuDataUrl, dataType:"text", contentType:"application/json", error:moqui.handleAjaxError, success: function(outerListText) {
                     var outerList = null;
                     // console.log("menu response " + outerListText);
                     try { outerList = JSON.parse(outerListText); } catch (e) { console.info("Error parson menu list JSON: " + e); }
@@ -74,9 +73,10 @@ moqui.webrootVue = createApp({
                     }
                 }});
 
-                // set the window URL
-                window.history.pushState(null, this.ScreenTitle, url);
-                // notify url listeners
+                if (pushState) {
+                    // set the window URL
+                    window.history.pushState(null, this.ScreenTitle, url);
+                }                // notify url listeners
                 this.urlListeners.forEach(function(callback) { callback(url, this) }, this);
                 // scroll to top
                 document.documentElement.scrollTop = 0;
@@ -207,6 +207,7 @@ moqui.webrootVue = createApp({
             // appRootPath is '/moqui/v1' or '/moqui'. wrapper means 'qapps'
             pathList[wrapperIdx] = this.linkBasePath.split('/').slice(-1);
             path = pathList.join("/");
+            console.log("getLinkPath path", path);
             return path;
         },
         getQuasarColor: function(bootstrapColor) { return moqui.getQuasarColor(bootstrapColor); },
@@ -451,6 +452,7 @@ moqui.webrootVue = createApp({
         var jqEl = $(this.$el);
         jqEl.css("display", "initial");
         // load the current screen
+        console.log("load the current screen");
         this.setUrl(window.location.pathname + window.location.search);
         // init the NotificationClient and register 'displayNotify' as the default listener
         this.notificationClient.registerListener("ALL");
@@ -469,10 +471,7 @@ moqui.webrootVue = createApp({
     beforeDestroy: function() {
         this.sessionTokenBc.close();
     }
-}).use(VueRouter.createRouter({
-    history: VueRouter.createWebHistory(),
-    routes: moqui.routes,
-}));
+}).use(router);
 // some globals for all Vue components to directly use the moqui object (for methods, constants, etc) and the window object
 /*
 Vue.prototype.moqui = moqui;
@@ -692,6 +691,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
         var vueAjaxSettings = { type:"GET", url:url, error:moqui.handleLoadError, success: function(resp, status, jqXHR) {
                 if (jqXHR.status === 205) {
                     var redirectTo = jqXHR.getResponseHeader("X-Redirect-To")
+                    console.log("loading component vue redirectTo", redirectTo);
                     moqui.webrootVue.setUrl(redirectTo);
                     return;
                 }
@@ -723,6 +723,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
     var ajaxSettings = { type:"GET", url:url, error:moqui.handleLoadError, success: function(resp, status, jqXHR) {
         if (jqXHR.status === 205) {
             var redirectTo = jqXHR.getResponseHeader("X-Redirect-To")
+            console.log("loading component js redirectTo", redirectTo);
             moqui.webrootVue.setUrl(redirectTo);
             return;
         }
@@ -755,7 +756,9 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
                 callback(compObj);
             }
         } else if (moqui.isPlainObject(resp)) {
-            if (resp.screenUrl && resp.screenUrl.length) { moqui.webrootVue.setUrl(resp.screenUrl); }
+            if (resp.screenUrl && resp.screenUrl.length) { 
+                console.log("loading screenUrl", resp.screenUrl);
+                moqui.webrootVue.setUrl(resp.screenUrl); }
             else if (resp.redirectUrl && resp.redirectUrl.length) { window.location.replace(resp.redirectUrl); }
         } else { callback(moqui.NotFound); }
     }};
@@ -772,6 +775,10 @@ moqui.EmptyComponent = defineComponent(Vue.markRaw({ template: '<div id="current
 moqui.webrootVue.component('m-link', {
     props: { href:{type:String,required:true}, loadId:String, confirmation:String },
     template: '<a :href="linkHref" @click.prevent="go" class="q-link"><slot></slot></a>',
+    created() {
+        console.log('m-link href:', this.href);
+        console.log('m-link linkHref:', this.linkHref);
+    },
     methods: { go: function(event) {
         if (event.button !== 0) { return; }
         if (this.confirmation && this.confirmation.length) { if (!window.confirm(this.confirmation)) { return; } }
@@ -781,6 +788,7 @@ moqui.webrootVue.component('m-link', {
             if (event.ctrlKey || event.metaKey) {
                 window.open(this.linkHref, "_blank");
             } else {
+                console.log("setting url", this.linkHref);
                 this.$root.setUrl(this.linkHref);
             }
         }
@@ -2469,7 +2477,6 @@ moqui.webrootVue.component('m-simple-mde', {
     watch: { value: function(val) { if (this.simplemde && this.simplemde.value() !== val) this.simplemde.value(val); } }
 });
 
-
 /* ========== webrootVue - root Vue component with router ========== */
 moqui.webrootVue.component('m-subscreens-tabs', {
     name: "mSubscreensTabs",
@@ -2508,47 +2515,64 @@ moqui.webrootVue.component('m-subscreens-tabs', {
 moqui.webrootVue.component('m-subscreens-active', {
     name: "mSubscreensActive",
     data: function() { return { activeComponent:moqui.EmptyComponent, pathIndex:-1, pathName:null } },
-    template: '<component :is="activeComponent" style="height:100%;width:100%;"></component>',
-    // method instead of a watch on pathName so that it runs even when newPath is the same for non-static reloading
-    methods: { loadActive: function() {
-        var vm = this;
-        var root = vm.$root;
-        var pathIndex = vm.pathIndex;
-        var curPathList = root.currentPathList;
-        var newPath = curPathList[pathIndex];
-        var pathChanged = (this.pathName !== newPath);
-        this.pathName = newPath;
-        if (!newPath || newPath.length === 0) {
-            console.info("in m-subscreens-active newPath is empty, loading EmptyComponent and returning true");
-            this.activeComponent = moqui.EmptyComponent;
+    template: '<router-view v-slot="{ Component }"><component :is="Component" style="height:100%;width:100%;"></component></router-view>',
+    methods: { 
+        loadActive: function() {
+            var vm = this;
+            var root = vm.$root;
+            var pathIndex = vm.pathIndex;
+            var curPathList = root.currentPathList;
+            var newPath = curPathList[pathIndex];
+            var pathChanged = (this.pathName !== newPath);
+            this.pathName = newPath;
+
+            if (!newPath || newPath.length === 0) {
+                console.info("in m-subscreens-active newPath is empty, loading EmptyComponent and returning true");
+                this.$router.replace({ name: 'empty' });
+                return true;
+            }
+
+            var fullPath = root.basePath + '/' + curPathList.slice(0, pathIndex + 1).join('/');
+            if (!pathChanged && moqui.componentCache.containsKey(fullPath)) {
+                return false;
+            }
+
+            var urlInfo = { path:fullPath };
+            if (pathIndex === (curPathList.length - 1)) {
+                var extra = root.extraPathList;
+                if (extra && extra.length > 0) { urlInfo.extraPath = extra.join('/'); }
+            }
+
+            var search = root.currentSearch;
+            if (search && search.length > 0) { urlInfo.search = search; }
+            urlInfo.bodyParameters = root.bodyParameters;
+            var navMenuItem = root.navMenuList[pathIndex + root.basePathSize];
+            if (navMenuItem && navMenuItem.renderModes) urlInfo.renderModes = navMenuItem.renderModes;
+
+            console.info('m-subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
+            
+            root.loading++;
+            root.currentLoadRequest = moqui.loadComponent(urlInfo, function(comp) {
+                root.currentLoadRequest = null;
+                vm.$router.addRoute({
+                    path: fullPath,
+                    component: comp
+                });
+                vm.$router.replace(fullPath);
+                root.loading--;
+            });
             return true;
         }
-        var fullPath = root.basePath + '/' + curPathList.slice(0, pathIndex + 1).join('/');
-        if (!pathChanged && moqui.componentCache.containsKey(fullPath)) {
-            // no need to reload component
-            // console.info("in m-subscreens-active returning false because pathChanged is false and componentCache contains " + fullPath);
-            return false;
-        }
-        var urlInfo = { path:fullPath };
-        if (pathIndex === (curPathList.length - 1)) {
-            var extra = root.extraPathList;
-            if (extra && extra.length > 0) { urlInfo.extraPath = extra.join('/'); }
-        }
-        var search = root.currentSearch;
-        if (search && search.length > 0) { urlInfo.search = search; }
-        urlInfo.bodyParameters = root.bodyParameters;
-        var navMenuItem = root.navMenuList[pathIndex + root.basePathSize];
-        if (navMenuItem && navMenuItem.renderModes) urlInfo.renderModes = navMenuItem.renderModes;
-        console.info('m-subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
-        root.loading++;
-        root.currentLoadRequest = moqui.loadComponent(urlInfo, function(comp) {
-            root.currentLoadRequest = null;
-            vm.activeComponent = comp;
-            root.loading--;
+    },
+    mounted: function() {
+        this.$root.addSubscreen(this);
+        // Add default empty route
+        this.$router.addRoute({
+            name: 'empty',
+            path: '',
+            component: moqui.EmptyComponent
         });
-        return true;
-    }},
-    mounted: function() { this.$root.addSubscreen(this); }
+    }
 });
 
 moqui.webrootVue.component('m-menu-nav-item', {
@@ -2556,7 +2580,7 @@ moqui.webrootVue.component('m-menu-nav-item', {
     props: { menuIndex:Number },
     template:
     '<q-expansion-item v-if="navMenuItem && navMenuItem.subscreens && navMenuItem.subscreens.length" :value="true" :content-inset-level="0.3"' +
-            ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go">' +
+            ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go" @created="logPath">' +
         '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
         '<template v-slot:default><m-menu-subscreen-item v-for="(subscreen, ssIndex) in navMenuItem.subscreens" :key="subscreen.name" :menu-index="menuIndex" :subscreen-index="ssIndex"></m-menu-subscreen-item></template>' +
     '</q-expansion-item>' +
@@ -2578,7 +2602,8 @@ moqui.webrootVue.component('m-menu-nav-item', {
     '</q-expansion-item>',
     methods: {
         go: function go() { this.$root.setUrl(this.navMenuItem.pathWithParams); },
-        goPath: function goPath(path) { this.$root.setUrl(path); }
+        goPath: function goPath(path) { this.$root.setUrl(path); },
+        logPath: function logPath() { console.log('navMenuItem.pathWithParams:', this.navMenuItem.pathWithParams); }
     },
     computed: {
         navMenuItem: function() { return this.$root.navMenuList[this.menuIndex]; },
@@ -2611,26 +2636,26 @@ moqui.webrootVue.component('m-menu-item-content', {
 moqui.webrootVue.use(Quasar)
 const moquiWebrootApp = moqui.webrootVue.mount('#apps-root')
 
-window.addEventListener('popstate', function() { moquiWebrootApp.setUrl(window.location.pathname + window.location.search); });
+window.addEventListener('popstate', function() { moquiWebrootApp.setUrl(window.location.pathname + window.location.search, null, null, false); });
 
 // NOTE: simulate vue-router so this.$router.resolve() works in a basic form; required for use of q-btn 'to' attribute along with router-link component defined above
-moqui.webrootRouter = {
-    resolve: function resolve(to, current, append) {
-        var location = moqui.isString(to) ? moqui.parseHref(to) : to;
+// moqui.webrootRouter = {
+//     resolve: function resolve(to, current, append) {
+//         var location = moqui.isString(to) ? moqui.parseHref(to) : to;
 
-        var path = location.path;
-        if (moqui.webrootVue) location.path = path = moquiWebrootApp.getLinkPath(path);
+//         var path = location.path;
+//         if (moqui.webrootVue) location.path = path = moquiWebrootApp.getLinkPath(path);
 
-        var lslIdx = path.lastIndexOf("/");
-        var name = lslIdx === -1 ? path : path.slice(lslIdx+1);
+//         var lslIdx = path.lastIndexOf("/");
+//         var name = lslIdx === -1 ? path : path.slice(lslIdx+1);
 
-        var route = { name:name, meta:{}, path:path,
-            hash:location.hash||"", query:location.query||"", params: {}, fullPath:path, matched:[] };
-        return { location:location, route:route, href:moqui.makeHref(location), normalizedTo:location, resolved:route }
-    },
-    replace: function(location, onComplete, onAbort) { moquiWebrootApp.setUrl(location, null, onComplete); },
-    push: function(location, onComplete, onAbort) { moquiWebrootApp.setUrl(location, null, onComplete); }
-}
+//         var route = { name:name, meta:{}, path:path,
+//             hash:location.hash||"", query:location.query||"", params: {}, fullPath:path, matched:[] };
+//         return { location:location, route:route, href:moqui.makeHref(location), normalizedTo:location, resolved:route }
+//     },
+//     replace: function(location, onComplete, onAbort) { moquiWebrootApp.setUrl(location, null, onComplete); },
+//     push: function(location, onComplete, onAbort) { moquiWebrootApp.setUrl(location, null, onComplete); }
+// }
 /*
 Object.defineProperty(Vue.prototype, '$router', {
     get: function get() { return moqui.webrootRouter; }
