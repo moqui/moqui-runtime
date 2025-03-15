@@ -8,4 +8,3 @@ moqui.routes = [
 <#--    }<#if path_has_next>,</#if>-->
 <#--</#list>-->
 ]
-

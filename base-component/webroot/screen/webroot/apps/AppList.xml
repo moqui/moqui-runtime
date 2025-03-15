@@ -27,8 +27,22 @@ along with this software (see the LICENSE.md file). If not, see
             <section-iterate name="ScreenNestedSection" list="currentScreenDef.getMenuSubscreensItems()" entry="currentSubscreensItem">
                 <actions>
                     <set field="currentScreenDef" from="sri.sfi.getScreenDefinition(currentSubscreensItem.location)"/>
+
                     <set field="currentScreenPath" value="/apps/${currentSubscreensItem.name}"/>
                     <set field="currentUrlInstance" from="sri.buildUrl(currentScreenPath)"/>
+                    <!-- The screen isn't actually under qapps2, so we need to grab the path from /apps and change the first url segment to qapps2 -->
+                    <log level="warn" message="sri.renderMode: ${sri.renderMode}"/>
+                    <if condition="sri.renderMode == 'qvt2'">
+                        <set field="qvt2ScreenPath" from="currentUrlInstance.path.replace('/apps', '/qapps2')"/>
+                    </if>
+
+
+                    <log level="warn" message="currentSubscreensItem.name: ${currentSubscreensItem.name}"/>
+                    <log level="warn" message="currentUrlInstance.path: ${currentUrlInstance.path}"/>
+
+                    <log level="warn" message="qvt2ScreenPath: ${qvt2ScreenPath}"/>
+                    <log level="warn" message="currentScreenPath: ${currentScreenPath}"/>
+
                 </actions>
                 <widgets>
                     <section name="ScreenItemRender">
@@ -80,7 +94,22 @@ along with this software (see the LICENSE.md file). If not, see
                                     </#if>
                                     ${ec.resource.expand(currentSubscreensItem.menuTitle, "")}
                                 </q-btn></div>
-                            ]]></text></render-mode>
+                            ]]></text><text type="qvt2"><![CDATA[
+                                <div class="q-my-sm"><q-btn outline no-caps to="${qvt2ScreenPath}" style="min-width:250px">
+                                    <#if currentUrlInstance.sui.menuImage?has_content>
+                                    <#if currentUrlInstance.sui.menuImageType == "icon">
+                                    <i class="${currentUrlInstance.sui.menuImage}" style="padding-right: 8px;"></i>
+                                    <#elseif currentUrlInstance.sui.menuImageType == "url-plain">
+                                    <img src="${currentUrlInstance.sui.menuImage}" width="18" style="padding-right: 4px;"/>
+                                    <#else>
+                                    <img src="${sri.buildUrl(currentUrlInstance.sui.menuImage).url}" height="18" style="padding-right: 4px;"/>
+                                </#if>
+                                    <#else>
+                                    <i class="fa fa-link" style="padding-right: 8px;"></i>
+                                </#if>
+                                ${ec.resource.expand(currentSubscreensItem.menuTitle, "")}
+                                </q-btn></div>
+                                ]]></text></render-mode>
                         </widgets>
                     </section>
                 </widgets>

@@ -15,7 +15,7 @@ along with this software (see the LICENSE.md file). If not, see
 <input type="hidden" id="confAppHost" value="${ec.web.getHostName(true)}">
 <input type="hidden" id="confAppRootPath" value="${ec.web.servletContext.contextPath}">
 <input type="hidden" id="confBasePath" value="${ec.web.servletContext.contextPath}/apps">
-<input type="hidden" id="confLinkBasePath" value="${ec.web.servletContext.contextPath}/qapps">
+<input type="hidden" id="confLinkBasePath" value="${ec.web.servletContext.contextPath}/qapps2">
 <input type="hidden" id="confUserId" value="${ec.user.userId!''}">
 <input type="hidden" id="confUsername" value="${ec.user.username!''}">
 <#-- TODO get secondFactorRequired (org.moqui.impl.UserServices.get#UserAuthcFactorRequired with userId) -->

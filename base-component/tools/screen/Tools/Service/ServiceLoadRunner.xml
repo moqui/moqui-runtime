@@ -109,7 +109,7 @@ along with this software (see the LICENSE.md file). If not, see
             <return error="true" message="User must be authorized for all actions on this screen"/></if>
     </actions>
     <widgets>
-        <render-mode><text type="qvue"><![CDATA[
+        <render-mode><text type="qvue,qvue2"><![CDATA[
             <template><div>
                 <q-btn dense outline no-caps color="info" type="button" label="Populate Test 1: Lookup By ID"
                        @click.prevent="setLocal('mantle.GeneralServices.lookup#ById', '[lookupId:\'100000\']', '100', '100', '10', '255', '1000', '60')"></q-btn>
