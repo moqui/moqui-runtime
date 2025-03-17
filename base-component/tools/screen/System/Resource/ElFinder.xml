@@ -49,7 +49,7 @@ along with this software (see the LICENSE.md file). If not, see
             <field name="submitButton"><default-field title="Select Root"><submit/></default-field></field>
             <field-layout><field-row-big><field-ref name="resourceRoot"/><field-ref name="submitButton"/></field-row-big></field-layout>
         </form-single>
-        <render-mode><text type="html,vuet,qvt"><![CDATA[
+        <render-mode><text type="html,vuet,qvt,qvt2"><![CDATA[
             <div id="elfinder"></div>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/smoothness/jquery-ui.min.css" type="text/css"/>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/smoothness/theme.min.css" type="text/css"/>
