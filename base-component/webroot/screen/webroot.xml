@@ -37,15 +37,17 @@ along with this software (see the LICENSE.md file). If not, see
     </transition>
     <transition name="menuData" read-only="true" begin-transaction="false">
         <actions><script><![CDATA[
-            List menuDataList = sri.getMenuData(sri.screenUrlInfo.extraPathNameList)
+            List menuDataList = sri.getMenuData(sri.screenUrlInfo.extraPathNameList, null, "apps")
             if (menuDataList != null) ec.web.sendJsonResponse(menuDataList)
             ]]></script></actions>
         <!-- NOTE DEJ 20200806 use save-parameters="true" to re-save parameters otherwise lost from the menuData request under vapps, qapps, etc -->
         <default-response type="none" save-parameters="true"/>
     </transition>
-    <transition name="menuDataQapps2" read-only="true" begin-transaction="false">
+    <transition name="menuDataQvt2" read-only="true" begin-transaction="false" require-session-token="false">
+        <parameter name="qvt2Path" value="qapps2"/>
+        <parameter name="screenMountedPath" value="apps"/>
         <actions><script><![CDATA[
-            List menuDataList = sri.getMenuData(sri.screenUrlInfo.extraPathNameList, true)
+            List menuDataList = sri.getMenuData(sri.screenUrlInfo.extraPathNameList, qvt2Path, screenMountedPath, false)
             if (menuDataList != null) ec.web.sendJsonResponse(menuDataList)
         ]]></script></actions>
         <!-- NOTE DEJ 20200806 use save-parameters="true" to re-save parameters otherwise lost from the menuData request under vapps, qapps, etc -->

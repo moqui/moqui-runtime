@@ -61,7 +61,7 @@ moqui.webrootVue = createApp({
                 // update menu, which triggers update of screen/subscreen components
                 var vm = this;
                 var menuDataUrl = this.appRootPath && this.appRootPath.length && screenUrl.indexOf(this.appRootPath) === 0 ?
-                    this.appRootPath + "/menuDataQapps2" + screenUrl.slice(this.appRootPath.length) : "/menuDataQapps2" + screenUrl;
+                    this.appRootPath + "/menuDataQvt2" + screenUrl.slice(this.appRootPath.length) : "/menuDataQvt2" + screenUrl;
                 $.ajax({ type:"GET", url:menuDataUrl, dataType:"text", contentType:"application/json", error:moqui.handleAjaxError, success: function(outerListText) {
                     var outerList = null;
                     // console.log("menu response " + outerListText);
@@ -751,7 +751,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
                 console.info("loaded HTML template from " + url + (divId ? " id " + divId : "") /*+ ": " + templateText*/);
                 // using this fixes encoded values in attributes and such that Vue does not decode (but is decoded in plain HTML),
                 //     but causes many other problems as all needed encoding is lost too: moqui.decodeHtml(templateText)
-                var compObj = Vue.markRaw({ template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' });
+                var compObj = { template: '<div' + (divId && divId.length > 0 ? ' id="' + divId + '"' : '') + '>' + templateText + '</div>' };
                 if (isServerStatic) { moqui.componentCache.put(path, compObj); }
                 callback(compObj);
             }
@@ -769,8 +769,8 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
 /* ========== placeholder components ========== */
 //moqui.NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
 //moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' });
-moqui.NotFound = defineComponent(Vue.markRaw({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' }));
-moqui.EmptyComponent = defineComponent(Vue.markRaw({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' }));
+moqui.NotFound = defineComponent({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
+moqui.EmptyComponent = defineComponent({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' });
 /* ========== inline components ========== */
 moqui.webrootVue.component('m-link', {
     props: { href:{type:String,required:true}, loadId:String, confirmation:String },
@@ -2548,17 +2548,17 @@ moqui.webrootVue.component('m-subscreens-active', {
 
             console.info('m-subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
             
-            qapps2FullPath = fullPath.replace('/apps', '/qapps2');
+            qvt2FullPath = fullPath.replace(root.basePath, root.linkBasePath);
             root.loading++;
             root.currentLoadRequest = moqui.loadComponent(urlInfo, function(comp) {
                 root.currentLoadRequest = null;
-                console.log('running this.$router.addRoute({ path: '+qapps2FullPath+', component: '+comp+' });');
+                console.log('running this.$router.addRoute({ path: '+qvt2FullPath+', component: '+comp+' });');
                 vm.$router.addRoute({
-                    path: qapps2FullPath,
+                    path: qvt2FullPath,
                     component: comp
                 });
-                console.log('running this.$router.replace('+qapps2FullPath+');');
-                vm.$router.replace(qapps2FullPath);
+                console.log('running this.$router.replace('+qvt2FullPath+');');
+                vm.$router.replace(qvt2FullPath);
                 root.loading--;
             });
             return true;

@@ -1,9 +1,13 @@
 const { h, createApp, defineComponent } = Vue
 
+const screenPathRoot = $("#confBasePath").val() || '/apps'
+const urlPathRoot = $("#linkBasePath").val() || '${urlPathRoot}'
+        console.log('urlPathRoot', urlPathRoot)
+        console.log('screenPathRoot', screenPathRoot)
 
 moqui.routes = [
     {
-        path:'/qapps2/:pathMatch(.*)*', component: Vue.markRaw(defineComponent({
+        path:urlPathRoot + '/:pathMatch(.*)*', component: Vue.markRaw(defineComponent({
     data() {
         return {
             component: null
@@ -11,7 +15,7 @@ moqui.routes = [
     },
     async created() {
         // Load the component from server
-        this.screenPath = this.$route.path.replace('/qapps2', '/apps') + '.qvt2'
+        this.screenPath = this.$route.path.replace(urlPathRoot, screenPathRoot) + '.qvt2'
         console.log('Loading screen', this.screenPath)
         const response = await fetch(this.screenPath)
         const template = await response.text()
@@ -30,17 +34,6 @@ moqui.routes = [
     }
 }))
     },
-    <#--  {path: '${realPath}', component: defineComponent({
-        template: `<div>
-            <q-btn to="/qapps2/marble/dashboard" label="Go to Marble Dashboard" color="primary" />
-        </div>`
-    })},  -->
-<#--<#list pathList as path>-->
-<#--    {-->
-<#--    path: "${path.path}",-->
-<#--    component: "${path.component}"-->
-<#--    }<#if path_has_next>,</#if>-->
-<#--</#list>-->
 ]
 
 const router = VueRouter.createRouter({

@@ -96,7 +96,9 @@ def fileMap = [
 ]
 
 def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
-def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js", "quasar@2.16.5/dist/quasar.prod.css", "quasar@2.16.5/dist/quasar.umd.prod.js"]
+def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js",
+    "quasar@2.16.5/dist/quasar.prod.css", "quasar@2.16.5/dist/quasar.umd.prod.js", "vue3-sfc-loader@0.9.5/dist/vue3-sfc-loader.min.js"]
+
 
 String getTargetPath(String sourcePath, String targetPath) {
     if (!targetPath) {
