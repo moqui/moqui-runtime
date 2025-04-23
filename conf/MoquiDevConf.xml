@@ -51,7 +51,7 @@
         <cache name="l10n.message" expire-time-idle="600"/>
     </cache-list>
     
-    <server-stats stats-skip-condition="pathInfo?.startsWith('/rpc') || pathInfo?.startsWith('/rest') || pathInfo?.startsWith('/status')">
+    <server-stats stats-skip-condition="pathInfo?.startsWith('/rpc') || pathInfo?.startsWith('/status')">
         <!-- For development, track everything! It'll run slow through... -->
         <artifact-stats type="AT_XML_SCREEN" persist-bin="true" persist-hit="true"/>
         <artifact-stats type="AT_XML_SCREEN_CONTENT" persist-bin="true" persist-hit="true"/>
@@ -59,6 +59,7 @@
         <!-- NOTE: entity-implicit and entity-auto services never persist hits -->
         <artifact-stats type="AT_SERVICE" persist-bin="true" persist-hit="true"/>
         <artifact-stats type="AT_ENTITY" persist-bin="true"/>
+        <artifact-stats type="AT_REST_PATH" persist-bin="true" persist-hit="true"/>
     </server-stats>
 
     <webapp-list>
