@@ -11,18 +11,19 @@ You should have received a copy of the CC0 Public Domain Dedication
 along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
-<div id="apps-root" style="display:none;"><#-- NOTE: webrootVue component attaches here, uses this and below for template -->
-    <input type="hidden" id="confMoquiSessionToken" value="${ec.web.sessionToken}">
-    <input type="hidden" id="confAppHost" value="${ec.web.getHostName(true)}">
-    <input type="hidden" id="confAppRootPath" value="${ec.web.servletContext.contextPath}">
-    <input type="hidden" id="confBasePath" value="${ec.web.servletContext.contextPath}/apps">
-    <input type="hidden" id="confLinkBasePath" value="${ec.web.servletContext.contextPath}/qapps">
-    <input type="hidden" id="confUserId" value="${ec.user.userId!''}">
-    <input type="hidden" id="confUsername" value="${ec.user.username!''}">
-    <#-- TODO get secondFactorRequired (org.moqui.impl.UserServices.get#UserAuthcFactorRequired with userId) -->
-    <input type="hidden" id="confLocale" value="${ec.user.locale.toLanguageTag()}">
-    <input type="hidden" id="confDarkMode" value="${ec.user.getPreference("QUASAR_DARK")!"false"}">
-    <input type="hidden" id="confLeftOpen" value="${ec.user.getPreference("QUASAR_LEFT_OPEN")!"false"}">
+<input type="hidden" id="confMoquiSessionToken" value="${ec.web.sessionToken}">
+<input type="hidden" id="confAppHost" value="${ec.web.getHostName(true)}">
+<input type="hidden" id="confAppRootPath" value="${ec.web.servletContext.contextPath}">
+<input type="hidden" id="confBasePath" value="${ec.web.servletContext.contextPath}/apps">
+<input type="hidden" id="confLinkBasePath" value="${ec.web.servletContext.contextPath}/qapps2">
+<input type="hidden" id="confUserId" value="${ec.user.userId!''}">
+<input type="hidden" id="confUsername" value="${ec.user.username!''}">
+<#-- TODO get secondFactorRequired (org.moqui.impl.UserServices.get#UserAuthcFactorRequired with userId) -->
+<input type="hidden" id="confLocale" value="${ec.user.locale.toLanguageTag()}">
+<input type="hidden" id="confDarkMode" value="${ec.user.getPreference("QUASAR_DARK")!"false"}">
+<input type="hidden" id="confLeftOpen" value="${ec.user.getPreference("QUASAR_LEFT_OPEN")!"false"}">
+<div id="apps-root"><#-- NOTE: webrootVue component attaches here, uses this and below for template -->
+
     <#assign navbarCompList = sri.getThemeValues("STRT_HEADER_NAVBAR_COMP")>
     <#list navbarCompList! as navbarCompUrl><input type="hidden" class="confNavPluginUrl" value="${navbarCompUrl}"></#list>
     <#assign accountCompList = sri.getThemeValues("STRT_HEADER_ACCOUNT_COMP")>
@@ -38,7 +39,7 @@ along with this software (see the LICENSE.md file). If not, see
 
             <#assign headerLogoList = sri.getThemeValues("STRT_HEADER_LOGO")>
             <#if headerLogoList?has_content>
-                <m-link href="/apps"><div class="q-mx-md q-mt-sm">
+                <m-link href="/qapps2"><div class="q-mx-md q-mt-sm">
                     <img src="${sri.buildUrl(headerLogoList?first).getUrl()}" alt="Home" height="32">
                 </div></m-link>
             </#if>
@@ -102,7 +103,7 @@ along with this software (see the LICENSE.md file). If not, see
                             <#-- TODO: histItem.icon see https://v1.quasar.dev/vue-components/banner-->
                             <strong>{{histItem.time}}</strong> <span>{{histItem.message}}</span>
                             <template v-if="histItem.link != null" v-slot:action>
-                                <q-btn :to="histItem.link" flat color="white" label="View"/>
+                                <q-btn :to="histItem.link" flat color="white" label="View"></q-btn>
                             </template>
                         </q-banner>
                     </q-item-section></q-item>

@@ -43,349 +43,6 @@
  - screen structure for any client library (Angular2, React, etc) possible?
    - goal would be to use FTL macros to transform more detailed XML into library specific output
  */
-// const { createApp, defineComponent, configureCompat } = Vue
-const { h, createApp, defineComponent } = Vue
-/* ========== webroot component ========== */
-moqui.webrootVue = createApp({
-    data() { return { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
-        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[],
-        lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
-        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null } },
-    methods: {
-        setUrl: function(url, bodyParameters) {
-            // make sure any open modals are closed before setting current URL
-            $('.modal.in').modal('hide');
-            // cancel current load if needed
-            if (this.currentLoadRequest) {
-                console.log("Aborting current page load currentLinkUrl " + this.currentLinkUrl + " url " + url);
-                this.currentLoadRequest.abort();
-                this.currentLoadRequest = null;
-                this.loading = 0;
-            }
-            // always set bodyParameters, setting to null when not specified to clear out previous
-            this.bodyParameters = bodyParameters;
-            url = this.getLinkPath(url);
-            // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
-            if (this.currentLinkUrl === url && url !== this.linkBasePath) {
-                this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */
-            } else {
-                var href = url;
-                var ssIdx = href.indexOf('://');
-                if (ssIdx >= 0) {
-                    var slIdx = href.indexOf('/', ssIdx + 3);
-                    if (slIdx === -1) return;
-                    href = href.slice(slIdx);
-                }
-                var splitHref = href.split("?");
-                // clear out extra path, to be set from nav menu data if needed
-                this.extraPathList = [];
-                // set currentSearch before currentPath so that it is available when path updates
-                if (splitHref.length > 1 && splitHref[1].length > 0) { this.currentSearch = splitHref[1]; } else { this.currentSearch = ""; }
-                this.currentPath = splitHref[0];
-                // with url cleaned up through setters now get current screen url for menu
-                var srch = this.currentSearch;
-                var screenUrl = this.currentPath + (srch.length > 0 ? '?' + srch : '');
-                if (!screenUrl || screenUrl.length === 0) return;
-                console.info("current URL changing to " + screenUrl);
-                this.lastNavTime = Date.now();
-                // TODO: somehow only clear out activeContainers that are in subscreens actually reloaded? may cause issues if any but last screen have dynamic-container
-                this.activeContainers = {};
-
-                // update menu, which triggers update of screen/subscreen components
-                var vm = this;
-                var menuDataUrl = this.appRootPath && this.appRootPath.length && screenUrl.indexOf(this.appRootPath) === 0 ?
-                    this.appRootPath + "/menuData" + screenUrl.slice(this.appRootPath.length) : "/menuData" + screenUrl;
-                $.ajax({ type:"GET", url:menuDataUrl, dataType:"text", error:moqui.handleAjaxError, success: function(outerListText) {
-                        var outerList = null;
-                        // console.log("menu response " + outerListText);
-                        try { outerList = JSON.parse(outerListText); } catch (e) { console.info("Error parson menu list JSON: " + e); }
-                        if (outerList && moqui.isArray(outerList)) {
-                            vm.navMenuList = outerList;
-                            /* console.info('navMenuList ' + JSON.stringify(outerList)); */
-                        }
-                    }});
-
-                // set the window URL
-                window.history.pushState(null, this.ScreenTitle, url);
-                // notify url listeners
-                this.urlListeners.forEach(function(callback) { callback(url, this) }, this);
-                // scroll to top
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0;
-            }
-        },
-        setParameters: function(parmObj) {
-            if (parmObj) {
-                this.$root.currentParameters = $.extend({}, this.$root.currentParameters, parmObj);
-                // no path change so just need to update parameters on most recent history item
-                var curUrl = this.currentLinkUrl;
-                var curHistoryItem = this.navHistoryList[0];
-                curHistoryItem.pathWithParams = curUrl;
-                window.history.pushState(null, curHistoryItem.title || '', curUrl);
-            }
-            this.$root.reloadSubscreens();
-        },
-        addSubscreen: function(saComp) {
-            var pathIdx = this.activeSubscreens.length;
-            // console.info('addSubscreen idx ' + pathIdx + ' pathName ' + this.currentPathList[pathIdx]);
-            saComp.pathIndex = pathIdx;
-            // setting pathName here handles initial load of subscreens-active; this may be undefined if we have more activeSubscreens than currentPathList items
-            saComp.loadActive();
-            this.activeSubscreens.push(saComp);
-        },
-        reloadSubscreens: function() {
-            // console.info('reloadSubscreens path ' + JSON.stringify(this.currentPathList) + ' currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
-            var fullPathList = this.currentPathList;
-            var activeSubscreens = this.activeSubscreens;
-            console.info("reloadSubscreens currentPathList " + JSON.stringify(this.currentPathList));
-            if (fullPathList.length === 0 && activeSubscreens.length > 0) {
-                activeSubscreens.splice(1);
-                activeSubscreens[0].loadActive();
-                return;
-            }
-            for (var i=0; i<activeSubscreens.length; i++) {
-                if (i >= fullPathList.length) break;
-                // always try loading the active subscreen and see if actually loaded
-                var loaded = activeSubscreens[i].loadActive();
-                // clear out remaining activeSubscreens, after first changed loads its placeholders will register and load
-                if (loaded) activeSubscreens.splice(i+1);
-            }
-        },
-        goPreviousScreen: function() {
-            var currentPath = this.currentPath;
-            var navHistoryList = this.navHistoryList;
-            var prevHist;
-            for (var hi = 0; hi < navHistoryList.length; hi++) {
-                if (navHistoryList[hi].pathWithParams.indexOf(currentPath) < 0) { prevHist = navHistoryList[hi]; break; } }
-            if (prevHist && prevHist.pathWithParams && prevHist.pathWithParams.length) this.setUrl(prevHist.pathWithParams)
-        },
-        // all container components added with this must have reload() and load(url) methods
-        addContainer: function(contId, comp) { this.activeContainers[contId] = comp; },
-        reloadContainer: function(contId) { var contComp = this.activeContainers[contId];
-            if (contComp) { contComp.reload(); } else { console.error("Container with ID " + contId + " not found, not reloading"); }},
-        loadContainer: function(contId, url) { var contComp = this.activeContainers[contId];
-            if (contComp) { contComp.load(url); } else { console.error("Container with ID " + contId + " not found, not loading url " + url); }},
-        addNavPlugin: function(url) { var vm = this; moqui.loadComponent(this.appRootPath + url, function(comp) { vm.navPlugins.push(Vue.markRaw(comp)); }) },
-        addNavPluginsWait: function(urlList, urlIndex) { if (urlList && urlList.length > urlIndex) {
-            this.addNavPlugin(urlList[urlIndex]);
-            var vm = this;
-            if (urlList.length > (urlIndex + 1)) { setTimeout(function(){ vm.addNavPluginsWait(urlList, urlIndex + 1); }, 500); }
-        } },
-        addUrlListener: function(urlListenerFunction) {
-            if (this.urlListeners.indexOf(urlListenerFunction) >= 0) return;
-            this.urlListeners.push(urlListenerFunction);
-        },
-        addNotify: function(message, type) {
-            var histList = this.notifyHistoryList.slice(0);
-            var nowDate = new Date();
-            var nh = nowDate.getHours(); if (nh < 10) nh = '0' + nh;
-            var nm = nowDate.getMinutes(); if (nm < 10) nm = '0' + nm;
-            // var ns = nowDate.getSeconds(); if (ns < 10) ns = '0' + ns;
-            histList.unshift({message:message, type:type, time:(nh + ':' + nm)}); //  + ':' + ns
-            while (histList.length > 25) { histList.pop(); }
-            this.notifyHistoryList = histList;
-        },
-        switchDarkLight: function() {
-            var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
-            var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
-            $.ajax({ type:'POST', url:(this.appRootPath + '/apps/setPreference'), error:moqui.handleAjaxError,
-                data:{ moquiSessionToken:this.moquiSessionToken, preferenceKey:'OUTER_STYLE', preferenceValue:currentStyle } });
-        },
-        showScreenDocDialog: function(docIndex) {
-            $("#screen-document-dialog").modal("show");
-            $("#screen-document-dialog-body").load(this.currentPath + '/screenDoc?docIndex=' + docIndex);
-        },
-        stopProp: function (e) { e.stopPropagation(); },
-        getNavHref: function(navIndex) {
-            if (!navIndex) navIndex = this.navMenuList.length - 1;
-            var navMenu = this.navMenuList[navIndex];
-            if (navMenu.extraPathList && navMenu.extraPathList.length) {
-                var href = navMenu.path + '/' + navMenu.extraPathList.join('/');
-                var questionIdx = navMenu.pathWithParams.indexOf("?");
-                if (questionIdx > 0) { href += navMenu.pathWithParams.slice(questionIdx); }
-                return href;
-            } else {
-                return navMenu.pathWithParams || navMenu.path;
-            }
-        },
-        getLinkPath: function(path) {
-            if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
-            var pathList = path.split('/');
-            // element 0 in array after split is empty string from leading '/'
-            var wrapperIdx = this.appRootPath.split('/').length;
-            pathList[wrapperIdx] = this.linkBasePath.split('/').slice(-1);
-            path = pathList.join("/");
-            return path;
-        }
-    },
-    watch: {
-        navMenuList: {
-            handler(newList) {
-                if (newList.length > 0) {
-                    var cur = newList[newList.length - 1];
-                    var par = newList.length > 1 ? newList[newList.length - 2] : null;
-                    // if there is an extraPathList set it now
-                    if (cur.extraPathList) this.extraPathList = cur.extraPathList;
-                    // make sure full currentPathList and activeSubscreens is populated (necessary for minimal path urls)
-                    // fullPathList is the path after the base path, menu and link paths are in the screen tree context only so need to subtract off the appRootPath (Servlet Context Path)
-                    var basePathSize = this.basePathSize;
-                    var fullPathList = cur.path.split('/').slice(basePathSize + 1);
-                    console.info('nav updated fullPath ' + JSON.stringify(fullPathList) + ' currentPathList ' + JSON.stringify(this.currentPathList) + ' cur.path ' + cur.path + ' basePathSize ' + basePathSize);
-                    this.currentPathList = fullPathList;
-                    this.reloadSubscreens();
-
-                    // update history and document.title
-                    var newTitle = (par ? par.title + ' - ' : '') + cur.title;
-                    var curUrl = cur.pathWithParams;
-                    var questIdx = curUrl.indexOf("?");
-                    if (questIdx > 0) {
-                        var excludeKeys = ["pageIndex", "orderBySelect", "orderByField", "moquiSessionToken"];
-                        var parmList = curUrl.substring(questIdx + 1).split("&");
-                        curUrl = curUrl.substring(0, questIdx);
-                        var dpCount = 0;
-                        var titleParms = "";
-                        for (var pi = 0; pi < parmList.length; pi++) {
-                            var parm = parmList[pi];
-                            if (curUrl.indexOf("?") === -1) {
-                                curUrl += "?";
-                            } else {
-                                curUrl += "&";
-                            }
-                            curUrl += parm;
-                            // from here down only add to title parms
-                            if (dpCount > 3) continue; // add up to 4 parms to the title
-                            var eqIdx = parm.indexOf("=");
-                            if (eqIdx > 0) {
-                                var key = parm.substring(0, eqIdx);
-                                var value = parm.substring(eqIdx + 1);
-                                if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || excludeKeys.indexOf(key) >= 0 || key === value) continue;
-                                if (titleParms.length > 0) titleParms += ", ";
-                                titleParms += decodeURIComponent(value);
-                                dpCount++;
-                            }
-                        }
-                        if (titleParms.length > 0) {
-                            if (titleParms.length > 70) titleParms = titleParms.substring(0, 70) + "...";
-                            newTitle = newTitle + " (" + titleParms + ")";
-                        }
-                    }
-                    var navHistoryList = this.navHistoryList;
-                    for (var hi = 0; hi < navHistoryList.length;) {
-                        if (navHistoryList[hi].pathWithParams === curUrl) {
-                            navHistoryList.splice(hi, 1);
-                        } else {
-                            hi++;
-                        }
-                    }
-                    navHistoryList.unshift({
-                        title: newTitle,
-                        pathWithParams: curUrl,
-                        image: cur.image,
-                        imageType: cur.imageType
-                    });
-                    while (navHistoryList.length > 25) {
-                        navHistoryList.pop();
-                    }
-                    document.title = newTitle;
-                }
-            },
-            deep: true
-        },
-        currentPathList: {
-            handler(newList) {
-                // console.info('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
-                var lastPath = newList[newList.length - 1];
-                if (lastPath) {
-                    $(this.$el).removeClass().addClass(lastPath);
-                }
-            },
-            deep: true
-        }
-    },
-    computed: {
-        currentPath: {
-            get: function() { var curPath = this.currentPathList; var extraPath = this.extraPathList;
-                return this.basePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
-                    (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : ''); },
-            set: function(newPath) {
-                if (!newPath || newPath.length === 0) { this.currentPathList = []; return; }
-                if (newPath.slice(newPath.length - 1) === '/') newPath = newPath.slice(0, newPath.length - 1);
-                if (newPath.indexOf(this.linkBasePath) === 0) { newPath = newPath.slice(this.linkBasePath.length + 1); }
-                else if (newPath.indexOf(this.basePath) === 0) { newPath = newPath.slice(this.basePath.length + 1); }
-                this.currentPathList = newPath.split('/');
-            }
-        },
-        currentLinkPath: function() {
-            var curPath = this.currentPathList; var extraPath = this.extraPathList;
-            return this.linkBasePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
-                (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : '');
-        },
-        currentSearch: {
-            get: function() { return moqui.objToSearch(this.currentParameters); },
-            set: function(newSearch) { this.currentParameters = moqui.searchToObj(newSearch); }
-        },
-        currentLinkUrl: function() { var search = this.currentSearch; return this.currentLinkPath + (search.length > 0 ? '?' + search : ''); },
-        basePathSize: function() { return this.basePath.split('/').length - this.appRootPath.split('/').length; },
-        ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; },
-        documentMenuList: function() {
-            var docList = [];
-            for (var i = 0; i < this.navMenuList.length; i++) {
-                var screenDocList = this.navMenuList[i].screenDocList;
-                if (screenDocList && screenDocList.length) { screenDocList.forEach(function(el) { docList.push(el);}); }
-            }
-            return docList;
-        }
-    },
-    created: function() {
-        this.moquiSessionToken = $("#confMoquiSessionToken").val();
-        this.appHost = $("#confAppHost").val(); this.appRootPath = $("#confAppRootPath").val();
-        this.basePath = $("#confBasePath").val(); this.linkBasePath = $("#confLinkBasePath").val();
-        this.userId = $("#confUserId").val();
-        this.locale = $("#confLocale").val(); if (moqui.localeMap[this.locale]) this.locale = moqui.localeMap[this.locale];
-
-        var confOuterStyle = $("#confOuterStyle").val();
-        if (confOuterStyle) {
-            var jqBody = $("body");
-            var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
-            if (currentStyle !== confOuterStyle) { jqBody.removeClass(currentStyle); jqBody.addClass(confOuterStyle); }
-        }
-
-        this.notificationClient = new moqui.NotificationClient((location.protocol === 'https:' ? 'wss://' : 'ws://') + this.appHost + this.appRootPath + "/notws");
-
-        var navPluginUrlList = [];
-        $('.confNavPluginUrl').each(function(idx, el) { navPluginUrlList.push($(el).val()); });
-        this.addNavPluginsWait(navPluginUrlList, 0);
-    },
-    mounted: function() {
-        var jqEl = $(this.$el);
-        jqEl.find('.navbar [data-toggle="tooltip"]').tooltip({ placement:'bottom', trigger:'hover' });
-        jqEl.find('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
-        jqEl.find('#notify-history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
-        jqEl.find('#document-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
-        // load the current screen
-        this.setUrl(window.location.pathname + window.location.search);
-        // init the NotificationClient and register 'displayNotify' as the default listener
-        this.notificationClient.registerListener("ALL");
-
-        $("#screen-document-dialog").on("hidden.bs.modal", function () { var jqEl = $("#screen-document-dialog-body");
-            jqEl.empty(); jqEl.append('<div class="spinner"><div>Loading…</div></div>'); });
-
-        // request Notification permission on load if not already granted or denied
-        if (window.Notification && Notification.permission !== "granted" && Notification.permission !== "denied") {
-            Notification.requestPermission(function (status) {
-                if (status === "granted") {
-                    moqui.notifyMessages("Browser notifications enabled, if you don't want them use browser notification settings to block");
-                } else if (status === "denied") {
-                    moqui.notifyMessages("Browser notifications disabled, if you want them use browser notification settings to allow");
-                }
-            });
-        }
-    }
-});
-moqui.webrootVue.config.compilerOptions.whitespace = 'preserve'
-// configureCompat({
-//     MODE: 3,
-// })
 
 moqui.urlExtensions = { js:'js', vue:'vue', vuet:'vuet' }
 
@@ -395,13 +52,8 @@ if (!window.define) window.define = function(name, deps, callback) {
     if (!moqui.isArray(deps)) { callback = deps; deps = null; }
     if (moqui.isFunction(callback)) { return callback(); } else { return callback }
 };
-// I believe this isn't needed anymore because it was used in Moqui Quasar and is no longer see: https://github.com/search?q=org%3Amoqui+decodeHtml&type=code
-// Vue.filter('decodeHtml', moqui.htmlDecode);
-moqui.webrootVue.config.globalProperties.$filters = {
-    format(value) {
-        return moqui.format(value);
-    }
-}
+Vue.filter('decodeHtml', moqui.htmlDecode);
+Vue.filter('format', moqui.format);
 
 /* ========== notify and error handling ========== */
 moqui.notifyOpts = { delay:1500, timer:500, offset:{x:20,y:60}, placement:{from:'top',align:'right'}, z_index:1100, type:'success',
@@ -419,16 +71,16 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
                 if (moqui.isPlainObject(messageItem)) {
                     var msgType = messageItem.type; if (!msgType || !msgType.length) msgType = 'info';
                     $.notify(new moqui.NotifyOptions(messageItem.message, null, msgType, null), $.extend({}, moqui.notifyOptsInfo, { type:msgType }));
-                    moquiWebrootApp.addNotify(messageItem.message, msgType);
+                    moqui.webrootVue.addNotify(messageItem.message, msgType);
                 } else {
                     $.notify(new moqui.NotifyOptions(messageItem, null, 'info', null), moqui.notifyOptsInfo);
-                    moquiWebrootApp.addNotify(messageItem, 'info');
+                    moqui.webrootVue.addNotify(messageItem, 'info');
                 }
                 notified = true;
             }
         } else {
             $.notify(new moqui.NotifyOptions(messages, null, 'info', null), moqui.notifyOptsInfo);
-            moquiWebrootApp.addNotify(messages, 'info');
+            moqui.webrootVue.addNotify(messages, 'info');
             notified = true;
         }
     }
@@ -436,12 +88,12 @@ moqui.notifyMessages = function(messages, errors, validationErrors) {
         if (moqui.isArray(errors)) {
             for (var ei=0; ei < errors.length; ei++) {
                 $.notify(new moqui.NotifyOptions(errors[ei], null, 'info', null), moqui.notifyOptsError);
-                moquiWebrootApp.addNotify(errors[ei], 'danger');
+                moqui.webrootVue.addNotify(errors[ei], 'danger');
                 notified = true;
             }
         } else {
             $.notify(new moqui.NotifyOptions(errors, null, 'info', null), moqui.notifyOptsError);
-            moquiWebrootApp.addNotify(errors, 'danger');
+            moqui.webrootVue.addNotify(errors, 'danger');
             notified = true;
         }
     }
@@ -459,7 +111,7 @@ moqui.notifyValidationError = function(valError) {
         if (valError.fieldPretty && valError.fieldPretty.length) message = message + " (for field " + valError.fieldPretty + ")";
     }
     $.notify(new moqui.NotifyOptions(message, null, 'info', null), moqui.notifyOptsError);
-    moquiWebrootApp.addNotify(message, 'danger');
+    moqui.webrootVue.addNotify(message, 'danger');
 
 };
 moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
@@ -481,17 +133,17 @@ moqui.handleAjaxError = function(jqXHR, textStatus, errorThrown) {
 
     // reload on 401 (Unauthorized) so server can remember current URL and redirect to login screen
     if (jqXHR.status === 401) {
-        if (moqui.webrootVue) { window.location.href = moquiWebrootApp.currentLinkUrl; } else { window.location.reload(true); }
+        if (moqui.webrootVue) { window.location.href = moqui.webrootVue.currentLinkUrl; } else { window.location.reload(true); }
     } else if (jqXHR.status === 0) {
         if (errorThrown.indexOf('abort') < 0) {
             var msg = 'Could not connect to server';
             $.notify(new moqui.NotifyOptions(msg, null, 'danger', null), moqui.notifyOptsError);
-            moquiWebrootApp.addNotify(msg, 'danger');
+            moqui.webrootVue.addNotify(msg, 'danger');
         }
     } else if (!notified) {
         var errMsg = 'Error: ' + errorThrown + ' (' + textStatus + ')';
         $.notify(new moqui.NotifyOptions(errMsg, null, 'danger', null), moqui.notifyOptsError);
-        moquiWebrootApp.addNotify(errMsg, 'danger');
+        moqui.webrootVue.addNotify(errMsg, 'danger');
     }
 };
 
@@ -546,7 +198,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
         var vueAjaxSettings = { type:"GET", url:url, error:moqui.handleLoadError, success: function(resp, status, jqXHR) {
                 if (jqXHR.status === 205) {
                     var redirectTo = jqXHR.getResponseHeader("X-Redirect-To")
-                    moquiWebrootApp.setUrl(redirectTo);
+                    moqui.webrootVue.setUrl(redirectTo);
                     return;
                 }
                 // console.info(resp);
@@ -578,7 +230,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
     var ajaxSettings = { type:"GET", url:url, error:moqui.handleLoadError, success: function(resp, status, jqXHR) {
         if (jqXHR.status === 205) {
             var redirectTo = jqXHR.getResponseHeader("X-Redirect-To")
-            moquiWebrootApp.setUrl(redirectTo);
+            moqui.webrootVue.setUrl(redirectTo);
             return;
         }
         // console.info(resp);
@@ -609,7 +261,7 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
                 callback(compObj);
             }
         } else if (moqui.isPlainObject(resp)) {
-            if (resp.screenUrl && resp.screenUrl.length) { moquiWebrootApp.setUrl(resp.screenUrl); }
+            if (resp.screenUrl && resp.screenUrl.length) { moqui.webrootVue.setUrl(resp.screenUrl); }
             else if (resp.redirectUrl && resp.redirectUrl.length) { window.location.replace(resp.redirectUrl); }
         } else { callback(moqui.NotFound); }
     }};
@@ -618,11 +270,11 @@ moqui.loadComponent = function(urlInfo, callback, divId) {
 };
 
 /* ========== placeholder components ========== */
-moqui.NotFound = defineComponent(Vue.markRaw({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' }));
-moqui.EmptyComponent = defineComponent(Vue.markRaw({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' }));
+moqui.NotFound = Vue.extend({ template: '<div id="current-page-root"><h4>Screen not found at {{this.$root.currentPath}}</h4></div>' });
+moqui.EmptyComponent = Vue.extend({ template: '<div id="current-page-root"><div class="spinner"><div>&nbsp;</div></div></div>' });
 
 /* ========== inline components ========== */
-moqui.webrootVue.component('m-link', {
+Vue.component('m-link', {
     props: { href:{type:String,required:true}, loadId:String, confirmation:String },
     template: '<a :href="linkHref" @click.prevent="go"><slot></slot></a>',
     methods: { go: function(event) {
@@ -640,7 +292,7 @@ moqui.webrootVue.component('m-link', {
     }},
     computed: { linkHref: function () { return this.$root.getLinkPath(this.href); } }
 });
-moqui.webrootVue.component('m-script', {
+Vue.component('m-script', {
     props: { src:String, type:{type:String,'default':'text/javascript'} },
     template: '<div :type="type" style="display:none;"><slot></slot></div>',
     created: function() { if (this.src && this.src.length > 0) { moqui.loadScript(this.src); } },
@@ -658,13 +310,13 @@ moqui.webrootVue.component('m-script', {
         // maybe better not to, nice to see in dom: $(this.$el).remove();
     }
 });
-moqui.webrootVue.component('m-stylesheet', {
+Vue.component('m-stylesheet', {
     props: { href:{type:String,required:true}, rel:{type:String,'default':'stylesheet'}, type:{type:String,'default':'text/css'} },
     template: '<div :type="type" style="display:none;"></div>',
     created: function() { moqui.loadStylesheet(this.href, this.rel, this.type); }
 });
 /* ========== layout components ========== */
-moqui.webrootVue.component('container-box', {
+Vue.component('container-box', {
     props: { type:{type:String,'default':'default'}, title:String, initialOpen:{type:Boolean,'default':true} },
     data: function() { return { isBodyOpen:this.initialOpen }},
     template:
@@ -679,12 +331,12 @@ moqui.webrootVue.component('container-box', {
     '</div>',
     methods: { toggleBody: function() { this.isBodyOpen = !this.isBodyOpen; } }
 });
-moqui.webrootVue.component('box-body', {
+Vue.component('box-body', {
     props: { height:String },
     data: function() { return this.height ? { dialogStyle:{'max-height':this.height+'px', 'overflow-y':'auto'}} : {dialogStyle:{}}},
     template: '<div class="panel-body" :style="dialogStyle"><slot></slot></div>'
 });
-moqui.webrootVue.component('container-dialog', {
+Vue.component('container-dialog', {
     props: { id:{type:String,required:true}, title:String, width:{type:String,'default':'760'}, openDialog:{type:Boolean,'default':false} },
     data: function() {
         var viewportWidth = $(window).width();
@@ -709,40 +361,19 @@ moqui.webrootVue.component('container-dialog', {
         if (this.openDialog) { jqEl.modal('show'); }
     }
 });
-moqui.webrootVue.component('dynamic-container', {
+Vue.component('dynamic-container', {
     props: { id:{type:String,required:true}, url:{type:String} },
     data: function() { return { curComponent:moqui.EmptyComponent, curUrl:"" } },
     template: '<component :is="curComponent"></component>',
     methods: { reload: function() { var saveUrl = this.curUrl; this.curUrl = ""; var vm = this; setTimeout(function() { vm.curUrl = saveUrl; }, 20); },
         load: function(url) { if (this.curUrl === url) { this.reload(); } else { this.curUrl = url; } }},
-    watch: { curUrl: {
-            handler(newUrl) {
-                if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
-                var vm = this;
-                if (moqui.isPlainObject(this.dynamicParams)) {
-                    var dpStr = '';
-                    $.each(this.dynamicParams, function (key, value) {
-                        var dynVal = $("#" + value).val();
-                        if (dynVal && dynVal.length) dpStr = dpStr + (dpStr.length > 0 ? '&' : '') + key + '=' + dynVal;
-                    });
-                    if (dpStr.length) newUrl = newUrl + (newUrl.indexOf("?") > 0 ? '&' : '?') + dpStr;
-                }
-                moqui.loadComponent(newUrl, function(comp) {
-                    comp.mounted = function() {
-                        var jqEl = $(vm.$el);
-                        jqEl.find(":not(.noResetSelect2)>select:not(.noResetSelect2)").select2({ });
-                        var defFocus = jqEl.find(".default-focus");
-                        // console.log(defFocus);
-                        if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
-                    };
-                    vm.curComponent = Vue.markRaw(comp);
-                }, this.id);
-            },
-            deep: true
-        }},
+    watch: { curUrl: function(newUrl) {
+        if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
+        var vm = this; moqui.loadComponent(newUrl, function(comp) { vm.curComponent = comp; }, this.id);
+    }},
     mounted: function() { this.$root.addContainer(this.id, this); this.curUrl = this.url; }
 });
-moqui.webrootVue.component('dynamic-dialog', {
+Vue.component('dynamic-dialog', {
     props: { id:{type:String,required:true}, url:{type:String,required:true}, title:String, width:{type:String,'default':'760'},
         openDialog:{type:Boolean,'default':false}, dynamicParams:{type:Object,'default':null} },
     data: function() {
@@ -760,38 +391,28 @@ moqui.webrootVue.component('dynamic-dialog', {
         reload: function() { if (!this.isHidden) { var jqEl = $(this.$el); jqEl.modal('hide'); jqEl.modal('show'); }},
         load: function(url) { this.curUrl = url; }, hide: function() { $(this.$el).modal('hide'); }
     },
-    watch: { curUrl: {
-            handler(newUrl) {
-                if (!newUrl || newUrl.length === 0) {
-                    this.curComponent = moqui.EmptyComponent;
-                    return;
-                }
-                var vm = this;
-                if (moqui.isPlainObject(this.dynamicParams)) {
-                    var dpStr = '';
-                    $.each(this.dynamicParams, function (key, value) {
-                        var dynVal = $("#" + value).val();
-                        if (dynVal && dynVal.length) dpStr = dpStr + (dpStr.length > 0 ? '&' : '') + key + '=' + dynVal;
-                    });
-                    if (dpStr.length) newUrl = newUrl + (newUrl.indexOf("?") > 0 ? '&' : '?') + dpStr;
-                }
-                moqui.loadComponent(newUrl, function (comp) {
-                    comp.mounted = function () {
-                        var jqEl = $(vm.$el);
-                        jqEl.find(":not(.noResetSelect2)>select:not(.noResetSelect2)").select2({});
-                        var defFocus = jqEl.find(".default-focus");
-                        // console.log(defFocus);
-                        if (defFocus.length) {
-                            defFocus.focus();
-                        } else {
-                            jqEl.find('form :input:visible:first').focus();
-                        }
-                    };
-                    vm.curComponent = Vue.markRaw(comp);
-                }, this.id);
-            },
-            deep: true
-        }},
+    watch: { curUrl: function (newUrl) {
+        if (!newUrl || newUrl.length === 0) { this.curComponent = moqui.EmptyComponent; return; }
+        var vm = this;
+        if (moqui.isPlainObject(this.dynamicParams)) {
+            var dpStr = '';
+            $.each(this.dynamicParams, function (key, value) {
+                var dynVal = $("#" + value).val();
+                if (dynVal && dynVal.length) dpStr = dpStr + (dpStr.length > 0 ? '&' : '') + key + '=' + dynVal;
+            });
+            if (dpStr.length) newUrl = newUrl + (newUrl.indexOf("?") > 0 ? '&' : '?') + dpStr;
+        }
+        moqui.loadComponent(newUrl, function(comp) {
+            comp.mounted = function() {
+                var jqEl = $(vm.$el);
+                jqEl.find(":not(.noResetSelect2)>select:not(.noResetSelect2)").select2({ });
+                var defFocus = jqEl.find(".default-focus");
+                // console.log(defFocus);
+                if (defFocus.length) { defFocus.focus(); } else { jqEl.find('form :input:visible:first').focus(); }
+            };
+            vm.curComponent = comp;
+        }, this.id);
+    }},
     mounted: function() {
         this.$root.addContainer(this.id, this); var jqEl = $(this.$el); var vm = this;
         jqEl.on("show.bs.modal", function() { vm.curUrl = vm.url; });
@@ -800,7 +421,7 @@ moqui.webrootVue.component('dynamic-dialog', {
         if (this.openDialog) { jqEl.modal('show'); }
     }
 });
-moqui.webrootVue.component('tree-top', {
+Vue.component('tree-top', {
     template: '<ul :id="id" class="tree-list"><tree-item v-for="model in itemList" :key="model.id" :model="model" :top="top"/></ul>',
     props: { id:{type:String,required:true}, items:{type:[String,Array],required:true}, openPath:String, parameters:Object },
     data: function() { return { urlItems:null, currentPath:null, top:this }},
@@ -815,7 +436,7 @@ moqui.webrootVue.component('tree-top', {
             error:moqui.handleAjaxError, success:function(resp) { vm.urlItems = resp; /*console.info('tree-top response ' + JSON.stringify(resp));*/ } });
     }}
 });
-moqui.webrootVue.component('tree-item', {
+Vue.component('tree-item', {
     template:
     '<li :id="model.id">' +
         '<i v-if="isFolder" @click="toggle" class="fa" :class="{\'fa-chevron-right\':!open, \'fa-chevron-down\':open}"></i>' +
@@ -833,38 +454,17 @@ moqui.webrootVue.component('tree-item', {
         hasChildren: function() { var children = this.model.children; return moqui.isArray(children) && children.length > 0; },
         selected: function() { return this.top.currentPath === this.model.id; }
     },
-    watch: {
-        open: {
-            handler(newVal) {
-                if (newVal) {
-                    var children = this.model.children;
-                    var url = this.top.items;
-                    if (this.open && children && moqui.isBoolean(children) && moqui.isString(url)) {
-                        var li_attr = this.model.li_attr;
-                        var allParms = $.extend({
-                            moquiSessionToken: this.$root.moquiSessionToken,
-                            treeNodeId: this.model.id,
-                            treeNodeName: (li_attr && li_attr.treeNodeName ? li_attr.treeNodeName : ''),
-                            treeOpenPath: this.top.currentPath
-                        }, this.top.parameters);
-                        var vm = this;
-                        $.ajax({
-                            type: 'POST',
-                            dataType: 'json',
-                            url: url,
-                            headers: {Accept: 'application/json'},
-                            data: allParms,
-                            error: moqui.handleAjaxError,
-                            success: function (resp) {
-                                vm.model.children = resp;
-                            }
-                        });
-                    }
-                }
-            },
-            deep: true
+    watch: { open: function(newVal) { if (newVal) {
+        var children = this.model.children;
+        var url = this.top.items;
+        if (this.open && children && moqui.isBoolean(children) && moqui.isString(url)) {
+            var li_attr = this.model.li_attr;
+            var allParms = $.extend({ moquiSessionToken:this.$root.moquiSessionToken, treeNodeId:this.model.id,
+                treeNodeName:(li_attr && li_attr.treeNodeName ? li_attr.treeNodeName : ''), treeOpenPath:this.top.currentPath }, this.top.parameters);
+            var vm = this; $.ajax({ type:'POST', dataType:'json', url:url, headers:{Accept:'application/json'}, data:allParms,
+                error:moqui.handleAjaxError, success:function(resp) { vm.model.children = resp; } });
         }
-    },
+    }}},
     methods: {
         toggle: function() { if (this.isFolder) { this.open = !this.open; } },
         setSelected: function() { this.top.currentPath = this.model.id; this.open = true; }
@@ -872,7 +472,7 @@ moqui.webrootVue.component('tree-item', {
     mounted: function() { if (this.model.state && this.model.state.opened) { this.open = true; } }
 });
 /* ========== general field components ========== */
-moqui.webrootVue.component('m-editable', {
+Vue.component('m-editable', {
     props: { id:{type:String,required:true}, labelType:{type:String,'default':'span'}, labelValue:{type:String,required:true},
         url:{type:String,required:true}, urlParameters:{type:Object,'default':{}},
         parameterName:{type:String,'default':'value'}, widgetType:{type:String,'default':'textarea'},
@@ -888,12 +488,11 @@ moqui.webrootVue.component('m-editable', {
         }
         $(this.$el).editable(this.url, edConfig);
     },
-    // TODO: Once global component is registered do: https://v3-migration.vuejs.org/breaking-changes/render-function-api.html
-    render: function() { return h(this.labelType, {id:this.id, 'class': 'editable-label',innerHTML:this.labelValue}); }
+    render: function(createEl) { return createEl(this.labelType, { attrs:{ id:this.id, 'class':'editable-label' }, domProps: { innerHTML:this.labelValue } }); }
 });
 
 /* ========== form components ========== */
-moqui.webrootVue.component('m-form', {
+Vue.component('m-form', {
     props: { action:{type:String,required:true}, method:{type:String,'default':'POST'}, excludeEmptyFields:Boolean,
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean },
     data: function() { return { fields:{}, fieldsChanged:{}, buttonClicked:null }},
@@ -975,7 +574,7 @@ moqui.webrootVue.component('m-form', {
                 var responseText = resp; // this is set for backward compatibility in case message relies on responseText as in old JS
                 var message = eval('"' + subMsg + '"');
                 $.notify(new moqui.NotifyOptions(message, null, 'success', null), moqui.notifyOpts);
-                moquiWebrootApp.addNotify(message, 'success');
+                moqui.webrootVue.addNotify(message, 'success');
             } else if (!notified) {
                 $.notify(new moqui.NotifyOptions("Submit successful", null, 'success', null), moqui.notifyOpts);
             }
@@ -1007,12 +606,12 @@ moqui.webrootVue.component('m-form', {
             // console.log("changed? " + changed + " node " + targetDom.nodeName + " type " + targetEl.attr("type") + " " + targetEl.attr("name") + " to " + targetDom.value + " default " + targetDom.defaultValue);
             // console.log(targetDom.defaultValue);
             if (changed) {
-                this.fieldsChanged[targetEl.attr("name")] = true
+                this.$set(this.fieldsChanged, targetEl.attr("name"), true);
                 targetEl.parents(".form-group").children("label").addClass("is-changed");
                 targetEl.parents(".form-group").find(".select2-selection").addClass("is-changed");
                 targetEl.addClass("is-changed");
             } else {
-                this.fieldsChanged[targetEl.attr("name")] = false
+                this.$set(this.fieldsChanged, targetEl.attr("name"), false);
                 targetEl.parents(".form-group").children("label").removeClass("is-changed");
                 targetEl.parents(".form-group").find(".select2-selection").removeClass("is-changed");
                 targetEl.removeClass("is-changed");
@@ -1036,7 +635,7 @@ moqui.webrootVue.component('m-form', {
         jqEl.find('button[type="submit"], input[type="submit"], input[type="image"]').on('click', function() { vm.buttonClicked = this; });
     }
 });
-moqui.webrootVue.component('form-link', {
+Vue.component('form-link', {
     props: { action:{type:String,required:true}, focusField:String, noValidate:Boolean, bodyParameterNames:Array },
     data: function() { return { fields:{} }},
     template: '<form @submit.prevent="submitForm" autocapitalize="off" autocomplete="off"><slot :clearForm="clearForm"></slot></form>',
@@ -1108,7 +707,7 @@ moqui.webrootVue.component('form-link', {
     }
 });
 
-moqui.webrootVue.component('form-paginate', {
+Vue.component('form-paginate', {
     props: { paginate:Object, formList:Object },
     template:
     '<ul v-if="paginate" class="pagination">' +
@@ -1141,7 +740,7 @@ moqui.webrootVue.component('form-paginate', {
         if (this.formList) { this.formList.setPageIndex(newIndex); } else { this.$root.setParameters({pageIndex:newIndex}); }
     }}
 });
-moqui.webrootVue.component('form-go-page', {
+Vue.component('form-go-page', {
     props: { idVal:{type:String,required:true}, maxIndex:Number, formList:Object },
     template:
     '<form v-if="!formList || (formList.paginate && formList.paginate.pageMaxIndex > 4)" @submit.prevent="goPage" class="form-inline" :id="idVal+\'_GoPage\'">' +
@@ -1163,7 +762,7 @@ moqui.webrootVue.component('form-go-page', {
         }
     }}
 });
-moqui.webrootVue.component('form-list', {
+Vue.component('form-list', {
     // rows can be a full path to a REST service or transition, a plain form name on the current screen, or a JS Array with the actual rows
     props: { name:{type:String,required:true}, id:String, rows:{type:[String,Array],required:true}, search:{type:Object},
             action:String, multi:Boolean, skipForm:Boolean, skipHeader:Boolean, headerForm:Boolean, headerDialog:Boolean,
@@ -1234,23 +833,8 @@ moqui.webrootVue.component('form-list', {
         }
     },
     watch: {
-        // Determine if deep is needed may have performance hit: https://v3-migration.vuejs.org/breaking-changes/watch.html
-        rows: {
-            handler(newRows) {
-                if (moqui.isArray(newRows)) {
-                    this.rowList = newRows;
-                } else {
-                    this.fetchRows();
-                }
-            },
-            deep: true
-        },
-        search: {
-            handler() {
-                this.fetchRows();
-            },
-            deep: true
-        }
+        rows: function(newRows) { if (moqui.isArray(newRows)) { this.rowList = newRows; } else { this.fetchRows(); } },
+        search: function () { this.fetchRows(); }
     },
     mounted: function() {
         if (this.search) { this.searchObj = this.search; } else { this.searchObj = this.$root.currentParameters; }
@@ -1259,7 +843,7 @@ moqui.webrootVue.component('form-list', {
 });
 
 /* ========== form field widget components ========== */
-moqui.webrootVue.component('date-time', {
+Vue.component('date-time', {
     props: { id:String, name:{type:String,required:true}, value:String, type:{type:String,'default':'date-time'},
         size:String, format:String, tooltip:String, form:String, required:String, autoYear:String, minuteStep:{type:Number,'default':5} },
     template:
@@ -1346,7 +930,7 @@ moqui.dateOffsets = [{id:'0',text:'This'},{id:'-1',text:'Last'},{id:'1',text:'Ne
 moqui.datePeriods = [{id:'day',text:'Day'},{id:'7d',text:'7 Days'},{id:'30d',text:'30 Days'},{id:'week',text:'Week'},{id:'weeks',text:'Weeks'},
     {id:'month',text:'Month'},{id:'months',text:'Months'},{id:'quarter',text:'Quarter'},{id:'year',text:'Year'},{id:'7r',text:'+/-7d'},{id:'30r',text:'+/-30d'}];
 moqui.emptyOpt = {id:'',text:'\u00a0'};
-moqui.webrootVue.component('date-period', {
+Vue.component('date-period', {
     props: { name:{type:String,required:true}, id:String, allowEmpty:Boolean, offset:String, period:String, date:String,
         fromDate:String, thruDate:String, fromThruType:{type:String,'default':'date'}, form:String },
     data: function() { return { fromThruMode:false, dateOffsets:moqui.dateOffsets.slice(), datePeriods:moqui.datePeriods.slice() } },
@@ -1362,7 +946,7 @@ moqui.webrootVue.component('date-period', {
     methods: { toggleMode: function() { this.fromThruMode = !this.fromThruMode; } },
     beforeMount: function() { if (((this.fromDate && this.fromDate.length) || (this.thruDate && this.thruDate.length))) this.fromThruMode = true; }
 });
-moqui.webrootVue.component('drop-down', {
+Vue.component('drop-down', {
     props: { options:Array, value:[Array,String], combo:Boolean, allowEmpty:Boolean, multiple:String, submitOnSelect:Boolean, optionsUrl:String,
         serverSearch:{type:Boolean,'default':false}, serverDelay:{type:Number,'default':300}, serverMinLength:{type:Number,'default':1},
         optionsParameters:Object, labelField:String, valueField:String, dependsOn:Object, dependsOptional:Boolean,
@@ -1474,60 +1058,34 @@ moqui.webrootVue.component('drop-down', {
     computed: { curVal: { get: function() { return $(this.$el).select2().val(); },
         set: function(value) { $(this.$el).val(value).trigger('change'); /* console.log('set ' + $(this.$el).attr('name') + ' to ' + this.curVal); */ } } },
     watch: {
-        value: {
-            handler(value) {
-                this.curVal = value;
-            },
-            deep: true
-        },
-        options: {
-            handler(options) {
-                this.curData = options;
-            },
-            deep: true
-        },
-        curData: {
-            handler(options) {
-                var jqEl = $(this.$el);
-                var vm = this;
-                var wasFocused = jqEl.next().hasClass('select2-container--focus');
-                // save the lastVal if there is one to remember what was selected even if new options don't have it, just in case options change again
-                var saveVal = jqEl.select2().val();
-                if (saveVal && saveVal.length > 1) this.lastVal = saveVal;
-                jqEl.select2('destroy');
-                jqEl.empty();
-                this.s2Opts.data = options;
-                jqEl.select2(this.s2Opts).on('change', function () {
-                    vm.$emit('input', this.value);
-                });
-                if (this.tooltip && this.tooltip.length) jqEl.next().tooltip({
-                    title: function () {
-                        return $(this).prev().attr("data-title");
-                    }, placement: "auto"
-                });
-                if (wasFocused) jqEl.focus();
-                setTimeout(function () {
-                    var setVal = vm.lastVal;
-                    if (!setVal || setVal.length < 2) {
-                        setVal = vm.value;
-                    }
-                    if (setVal) {
-                        var isInList = false;
-                        var setValIsArray = moqui.isArray(setVal);
-                        $.each(options, function (idx, curObj) {
-                            if (setValIsArray ? setVal.includes(curObj.id) : curObj.id === setVal) isInList = true;
-                        });
-                        if (isInList) jqEl.val(setVal);
-                    }
-                    jqEl.trigger('change');
-                }, 50);
-            },
-            deep: true
+        value: function(value) { this.curVal = value; },
+        options: function(options) { this.curData = options; },
+        curData: function(options) {
+            var jqEl = $(this.$el); var vm = this;
+            var wasFocused = jqEl.next().hasClass('select2-container--focus');
+            // save the lastVal if there is one to remember what was selected even if new options don't have it, just in case options change again
+            var saveVal = jqEl.select2().val(); if (saveVal && saveVal.length > 1) this.lastVal = saveVal;
+            jqEl.select2('destroy'); jqEl.empty();
+            this.s2Opts.data = options;
+            jqEl.select2(this.s2Opts).on('change', function () { vm.$emit('input', this.value); });
+            if (this.tooltip && this.tooltip.length) jqEl.next().tooltip({ title: function() { return $(this).prev().attr("data-title"); }, placement: "auto" });
+            if (wasFocused) jqEl.focus();
+            setTimeout(function() {
+                var setVal = vm.lastVal; if (!setVal || setVal.length < 2) { setVal = vm.value; }
+                if (setVal) {
+                    var isInList = false;
+                    var setValIsArray = moqui.isArray(setVal);
+                    $.each(options, function(idx, curObj) {
+                        if (setValIsArray ? setVal.includes(curObj.id) : curObj.id === setVal) isInList = true; });
+                    if (isInList) jqEl.val(setVal);
+                }
+                jqEl.trigger('change');
+            }, 50);
         }
     },
-    unmounted: function() { $(this.$el).off().select2('destroy'); }
+    destroyed: function() { $(this.$el).off().select2('destroy'); }
 });
-moqui.webrootVue.component('text-autocomplete', {
+Vue.component('text-autocomplete', {
     props: { id:{type:String,required:true}, name:{type:String,required:true}, value:String, valueText:String,
         type:String, size:String, maxlength:String, disabled:Boolean, validationClasses:String, dataVvValidation:String,
         required:Boolean, pattern:String, tooltip:String, form:String, delay:{type:Number,'default':300},
@@ -1591,7 +1149,7 @@ moqui.webrootVue.component('text-autocomplete', {
 });
 
 /* ========== webrootVue - root Vue component with router ========== */
-moqui.webrootVue.component('subscreens-tabs', {
+Vue.component('subscreens-tabs', {
     data: function() { return { pathIndex:-1 }},
     template:
     '<ul v-if="subscreens.length > 1" class="nav nav-tabs" role="tablist">' +
@@ -1609,7 +1167,7 @@ moqui.webrootVue.component('subscreens-tabs', {
     // this approach to get pathIndex won't work if the subscreens-active tag comes before subscreens-tabs
     mounted: function() { this.pathIndex = this.$root.activeSubscreens.length; }
 });
-moqui.webrootVue.component('subscreens-active', {
+Vue.component('subscreens-active', {
     data: function() { return { activeComponent:moqui.EmptyComponent, pathIndex:-1, pathName:null } },
     template: '<component :is="activeComponent"></component>',
     // method instead of a watch on pathName so that it runs even when newPath is the same for non-static reloading
@@ -1646,13 +1204,325 @@ moqui.webrootVue.component('subscreens-active', {
         root.loading++;
         root.currentLoadRequest = moqui.loadComponent(urlInfo, function(comp) {
             root.currentLoadRequest = null;
-            vm.activeComponent = Vue.markRaw(comp);
+            vm.activeComponent = comp;
             root.loading--;
         });
         return true;
     }},
     mounted: function() { this.$root.addSubscreen(this); }
 });
-const moquiWebrootApp = moqui.webrootVue.mount('#apps-root')
+moqui.webrootVue = new Vue({
+    el: '#apps-root',
+    data: { basePath:"", linkBasePath:"", currentPathList:[], extraPathList:[], activeSubscreens:[], currentParameters:{}, bodyParameters:null,
+        navMenuList:[], navHistoryList:[], navPlugins:[], notifyHistoryList:[],
+        lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
+        moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", locale:"en", notificationClient:null, qzVue:null },
+    methods: {
+        setUrl: function(url, bodyParameters, onComplete, pushState=true) {
+            // make sure any open modals are closed before setting current URL
+            $('.modal.in').modal('hide');
+            // cancel current load if needed
+            if (this.currentLoadRequest) {
+                console.log("Aborting current page load currentLinkUrl " + this.currentLinkUrl + " url " + url);
+                this.currentLoadRequest.abort();
+                this.currentLoadRequest = null;
+                this.loading = 0;
+            }
+            // always set bodyParameters, setting to null when not specified to clear out previous
+            this.bodyParameters = bodyParameters;
+            url = this.getLinkPath(url);
+            // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
+            if (this.currentLinkUrl === url && url !== this.linkBasePath) {
+                this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */
+            } else {
+                var href = url;
+                var ssIdx = href.indexOf('://');
+                if (ssIdx >= 0) {
+                    var slIdx = href.indexOf('/', ssIdx + 3);
+                    if (slIdx === -1) return;
+                    href = href.slice(slIdx);
+                }
+                var splitHref = href.split("?");
+                // clear out extra path, to be set from nav menu data if needed
+                this.extraPathList = [];
+                // set currentSearch before currentPath so that it is available when path updates
+                if (splitHref.length > 1 && splitHref[1].length > 0) { this.currentSearch = splitHref[1]; } else { this.currentSearch = ""; }
+                this.currentPath = splitHref[0];
+                // with url cleaned up through setters now get current screen url for menu
+                var srch = this.currentSearch;
+                var screenUrl = this.currentPath + (srch.length > 0 ? '?' + srch : '');
+                if (!screenUrl || screenUrl.length === 0) return;
+                console.info("current URL changing to " + screenUrl);
+                this.lastNavTime = Date.now();
+                // TODO: somehow only clear out activeContainers that are in subscreens actually reloaded? may cause issues if any but last screen have dynamic-container
+                this.activeContainers = {};
 
-window.addEventListener('popstate', function() { moquiWebrootApp.setUrl(window.location.pathname + window.location.search); });
+                // update menu, which triggers update of screen/subscreen components
+                var vm = this;
+                var menuDataUrl = this.appRootPath && this.appRootPath.length && screenUrl.indexOf(this.appRootPath) === 0 ?
+                    this.appRootPath + "/menuData" + screenUrl.slice(this.appRootPath.length) : "/menuData" + screenUrl;
+                $.ajax({ type:"GET", url:menuDataUrl, dataType:"text", error:moqui.handleAjaxError, success: function(outerListText) {
+                    var outerList = null;
+                    // console.log("menu response " + outerListText);
+                    try { outerList = JSON.parse(outerListText); } catch (e) { console.info("Error parson menu list JSON: " + e); }
+                    if (outerList && moqui.isArray(outerList)) {
+                        vm.navMenuList = outerList;
+                        /* console.info('navMenuList ' + JSON.stringify(outerList)); */
+                    }
+                }});
+
+                if (pushState) {
+                    // set the window URL
+                    window.history.pushState(null, this.ScreenTitle, url);
+                }
+                // notify url listeners
+                this.urlListeners.forEach(function(callback) { callback(url, this) }, this);
+                // scroll to top
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+            }
+        },
+        setParameters: function(parmObj) {
+            if (parmObj) {
+                this.$root.currentParameters = $.extend({}, this.$root.currentParameters, parmObj);
+                // no path change so just need to update parameters on most recent history item
+                var curUrl = this.currentLinkUrl;
+                var curHistoryItem = this.navHistoryList[0];
+                curHistoryItem.pathWithParams = curUrl;
+                window.history.pushState(null, curHistoryItem.title || '', curUrl);
+            }
+            this.$root.reloadSubscreens();
+        },
+        addSubscreen: function(saComp) {
+            var pathIdx = this.activeSubscreens.length;
+            // console.info('addSubscreen idx ' + pathIdx + ' pathName ' + this.currentPathList[pathIdx]);
+            saComp.pathIndex = pathIdx;
+            // setting pathName here handles initial load of subscreens-active; this may be undefined if we have more activeSubscreens than currentPathList items
+            saComp.loadActive();
+            this.activeSubscreens.push(saComp);
+        },
+        reloadSubscreens: function() {
+            // console.info('reloadSubscreens path ' + JSON.stringify(this.currentPathList) + ' currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
+            var fullPathList = this.currentPathList;
+            var activeSubscreens = this.activeSubscreens;
+            console.info("reloadSubscreens currentPathList " + JSON.stringify(this.currentPathList));
+            if (fullPathList.length === 0 && activeSubscreens.length > 0) {
+                activeSubscreens.splice(1);
+                activeSubscreens[0].loadActive();
+                return;
+            }
+            for (var i=0; i<activeSubscreens.length; i++) {
+                if (i >= fullPathList.length) break;
+                // always try loading the active subscreen and see if actually loaded
+                var loaded = activeSubscreens[i].loadActive();
+                // clear out remaining activeSubscreens, after first changed loads its placeholders will register and load
+                if (loaded) activeSubscreens.splice(i+1);
+            }
+        },
+        goPreviousScreen: function() {
+            var currentPath = this.currentPath;
+            var navHistoryList = this.navHistoryList;
+            var prevHist;
+            for (var hi = 0; hi < navHistoryList.length; hi++) {
+                if (navHistoryList[hi].pathWithParams.indexOf(currentPath) < 0) { prevHist = navHistoryList[hi]; break; } }
+            if (prevHist && prevHist.pathWithParams && prevHist.pathWithParams.length) this.setUrl(prevHist.pathWithParams)
+        },
+        // all container components added with this must have reload() and load(url) methods
+        addContainer: function(contId, comp) { this.activeContainers[contId] = comp; },
+        reloadContainer: function(contId) { var contComp = this.activeContainers[contId];
+            if (contComp) { contComp.reload(); } else { console.error("Container with ID " + contId + " not found, not reloading"); }},
+        loadContainer: function(contId, url) { var contComp = this.activeContainers[contId];
+            if (contComp) { contComp.load(url); } else { console.error("Container with ID " + contId + " not found, not loading url " + url); }},
+        addNavPlugin: function(url) { var vm = this; moqui.loadComponent(this.appRootPath + url, function(comp) { vm.navPlugins.push(comp); }) },
+        addNavPluginsWait: function(urlList, urlIndex) { if (urlList && urlList.length > urlIndex) {
+            this.addNavPlugin(urlList[urlIndex]);
+            var vm = this;
+            if (urlList.length > (urlIndex + 1)) { setTimeout(function(){ vm.addNavPluginsWait(urlList, urlIndex + 1); }, 500); }
+        } },
+        addUrlListener: function(urlListenerFunction) {
+            if (this.urlListeners.indexOf(urlListenerFunction) >= 0) return;
+            this.urlListeners.push(urlListenerFunction);
+        },
+        addNotify: function(message, type) {
+            var histList = this.notifyHistoryList.slice(0);
+            var nowDate = new Date();
+            var nh = nowDate.getHours(); if (nh < 10) nh = '0' + nh;
+            var nm = nowDate.getMinutes(); if (nm < 10) nm = '0' + nm;
+            // var ns = nowDate.getSeconds(); if (ns < 10) ns = '0' + ns;
+            histList.unshift({message:message, type:type, time:(nh + ':' + nm)}); //  + ':' + ns
+            while (histList.length > 25) { histList.pop(); }
+            this.notifyHistoryList = histList;
+        },
+        switchDarkLight: function() {
+            var jqBody = $("body"); jqBody.toggleClass("bg-dark"); jqBody.toggleClass("bg-light");
+            var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
+            $.ajax({ type:'POST', url:(this.appRootPath + '/apps/setPreference'), error:moqui.handleAjaxError,
+                data:{ moquiSessionToken:this.moquiSessionToken, preferenceKey:'OUTER_STYLE', preferenceValue:currentStyle } });
+        },
+        showScreenDocDialog: function(docIndex) {
+            $("#screen-document-dialog").modal("show");
+            $("#screen-document-dialog-body").load(this.currentPath + '/screenDoc?docIndex=' + docIndex);
+        },
+        stopProp: function (e) { e.stopPropagation(); },
+        getNavHref: function(navIndex) {
+            if (!navIndex) navIndex = this.navMenuList.length - 1;
+            var navMenu = this.navMenuList[navIndex];
+            if (navMenu.extraPathList && navMenu.extraPathList.length) {
+                var href = navMenu.path + '/' + navMenu.extraPathList.join('/');
+                var questionIdx = navMenu.pathWithParams.indexOf("?");
+                if (questionIdx > 0) { href += navMenu.pathWithParams.slice(questionIdx); }
+                return href;
+            } else {
+                return navMenu.pathWithParams || navMenu.path;
+            }
+        },
+        getLinkPath: function(path) {
+            if (this.appRootPath && this.appRootPath.length && path.indexOf(this.appRootPath) !== 0) path = this.appRootPath + path;
+            var pathList = path.split('/');
+            // element 0 in array after split is empty string from leading '/'
+            var wrapperIdx = this.appRootPath.split('/').length;
+            pathList[wrapperIdx] = this.linkBasePath.split('/').slice(-1);
+            path = pathList.join("/");
+            return path;
+        }
+    },
+    watch: {
+        navMenuList: function(newList) { if (newList.length > 0) {
+            var cur = newList[newList.length - 1];
+            var par = newList.length > 1 ? newList[newList.length - 2] : null;
+            // if there is an extraPathList set it now
+            if (cur.extraPathList) this.extraPathList = cur.extraPathList;
+            // make sure full currentPathList and activeSubscreens is populated (necessary for minimal path urls)
+            // fullPathList is the path after the base path, menu and link paths are in the screen tree context only so need to subtract off the appRootPath (Servlet Context Path)
+            var basePathSize = this.basePathSize;
+            var fullPathList = cur.path.split('/').slice(basePathSize + 1);
+            console.info('nav updated fullPath ' + JSON.stringify(fullPathList) + ' currentPathList ' + JSON.stringify(this.currentPathList) + ' cur.path ' + cur.path + ' basePathSize ' + basePathSize);
+            this.currentPathList = fullPathList;
+            this.reloadSubscreens();
+
+            // update history and document.title
+            var newTitle = (par ? par.title + ' - ' : '') + cur.title;
+            var curUrl = cur.pathWithParams;
+            var questIdx = curUrl.indexOf("?");
+            if (questIdx > 0) {
+                var excludeKeys = ["pageIndex", "orderBySelect", "orderByField", "moquiSessionToken"];
+                var parmList = curUrl.substring(questIdx+1).split("&");
+                curUrl = curUrl.substring(0, questIdx);
+                var dpCount = 0;
+                var titleParms = "";
+                for (var pi=0; pi<parmList.length; pi++) {
+                    var parm = parmList[pi];
+                    if (curUrl.indexOf("?") === -1) { curUrl += "?"; } else { curUrl += "&"; }
+                    curUrl += parm;
+                    // from here down only add to title parms
+                    if (dpCount > 3) continue; // add up to 4 parms to the title
+                    var eqIdx = parm.indexOf("=");
+                    if (eqIdx > 0) {
+                        var key = parm.substring(0, eqIdx);
+                        var value = parm.substring(eqIdx + 1);
+                        if (key.indexOf("_op") > 0 || key.indexOf("_not") > 0 || key.indexOf("_ic") > 0 || excludeKeys.indexOf(key) >= 0 || key === value) continue;
+                        if (titleParms.length > 0) titleParms += ", ";
+                        titleParms += decodeURIComponent(value);
+                        dpCount++;
+                    }
+                }
+                if (titleParms.length > 0) {
+                    if (titleParms.length > 70) titleParms = titleParms.substring(0, 70) + "...";
+                    newTitle = newTitle + " (" + titleParms + ")";
+                }
+            }
+            var navHistoryList = this.navHistoryList;
+            for (var hi=0; hi<navHistoryList.length;) {
+                if (navHistoryList[hi].pathWithParams === curUrl) { navHistoryList.splice(hi,1); } else { hi++; } }
+            navHistoryList.unshift({ title:newTitle, pathWithParams:curUrl, image:cur.image, imageType:cur.imageType });
+            while (navHistoryList.length > 25) { navHistoryList.pop(); }
+            document.title = newTitle;
+        }},
+        currentPathList: function(newList) {
+            // console.info('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
+            var lastPath = newList[newList.length - 1];
+            if (lastPath) { $(this.$el).removeClass().addClass(lastPath); }
+        }
+    },
+    computed: {
+        currentPath: {
+            get: function() { var curPath = this.currentPathList; var extraPath = this.extraPathList;
+                return this.basePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
+                    (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : ''); },
+            set: function(newPath) {
+                if (!newPath || newPath.length === 0) { this.currentPathList = []; return; }
+                if (newPath.slice(newPath.length - 1) === '/') newPath = newPath.slice(0, newPath.length - 1);
+                if (newPath.indexOf(this.linkBasePath) === 0) { newPath = newPath.slice(this.linkBasePath.length + 1); }
+                else if (newPath.indexOf(this.basePath) === 0) { newPath = newPath.slice(this.basePath.length + 1); }
+                this.currentPathList = newPath.split('/');
+            }
+        },
+        currentLinkPath: function() {
+            var curPath = this.currentPathList; var extraPath = this.extraPathList;
+            return this.linkBasePath + (curPath && curPath.length > 0 ? '/' + curPath.join('/') : '') +
+                (extraPath && extraPath.length > 0 ? '/' + extraPath.join('/') : '');
+        },
+        currentSearch: {
+            get: function() { return moqui.objToSearch(this.currentParameters); },
+            set: function(newSearch) { this.currentParameters = moqui.searchToObj(newSearch); }
+        },
+        currentLinkUrl: function() { var search = this.currentSearch; return this.currentLinkPath + (search.length > 0 ? '?' + search : ''); },
+        basePathSize: function() { return this.basePath.split('/').length - this.appRootPath.split('/').length; },
+        ScreenTitle: function() { return this.navMenuList.length > 0 ? this.navMenuList[this.navMenuList.length - 1].title : ""; },
+        documentMenuList: function() {
+            var docList = [];
+            for (var i = 0; i < this.navMenuList.length; i++) {
+                var screenDocList = this.navMenuList[i].screenDocList;
+                if (screenDocList && screenDocList.length) { screenDocList.forEach(function(el) { docList.push(el);}); }
+            }
+            return docList;
+        }
+    },
+    created: function() {
+        this.moquiSessionToken = $("#confMoquiSessionToken").val();
+        this.appHost = $("#confAppHost").val(); this.appRootPath = $("#confAppRootPath").val();
+        this.basePath = $("#confBasePath").val(); this.linkBasePath = $("#confLinkBasePath").val();
+        this.userId = $("#confUserId").val();
+        this.locale = $("#confLocale").val(); if (moqui.localeMap[this.locale]) this.locale = moqui.localeMap[this.locale];
+
+        var confOuterStyle = $("#confOuterStyle").val();
+        if (confOuterStyle) {
+            var jqBody = $("body");
+            var currentStyle = jqBody.hasClass("bg-dark") ? "bg-dark" : "bg-light";
+            if (currentStyle !== confOuterStyle) { jqBody.removeClass(currentStyle); jqBody.addClass(confOuterStyle); }
+        }
+
+        this.notificationClient = new moqui.NotificationClient((location.protocol === 'https:' ? 'wss://' : 'ws://') + this.appHost + this.appRootPath + "/notws");
+
+        var navPluginUrlList = [];
+        $('.confNavPluginUrl').each(function(idx, el) { navPluginUrlList.push($(el).val()); });
+        this.addNavPluginsWait(navPluginUrlList, 0);
+    },
+    mounted: function() {
+        var jqEl = $(this.$el);
+        jqEl.find('.navbar [data-toggle="tooltip"]').tooltip({ placement:'bottom', trigger:'hover' });
+        jqEl.find('#history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        jqEl.find('#notify-history-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        jqEl.find('#document-menu-link').tooltip({ placement:'bottom', trigger:'hover' });
+        // load the current screen
+        this.setUrl(window.location.pathname + window.location.search);
+        // init the NotificationClient and register 'displayNotify' as the default listener
+        this.notificationClient.registerListener("ALL");
+
+        $("#screen-document-dialog").on("hidden.bs.modal", function () { var jqEl = $("#screen-document-dialog-body");
+                jqEl.empty(); jqEl.append('<div class="spinner"><div>Loading…</div></div>'); });
+
+        // request Notification permission on load if not already granted or denied
+        if (window.Notification && Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission(function (status) {
+                if (status === "granted") {
+                    moqui.notifyMessages("Browser notifications enabled, if you don't want them use browser notification settings to block");
+                } else if (status === "denied") {
+                    moqui.notifyMessages("Browser notifications disabled, if you want them use browser notification settings to allow");
+                }
+            });
+        }
+    }
+
+});
+window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.location.pathname + window.location.search, null, null, false); });

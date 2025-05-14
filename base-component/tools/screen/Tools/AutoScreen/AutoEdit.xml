@@ -32,6 +32,7 @@ along with this software (see the LICENSE.md file). If not, see
             <text type="html" location="component://tools/template/AutoScreenMenu.ftl"/>
             <text type="vuet" location="component://tools/template/AutoScreenMenu.vuet.ftl"/>
             <text type="qvt" location="component://tools/template/AutoScreenMenu.qvt.ftl"/>
+            <text type="qvt2" location="component://tools/template/AutoScreenMenu.qvt2.ftl"/>
         </render-mode>
     </widgets>
 </screen>

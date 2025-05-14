@@ -72,8 +72,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <label text="${mermaidText}" type="pre"/>
             </container-dialog>
             <render-mode>
-                <text type="qvt"><![CDATA[<m-mermaid height="800px">${mermaidText}</m-mermaid>]]></text>
-                <text type="html,vuet"><![CDATA[<p><strong>Only supported in the 'qvt' render mode, go to the same URL under /qapps (instead of /apps or /vapps)</strong></p>]]></text>
+                <text type="qvt,qvt2"><![CDATA[<m-mermaid height="800px">${mermaidText}</m-mermaid>]]></text>
+                <text type="html,vuet"><![CDATA[<p><strong>Only supported in the 'qvt' or 'qvt2' render mode, go to the same URL under /qapps or /qapps2 (instead of /apps or /vapps)</strong></p>]]></text>
             </render-mode>
         </widgets></section>
 

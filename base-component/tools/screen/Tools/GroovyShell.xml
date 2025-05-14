@@ -22,7 +22,7 @@ along with this software (see the LICENSE.md file). If not, see
             <return error="true" message="User must be authorized for all actions on this screen"/></if>
     </actions>
     <widgets>
-        <text type="html,vuet,qvt"><![CDATA[
+        <text type="html,vuet,qvt,qvt2"><![CDATA[
             <div class="text-danger">Be careful here, you can break many things. <a href="https://groovy-lang.org/groovysh.html" target="_blank">A groovysh reference is available here.</a></div>
             <div id="terminal" style="height:100%;"></div>
 

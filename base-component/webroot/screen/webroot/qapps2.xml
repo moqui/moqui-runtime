@@ -13,7 +13,7 @@ along with this software (see the LICENSE.md file). If not, see
 <http://creativecommons.org/publicdomain/zero/1.0/>.
 -->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
-        require-authentication="false" screen-theme-type-enum-id="STT_INTERNAL_QUASAR" default-menu-title="Applications" allow-extra-path="true">
+        require-authentication="false" screen-theme-type-enum-id="STT_INTERNAL_QUASAR2" default-menu-title="Applications" allow-extra-path="true">
     <!-- NOTE: require-authentication=false so no permission required but in pre-actions if no user logged in goes to login screen -->
 
     <pre-actions><script><![CDATA[
@@ -28,24 +28,40 @@ along with this software (see the LICENSE.md file). If not, see
             /* ========== Production Mode ========== */
             html_scripts.add('/js/MoquiLib.min.js')
             // Vue JS
-            footer_scripts.add('/libs/vue/vue.min.js')
+            footer_scripts.add('/libs/vue/vue.global.prod.min.js')
+            // Vue JS compat
+            footer_scripts.add('/libs/vue/vue.global.js')
+            // Vue Router
+            footer_scripts.add('/libs/vue-router/vue-router.global.js')
             // http-vue-loader
             footer_scripts.add('/js/http-vue-loader/httpVueLoader.js')
             // Quasar
-            footer_scripts.add("/libs/quasar/quasar.umd.min.js")
+            footer_scripts.add("/libs/quasar/quasar.umd.prod.js")
+            // vue3-sfc-loader
+            footer_scripts.add('/libs/vue3-sfc-loader/vue3-sfc-loader.min.js')
+            // routes.js
+            footer_scripts.add('/routes.js' + ec.web.request.pathInfo)
             // Webroot Quasar-Vue instance, in footer so runs after page loaded
-            footer_scripts.add('/js/WebrootVue.qvt.min.js')
+            footer_scripts.add('/js/WebrootVue.qvt2.min.js')
         } else {
             /* ========== Dev Mode ========== */
             html_scripts.add('/js/MoquiLib.js')
             // Vue JS
-            footer_scripts.add('/libs/vue/vue.js')
+            footer_scripts.add('/libs/vue/vue.global.js')
+            // Vue JS compat
+            footer_scripts.add('/libs/vue/vue.global.js')
+            // Vue Router
+            footer_scripts.add('/libs/vue-router/vue-router.global.js')
             // http-vue-loader
             footer_scripts.add('/js/http-vue-loader/httpVueLoader.js')
             // Quasar
-            footer_scripts.add("/libs/quasar/quasar.umd.min.js")
+            footer_scripts.add("/libs/quasar/quasar.umd.prod.js")
+            // vue3-sfc-loader
+            footer_scripts.add('/libs/vue3-sfc-loader/vue3-sfc-loader.min.js')
+            // routes.js
+            footer_scripts.add('/routes.js' + ec.web.request.pathInfo)
             // Webroot Quasar-Vue instance, in footer so runs after page loaded
-            footer_scripts.add('/js/WebrootVue.qvt.js')
+            footer_scripts.add('/js/WebrootVue.qvt2.js')
         }
 
         // conditional QZ Tray scripts, only include if enabled
@@ -60,7 +76,7 @@ along with this software (see the LICENSE.md file). If not, see
     <widgets>
         <render-mode>
             <!-- for html just render the navbar (Vue page wrapper and nav component) -->
-            <text type="html" location="component://webroot/screen/includes/WebrootVue.qvt.ftl"/>
+            <text type="html" location="component://webroot/screen/includes/WebrootVue.qvt2.ftl"/>
             <!-- not meant to be used for anything else, for all other render modes go directly through /apps -->
         </render-mode>
     </widgets>

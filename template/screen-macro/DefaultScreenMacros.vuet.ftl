@@ -1056,7 +1056,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     <#list headerFieldNode?children as widgetNode><#if widgetNode?node_name != "set">
                         <#assign fieldValue><@widgetTextValue widgetNode/></#assign>
                         <#if fieldValue?has_content>
-                            <span style="white-space:nowrap;"><strong><@fieldTitle headerFieldNode/>:</strong> <span class="text-success">${fieldValue}</span></span>
+                            <span style="white-space:nowrap;" v-pre><strong><@fieldTitle headerFieldNode/>:</strong> <span class="text-success">${fieldValue}</span></span>
                             <#assign haveFilters = true>
                         </#if>
                     </#if></#list>

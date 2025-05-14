@@ -35,6 +35,19 @@ along with this software (see the LICENSE.md file). If not, see
         </actions>
         <default-response url="." save-parameters="true"><parameter name="doingRun" value="Y"/></default-response>
     </transition>
+    <transition name="runJson" begin-transaction="false">
+        <!-- Because the run transition doesn't actually return json and make things confusing when calling via rest -->
+        <actions>
+            <script>
+                org.moqui.context.ExecutionContext ec = context.ec
+                serviceResults = ec.service.sync().name(serviceName).parameters(context).call()
+                if (serviceResults) {
+                    ec.web.sendJsonResponse(serviceResults)
+                }
+            </script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
 
     <actions>
     </actions>
