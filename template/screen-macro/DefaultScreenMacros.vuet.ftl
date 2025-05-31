@@ -731,7 +731,9 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 <#assign curUrlInstance = sri.getCurrentScreenUrl()>
                 <#assign skipFormSave = skipForm!false>
                 <#assign skipForm = false>
-                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}"><template slot-scope="props">
+                <#-- vue3, not use slot-scope -->
+                <form-link name="${headerFormId}" id="${headerFormId}" action="${curUrlInstance.path}" v-slot:default="props">
+                <#--<template slot-scope="props"> -->
                     <#if formListFindId?has_content><input type="hidden" name="formListFindId" value="${formListFindId}"></#if>
                     <#if context[listName + "PageSize"]??><input type="hidden" name="pageSize" value="${context[listName + "PageSize"]?c}"></#if>
                     <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
@@ -759,7 +761,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                                 <input type="hidden" id="${headerFormId}_orderByField" name="orderByField" value="${(orderByField!"")?html}">
                                 <m-script>
                                     $("#${headerFormId}_orderBySelect").selectivity({ positionDropdown: function(dropdownEl, selectEl) { dropdownEl.css("width", "300px"); } })[0].selectivity.filterResults = function(results) {
-                                        // Filter out asc and desc options if anyone selected.
+                                        <#--Filter out asc and desc options if anyone selected.-->
                                         return results.filter(function(item){return !this._data.some(function(data_item) {return data_item.id.substring(1) === item.id.substring(1);});}, this);
                                     };
                                     <#assign orderByJsValue = formListInfo.getOrderByActualJsString(ec.getContext().orderByField)>
@@ -788,7 +790,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                         </#if></#list>
                         <#t>${sri.popContext()}<#-- context was pushed so pop here at the end -->
                     </fieldset>
-                </template></form-link>
+                <#--</template>-->
+                </form-link>
                 <#assign skipForm = skipFormSave>
             </#if>
         </container-dialog>
@@ -848,7 +851,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                 opener: { active:false, as:'html', close:'', open:'' },
                 onChange: function(cEl) {
                     var sortableHierarchy = $('#${selectColumnsSortableId}').sortableListsToHierarchy();
-                    // console.log(sortableHierarchy); console.log(JSON.stringify(sortableHierarchy));
+                    <#--// console.log(sortableHierarchy); console.log(JSON.stringify(sortableHierarchy));-->
                     $("#${formId}_SelColsForm_columnsTree").val(JSON.stringify(sortableHierarchy));
                 }
             });
@@ -1114,14 +1117,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#t> :select-columns="${(formNode["@select-columns"]! == "true")?c}" :all-button="${(formNode["@show-all-button"]! == "true")?c}"
             <#t> :csv-button="${(formNode["@show-csv-button"]! == "true")?c}" :text-button="${(formNode["@show-text-button"]! == "true")?c}"
             <#lt> :pdf-button="${(formNode["@show-pdf-button"]! == "true")?c}" columns="${numColumns}">
-        <template slot="headerForm" slot-scope="header">
+        <template v-slot:headerForm="header">
             <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#assign fieldsJsName = "header.search">
             <#assign hiddenFieldList = formListInfo.getListHeaderHiddenFieldList()>
             <#list hiddenFieldList as hiddenField><#recurse hiddenField["header-field"][0]/></#list>
             <#assign fieldsJsName = "">
         </template>
-        <template slot="header" slot-scope="header">
+        <template v-slotheader="header">
             <#assign fieldsJsName = "header.search"><#assign ownerForm = headerFormId>
             <tr><#list mainColInfoList as columnFieldList>
                 <th><#list columnFieldList as fieldNode>
@@ -1140,7 +1143,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign fieldsJsName = ""><#assign ownerForm = "">
         </template>
         <#-- for adding more to form-list nav bar <template slot="nav"></template> -->
-        <template slot="rowForm" slot-scope="row">
+        <template v-slot:rowForm="row">
             <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
@@ -1148,7 +1151,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign fieldsJsName = ""><#assign ownerForm = "">
         </template>
         <#-- TODO: add first-row, second-row, last-row forms and rows, here and in form-list Vue component; support add from first, second (or last?) row with add to client list and server submit -->
-        <template slot="row" slot-scope="row">
+        <template v-slot:row="row">
             <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
             <#list mainColInfoList as columnFieldList>
                 <td><#list columnFieldList as fieldNode>
@@ -1327,6 +1330,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if hasSubColumns><#assign aggregateSubList = listEntry["aggregateSubList"]!><#if aggregateSubList?has_content>
             </tr>
             <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed${tableStyle}">
+                <tbody>
                 <#list aggregateSubList as subListEntry><tr>
                     <#t>${sri.startFormListSubRow(formListInfo, subListEntry, subListEntry_index, subListEntry_has_next)}
                     <#list subColInfoList as subColFieldList><td>
@@ -1336,6 +1340,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </td></#list>
                     <#t>${sri.endFormListSubRow()}
                 </tr></#list>
+                </tbody>
             </table></div></td><#-- note no /tr, let following blocks handle it -->
         </#if></#if>
         </tr>
@@ -1933,7 +1938,7 @@ ${sri.getFieldValueString(.node)?html}</textarea>
             <#assign depNodeList = .node["depends-on"]>
             <m-script>
                 function populate_${tlId}() {
-                    // if ($('#${tlId}').val()) return;
+                    <#-- //if ($('#${tlId}').val()) return; -->
                     var hasAllParms = true;
                     <#list depNodeList as depNode>if (!$('#<@fieldIdByName depNode["@field"]/>').val()) { hasAllParms = false; } </#list>
                     if (!hasAllParms) { <#-- alert("not has all parms"); --> return; }

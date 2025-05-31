@@ -30,9 +30,10 @@ along with this software (see the LICENSE.md file). If not, see
         AND material icons requires very different syntax with <i class="material-icons-outlined">invert_colors</i> (2 parts) unlike fa with <i class="fa fa-shopping-cart"></i> (1 part) -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="3" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons"/>
+<!--    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="4" resourceTypeEnumId="STRT_STYLESHEET"-->
+<!--            resourceValue="/libs/quasar/quasar.min.css"/>-->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="4" resourceTypeEnumId="STRT_STYLESHEET"
-            resourceValue="/libs/quasar/quasar.min.css"/>
-
+                                      resourceValue="/libs/quasar/quasar.prod.css"/>
     <!-- Add external theme(s) here  -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT_QUASAR" sequenceNum="10" resourceTypeEnumId="STRT_STYLESHEET" resourceValue=""/>
 

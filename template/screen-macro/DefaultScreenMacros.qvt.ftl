@@ -1150,14 +1150,14 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#t> :select-columns="${(formNode["@select-columns"]! == "true")?c}" :all-button="${(formNode["@show-all-button"]! == "true")?c}"
             <#t> :csv-button="${(formNode["@show-csv-button"]! == "true")?c}" :text-button="${(formNode["@show-text-button"]! == "true")?c}"
             <#lt> :pdf-button="${(formNode["@show-pdf-button"]! == "true")?c}" columns="${numColumns}">
-        <template slot="headerForm" slot-scope="header">
+        <template v-slot:headerForm="header">
             <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#assign fieldsJsName = "header.search">
             <#assign hiddenFieldList = formListInfo.getListHeaderHiddenFieldList()>
             <#list hiddenFieldList as hiddenField><#recurse hiddenField["header-field"][0]/></#list>
             <#assign fieldsJsName = "">
         </template>
-        <template slot="header" slot-scope="header">
+        <template v-slot:header="header">
             <#assign fieldsJsName = "header.search"><#assign ownerForm = headerFormId>
             <tr><#list mainColInfoList as columnFieldList>
                 <th><#list columnFieldList as fieldNode>
@@ -1176,7 +1176,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign fieldsJsName = ""><#assign ownerForm = "">
         </template>
         <#-- for adding more to form-list nav bar <template slot="nav"></template> -->
-        <template slot="rowForm" slot-scope="row">
+        <template v-slot:rowForm="row">
             <#list hiddenParameterKeys as hiddenParameterKey><input type="hidden" name="${hiddenParameterKey}" value="${hiddenParameterMap.get(hiddenParameterKey)!""}"></#list>
             <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
             <#assign hiddenFieldList = formListInfo.getListHiddenFieldList()>
@@ -1184,7 +1184,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
             <#assign fieldsJsName = ""><#assign ownerForm = "">
         </template>
         <#-- TODO: add first-row, second-row, last-row forms and rows, here and in form-list Vue component; support add from first, second (or last?) row with add to client list and server submit -->
-        <template slot="row" slot-scope="row">
+        <template v-slot:row="row">
             <#assign fieldsJsName = "row.fields"><#assign ownerForm = formId>
             <#list mainColInfoList as columnFieldList>
                 <td><#list columnFieldList as fieldNode>
@@ -1263,7 +1263,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </thead></table></div></td></tr>
                 </#if>
                 <#assign ownerForm = "">
-            </div><#-- /thead -->
+            </div> <#--/thead -->
         </#if>
         <div class="tbody">
         <#assign ownerForm = formId>
@@ -1371,6 +1371,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if hasSubColumns><#assign aggregateSubList = listEntry["aggregateSubList"]!><#if aggregateSubList?has_content>
             </tr>
             <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows q-table__container q-table__card q-table--horizontal-separator q-table--dense q-table--flat"><table class="q-table ${tableStyle}">
+                <tbody>
                 <#list aggregateSubList as subListEntry><tr>
                     <#t>${sri.startFormListSubRow(formListInfo, subListEntry, subListEntry_index, subListEntry_has_next)}
                     <#list subColInfoList as subColFieldList><td>
@@ -1380,6 +1381,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </td></#list>
                     <#t>${sri.endFormListSubRow()}
                 </tr></#list>
+                </tbody>
             </table></div></td><#-- note no /tr, let following blocks handle it -->
         </#if></#if>
 

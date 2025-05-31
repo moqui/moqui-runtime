@@ -1535,6 +1535,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <#if hasSubColumns><#assign aggregateSubList = listEntry["aggregateSubList"]!><#if aggregateSubList?has_content>
             </tr>
             <tr><td colspan="${numColumns}" class="form-list-sub-row-cell"><div class="form-list-sub-rows"><table class="table table-striped table-hover table-condensed${tableStyle}">
+                <tbody>
                 <#list aggregateSubList as subListEntry><tr>
                     ${sri.startFormListSubRow(formListInfo, subListEntry, subListEntry_index, subListEntry_has_next)}
                     <#list subColInfoList as subColFieldList><td>
@@ -1544,6 +1545,7 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </td></#list>
                     ${sri.endFormListSubRow()}
                 </tr></#list>
+                </tbody>
             </table></div></td><#-- note no /tr, let following blocks handle it -->
         </#if></#if>
         </tr>

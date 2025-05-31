@@ -89,11 +89,16 @@ def fileMap = [
     "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
     "vue/2.7.14/vue.js":"",
-    "vue/2.7.14/vue.min.js":""
+    "vue/2.7.14/vue.min.js":"",
+    "vue/3.5.13/vue.global.js":"",
+    "vue/3.5.13/vue.global.prod.min.js":"",
+    "vue-router/4.5.0/vue-router.global.js":""
 ]
 
-def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
-def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js"]
+def jsdelivrBase = "https://gcore.jsdelivr.net/npm/"
+def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js",
+                    "quasar@2.16.5/dist/quasar.prod.css", "quasar@2.16.5/dist/quasar.umd.prod.js", "vue3-sfc-loader@0.9.5/dist/vue3-sfc-loader.min.js"
+                    ]
 
 String getTargetPath(String sourcePath, String targetPath) {
     if (!targetPath) {
@@ -170,9 +175,10 @@ htmlJs.add(libsPath + '/jstree/jstree.min.js')
 
 def vuetJs = []
 // Vue JS
-vuetJs.add(libsPath + '/vue/vue.min.js')
+vuetJs.add(libsPath + '/vue/vue.global.prod.min.js')
 // http-vue-loader
-vuetJs.add(webrootPath + '/js/http-vue-loader/httpVueLoader.js')
+//vuetJs.add(webrootPath + '/js/http-vue-loader/httpVueLoader.js')
+vuetJs.add(libsPath + '/vue3-sfc-loader/vue3-sfc-loader.min.js')
 // Vue root component instance, in footer so runs after page loaded
 vuetJs.add(webrootPath + '/js/WebrootVue.min.js')
 
