@@ -1221,7 +1221,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
         <div class="q-my-sm q-table__container q-table__card q-table--horizontal-separator q-table--dense q-table--flat" :class="{'q-table--dark':$q.dark.isActive, 'q-table__card--dark':$q.dark.isActive, 'q-dark':$q.dark.isActive,}">
         <div class="table q-table ${tableStyle}" id="${formId}_table">
         <#if !skipHeader>
-            <div class="thead">
+            <#--<div class="thead"> -->
+            <thead>
                 <@paginationHeader formListInfo formId isHeaderDialog/>
                 <div class="tr">
                     <#if isRowSelection>
@@ -1263,7 +1264,8 @@ ${sri.renderIncludeScreen(.node["@location"], .node["@share-scope"]!)}
                     </thead></table></div></td></tr>
                 </#if>
                 <#assign ownerForm = "">
-            </div> <#--/thead -->
+            </thead>
+            <#--</div> /thead -->
         </#if>
         <div class="tbody">
         <#assign ownerForm = formId>

@@ -45,7 +45,7 @@ webrootVueApp = createApp({
             // always set bodyParameters, setting to null when not specified to clear out previous
             this.bodyParameters = bodyParameters;
             url = this.getLinkPath(url);
-            // console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
+             console.info('setting url ' + url + ', cur ' + this.currentLinkUrl);
             if (this.currentLinkUrl === url && url !== this.linkBasePath) {
                 this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */
                 if (onComplete) this.callOnComplete(onComplete, this.currentPath);
@@ -115,7 +115,9 @@ webrootVueApp = createApp({
         },
         addSubscreen: function(saComp) {
             var pathIdx = this.activeSubscreens.length;
-            // console.info('addSubscreen idx ' + pathIdx + ' pathName ' + this.currentPathList[pathIdx]);
+//            console.log("addSubscreen, currentPathList: ",this.currentPathList);
+//             console.info('addSubscreen idx ' + pathIdx + ' pathName ' + this.currentPathList[pathIdx]);
+//             console.log("addSubscreen saComp:",saComp);
             saComp.pathIndex = pathIdx;
             // setting pathName here handles initial load of m-subscreens-active; this may be undefined if we have more activeSubscreens than currentPathList items
             saComp.loadActive();
@@ -125,7 +127,6 @@ webrootVueApp = createApp({
             // console.info('reloadSubscreens path ' + JSON.stringify(this.currentPathList) + ' currentParameters ' + JSON.stringify(this.currentParameters) + ' currentSearch ' + this.currentSearch);
             var fullPathList = this.currentPathList;
             var activeSubscreens = this.activeSubscreens;
-            console.info("reloadSubscreens currentPathList " + JSON.stringify(this.currentPathList));
             if (fullPathList.length === 0 && activeSubscreens.length > 0) {
                 activeSubscreens.splice(1);
                 activeSubscreens[0].loadActive();
@@ -459,8 +460,9 @@ webrootVueApp = createApp({
     mounted: function() {
         var jqEl = $(this.$el);
         jqEl.css("display", "initial");
-        // load the current screen
-        this.setUrl(window.location.pathname + window.location.search);
+        // load the current screen, moved to router
+//        console.log("rootApp mounted: window.location.pathname->",window.location.pathname, " window.location.search->", window.location.search);
+//        this.setUrl(window.location.pathname + window.location.search);
         // init the NotificationClient and register 'displayNotify' as the default listener
         this.notificationClient.registerListener("ALL");
 
@@ -1096,7 +1098,8 @@ webrootVueApp.component('m-editable', {
         }
         // TODO, replace with something in quasar: $(this.$el).editable(this.url, edConfig);
     },
-    render: function(createEl) { return createEl(this.labelType, { attrs:{ id:this.id, 'class':'editable-label' }, domProps: { innerHTML:this.labelValue } }); }
+//    render: function(createEl) { return createEl(this.labelType, { attrs:{ id:this.id, 'class':'editable-label' }, domProps: { innerHTML:this.labelValue } }); }
+    render() { return h(this.labelType, { id:this.id, class:'editable-label' , innerHTML:this.labelValue }); }
 });
 
 /* ========== form components ========== */
@@ -2662,7 +2665,19 @@ const router = VueRouter.createRouter({
                                         routes,
                                       });
 router.beforeEach((to,from)=>{
-//    console.log("--->in Router guard, to:",to," from:",from);
+
+//  const isInitialLoad = !from; // 是否为首次加载
+//  const isReload = window.performance.getEntriesByType('navigation')[0]?.type === 'reload';
+//  const isHistoryStateEmpty = !window.history.state;
+//
+//  if (isInitialLoad && isHistoryStateEmpty) {
+//    console.log('当前跳转是由地址栏回车或直接输入 URL 触发的');
+//  } else if (isReload) {
+//    console.log('当前跳转是由刷新按钮触发的');
+//  } else {
+//    console.log('当前跳转是由页面内导航触发的');
+//  }
+
     const url =  moqui.webrootVue.getLinkPath(moqui.parseHref(to.fullPath));
 //    console.log("moqui.webrootVue.getLinkPath(url)", url);
     moqui.webrootVue.setUrl(url);
