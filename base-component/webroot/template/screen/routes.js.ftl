@@ -1,7 +1,7 @@
 const { h, createApp, defineComponent } = Vue
 
 const screenPathRoot = $("#confBasePath").val() || '/apps'
-const urlPathRoot = $("#linkBasePath").val() || '${urlPathRoot!}'
+const urlPathRoot = $("#confLinkBasePath").val() || '${urlPathRoot!}'
         console.log('urlPathRoot', urlPathRoot)
         console.log('screenPathRoot', screenPathRoot)
 
