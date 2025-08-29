@@ -2555,6 +2555,7 @@ moqui.webrootVue.component('m-subscreens-active', {
                 console.log('running this.$router.addRoute({ path: '+qvt2FullPath+', component: '+comp+' });');
                 vm.$router.addRoute({
                     path: qvt2FullPath,
+                    name: qvt2FullPath,
                     component: comp
                 });
                 console.log('running this.$router.replace('+qvt2FullPath+');');
