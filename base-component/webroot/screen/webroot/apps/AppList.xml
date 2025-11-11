@@ -14,7 +14,7 @@ along with this software (see the LICENSE.md file). If not, see
 -->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
-        require-authentication="true" default-menu-include="false" default-menu-title="App List">
+        require-authentication="true" default-menu-include="true" default-menu-title="App List">
 
     <actions>
         <set field="appsLocation" from="sri.getRootScreenDef().getSubscreensItem('apps').location"/>
