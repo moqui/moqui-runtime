@@ -425,8 +425,10 @@ moqui.webrootVue = createApp({
     },
     created: function() {
         this.moquiSessionToken = $("#confMoquiSessionToken").val();
-        this.appHost = $("#confAppHost").val(); this.appRootPath = $("#confAppRootPath").val();
-        this.basePath = $("#confBasePath").val(); this.linkBasePath = $("#confLinkBasePath").val();
+        this.appHost = $("#confAppHost").val();
+        this.appRootPath = $("#confAppRootPath").val();
+        this.basePath = $("#confBasePath").val();
+        this.linkBasePath = $("#confLinkBasePath").val();
         this.userId = $("#confUserId").val();
         this.username = $("#confUsername").val();
         this.locale = $("#confLocale").val(); if (moqui.localeMap[this.locale]) this.locale = moqui.localeMap[this.locale];
@@ -2548,7 +2550,7 @@ moqui.webrootVue.component('m-subscreens-active', {
 
             console.info('m-subscreens-active loadActive pathIndex ' + pathIndex + ' pathName ' + vm.pathName + ' urlInfo ' + JSON.stringify(urlInfo));
             
-            qvt2FullPath = fullPath.replace(root.basePath, root.linkBasePath);
+            var qvt2FullPath = fullPath.replace(root.basePath, root.linkBasePath);
             root.loading++;
             root.currentLoadRequest = moqui.loadComponent(urlInfo, function(comp) {
                 root.currentLoadRequest = null;

@@ -62,6 +62,15 @@
     </server-stats>
 
     <webapp-list>
+        <webapp name="agenda" http-port="" https-port="" host-name-list=".*">
+            <root-screen host=".*"
+                location="component://agenda/screen/agenda.xml"
+                mount-point="/agenda"/>
+
+            <url-mount type="static-component" location="component://agenda"/>
+            <url-mount type="static-component" location="component://webroot/screen/webroot"/>
+            <url-mount type="static-component" location="component://webroot-theme"/>
+        </webapp>
         <webapp name="webroot">
             <servlet name="H2Console" class="org.h2.server.web.WebServlet" load-on-startup="1">
                 <!-- <init-param name="webAllowOthers" value=""/><init-param name="trace" value=""/> -->
@@ -80,10 +89,22 @@
         <!-- The default conf file has a macro location defined for html already, but this is an example of how to
             refer to a file to override the default macros. -->
         <screen-text-output type="html" mime-type="text/html" macro-template-location="template/screen-macro/ScreenHtmlMacros.ftl"/>
+        <screen-text-output type="qvt2" mime-type="text/html" always-standalone="false" macro-template-location="component://agenda/template/screenLayout.qvt2.ftl"/>
+
     </screen-facade>
 
-    <entity-facade query-stats="true">
+    <entity-facade query-stats="false">
         <!-- add datasource elements here to configure databases -->
+        <!--
+        <datasource group-name="transactional" database-conf-name="postgres" schema-name="public" startup-add-missing="true" runtime-add-missing="false">
+            <inline-jdbc jdbc-uri="jdbc:postgresql://localhost:5434/agenda" jdbc-username="ofbiz" jdbc-password="heber"/>
+        </datasource>
+        -->
+        <datasource group-name="transactional" database-conf-name="postgres" schema-name="public" startup-add-missing="true" runtime-add-missing="false">
+            <inline-jdbc pool-maxsize="50">
+                <xa-properties serverName="localhost" portNumber="5434" databaseName="agenda" user="ofbiz" password="heber"/>
+            </inline-jdbc>
+        </datasource>
     </entity-facade>
 
     <repository-list>
