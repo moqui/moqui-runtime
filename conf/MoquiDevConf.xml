@@ -10,10 +10,6 @@
     <default-property name="entity_empty_db_load" value="all"/>
     <default-property name="entity_lock_track" value="true"/>
 
-    <default-property name="security_rememberme_key"
-            value="tpcPJbypH0bb1T5NAlIjDkdaAcSFzsorVpxsbGoj4cw="
-            is-secret="true"/>
-
     <!-- minimal overrides for testing on local mysql8:
     <default-property name="entity_ds_db_conf" value="mysql8"/>
     <default-property name="entity_ds_user" value="root"/>
