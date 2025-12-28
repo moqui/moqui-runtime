@@ -23,7 +23,11 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <text type="html,vuet,qvt"><![CDATA[
-            <div class="text-danger">Be careful here, you can break many things.</div>
+            <div>⚠ Be careful here, you can break many things.</div>
+            <div class="message">
+                <span class="text-mono">:clear</span> clear terminal ,
+                <span class="text-mono">:exit</span> close session
+            </div>
             <div id="terminal"></div>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.5.0/xterm.js" integrity="sha512-Gujw5GajF5is3nMoGv9X+tCMqePLL/60qvAv1LofUZTV9jK8ENbM9L+maGmOsNzuZaiuyc/fpph1KT9uR5w3CQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.5.0/xterm.min.css" integrity="sha512-XpXUuzg5afNt1bsgnrOesXP70TLH8tXYYK5sK+Y0UV+YBvJn9EfRFYWy4HT3TVDfH0nl1CO0lwOxIrt2gk9qjg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
