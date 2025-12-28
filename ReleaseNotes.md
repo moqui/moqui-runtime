@@ -7,7 +7,8 @@
 - Rewrite GroovyShell.xml to work with an updated backend after upgrading to
   groovy 5. In this implementation the front-end does most of the processing
   and handles arrow keys, backspace, delete and others, upon newline, it then
-  sends the payload to the server as one chunk to be executed.
+  sends the payload to the server as one chunk to be executed. The new interface
+  is also based on the latest version of vterm.js (5.5.0)
 
 ## Release 3.0.0 - 31 May 2022
 
