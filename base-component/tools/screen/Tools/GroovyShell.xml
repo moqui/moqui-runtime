@@ -84,7 +84,7 @@ along with this software (see the LICENSE.md file). If not, see
                     (location.protocol === 'https:' ? 'wss' : 'ws') + "://${ec.web.getHostName(true)}${ec.web.servletContext.contextPath}/groovysh",
                     (data) => {
                         // console.info("received groovysh ws data: " + data);
-                        groovyTerminal.write(data);
+                        groovyTerminal.write(data.replace(/\n/g, '\r\n'));
                         groovyTerminal.write(PROMPT);
                     }
                 );
