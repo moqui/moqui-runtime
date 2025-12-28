@@ -37,17 +37,40 @@ along with this software (see the LICENSE.md file). If not, see
                     cursorStyle: "bar", // null | 'block' | 'underline' | 'bar'
                     scrollback: 1000,
                     tabStopWidth: 4,
-                    convertEol: true,
-                    screenKeys: true
+                    convertEol: false
                 });
                 let inputBuffer = [];
                 let cursorPos = 0;
                 let history = [];
-                let historyIndex = -1;
+                let historyIndex = 0;
                 let isActive = false;
                 const PROMPT = '> ';
 
+                const measureCharWidth = (term) => {
+                    const span = document.createElement('span');
+                    span.textContent = 'W';
+                    span.style.position = 'absolute';
+                    span.style.visibility = 'hidden';
+                    span.style.fontFamily = term.options.fontFamily || 'monospace';
+                    span.style.fontSize = term.options.fontSize + 'px';
+                    document.body.appendChild(span);
+                    const width = span.getBoundingClientRect().width;
+                    document.body.removeChild(span);
+                    return width || 9;
+                };
+                const fitTerminalCols = () => {
+                    const container = document.getElementById('terminal');
+                    if (!container) return;
+                    const charWidth = measureCharWidth(groovyTerminal);
+                    const cols = Math.max(10, Math.floor(container.clientWidth / charWidth));
+                    if (cols !== groovyTerminal.cols) {
+                        groovyTerminal.resize(cols, groovyTerminal.rows);
+                    }
+                };
+
                 groovyTerminal.open(document.getElementById('terminal'));
+                fitTerminalCols();
+                window.addEventListener('resize', fitTerminalCols);
                 groovyTerminal.write('[connecting...]\r\n');
                 if (window.groovyshWsClient && window.groovyshWsClient.webSocket) {
                     window.groovyshWsClient.webSocket.close(1000);
@@ -88,16 +111,16 @@ along with this software (see the LICENSE.md file). If not, see
                     if (moveLeft > 0) {
                         groovyTerminal.write('\x1b[' + moveLeft + 'D');
                     }
-                }
-                function setLine(text) {
+                };
+                const setLine = (text) => {
                     inputBuffer = text.split('');
                     cursorPos = inputBuffer.length;
                     redrawLine();
-                }
+                };
                 groovyTerminal.onData((data) => {
                     if (!isActive) { return; }
                     if (data === '\r') { // enter
-                        const line = inputBuffer.join('').trim();
+                        const line = inputBuffer.join('');
                         if (line.length === 0) {
                             inputBuffer = [];
                             cursorPos = 0;
