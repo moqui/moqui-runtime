@@ -1,10 +1,10 @@
 /* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
 
-a { color:var(--q-primary); text-decoration:none; }
+a { color:var(--q-color-primary); text-decoration:none; }
 .q-menu a, .q-toolbar a { color:inherit; }
 
-.text-success { color:var(--q-positive); }
-.text-danger { color:var(--q-negative); }
+.text-success { color:var(--q-color-positive); }
+.text-danger { color:var(--q-color-negative); }
 .text-mono { font-family: monospace,monospace; }
 strong, .text-strong { font-weight:bold; }
 
@@ -79,7 +79,7 @@ form.q-form { width:100%; }
 .q-field--disabled .q-field__control > div { opacity:1 !important; }
 /* END q-field label move */
 
-.q-field--focused .q-field__input { border-bottom: var(--q-primary) solid 1px; margin-left:8px; }
+.q-field--focused .q-field__input { border-bottom: var(--q-color-primary) solid 1px; margin-left:8px; }
 
 .q-field--dense .q-field__marginal { height:auto; min-height:40px; }
 .q-field__prepend { max-width:75%; }
@@ -130,12 +130,12 @@ td, .td { min-height:21px; }
 .q-table--grid .q-table__middle .thead, .q-table--grid .q-table__middle .thead .th { border: 0 !important; }
 
 .q-table--horizontal-separator .thead .th, .q-table--cell-separator .thead .th, .q-table--horizontal-separator .tbody .tr:not(:last-child) .td,
-    .q-table--cell-separator .tbody .tr:not(:last-child) .td { border-bottom-width: 1px; }
+.q-table--cell-separator .tbody .tr:not(:last-child) .td { border-bottom-width: 1px; }
 .q-table--vertical-separator .td, .q-table--cell-separator .td, .q-table--vertical-separator .th, .q-table--cell-separator .th { border-left-width: 1px; }
 .q-table--vertical-separator .thead .tr:last-child .th, .q-table--cell-separator .thead .tr:last-child .th, .q-table--vertical-separator.q-table--loading .tr:nth-last-child(2) .th,
 .q-table--cell-separator.q-table--loading .tr:nth-last-child(2) .th { border-bottom-width: 1px; }
 .q-table--vertical-separator .td:first-child, .q-table--cell-separator .td:first-child, .q-table--vertical-separator .th:first-child,
-    .q-table--cell-separator .th:first-child { border-left: 0; }
+.q-table--cell-separator .th:first-child { border-left: 0; }
 .q-table--dense .q-table .th, .q-table--dense .q-table .td { padding: 4px 8px; }
 .q-table--dense .q-table .thead .tr, .q-table--dense .q-table .tbody .tr, .q-table--dense .q-table .tbody .td { height: 28px; }
 .q-table--dense .q-table .th:first-child, .q-table--dense .q-table .td:first-child { padding-left: 16px; }
