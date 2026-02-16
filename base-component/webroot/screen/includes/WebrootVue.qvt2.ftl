@@ -22,7 +22,12 @@ along with this software (see the LICENSE.md file). If not, see
 <input type="hidden" id="confLocale" value="${ec.user.locale.toLanguageTag()}">
 <input type="hidden" id="confDarkMode" value="${ec.user.getPreference("QUASAR_DARK")!"false"}">
 <input type="hidden" id="confLeftOpen" value="${ec.user.getPreference("QUASAR_LEFT_OPEN")!"false"}">
-<div id="apps-root"><#-- NOTE: webrootVue component attaches here, uses this and below for template -->
+<#assign isDarkMode = (ec.user.getPreference("QUASAR_DARK")!"false") == "true">
+<div id="apps-loading" style="position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;z-index:99999;background:${isDarkMode?then('#121212','#fafafa')};">
+    <div style="width:36px;height:36px;border:3px solid ${isDarkMode?then('rgba(255,255,255,0.15)','rgba(0,0,0,0.1)')};border-top-color:${isDarkMode?then('#90caf9','#1976d2')};border-radius:50%;animation:ld-spin .8s linear infinite;"></div>
+</div>
+<style>@keyframes ld-spin{to{transform:rotate(360deg)}}</style>
+<div id="apps-root" style="display:none;"><#-- NOTE: webrootVue component attaches here, uses this and below for template -->
 
     <#assign navbarCompList = sri.getThemeValues("STRT_HEADER_NAVBAR_COMP")>
     <#list navbarCompList! as navbarCompUrl><input type="hidden" class="confNavPluginUrl" value="${navbarCompUrl}"></#list>

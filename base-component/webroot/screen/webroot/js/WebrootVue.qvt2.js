@@ -449,8 +449,9 @@ moqui.webrootVue = createApp({
         this.addAccountPluginsWait(accountPluginUrlList, 0);
     },
     mounted: function() {
-        var jqEl = $(this.$el);
-        jqEl.css("display", "initial");
+        var loadingEl = document.getElementById('apps-loading');
+        if (loadingEl) loadingEl.remove();
+        $("#apps-root").css("display", "initial");
         // load the current screen
         console.log("load the current screen");
         this.setUrl(window.location.pathname + window.location.search);
