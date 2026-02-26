@@ -1,6 +1,15 @@
 
 # Moqui Runtime Release Notes
 
+## Release 3.9.9 - Feb 25 2026
+
+Moqui Runtime 3.9.9 is a minor new feature and bug fix release, but mostly a maintenance release for the Moqui Framework 
+4.0.0 release series.
+
+For a complete list see the commit log:
+
+https://github.com/moqui/moqui-runtime/compare/v3.0.0...v3.9.9
+
 ## Release 3.0.0 - 31 May 2022
 
 Moqui Runtime 3.0.0 is a major new feature and bug fix release with some changes that are not backward compatible,
