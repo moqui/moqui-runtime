@@ -1,7 +1,7 @@
 
 # Moqui Runtime Release Notes
 
-## Release 4.0.0 - 27 Feb 2026
+## Release 4.0.0 - Not Yet Released
 
 - Upgrade build.gradle to comply with gradle version 9.2
 - Rewrite GroovyShell.xml to work with an updated backend after upgrading to
@@ -9,18 +9,6 @@
   and handles arrow keys, backspace, delete and others, upon newline, it then
   sends the payload to the server as one chunk to be executed. The new interface
   is also based on the latest version of xterm.js (5.5.0)
-
-This is a brief summary of the changes since the last release, for a complete list see the commit log:
-
-https://github.com/moqui/moqui-runtime/compare/v3.9.9...v4.0.0
-
-## Release 3.9.9 - 25 Feb 2026
-
-Moqui Runtime 3.9.9 is a minor new feature and bug fix release, but mostly a maintenance release for the Moqui Framework 4.0.0 release series.
-
-For a complete list see the commit log:
-
-https://github.com/moqui/moqui-runtime/compare/v3.0.0...v3.9.9
 
 ## Release 3.0.0 - 31 May 2022
 
