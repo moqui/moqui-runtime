@@ -23,78 +23,182 @@ along with this software (see the LICENSE.md file). If not, see
     </actions>
     <widgets>
         <text type="html,vuet,qvt"><![CDATA[
-            <div class="text-danger">Be careful here, you can break many things. <a href="https://groovy-lang.org/groovysh.html" target="_blank">A groovysh reference is available here.</a></div>
-            <div id="terminal" style="height:100%;"></div>
+            <div>⚠ Be careful here, you can break many things.</div>
+            <div class="message">
+                <span class="text-mono">:clear</span> clear terminal ,
+                <span class="text-mono">:exit</span> close session
+            </div>
+            <div id="terminal"></div>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.5.0/xterm.js" integrity="sha512-Gujw5GajF5is3nMoGv9X+tCMqePLL/60qvAv1LofUZTV9jK8ENbM9L+maGmOsNzuZaiuyc/fpph1KT9uR5w3CQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.5.0/xterm.min.css" integrity="sha512-XpXUuzg5afNt1bsgnrOesXP70TLH8tXYYK5sK+Y0UV+YBvJn9EfRFYWy4HT3TVDfH0nl1CO0lwOxIrt2gk9qjg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js" integrity="sha512-2PRgAav8Os8vLcOAh1gSaDoNLe1fAyq8/G3QSdyjFFD+OqNjLeHE/8q4+S4MEZgPsuo+itHopj+hJvqS8XUQ8A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.css" integrity="sha512-iLYuqv+v/P4u9erpk+KM83Ioe/l7SEmr7wB6g+Kg1qmEit8EShDKnKtLHlv2QXUp7GGJhmqDI+1PhJYLTsfb8w==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
             <script>
-                // geometry calc code from xterm fit add on, which does not work with old/odd addon system in pre-4 (but xterm 4+ not available on cdnjs)
-                function proposeTerminalGeometry(term) {
-                  var parentEl = term.element.parentElement;
-                  if (!parentEl) { return null; }
-                  // console.warn(parentEl);
-                  var parentElementStyle = window.getComputedStyle(parentEl);
-                  var parentElementHeight = parseInt(parentElementStyle.getPropertyValue('height'));
-                  // console.warn("parentElementHeight " + parentElementHeight);
-                  var parentElementWidth = Math.max(0, parseInt(parentElementStyle.getPropertyValue('width')));
-                  var elementStyle = window.getComputedStyle(term.element);
-                  var elementPadding = {
-                    top: parseInt(elementStyle.getPropertyValue('padding-top')),
-                    bottom: parseInt(elementStyle.getPropertyValue('padding-bottom')),
-                    right: parseInt(elementStyle.getPropertyValue('padding-right')),
-                    left: parseInt(elementStyle.getPropertyValue('padding-left'))
-                  };
-                  var elementPaddingVer = elementPadding.top + elementPadding.bottom;
-                  var elementPaddingHor = elementPadding.right + elementPadding.left;
-                  var availableHeight = parentElementHeight - elementPaddingVer;
-                  var availableWidth = parentElementWidth - elementPaddingHor - term._core.viewport.scrollBarWidth;
-                  var geometry = {
-                    cols: Math.floor(availableWidth / term._core._renderCoordinator.dimensions.actualCellWidth),
-                    rows: Math.floor(availableHeight / term._core._renderCoordinator.dimensions.actualCellHeight)
-                  };
-                  return geometry;
-                }
-
-                var groovyshTerminal = new Terminal({
-                    cols: ${cols!"100"}, rows: ${rows!"40"}, fontSize: ${fontSize!"12"},
-                    cursorBlink: true, cursorStyle: "bar", // null | 'block' | 'underline' | 'bar'
-                    scrollback: 1000, tabStopWidth: 4, convertEol: true, screenKeys: true
+                let groovyTerminal = new Terminal({
+                    cols: ${cols!"100"},
+                    rows: ${rows!"40"},
+                    fontSize: ${fontSize!"12"},
+                    cursorBlink: true,
+                    cursorStyle: "bar", // null | 'block' | 'underline' | 'bar'
+                    scrollback: 1000,
+                    tabStopWidth: 4,
+                    convertEol: false
                 });
-                groovyshTerminal.open(document.getElementById('terminal'));
-                groovyshTerminal.write('Connecting...\n');
+                let inputBuffer = [];
+                let cursorPos = 0;
+                let history = [];
+                let historyIndex = 0;
+                let isActive = false;
+                const PROMPT = '> ';
 
-                var groovyshGeometry = proposeTerminalGeometry(groovyshTerminal);
-                if (groovyshGeometry && (groovyshTerminal.rows !== groovyshGeometry.rows || groovyshTerminal.cols !== groovyshGeometry.cols)) {
-                    groovyshTerminal._core._renderCoordinator.clear();
-                    groovyshTerminal.resize(groovyshGeometry.cols, groovyshGeometry.rows);
-                }
+                const measureCharWidth = (term) => {
+                    const span = document.createElement('span');
+                    span.textContent = 'W';
+                    span.style.position = 'absolute';
+                    span.style.visibility = 'hidden';
+                    span.style.fontFamily = term.options.fontFamily || 'monospace';
+                    span.style.fontSize = term.options.fontSize + 'px';
+                    document.body.appendChild(span);
+                    const width = span.getBoundingClientRect().width;
+                    document.body.removeChild(span);
+                    return width || 9;
+                };
+                const fitTerminalCols = () => {
+                    const container = document.getElementById('terminal');
+                    if (!container) return;
+                    const charWidth = measureCharWidth(groovyTerminal);
+                    const cols = Math.max(10, Math.floor(container.clientWidth / charWidth));
+                    if (cols !== groovyTerminal.cols) {
+                        groovyTerminal.resize(cols, groovyTerminal.rows);
+                    }
+                };
 
+                groovyTerminal.open(document.getElementById('terminal'));
+                fitTerminalCols();
+                window.addEventListener('resize', fitTerminalCols);
+                groovyTerminal.write('[connecting...]\r\n');
                 if (window.groovyshWsClient && window.groovyshWsClient.webSocket) {
                     window.groovyshWsClient.webSocket.close(1000);
                     window.groovyshWsClient = null;
                 }
                 window.groovyshWsClient = new moqui.BasicWebSocketClient(
                     (location.protocol === 'https:' ? 'wss' : 'ws') + "://${ec.web.getHostName(true)}${ec.web.servletContext.contextPath}/groovysh",
-                    function(data) {
+                    (data) => {
                         // console.info("received groovysh ws data: " + data);
-                        groovyshTerminal.write(data);
+                        groovyTerminal.write(data.replace(/\n/g, '\r\n'));
+                        groovyTerminal.write(PROMPT);
                     }
                 );
-                groovyshTerminal.on("data", function (data) {
-                    // console.info("sending groovysh ws data: " + data);
-                    groovyshWsClient.webSocket.send(data);
-                });
-
-                if (!window.groovyshOnUrlCloseWs) window.groovyshOnUrlCloseWs = function(url) {
+                window.groovyshWsClient.webSocket.onopen = () => {
+                    isActive = true;
+                    groovyTerminal.write('[connected]\r\n');
+                    groovyTerminal.write(PROMPT);
+                };
+                window.groovyshWsClient.webSocket.onclose = () => {
+                    isActive = false;
+                    groovyTerminal.write('[disconnected]\r\n');
+                    groovyTerminal.setOption('cursorBlink', false);
+                };
+                if (!window.groovyshOnUrlCloseWs) window.groovyshOnUrlCloseWs = (url) => {
                     if (window.groovyshWsClient && window.groovyshWsClient.webSocket) {
                         window.groovyshWsClient.webSocket.close(1000);
                         window.groovyshWsClient = null;
                     }
-                }
+                };
                 if (moqui && moqui.webrootVue) {
                     moqui.webrootVue.addUrlListener(window.groovyshOnUrlCloseWs);
                 }
+                const redrawLine = () => {
+                    groovyTerminal.write('\r');
+                    groovyTerminal.write('\x1b[2K'); // clear
+                    groovyTerminal.write(PROMPT + inputBuffer.join(''));
+                    const moveLeft = inputBuffer.length - cursorPos;
+                    if (moveLeft > 0) {
+                        groovyTerminal.write('\x1b[' + moveLeft + 'D');
+                    }
+                };
+                const setLine = (text) => {
+                    inputBuffer = text.split('');
+                    cursorPos = inputBuffer.length;
+                    redrawLine();
+                };
+                groovyTerminal.onData((data) => {
+                    if (!isActive) { return; }
+                    if (data === '\r') { // enter
+                        const line = inputBuffer.join('');
+                        if (line.length === 0) {
+                            inputBuffer = [];
+                            cursorPos = 0;
+                            groovyTerminal.write('\r\n');
+                            groovyTerminal.write(PROMPT);
+                            return;
+                        }
+                        if (line === ':clear') {
+                            groovyTerminal.write('\x1b[2J\x1b[H'); // clear screen
+                            inputBuffer = [];
+                            cursorPos = 0;
+                            groovyTerminal.write(PROMPT);
+                            return;
+                        }
+                        groovyTerminal.write('\r\n');
+                        if (line.length > 0) {
+                            history.push(line);
+                            historyIndex = history.length;
+                            groovyshWsClient.webSocket.send(line);
+                        }
+                        inputBuffer = [];
+                        cursorPos = 0;
+                        return;
+                    }
+                    if (data === '\u007F') { // backspace
+                        if (cursorPos > 0) {
+                            inputBuffer.splice(cursorPos - 1, 1);
+                            cursorPos--;
+                            redrawLine();
+                        }
+                        return;
+                    }
+                    if (data.startsWith('\x1b')) { // escape sequences
+                        switch (data) {
+                            case '\x1b[D': // left
+                                if (cursorPos > 0) {
+                                    cursorPos--;
+                                    groovyTerminal.write('\x1b[D');
+                                }
+                                break;
+                            case '\x1b[C': // right
+                                if (cursorPos < inputBuffer.length) {
+                                    cursorPos++;
+                                    groovyTerminal.write('\x1b[C');
+                                }
+                                break;
+                            case '\x1b[A': // up
+                                if (historyIndex > 0) {
+                                    historyIndex--;
+                                    setLine(history[historyIndex]);
+                                }
+                                break;
+                            case '\x1b[B': // down
+                                if (historyIndex < history.length - 1) {
+                                    historyIndex++;
+                                    setLine(history[historyIndex]);
+                                } else {
+                                    historyIndex = history.length;
+                                    setLine('');
+                                }
+                                break;
+                            case '\x1b[3~': // delete
+                                if (cursorPos < inputBuffer.length) {
+                                    inputBuffer.splice(cursorPos, 1);
+                                    redrawLine();
+                                }
+                                break;
+                        }
+                        return;
+                    }
+                    inputBuffer.splice(cursorPos, 0, data);
+                    cursorPos++;
+                    redrawLine();
+                });
             </script>
         ]]></text>
     </widgets>
