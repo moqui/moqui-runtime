@@ -66,6 +66,7 @@ along with this software (see the LICENSE.md file). If not, see
             <container-dialog id="CreateValueDialog" button-text="New ${ec.entity.getEntityDefinition(den).getPrettyName(null, aen)}">
                 <form-single name="CreateEntityValue" transition="create" dynamic="true">
                     <auto-fields-entity entity-name="${den}" field-type="edit"/>
+                    <field name="createdStamp"><default-field><hidden/></default-field></field>
                     <field name="aen"><default-field><hidden/></default-field></field>
                     <field name="den"><default-field><hidden/></default-field></field>
                     <field name="submitButton"><default-field title="Create"><submit/></default-field></field>

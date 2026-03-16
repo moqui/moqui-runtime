@@ -65,6 +65,7 @@ along with this software (see the LICENSE.md file). If not, see
             <container-dialog id="CreateValueDialog" button-text="New Value">
                 <form-single name="CreateEntityValue" transition="create" dynamic="true">
                     <auto-fields-entity entity-name="${aen}" field-type="edit"/>
+                    <field name="createdStamp"><default-field><hidden/></default-field></field>
                     <field name="aen"><default-field><hidden/></default-field></field>
                     <field name="submitButton"><default-field title="Create"><submit/></default-field></field>
                 </form-single>
@@ -91,11 +92,12 @@ along with this software (see the LICENSE.md file). If not, see
                 <default-field title=""><display text=" "/></default-field>
             </field>
             <auto-fields-entity entity-name="${aen}" field-type="find-display"/>
+            <field name="createdStamp"><default-field title="Created Updated"><display format="yyyy-MM-dd HH:mm:ss"/></default-field></field>
             <field name="lastUpdatedStamp"><default-field title="Last Updated"><display format="yyyy-MM-dd HH:mm:ss"/></default-field></field>
-
             <columns>
                 <column><field-ref name="edit"/><field-ref name="delete"/></column>
                 <column><field-ref name="lastUpdatedStamp"/></column>
+                <column><field-ref name="createdStamp"/></column>
             </columns>
         </form-list>
         <link url="getFormXml" text="Get Forms XML" link-type="anchor"/>
