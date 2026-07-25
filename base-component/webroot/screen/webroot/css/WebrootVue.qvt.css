@@ -36,6 +36,7 @@ body.test.body--dark #top { background:#224422!important; color:white; }
 */
 
 .body--dark .q-menu { background-color:black; }
+.body--dark .q-drawer { background-color: black; }
 .body--dark img.invertible { -webkit-filter: invert(90%); filter: invert(90%); }
 
 @media (min-width:576px) {
