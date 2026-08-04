@@ -69,7 +69,16 @@ along with this software (see the LICENSE.md file). If not, see
 
                 <q-icon size="1.5em" name="chevron_right" color="grey" class="gt-xs"></q-icon>
             </template></template>
-            <m-link v-if="navMenuList.length > 0" :href="getNavHref(navMenuList.length - 1)" class="gt-xs">{{navMenuList[navMenuList.length - 1].title}}</m-link>
+            <template v-if="navMenuList.length > 0">
+                <template v-if="navMenuList[navMenuList.length - 1].breadcrumbItems && navMenuList[navMenuList.length - 1].breadcrumbItems.length">
+                    <template v-for="(breadcrumbItem, bcIndex) in navMenuList[navMenuList.length - 1].breadcrumbItems">
+                        <q-icon v-if="bcIndex > 0" size="1.5em" name="chevron_right" color="grey" class="gt-xs"></q-icon>
+                        <m-link v-if="breadcrumbItem.pathWithParams" :href="breadcrumbItem.pathWithParams" class="gt-xs">{{breadcrumbItem.title}}</m-link>
+                        <span v-else class="gt-xs">{{breadcrumbItem.title}}</span>
+                    </template>
+                </template>
+                <m-link v-else :href="getNavHref(navMenuList.length - 1)" class="gt-xs">{{navMenuList[navMenuList.length - 1].title}}</m-link>
+            </template>
 
             <q-space></q-space>
 
