@@ -39,29 +39,11 @@ along with this software (see the LICENSE.md file). If not, see
     -->
 
     <transition name="login" require-session-token="false">
+        <parameter name="username" />
+        <parameter name="password" />
+        <parameter name="code"/>
         <actions>
-            <if condition="ec.web?.sessionAttributes?.moquiPreAuthcUsername"><then>
-                <!-- already pre-auth'ed, verify code below -->
-                <set field="username" from="ec.web?.sessionAttributes?.moquiPreAuthcUsername"/>
-            </then><else>
-                <!-- no pre-auth, try logging in (pre-auth if 2nd factor required) -->
-                <set field="loggedIn" from="ec.user.loginUser(username, password)"/>
-            </else></if>
-
-            <if condition="ec.web.sessionAttributes.moquiAuthcFactorRequired">
-                <if condition="code"><then>
-                    <service-call name="org.moqui.impl.UserServices.validate#ExternalUserAuthcCode"
-                            in-map="[code:code]" out-map="validateOut"/>
-                    <if condition="validateOut.verified"><then>
-                        <script>ec.user.internalLoginUser(validateOut.username)</script>
-                        <return/>
-                    </then><else>
-                        <message error="true" public="true">Authentication code is not valid</message>
-                    </else></if>
-                </then><else>
-                    <message error="true" public="true">Authentication code required for user ${username}</message>
-                </else></if>
-            </if>
+            <service-call name="org.moqui.impl.UserServices.login#UserAccount" in-map="true" />
         </actions>
         <!-- no longer using SecondFactor screen, now built into Login screen to better support more scenarios:
         <conditional-response url="../SecondFactor"><condition>
