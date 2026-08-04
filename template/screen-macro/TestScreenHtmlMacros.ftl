@@ -14,8 +14,11 @@ along with this software (see the LICENSE.md file). If not, see
 <#include "DefaultScreenMacros.html.ftl"/>
 
 <#macro container>
-    <#assign divId><@nodeId .node/></#assign>
-    <${.node["@type"]!"div"}<#if divId?has_content> id="${divId}"</#if><#if .node["@style"]?has_content> class="${ec.resource.expand(.node["@style"], "")}"</#if>>
-    <#recurse>
-    </${.node["@type"]!"div"}><!-- CONTAINER OVERRIDE FOR THE Example.xml screen -->
+    <#assign contDivId><@nodeId .node/></#assign>
+    <#if .node["@condition"]?has_content><#assign conditionResult = ec.getResource().condition(.node["@condition"], "")><#else><#assign conditionResult = true></#if>
+    <#if conditionResult>
+        <${ec.getResource().expand(.node["@type"]!"div", "")}<#if contDivId?has_content> id="${contDivId}"</#if><#if .node["@style"]?has_content> class="${ec.getResource().expandNoL10n(.node["@style"], "")}"</#if>>
+        <#recurse>
+        </${.node["@type"]!"div"}>
+    </#if>
 </#macro>
