@@ -29,7 +29,6 @@ along with this software (see the LICENSE.md file). If not, see
 
             ExecutionContext ec = context.ec
 
-            def rs = null
             outerColumnsList = new ArrayList<ArrayList<String>>()
             outerRecordsList = new ArrayList<ArrayList<ArrayList>>()
 
@@ -39,10 +38,8 @@ along with this software (see the LICENSE.md file). If not, see
             sql = ec.web.secureRequestParameters.get("sql")
             if (sql && groupName) {
                 messageList = []
-                Connection con = ec.entity.getConnection(groupName)
-                try {
-                    stmt = con.createStatement()
-
+                try (Connection con = ec.entity.getConnection(groupName);
+                    stmt = con.createStatement()) {
                     for(int i=0; i< 100; i++) {
                         // try get 100 ResultSets, avoid infinite loop
                         boolean isResultSet = i == 0 ? stmt.execute(sql as String) : stmt.getMoreResults()
@@ -61,7 +58,7 @@ along with this software (see the LICENSE.md file). If not, see
                             records = new ArrayList<ArrayList>()
                             outerColumnsList.add(columns)
                             outerRecordsList.add(records)
-                            rs = stmt.getResultSet()
+                            try (rs = stmt.getResultSet()) {
                             if (rs != null) {
                                 rsmd = rs.getMetaData()
                                 columnCount = rsmd.getColumnCount()
@@ -77,13 +74,13 @@ along with this software (see the LICENSE.md file). If not, see
                                     for (i = 1; i <= columnCount; i++) record.add(rs.getObject(i))
                                     records.add(record)
                                 }
-                                rs.close()
 
                                 if (limitReached) {
                                     messageList.add(ec.resource.expand('Only showing first ${limit} rows.',''))
                                 } else {
                                     messageList.add(ec.resource.expand('Showing all ${records.size()} results.',''))
                                 }
+                            }
                             }
                         } else if ((rowsAffected = stmt.getUpdateCount()) != -1){
                             messageList.add(ec.resource.expand('Query altered ${rowsAffected} rows.',''))
@@ -94,9 +91,6 @@ along with this software (see the LICENSE.md file). If not, see
                 } catch (Exception e) {
                     messageList.add(e.toString())
                     ec.logger.log(200, "Error running SQL query in SqlRunner", e)
-                } finally {
-                    if (stmt != null) { try { stmt.close() } catch (Exception e) { /* Ignore */ } }
-                    if (con != null) { try { con.close() } catch (Exception e) { /* Ignore */ } }
                 }
             }
         ]]></script>
