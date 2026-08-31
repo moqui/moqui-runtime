@@ -60,7 +60,16 @@ along with this software (see the LICENSE.md file). If not, see
                     </template>
                 </li>
             </ul>
-            <template v-if="navMenuList.length > 0"><m-link class="navbar-text" :href="getNavHref(navMenuList.length - 1)">{{navMenuList[navMenuList.length - 1].title}}</m-link></template>
+            <template v-if="navMenuList.length > 0">
+                <template v-if="navMenuList[navMenuList.length - 1].breadcrumbItems && navMenuList[navMenuList.length - 1].breadcrumbItems.length">
+                    <template v-for="(breadcrumbItem, bcIndex) in navMenuList[navMenuList.length - 1].breadcrumbItems">
+                        <i v-if="bcIndex > 0" class="fa fa-chevron-right"></i>
+                        <m-link v-if="breadcrumbItem.pathWithParams" class="navbar-text" :href="breadcrumbItem.pathWithParams">{{breadcrumbItem.title}}</m-link>
+                        <span v-else class="navbar-text">{{breadcrumbItem.title}}</span>
+                    </template>
+                </template>
+                <m-link v-else class="navbar-text" :href="getNavHref(navMenuList.length - 1)">{{navMenuList[navMenuList.length - 1].title}}</m-link>
+            </template>
             <#-- logout button -->
             <a href="${sri.buildUrl("/Login/logout").url}" data-toggle="tooltip" data-original-title="${ec.l10n.localize("Logout")} ${(ec.user.userAccount.userFullName)!''}"
                    onclick="return confirm('${ec.l10n.localize("Logout")} ${(ec.user.userAccount.userFullName)!''}?')"
