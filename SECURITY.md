@@ -20,6 +20,6 @@ For more information on submitting issues and pull requests please see the [Issu
 
 ## Attack surface
 
-This repository is the default **runtime** directory: `webroot` (root screen, `/rest`, `/rpc`, Login) and `tools` (System and Tools apps, `/rest/s1/moqui`, seed artifact authz).
+This repository is the default **runtime** directory: `webroot` (root screen, `/rest`, `/rpc`, Login) and `tools` (Assist, System, and Tools apps, `/rest/s1/moqui`, seed artifact authz).
 
-The inventory for moqui-framework **and** this runtime is in the framework repo: [SECURITY_SURFACE.md](https://github.com/moqui/moqui-framework/blob/master/SECURITY_SURFACE.md). Operator checklist: [Run and Deploy — Production security](https://www.moqui.org/m/docs/framework/Run+and+Deploy).
+The inventory for moqui-framework **and** this runtime is in the framework repo: [SECURITY_SURFACE.md](https://github.com/moqui/moqui-framework/blob/master/SECURITY_SURFACE.md) (includes Assist `/qapps/assist` from the tools component, `/llm/*`, and A2A). Operator checklist: [Run and Deploy — Production security](https://www.moqui.org/m/docs/framework/Run+and+Deploy).

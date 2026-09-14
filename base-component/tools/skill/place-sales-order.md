@@ -1,16 +1,26 @@
 ---
 name: place-sales-order
 title: Place a sales order
-description: Create a sales order with line items for an existing customer (two canvases)
+description: Create a sales order, add product items, and Place on FindOrder / OrderDetail
 risk: confirm
-screens: [/rest/s1/mantle/orders]
+screens: [/apps/marble/Order/FindOrder, /apps/marble/Order/OrderDetail]
 ---
-# Sales order — two canvases (two user clicks)
+# Create sales order
 
-Demo IDs (do not look them up): customer `CustJqp` (Joe Q Public), vendor `ORG_ZIZI_RETAIL`, store `POPC_DEFAULT`, products `DEMO_1_1` and `DEMO_1_2`.
+Never `/rest` or `/popc`. Use screen transitions (JSON under `/apps`).
 
-**Canvas 1 — header only (`kind=openui`).** Fields: `customerPartyId`, `vendorPartyId`, `productStoreId`, `orderName`. Mutation POST `/rest/s1/mantle/orders` (JSON; returns `orderId`, `orderPartSeqId`). Use Lookup for customer if browse gives an options-url.
+Dashboard Sales Orders → `/apps/marble/Order/FindOrder` `orderType=Sales`.
 
-**After header submit:** `request` that POST, then `writeThrough: true` a **second** canvas: display `orderId` and `orderPartSeqId`, fields `productId`, `quantity`. Action path `/rest/s1/mantle/orders/{orderId}/items` method POST, `bodyFromFields:["orderPartSeqId","productId","quantity"]`. Prefill first item `DEMO_1_1` qty `2`.
+**Create Sales Order** POST `/apps/marble/Order/FindOrder/createOrder`
+fields: `productStoreId`, `vendorPartyId` (from store), `facilityId`, `customerPartyId`.
+Starts `OrderOpen`. Returns `orderId`.
 
-**After item submit:** `request` POST items for `DEMO_1_1` qty 2 and `DEMO_1_2` qty 1 (use `orderId`/`orderPartSeqId` from the previous result). Then confirm with those ids.
+OrderDetail `/apps/marble/Order/OrderDetail?orderId=` **Add Product Item** POST `addProductItem`
+(`productId`, `quantity`; leave `unitAmount` empty for Calc Price).
+
+**Place** / **Place Warnings** POST `placeOrder` → `OrderPlaced`.
+**Approve** / **Approve Warnings** POST `approveOrder` → `OrderApproved` (needs ORDER_APPROVE).
+
+Link `/qapps/marble/Order/OrderDetail?orderId=`.
+
+Canvas: Form + Mutation POST `createOrder`. After `submitted:true`: `request` that POST, then `writeThrough` item fields and POST `addProductItem`, then POST `placeOrder`. Confirm with `orderId`.

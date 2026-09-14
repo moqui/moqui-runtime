@@ -13,7 +13,7 @@
                 model="${llm_openai_model}" log-content="${llm_log_content}"
                 allow-write-ui="true" allow-client-system="false"
                 allow-browse="true" allow-run-service="true"
-                allow-unprefixed-request="true"
+                allow-unprefixed-request="true" allow-enter-sim="true"
                 max-iterations="20"
                 system-location="component://tools/prompt/AssistSystem.ftl"/>
     </llm-facade>
