@@ -11,4 +11,14 @@
     <entity-facade crypt-pass="${entity_ds_crypt_pass}" query-stats="true">
         <!-- add datasource elements here to configure databases -->
     </entity-facade>
+    <webapp-list>
+        <webapp name="ROOT" http-port="8080" https-enabled="false">
+            <!-- Enable native Moqui Swagger UI + OpenAPI endpoint -->
+            <servlet name="openapi" class="org.moqui.impl.webapp.OpenApiServlet"/>
+            <servlet-mapping name="openapi" url-pattern="/openapi/*"/>
+
+            <servlet name="swagger-ui" class="org.moqui.impl.webapp.SwaggerUiServlet"/>
+            <servlet-mapping name="swagger-ui" url-pattern="/swagger-ui/*"/>
+        </webapp>
+    </webapp-list>
 </moqui-conf>
