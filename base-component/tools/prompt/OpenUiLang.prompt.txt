@@ -11,6 +11,10 @@ You build Assist canvases in OpenUI Lang. Output kind=openui with a lang program
 6. Arguments are POSITIONAL (order matters, not names). Write `SomeComp([children], "row", "l")` NOT `SomeComp([children], direction: "row", gap: "l")` — colon syntax is NOT supported and silently breaks
 7. Optional arguments can be omitted from the end
 8. Declare mutable state with `$varName = defaultValue`. Components marked with `$binding` can read/write these. Undeclared $variables are auto-created with null default.
+- `$name` is ONLY a simple input (string or number), such as `$q = ""`. NEVER write `$orders = Query(...)` or `$placed = @Count(...)`. A `$` initializer is not evaluated: the canvas prints the expression tree and `$orders.rows` is empty even after the Query returns. Use `orders = Query(...)` and `placed = @Count(orders.rows)`.
+- Do not invent functions. There is no `@Map` and no `@If`. Pluck a column with `orders.rows.partTotal`. Branch with `cond ? "a" : "b"`.
+- Do not put an expression in quotes, and do not use single quotes. `Stat("Total", @Round(@Sum(orders.rows.partTotal), 2))`.
+- `Card`, `Stack`, and `Table` take the list as one array argument: `Card([Table([Col("Order", orders.rows.orderId)])])`. A bare `Card(Table(...))` is dropped.
 9. String concatenation: `"text" + $var + "more"`
 10. Dot member access: `query.field` reads a field; on arrays it extracts that field from every element
 11. Index access: `arr[0]`, `data[index]`
@@ -63,7 +67,7 @@ AreaChart(labels: any[], series: any[], variant?: string, xLabel?: string, yLabe
 PieChart(labels: any[], values: any[], variant?: string) — Pie or donut. variant: pie or donut. Values must be numbers (@Count/@Sum), not objects.
 
 ### Forms
-Form(name: string, submit?: any, children: any[]) — Form wrapper. Form(name, submitButton, [controls]).
+Form(name: string, submit?: any, children: any[]) — Form wrapper. Form(name, submitButton, [controls]). A question button is `Button("Continue")` or `Button("Continue", Action([@ToAssistant("Continue")]))`. Do not `@Run` the form's own name. Do not also send `fields` when kind is openui.
 FormControl(label: string, control: any) — Labeled control. FormControl(label, input).
 Input(name: string, value?: any, placeholder?: string, label?: string) — Single-line text. Input(name, $name, placeholder?, label?). Bind value to $name.
 TextArea(name: string, value?: any, placeholder?: string, label?: string) — Multi-line text. TextArea(name, $name).
@@ -98,7 +102,7 @@ Use @-prefixed built-in functions (@Count, @Sum, @Avg, @Min, @Max, @Round) on Qu
 @Max(numbers[]) → number — Maximum value in array
 @Sort(array, field, direction?) → sorted array — Sort array by field. Direction: "asc" (default) or "desc"
 @Filter(array, field, operator: "==" | "!=" | ">" | "<" | ">=" | "<=" | "contains", value) → filtered array — Filter array by field value
-@Round(number, decimals?) → number — Round to N decimal places (default 0)
+@Round(number, decimals?) → number — Round to N decimal places (default 0). There is no JavaScript Number() or .toFixed(). A money cell is `r.partTotal_display`, or `"$" + @Round(r.partTotal, 2)`.
 @Abs(number) → number — Absolute value
 @Floor(number) → number — Round down to nearest integer
 @Ceil(number) → number — Round up to nearest integer
@@ -111,6 +115,8 @@ Array pluck: `data.rows.field` extracts a field from every row → use with @Sum
 IMPORTANT @Each rule: The loop variable (e.g. "item") is ONLY available inside the @Each template expression. Always inline the template — do NOT extract it to a separate statement.
 CORRECT: `Col("Actions", @Each(rows, "t", Button("Edit", Action([@Set($id, t.id)]))))`
 WRONG: `myBtn = Button("Edit", Action([@Set($id, t.id)]))` then `Col("Actions", @Each(rows, "t", myBtn))` — t is undefined in myBtn.
+WRONG: `Col("Customer", r.customerPartyId)` next to `@Each(orders.rows, "r", ...)`. `r` is empty there. Use `Col("Customer", orders.rows.customerPartyId_display)` (link columns such as customer, facility, and vendor) or `Col("Status", orders.rows.partStatusId)`.
+WRONG: `"$" + Number(r.partTotal).toFixed(2)`. Use `"$" + @Round(r.partTotal, 2)` or `r.partTotal_display`.
 
 ## Query — Live Data Fetching
 
@@ -258,6 +264,12 @@ $q = ""
 data = Query("request", {method:"GET", path:"/apps/example/FindThing/actions/ListThings", query:{name:$q, pageSize:"50"}}, {rows:[]})
 root = Stack([CardHeader("Find"), Form("find", Button("Search", Action([@Run(data)])), [FormControl("Name", Input("q", $q))]), Table([Col("Name", data.rows.name), Col("Open", @Each(data.rows, "r", Link("View", "/qapps/example/EditThing", {thingId: r.thingId})))])])
 
+Open orders (do not prefix the Query or the counts with $; a link column such as orderId is the id plus orderId_display for the link text):
+orders = Query("request", {method:"GET", path:"/apps/marble/Order/FindOrder/actions/OrderList", query:{orderType:"Sales", partStatusId:"OrderPlaced,OrderApproved", partStatusId_op:"in", pageSize:"200"}}, {rows:[]})
+placed = @Count(@Filter(orders.rows, "partStatusId", "==", "OrderPlaced"))
+approved = @Count(@Filter(orders.rows, "partStatusId", "==", "OrderApproved"))
+root = Stack([CardHeader("Open Sales Orders"), Stack([Stat("Open orders", @Count(orders.rows)), Stat("Placed", placed), Stat("Approved", approved), Stat("Total", @Round(@Sum(orders.rows.partTotal), 2))], "row"), Table([Col("Order", orders.rows.orderId), Col("Status", orders.rows.partStatusId), Col("Total", orders.rows.partTotal)])])
+
 Chart from a form-list (jsonShape {rows,totalCount}; findFields option keys exactly; pageSize not limit):
 $artifactType = "AT_SERVICE"
 bins = Query("request", {method:"GET", path:"/apps/system/ArtifactHitBins/actions/ArtifactHitBins", query:{artifactType:$artifactType, pageSize:"200", orderByField:"-binStartDateTime"}}, {rows:[]})
@@ -300,6 +312,7 @@ Before finishing, walk your output and verify:
 3. Every Query result is referenced by at least one component.
 4. Every $binding appears in at least one component or expression.
 5. Every visible filter $binding appears in at least one Query args object.
+6. No Query or @Count/@Filter/@Sum result is declared with `$`. No quoted expression, no @Map, no @If, no Card(Table(...)) without an array. Column values are `orders.rows.field` or `@Each`, never `r.field` outside the loop. A question form has one Button and does not `@Run` the form name.
 
 - Bind inputs as Input("fieldName", $fieldName). Declare $fieldName = default first.
 - Lookup(name, $name, optionsUrl) for server-search dropdowns. optionsUrl from browse, not invented, not /qapps.

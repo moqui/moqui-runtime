@@ -119,6 +119,12 @@
                         <q-checkbox v-else-if="f.widget==='check'" :label="f.label || f.name"
                                     :value="fieldValues[f.name]"
                                     @input="onFieldInput(f.name, $event)"></q-checkbox>
+                        <div v-else-if="f.widget==='radio'">
+                            <div class="text-caption text-grey-7">{{ f.label || f.name }}</div>
+                            <q-option-group dense type="radio" :value="fieldValues[f.name]"
+                                            :options="radioOptions(f)"
+                                            @input="onFieldInput(f.name, $event)"></q-option-group>
+                        </div>
                         <div v-else class="text-body2"><span class="text-grey-7">{{ f.label || f.name }}:</span> {{ fieldValues[f.name] }}</div>
                     </div>
                     <div v-if="showParentSubmit" class="q-gutter-sm q-mt-md">
@@ -282,6 +288,16 @@ function extractOpenUiLang(partialArgs) {
         else out.push(c);
     }
     return out.join('');
+}
+/** Same ?v= the shell already puts on scripts via ec.web.getResourceDistinctValue(). */
+function pageResourceVersion() {
+    var nodes = document.querySelectorAll('script[src*="?v="],link[href*="?v="]');
+    for (var i = 0; i < nodes.length; i++) {
+        var url = nodes[i].getAttribute('src') || nodes[i].getAttribute('href') || '';
+        var m = url.match(/[?&]v=([A-Za-z0-9._-]+)/);
+        if (m) return m[1];
+    }
+    return '';
 }
 function loadScriptOnce(src) {
     return new Promise(function(resolve, reject) {
@@ -483,7 +499,7 @@ module.exports = {
         },
         showParentSubmit: function() {
             if (!this.schema) return false;
-            if (this.schema.kind === 'openui' && this.writeMode === 'script') return false;
+            if (this.schema.kind === 'openui') return false;
             return true;
         },
         visibleFields: function() {
@@ -671,10 +687,12 @@ module.exports = {
         loadOpenUi: function() {
             if (window.OpenUILang && window.AssistOpenUiReady) return Promise.resolve();
             var root = (this.$root && this.$root.appRootPath) || '';
+            var ver = pageResourceVersion();
+            var q = ver ? ('?v=' + ver) : '';
             var files = [
-                root + '/js/assist/lang-core.umd.min.js',
-                root + '/js/assist/AssistOpenUiLibrary.js',
-                root + '/js/assist/AssistOpenUi.js'
+                root + '/js/assist/lang-core.umd.min.js' + q,
+                root + '/js/assist/AssistOpenUiLibrary.js' + q,
+                root + '/js/assist/AssistOpenUi.js' + q
             ];
             var chain = Promise.resolve();
             files.forEach(function(src) {
@@ -689,6 +707,7 @@ module.exports = {
             var next = Object.assign({}, this.fieldValues);
             Object.keys(snap).forEach(function(k) {
                 var v = snap[k];
+                if (v && typeof v === 'object' && !Array.isArray(v) && typeof v.k === 'string') return;
                 if (v && typeof v === 'object' && !Array.isArray(v) && Object.prototype.hasOwnProperty.call(v, 'value'))
                     v = v.value;
                 if (k.charAt(0) === '$') next[k.slice(1)] = v;
@@ -705,7 +724,8 @@ module.exports = {
         onOpenUiError: function(errors) {
             if (!errors || !errors.length) return;
             var critical = errors.filter(function(e) {
-                return e && (e.code === 'unknown-component' || e.code === 'parse-exception' || e.code === 'parse-failed');
+                return e && (e.code === 'unknown-component' || e.code === 'parse-exception'
+                    || e.code === 'parse-failed' || e.code === 'type-mismatch');
             });
             if (critical.length)
                 assistNotify(critical[0].message || 'OpenUI parse error', 'warning');
@@ -809,6 +829,11 @@ module.exports = {
                     this.onSfcInput(payload);
             }
             this.submitCanvas(button);
+        },
+        radioOptions: function(f) {
+            return ((f && f.options) || []).map(function(o) {
+                return { label: (o && (o.text || o.key)) || '', value: o && o.key };
+            });
         },
         onFieldInput: function(name, value) {
             this.$set(this.fieldValues, name, value);

@@ -31,6 +31,13 @@
     function truthy(v) {
         return v === true || v === 'true' || v === 'wrap' || v === 1 || v === '1';
     }
+    /** Vue 2 mustache JSON.stringifies plain objects, which dumps an unevaluated OpenUI AST onto the canvas. */
+    function formatOpenUiText(v) {
+        if (v == null) return '';
+        var t = typeof v;
+        if (t === 'string' || t === 'number' || t === 'boolean') return String(v);
+        return '';
+    }
     function asNumbers(arr) {
         return asArray(arr).slice(0, CHART_MAX_POINTS).map(function(v) {
             var n = typeof v === 'number' ? v : parseFloat(v);
@@ -589,9 +596,10 @@
                     if (s === 'small') return 'text-caption';
                     if (s === 'large' || s === 'large-heavy') return 'text-h4';
                     return 'text-body1';
-                }
+                },
+                textValue: function() { return formatOpenUiText(this.props && this.props.text); }
             },
-            template: '<div :class="sizeClass" style="white-space:pre-wrap">{{props && props.text}}</div>'
+            template: '<div :class="sizeClass" style="white-space:pre-wrap">{{textValue}}</div>'
         },
         Callout: {
             props: ['props', 'renderNode'],
@@ -600,9 +608,10 @@
                     var t = (this.props && this.props.type) || 'info';
                     if (t === 'warning' || t === 'negative' || t === 'positive' || t === 'info') return 'bg-' + t + ' text-white';
                     return 'bg-info text-white';
-                }
+                },
+                textValue: function() { return formatOpenUiText(this.props && this.props.text); }
             },
-            template: '<q-banner dense class="q-mb-sm" :class="bannerClass">{{props && props.text}}</q-banner>'
+            template: '<q-banner dense class="q-mb-sm" :class="bannerClass">{{textValue}}</q-banner>'
         },
         Separator: {
             props: ['props', 'renderNode'],
@@ -737,10 +746,14 @@
         },
         Stat: {
             props: ['props', 'renderNode'],
+            computed: {
+                statValue: function() { return formatOpenUiText(this.props && this.props.value); },
+                statCaption: function() { return formatOpenUiText(this.props && this.props.caption); }
+            },
             template: '<q-card flat bordered class="q-pa-md">' +
                 '<div class="text-caption text-grey-7">{{props && props.label}}</div>' +
-                '<div class="text-h4">{{props && props.value}}</div>' +
-                '<div v-if="props && props.caption" class="text-caption">{{props.caption}}</div></q-card>'
+                '<div class="text-h4">{{statValue}}</div>' +
+                '<div v-if="statCaption" class="text-caption">{{statCaption}}</div></q-card>'
         },
         Tag: {
             props: ['props', 'renderNode'],

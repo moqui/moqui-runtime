@@ -38,6 +38,437 @@
             || head.indexOf('<body') === 0 || head.indexOf('<head') === 0;
     }
 
+    var AST_KINDS = { Comp: 1, Ref: 1, StateRef: 1, RuntimeRef: 1, BinOp: 1, UnaryOp: 1, Ternary: 1,
+        Member: 1, Index: 1, Assign: 1, Str: 1, Num: 1, Bool: 1, Null: 1, Arr: 1, Obj: 1, Ph: 1 };
+    /** Components whose first positional argument is an array of children or columns. */
+    var ARRAY_FIRST = { Stack: 1, Card: 1, Accordion: 1, Steps: 1, ListBlock: 1, Buttons: 1, Tabs: 1, Table: 1 };
+    /** Of those, the ones that take no further arguments. Extra args are dropped by the parser and hide the list. */
+    var ARRAY_ONLY = { Card: 1, Accordion: 1, Steps: 1, ListBlock: 1, Buttons: 1, Tabs: 1, Table: 1 };
+
+    function isOpenUiAst(v) {
+        return !!(v && typeof v === 'object' && !Array.isArray(v) && AST_KINDS[v.k]);
+    }
+    function readStringToken(src, i) {
+        var j = i + 1, inner = '';
+        while (j < src.length) {
+            var c = src.charAt(j);
+            if (c === '\\') {
+                inner += c;
+                if (j + 1 < src.length) { inner += src.charAt(j + 1); j += 2; continue; }
+                j++;
+                continue;
+            }
+            if (c === '"') return { text: src.slice(i, j + 1), inner: inner, end: j + 1 };
+            inner += c;
+            j++;
+        }
+        return { text: src.slice(i), inner: inner, end: src.length };
+    }
+    function readCall(src, parenAt) {
+        var depth = 0, j = parenAt;
+        while (j < src.length) {
+            var c = src.charAt(j);
+            if (c === '"') { j = readStringToken(src, j).end; continue; }
+            if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') {
+                depth--;
+                if (depth === 0 && c === ')') return { inner: src.slice(parenAt + 1, j), end: j + 1 };
+            }
+            j++;
+        }
+        return null;
+    }
+    function splitArgs(inner) {
+        var args = [], depth = 0, start = 0, i = 0;
+        while (i < inner.length) {
+            var c = inner.charAt(i);
+            if (c === '"') { i = readStringToken(inner, i).end; continue; }
+            if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') depth--;
+            else if (c === ',' && depth === 0) {
+                args.push(inner.slice(start, i).trim());
+                start = i + 1;
+            }
+            i++;
+        }
+        var last = inner.slice(start).trim();
+        if (last || args.length) args.push(last);
+        return args;
+    }
+    function structuresBalanced(src) {
+        var depth = 0, i = 0;
+        while (i < src.length) {
+            var c = src.charAt(i);
+            if (c === '"') { i = readStringToken(src, i).end; continue; }
+            if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') {
+                depth--;
+                if (depth < 0) return false;
+            }
+            i++;
+        }
+        return depth === 0;
+    }
+    function isIdentStart(c) {
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c === '_';
+    }
+    function readIdent(src, i) {
+        var j = i + 1;
+        while (j < src.length) {
+            var c = src.charAt(j);
+            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c === '_') j++;
+            else break;
+        }
+        return { name: src.slice(i, j), end: j };
+    }
+    function isComponentCall(text) {
+        return /^[A-Z][A-Za-z0-9_]*\s*\(/.test(text);
+    }
+    function isExprString(inner) {
+        var t = inner.trim();
+        if (t.charAt(0) !== '@' || t.charAt(t.length - 1) !== ')') return false;
+        if (t.indexOf('\n') >= 0) return false;
+        return structuresBalanced(t);
+    }
+    function unquoteExprStrings(src) {
+        var i = 0, out = '';
+        while (i < src.length) {
+            if (src.charAt(i) === '"') {
+                var s = readStringToken(src, i);
+                if (isExprString(s.inner)) out += s.inner.replace(/'([^'\\]*)'/g, '"$1"');
+                else out += s.text;
+                i = s.end;
+                continue;
+            }
+            out += src.charAt(i);
+            i++;
+        }
+        return out;
+    }
+    function rewriteIf(inner) {
+        var rewritten = rewriteCalls(inner);
+        var args = splitArgs(rewritten);
+        if (args.length !== 3) return '@If(' + rewritten + ')';
+        return '(' + args[0] + ' ? ' + args[1] + ' : ' + args[2] + ')';
+    }
+    function rewriteMap(inner) {
+        var rewritten = rewriteCalls(inner);
+        var args = splitArgs(rewritten);
+        if (args.length !== 3) return '@Map(' + rewritten + ')';
+        var nameTok = args[1];
+        var varName = null;
+        if (nameTok.charAt(0) === '"' && nameTok.charAt(nameTok.length - 1) === '"')
+            varName = nameTok.slice(1, -1);
+        if (!varName || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(varName)) return '@Map(' + rewritten + ')';
+        var expr = args[2];
+        if (expr !== varName && expr.indexOf(varName + '.') !== 0) return '@Map(' + rewritten + ')';
+        return args[0] + expr.slice(varName.length);
+    }
+    function wrapArrayFirst(inner) {
+        var args = splitArgs(inner);
+        if (!args.length) return inner;
+        var first = args[0];
+        if (!first || first.charAt(0) === '[') return inner;
+        if (!isComponentCall(first)) return inner;
+        if (args.length > 1 && isComponentCall(args[1])) return inner;
+        args[0] = '[' + first + ']';
+        return args.join(', ');
+    }
+    function rewriteCalls(src) {
+        var i = 0, out = '';
+        while (i < src.length) {
+            var c = src.charAt(i);
+            if (c === '"') {
+                var s = readStringToken(src, i);
+                out += s.text;
+                i = s.end;
+                continue;
+            }
+            if (c === '@' && src.substr(i, 4) === '@If(') {
+                var iff = readCall(src, i + 3);
+                if (!iff) { out += c; i++; continue; }
+                out += rewriteIf(iff.inner);
+                i = iff.end;
+                continue;
+            }
+            if (c === '@' && src.substr(i, 5) === '@Map(') {
+                var mapc = readCall(src, i + 4);
+                if (!mapc) { out += c; i++; continue; }
+                out += rewriteMap(mapc.inner);
+                i = mapc.end;
+                continue;
+            }
+            if (isIdentStart(c)) {
+                var id = readIdent(src, i);
+                var k = id.end;
+                while (src.charAt(k) === ' ' || src.charAt(k) === '\t') k++;
+                if (ARRAY_FIRST[id.name] && src.charAt(k) === '(') {
+                    var call = readCall(src, k);
+                    if (!call) { out += c; i++; continue; }
+                    var inner = rewriteCalls(call.inner);
+                    var wrapped = wrapArrayFirst(inner);
+                    if (ARRAY_ONLY[id.name]) {
+                        var only = splitArgs(wrapped);
+                        if (only.length > 1 && only[0].charAt(0) === '[') wrapped = only[0];
+                    }
+                    out += src.slice(i, k) + '(' + wrapped + ')';
+                    i = call.end;
+                    continue;
+                }
+            }
+            out += c;
+            i++;
+        }
+        return out;
+    }
+    function isSimpleLiteral(rhs) {
+        var t = rhs.trim();
+        if (t === 'true' || t === 'false' || t === 'null') return true;
+        if (/^-?\d+(\.\d+)?$/.test(t)) return true;
+        if (t.charAt(0) === '"') {
+            var s = readStringToken(t, 0);
+            return s.end === t.length;
+        }
+        return false;
+    }
+    function replaceDollarsOutsideStrings(line, names) {
+        var i = 0, out = '';
+        while (i < line.length) {
+            if (line.charAt(i) === '"') {
+                var s = readStringToken(line, i);
+                out += s.text;
+                i = s.end;
+                continue;
+            }
+            if (line.charAt(i) === '$') {
+                var id = readIdent(line, i + 1);
+                var key = '$' + id.name;
+                if (id.name && names[key]) {
+                    out += id.name;
+                    i = id.end;
+                    continue;
+                }
+            }
+            out += line.charAt(i);
+            i++;
+        }
+        return out;
+    }
+    function rewriteDollarComputes(src) {
+        var lines = src.split('\n');
+        var names = Object.create(null);
+        var decl = /^(\s*)(\$[A-Za-z_][A-Za-z0-9_]*)(\s*=\s*)([\s\S]+)$/;
+        lines.forEach(function(line) {
+            var m = line.match(decl);
+            if (!m || isSimpleLiteral(m[4])) return;
+            names[m[2]] = true;
+        });
+        if (!Object.keys(names).length) return src;
+        return lines.map(function(line) {
+            var m = line.match(decl);
+            if (m && names[m[2]]) line = m[1] + m[2].slice(1) + m[3] + m[4];
+            return replaceDollarsOutsideStrings(line, names);
+        }).join('\n');
+    }
+    function identBoundary(src, i) {
+        if (i <= 0) return true;
+        return !/[A-Za-z0-9_@]/.test(src.charAt(i - 1));
+    }
+    /** Expression immediately before `.toFixed(`. -1 if it is not a call receiver. */
+    function toFixedReceiverStart(src, dot) {
+        var j = dot - 1;
+        while (j >= 0 && (src.charAt(j) === ' ' || src.charAt(j) === '\t' || src.charAt(j) === '\n')) j--;
+        if (j < 0) return -1;
+        if (src.charAt(j) === ')') {
+            var depth = 1;
+            j--;
+            while (j >= 0 && depth > 0) {
+                var c = src.charAt(j);
+                if (c === '"') return -1;
+                if (c === ')' || c === ']' || c === '}') depth++;
+                else if (c === '(' || c === '[' || c === '{') depth--;
+                j--;
+            }
+            if (depth !== 0) return -1;
+            while (j >= 0 && (src.charAt(j) === ' ' || src.charAt(j) === '\t')) j--;
+            while (j >= 0 && /[A-Za-z0-9_@]/.test(src.charAt(j))) j--;
+            return j + 1;
+        }
+        if (!/[A-Za-z0-9_.]/.test(src.charAt(j))) return -1;
+        while (j >= 0 && /[A-Za-z0-9_$.]/.test(src.charAt(j))) j--;
+        return j + 1;
+    }
+    /**
+     * OpenUI has no JavaScript Number() or method calls. Number(x).toFixed(n) parses as an
+     * unknown component, so a money cell renders as "$".
+     */
+    function rewriteJsNumbers(src) {
+        var i = 0, out = '';
+        while (i < src.length) {
+            if (src.charAt(i) === '"') {
+                var s = readStringToken(src, i);
+                out += s.text;
+                i = s.end;
+                continue;
+            }
+            if (src.substr(i, 9) === '.toFixed(') {
+                var call = readCall(src, i + 8);
+                var start = call ? toFixedReceiverStart(src, i) : -1;
+                if (call && start >= 0 && start < i) {
+                    var recv = src.slice(start, i).trim();
+                    var decimals = call.inner.trim() || '0';
+                    out = out.slice(0, out.length - (i - start)) + '@Round(' + recv + ', ' + decimals + ')';
+                    i = call.end;
+                    continue;
+                }
+            }
+            out += src.charAt(i);
+            i++;
+        }
+        var src2 = out;
+        i = 0;
+        out = '';
+        while (i < src2.length) {
+            if (src2.charAt(i) === '"') {
+                var str = readStringToken(src2, i);
+                out += str.text;
+                i = str.end;
+                continue;
+            }
+            if (src2.substr(i, 7) === 'Number(' && identBoundary(src2, i)) {
+                var num = readCall(src2, i + 6);
+                if (num && splitArgs(num.inner).length === 1) {
+                    out += '(' + splitArgs(num.inner)[0] + ')';
+                    i = num.end;
+                    continue;
+                }
+            }
+            out += src2.charAt(i);
+            i++;
+        }
+        return out;
+    }
+    /**
+     * Models often emit `$orders = Query(...)` and `$placed = @Count(...)`. `$` is mutable
+     * state: the initializer is stored raw, so the canvas prints the expression tree.
+     * Lift non-literal `$` declarations to ordinary names, and repair @If / @Map / a single
+     * component passed where an array is required.
+     */
+    function rewriteOpenUiLang(src) {
+        if (!src) return src || '';
+        try {
+            var text = rewriteJsNumbers(unquoteExprStrings(String(src)));
+            if (structuresBalanced(text)) text = rewriteCalls(text);
+            return rewriteLoopPluck(rewriteDollarComputes(text));
+        } catch (e) {
+            return String(src);
+        }
+    }
+    function argSpans(inner) {
+        var spans = [], depth = 0, start = 0, i = 0;
+        function push(from, to) {
+            var raw = inner.slice(from, to);
+            var lead = (raw.match(/^\s*/) || [''])[0].length;
+            var trail = (raw.match(/\s*$/) || [''])[0].length;
+            var a = from + lead, b = to - trail;
+            if (b < a) b = a;
+            spans.push({ start: a, end: b });
+        }
+        while (i < inner.length) {
+            var c = inner.charAt(i);
+            if (c === '"') { i = readStringToken(inner, i).end; continue; }
+            if (c === '(' || c === '[' || c === '{') depth++;
+            else if (c === ')' || c === ']' || c === '}') depth--;
+            else if (c === ',' && depth === 0) {
+                push(start, i);
+                start = i + 1;
+            }
+            i++;
+        }
+        push(start, inner.length);
+        return spans;
+    }
+    /**
+     * `Col("Customer", r.customerPartyId)` is empty: r exists only inside @Each.
+     * When every @Each uses the same array for that name, rewrite the bare member to array.field.
+     */
+    function rewriteLoopPluck(src) {
+        var byVar = Object.create(null);
+        var i = 0;
+        while (i < src.length) {
+            if (src.charAt(i) === '"') { i = readStringToken(src, i).end; continue; }
+            if (src.substr(i, 6) === '@Each(') {
+                var call = readCall(src, i + 5);
+                if (call) {
+                    var spans = argSpans(call.inner);
+                    if (spans.length >= 3) {
+                        var varTok = call.inner.slice(spans[1].start, spans[1].end);
+                        var varName = null;
+                        if (varTok.charAt(0) === '"' && varTok.charAt(varTok.length - 1) === '"')
+                            varName = varTok.slice(1, -1);
+                        if (varName && /^[A-Za-z_][A-Za-z0-9_]*$/.test(varName)) {
+                            var abs = i + 6;
+                            if (!byVar[varName]) byVar[varName] = [];
+                            byVar[varName].push({
+                                array: call.inner.slice(spans[0].start, spans[0].end),
+                                tStart: abs + spans[2].start,
+                                tEnd: abs + spans[2].end
+                            });
+                        }
+                    }
+                }
+                i += 6;
+                continue;
+            }
+            i++;
+        }
+        var usable = Object.create(null);
+        Object.keys(byVar).forEach(function(name) {
+            var list = byVar[name];
+            var array = list[0].array;
+            if (!list.every(function(e) { return e.array === array; })) return;
+            usable[name] = { array: array, ranges: list.map(function(e) { return [e.tStart, e.tEnd]; }) };
+        });
+        if (!Object.keys(usable).length) return src;
+        var out = '';
+        i = 0;
+        while (i < src.length) {
+            if (src.charAt(i) === '"') {
+                var s = readStringToken(src, i);
+                out += s.text;
+                i = s.end;
+                continue;
+            }
+            if (isIdentStart(src.charAt(i))) {
+                var id = readIdent(src, i);
+                var info = usable[id.name];
+                var prev = i > 0 ? src.charAt(i - 1) : '';
+                var boundary = !prev || !/[A-Za-z0-9_$.]/.test(prev);
+                var j = id.end;
+                while (src.charAt(j) === ' ' || src.charAt(j) === '\t') j++;
+                var inside = false;
+                if (info) {
+                    for (var r = 0; r < info.ranges.length; r++) {
+                        if (i >= info.ranges[r][0] && i < info.ranges[r][1]) { inside = true; break; }
+                    }
+                }
+                if (info && boundary && !inside && src.charAt(j) === '.') {
+                    out += info.array;
+                    i = id.end;
+                    continue;
+                }
+                out += src.slice(i, id.end);
+                i = id.end;
+                continue;
+            }
+            out += src.charAt(i);
+            i++;
+        }
+        return out;
+    }
+    root.rewriteOpenUiLang = rewriteOpenUiLang;
+    root.isOpenUiAst = isOpenUiAst;
+
     if (typeof Vue === 'undefined') return;
 
     Vue.component('assist-openui-node', {
@@ -231,6 +662,9 @@
                             throw err;
                         }
                         if (Array.isArray(parsed) && path.indexOf('/actions/') >= 0) {
+                            parsed = parsed.filter(function(row) {
+                                return !(row && row._moquiRowType === 'total');
+                            });
                             var total = r.headers && r.headers.get ? r.headers.get('X-Total-Count') : null;
                             parsed = { rows: parsed,
                                 totalCount: total != null && total !== '' ? Number(total) : parsed.length };
@@ -240,9 +674,28 @@
                 });
             },
             evaluationContext: function() {
-                var store = this._store, qm = this._qm;
-                return {
-                    getState: function(name) { return unwrapFieldValue(store.get(name)); },
+                var store = this._store, qm = this._qm, OpenUI = this._OpenUI;
+                var evaluating = Object.create(null);
+                var ctx = {
+                    getState: function(name) {
+                        if (evaluating[name]) return null;
+                        var value = store ? unwrapFieldValue(store.get(name)) : undefined;
+                        // `$placed = @Count(...)` is stored as the AST. Evaluate it, and let a
+                        // null `$orders` state slot fall through to the Query registered under that name.
+                        if (isOpenUiAst(value) && OpenUI) {
+                            evaluating[name] = true;
+                            try { return OpenUI.evaluate(value, ctx); }
+                            catch (e) { return null; }
+                            finally { delete evaluating[name]; }
+                        }
+                        if (value == null && qm) {
+                            var mut = qm.getMutationResult(name);
+                            if (mut) return mut;
+                            var qr = qm.getResult(name);
+                            if (qr != null) return qr;
+                        }
+                        return value;
+                    },
                     resolveRef: function(name) {
                         if (!qm) return null;
                         var mut = qm.getMutationResult(name);
@@ -250,11 +703,12 @@
                         return qm.getResult(name);
                     }
                 };
+                return ctx;
             },
             reparse: function() {
                 if (!this.ready || !this._parser) return;
                 var OpenUI = this._OpenUI;
-                var text = this.lang || '';
+                var text = rewriteOpenUiLang(this.lang || '');
                 var parseResult = null;
                 try { parseResult = this._parser.set(text); }
                 catch (e) {
@@ -353,7 +807,7 @@
                     return;
                 }
                 var plan = action;
-                if (plan && plan.steps) {
+                if (plan && plan.steps && plan.steps.length) {
                     var i = 0;
                     function next() {
                         if (i >= plan.steps.length) return;
@@ -415,10 +869,11 @@
                     next();
                     return;
                 }
+                // No resolvable @Run (the model often @Run's the form name). Submit the form values.
                 this.$emit('action', {
-                    type: 'continue_conversation',
+                    type: 'submit',
                     params: {},
-                    humanFriendlyMessage: userMessage,
+                    humanFriendlyMessage: userMessage || 'Submit',
                     formState: formPayload,
                     formName: formName
                 });
