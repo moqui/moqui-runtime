@@ -10,5 +10,11 @@ ${s.description}
 </#if>
 
 ${s.body!""}
+<#if s.lessons?has_content>
+Lessons (from earlier failures of this skill):
+<#list s.lessons as lesson>
+- ${lesson}
+</#list>
+</#if>
 </#list>
 </#if>

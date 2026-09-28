@@ -7,6 +7,8 @@ screens: [/apps/marble/Order/FindOrder, /apps/marble/Order/OrderDetail]
 ---
 # Create sales order
 
+Before this create: if the prompt lists a QuickSearch or QuickLookup actions path, GET it and create only when nothing matches.
+
 Never `/rest` or `/popc`. Use screen transitions (JSON under `/apps`).
 
 Dashboard Sales Orders → `/apps/marble/Order/FindOrder` `orderType=Sales`.

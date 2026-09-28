@@ -7,6 +7,8 @@ services: [org.moqui.impl.UserServices.create#UserAccount]
 ---
 # Create user account
 
+Before this create: if the prompt lists a QuickSearch or QuickLookup actions path, GET it and create only when nothing matches.
+
 `create#UserAccount` is `allow-remote=false`. Call it once with **`run_service`**. Do not also POST the screen for the same create.
 
 - Service: `org.moqui.impl.UserServices.create#UserAccount`

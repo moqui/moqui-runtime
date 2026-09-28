@@ -49,7 +49,7 @@
             <div class="assist-pane assist-canvas q-pa-sm column" style="height:100%">
                 <div v-if="pendingConfirm()" class="q-pa-md">
                     <div class="text-subtitle1">Confirm this action</div>
-                    <div class="text-body2 q-mb-md">{{ confirmSummary(pendingConfirm()) }}</div>
+                    <div class="text-body2 q-mb-md" style="white-space:pre-wrap">{{ confirmSummary(pendingConfirm()) }}</div>
                     <div class="q-gutter-sm">
                         <q-btn id="assist-confirm" unelevated color="primary" no-caps label="Confirm"
                                :disable="streaming" @click="confirmTool(true)"></q-btn>
@@ -580,7 +580,7 @@ module.exports = {
             if (this.pendingToolCalls.length) this.resumeChat(text);
             else this.chat(text);
         },
-        toolNames: function() { return ['find_skill', 'enter_sim', 'browse', 'request', 'write_ui', 'run_service']; },
+        toolNames: function() { return ['find_skill', 'enter_sim', 'browse', 'request', 'write_ui', 'run_service', 'pin']; },
         headers: function(stream) {
             var h = { 'Content-Type': 'application/json', 'X-CSRF-Token': this.csrf, Accept: stream ? 'text/event-stream' : 'application/json' };
             return h;
@@ -849,7 +849,30 @@ module.exports = {
             var line = call.name === 'run_service'
                 ? (args.serviceName || 'run_service')
                 : ((args.method || 'POST') + ' ' + (args.path || ''));
-            return (call.risk === 'irreversible' ? 'Irreversible. ' : '') + line;
+            var detail = this.confirmArgs(args);
+            return (call.risk === 'irreversible' ? 'Irreversible. ' : '') + line + (detail ? '\n' + detail : '');
+        },
+        confirmArgs: function(args) {
+            var lines = [];
+            function add(prefix, obj, depth) {
+                if (!obj || typeof obj !== 'object' || depth > 2) return;
+                Object.keys(obj).forEach(function(k) {
+                    if (k === 'method' || k === 'path' || k === 'serviceName') return;
+                    var v = obj[k];
+                    if (/password|secret|cardnumber|cvv|apikey|authorization/i.test(k)) {
+                        lines.push(prefix + k + ': (hidden)');
+                        return;
+                    }
+                    if (v && typeof v === 'object') add(prefix + k + '.', v, depth + 1);
+                    else if (v != null && v !== '') lines.push(prefix + k + ': ' + v);
+                });
+            }
+            add('', args.parameters || {}, 0);
+            add('', args.body || {}, 0);
+            add('', args.query || {}, 0);
+            var text = lines.join('\n');
+            if (text.length > 600) text = text.substring(0, 600) + '…';
+            return text;
         },
         confirmTool: function(ok) {
             var pending = this.pendingConfirm();
