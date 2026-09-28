@@ -1876,7 +1876,7 @@ Vue.component('m-chart', {
     data: function() { return { instance:null } },
     mounted: function() {
         var vm = this;
-        moqui.loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js', function(err) {
+        moqui.loadScript('/libs/Chart.js/Chart.min.js', function(err) {
             if (err) {
                 console.error("Error loading m-chart script: " + err);
                 return;
@@ -1905,7 +1905,7 @@ Vue.component('m-mermaid', {
     template: '<pre ref="mermaid" class="mermaid" :style="{height:height,width:width}"><slot></slot></pre>',
     mounted: function() {
         var vm = this;
-        moqui.loadScript('https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.3.0/mermaid.min.js', function(err) {
+        moqui.loadScript('/libs/mermaid/mermaid.min.js', function(err) {
             if (err) return;
             mermaid.init(vm.config, vm.$refs.mermaid);
         }, function() { return !!window.mermaid; });
@@ -1920,7 +1920,7 @@ Vue.component('m-ck-editor', {
     data: function() { return { destroyed:false, ckeditor:null } },
     mounted: function() {
         var vm = this;
-        moqui.loadScript('https://cdn.ckeditor.com/4.14.1/standard-all/ckeditor.js', function(err) {
+        moqui.loadScript('/libs/ckeditor/ckeditor.js', function(err) {
             if (err) return;
             if (vm.destroyed) return;
             var config = vm.config || {};
@@ -1970,14 +1970,14 @@ Vue.component('m-simple-mde', {
     data: function() { return { simplemde:null } },
     mounted: function() {
         var vm = this;
-        moqui.loadStylesheet('https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css');
-        moqui.loadScript('https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.js', function(err) {
+        moqui.loadStylesheet('/libs/simplemde/simplemde.min.css');
+        moqui.loadScript('/libs/simplemde/simplemde.min.js', function(err) {
             if (err) return;
-            // needed? forceSync:true
+            // needed? forceSync:true. Font Awesome is already local; do not fetch it.
             var fullConfig = Object.assign({
                 element: vm.$refs.area,
                 initialValue: vm.value
-            }, vm.config);
+            }, vm.config, { autoDownloadFontAwesome: false });
             var editor = vm.simplemde = new SimpleMDE(fullConfig);
 
             editor.codemirror.on('change', function(instance, changeObj) {

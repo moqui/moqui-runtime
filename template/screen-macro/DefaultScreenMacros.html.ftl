@@ -2228,7 +2228,7 @@ a => A, d => D, y => Y
 <textarea class="form-control" name="<@fieldName .node/>" id="${textAreaId}" <#if .node["@cols"]?has_content>cols="${.node["@cols"]}"<#else>style="width:100%;"</#if> rows="${.node["@rows"]!"3"}"<#if (.node["@read-only"]!"false") == "true"> readonly="readonly"</#if><#if .node["@maxlength"]?has_content> maxlength="${.node["@maxlength"]}"</#if><#if .node?parent["@tooltip"]?has_content> data-toggle="tooltip" title="${ec.getResource().expand(.node?parent["@tooltip"], "")}"</#if><#if ownerForm?has_content> form="${ownerForm}"</#if>>${sri.getFieldValueString(.node)?html}</textarea>
     <#if editorType == "html">
         <#assign editorThemeCssList = sri.getThemeValues("STRT_STYLESHEET", editorScreenThemeId)>
-        <script src="https://cdn.ckeditor.com/4.14.1/standard-all/ckeditor.js" type="text/javascript"></script>
+        <script src="/libs/ckeditor/ckeditor.js" type="text/javascript"></script>
         <script>
         CKEDITOR.dtd.$removeEmpty['i'] = false;
         CKEDITOR.config.autoParagraph = false;
@@ -2238,8 +2238,8 @@ a => A, d => D, y => Y
             width:'100%', height:'600px', removeButtons:'Image,Save,NewPage,Preview' }).on('change', function(evt) { this.updateElement(); });
         </script>
     <#elseif editorType == "md">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css" type="text/css"/>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.js" type="text/javascript"></script>
+        <link rel="stylesheet" href="/libs/simplemde/simplemde.min.css" type="text/css"/>
+        <script src="/libs/simplemde/simplemde.min.js" type="text/javascript"></script>
         <script>new SimpleMDE({ element: document.getElementById("${textAreaId}"), indentWithTabs:false, autoDownloadFontAwesome:false, autofocus:true, spellChecker:false, forceSync:true });</script>
     </#if>
 </#macro>

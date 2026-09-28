@@ -47,7 +47,17 @@
         </template>
         <template v-slot:after>
             <div class="assist-pane assist-canvas q-pa-sm column" style="height:100%">
-                <div v-if="!schema" class="text-grey-7 q-pa-md">
+                <div v-if="pendingConfirm()" class="q-pa-md">
+                    <div class="text-subtitle1">Confirm this action</div>
+                    <div class="text-body2 q-mb-md">{{ confirmSummary(pendingConfirm()) }}</div>
+                    <div class="q-gutter-sm">
+                        <q-btn id="assist-confirm" unelevated color="primary" no-caps label="Confirm"
+                               :disable="streaming" @click="confirmTool(true)"></q-btn>
+                        <q-btn id="assist-confirm-cancel" outline no-caps label="Cancel"
+                               :disable="streaming" @click="confirmTool(false)"></q-btn>
+                    </div>
+                </div>
+                <div v-if="!schema && !pendingConfirm()" class="text-grey-7 q-pa-md">
                     Describe what you need. Assist will build a screen here.</div>
                 <div v-else class="col overflow-auto">
                     <div class="text-h6">{{ schema.title }}</div>
@@ -824,6 +834,30 @@ module.exports = {
             } else {
                 this.finishSubmit(buttonId, []);
             }
+        },
+        pendingConfirm: function() {
+            var call = this.pendingToolCalls && this.pendingToolCalls[0];
+            if (!call || (call.confirm !== true && call.confirm !== 'true')) return null;
+            if (call.name !== 'request' && call.name !== 'run_service') return null;
+            return call;
+        },
+        confirmSummary: function(call) {
+            if (!call) return '';
+            var args = call.arguments;
+            if (typeof args === 'string') { try { args = JSON.parse(args); } catch (e) { args = {}; } }
+            args = args || {};
+            var line = call.name === 'run_service'
+                ? (args.serviceName || 'run_service')
+                : ((args.method || 'POST') + ' ' + (args.path || ''));
+            return (call.risk === 'irreversible' ? 'Irreversible. ' : '') + line;
+        },
+        confirmTool: function(ok) {
+            var pending = this.pendingConfirm();
+            if (!pending || !this.conversationId || this.streaming) return;
+            var body = { profile: 'assist', tools: this.toolNames(), stream: true,
+                forceSkillUse: !!this.forceSkillUse,
+                toolResults: [{ id: pending.id, name: pending.name, content: { confirmed: !!ok } }] };
+            this.runSse(this.llmBase + '/chat/' + encodeURIComponent(this.conversationId) + '/resume', body);
         },
         finishSubmit: function(buttonId, actionResults) {
             var pending = this.pendingToolCalls[0];

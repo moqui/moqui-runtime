@@ -75,7 +75,16 @@ def fileMap = [
     "typeahead.js/0.11.1/typeahead.jquery.min.js":"",
 
     "vue/2.7.14/vue.js":"",
-    "vue/2.7.14/vue.min.js":""
+    "vue/2.7.14/vue.min.js":"",
+
+    "Chart.js/2.9.3/Chart.min.js":"",
+    "mermaid/9.3.0/mermaid.min.js":"",
+    "simplemde/1.11.2/simplemde.min.js":"",
+    "simplemde/1.11.2/simplemde.min.css":"",
+    "marked/18.0.10/lib/marked.umd.min.js":"marked/marked.umd.min.js",
+    "dompurify/3.4.14/purify.min.js":"",
+    "highlight.js/11.11.2/highlight.min.js":"",
+    "highlight.js/11.11.2/styles/github-dark.min.css":""
 ]
 
 def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
@@ -114,6 +123,27 @@ task downloadFiles { doLast {
         logger.lifecycle("Downloading ${sourceUrl} to ${targetFile.absolutePath}")
         targetFile.getParentFile().mkdirs()
         ant.get(src: sourceUrl, dest: targetFile)
+    }
+
+    // CKEditor 4.14.1 (the build cdn.ckeditor.com/4.14.1/standard-all/ckeditor.js actually serves:
+    // version string "4.14.1 (Standard)"). ckeditor.js then loads plugins, skin, and lang beside itself.
+    // The npm package is that build plus those files. The old preset zip URL no longer exists.
+    File ckeditorJs = file(libsPath + "/ckeditor/ckeditor.js")
+    if (!ckeditorJs.exists()) {
+        File tgz = file("${buildDir}/ckeditor4-4.14.1.tgz")
+        tgz.getParentFile().mkdirs()
+        String ckUrl = "https://registry.npmjs.org/ckeditor4/-/ckeditor4-4.14.1.tgz"
+        logger.lifecycle("Downloading ${ckUrl}")
+        ant.get(src: ckUrl, dest: tgz)
+        File exploded = file("${buildDir}/ckeditor4-4.14.1")
+        ant.untar(src: tgz, dest: exploded, compression: "gzip")
+        File destDir = file(libsPath + "/ckeditor")
+        ant.copy(todir: destDir) {
+            fileset(dir: "${exploded}/package") {
+                exclude(name: "samples/**")
+                exclude(name: "adapters/**")
+            }
+        }
     }
 } }
 

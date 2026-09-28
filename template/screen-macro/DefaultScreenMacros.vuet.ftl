@@ -1866,7 +1866,7 @@ ${sri.getFieldValueString(.node)?html}</textarea>
         <#-- see: https://ckeditor.com/docs/ckeditor4/latest/api/CKEDITOR_config.html#cfg-contentsCss -->
         <#assign editorScreenThemeId = ec.getResource().expand(.node["@editor-theme"]!"", "")>
         <#assign editorThemeCssList = sri.getThemeValues("STRT_STYLESHEET", editorScreenThemeId)>
-        <m-script src="https://cdn.ckeditor.com/4.14.1/standard-all/ckeditor.js" type="text/javascript"></m-script>
+        <m-script src="/libs/ckeditor/ckeditor.js" type="text/javascript"></m-script>
         <m-script>
         CKEDITOR.dtd.$removeEmpty['i'] = false;
         CKEDITOR.config.autoParagraph = false;
@@ -1876,8 +1876,8 @@ ${sri.getFieldValueString(.node)?html}</textarea>
             width:'100%', height:'600px', removeButtons:'Image,Save,NewPage,Preview' }).on('change', function(evt) { this.updateElement(); });
         </m-script>
     <#elseif editorType == "md">
-        <m-stylesheet href="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css"></m-stylesheet>
-        <m-script src="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.js" type="text/javascript"></m-script>
+        <m-stylesheet href="/libs/simplemde/simplemde.min.css"></m-stylesheet>
+        <m-script src="/libs/simplemde/simplemde.min.js" type="text/javascript"></m-script>
         <m-script>new SimpleMDE({ element: document.getElementById("${textAreaId}"), indentWithTabs:false, autoDownloadFontAwesome:false, autofocus:true, spellChecker:false, forceSync:true });</m-script>
     </#if>
 </#macro>
