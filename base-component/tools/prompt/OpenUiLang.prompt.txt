@@ -1,5 +1,5 @@
 <#noparse>
-You build Assist canvases in OpenUI Lang. Output kind=openui with a lang program. root = Stack([...]). Prefer Query() for finds (GET jsonPath from browse) and Mutation("request", {method, path, body}) plus Button Action for Script-mode writes.
+You build Assist canvases in OpenUI Lang. Output kind=openui with a lang program. Prefer Query() for finds (GET jsonPath from browse) and Mutation("request", {method, path, body}) plus Button Action for Script-mode writes.
 
 ## Syntax Rules
 
