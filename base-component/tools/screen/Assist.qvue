@@ -46,11 +46,11 @@
             </div>
         </template>
         <template v-slot:after>
-            <div class="assist-pane assist-canvas q-pa-sm column" style="height:100%">
+            <div class="assist-pane assist-canvas column" style="height:100%">
                 <div v-if="pendingConfirm()" class="q-pa-md">
                     <div class="text-subtitle1">Confirm this action</div>
                     <div class="text-body2 q-mb-md" style="white-space:pre-wrap">{{ confirmSummary(pendingConfirm()) }}</div>
-                    <div class="q-gutter-sm">
+                    <div class="assist-actions">
                         <q-btn id="assist-confirm" unelevated color="primary" no-caps label="Confirm"
                                :disable="streaming" @click="confirmTool(true)"></q-btn>
                         <q-btn id="assist-confirm-cancel" outline no-caps label="Cancel"
@@ -59,9 +59,10 @@
                 </div>
                 <div v-if="!schema && !pendingConfirm()" class="text-grey-7 q-pa-md">
                     Describe what you need. Assist will build a screen here.</div>
-                <div v-else class="col overflow-auto">
+                <div v-else class="col overflow-auto assist-canvas-body">
                     <div class="text-h6">{{ schema.title }}</div>
                     <div class="text-body2 q-mb-md">{{ schema.instruction }}</div>
+                    <div v-if="schema.langError && !showOpenUi && !showFormWidgets" class="text-negative q-mb-md">{{ schema.langError }}</div>
                     <div v-if="(schema.actions||[]).length" class="q-mb-md">
                         <div class="text-subtitle2">On submit</div>
                         <ul class="q-pl-md">
@@ -127,14 +128,14 @@
                         </div>
                         <div v-else class="text-body2"><span class="text-grey-7">{{ f.label || f.name }}:</span> {{ fieldValues[f.name] }}</div>
                     </div>
-                    <div v-if="showParentSubmit" class="q-gutter-sm q-mt-md">
+                    <div v-if="showParentSubmit" class="assist-actions">
                         <q-btn id="assist-submit" unelevated color="primary" no-caps
-                               :label="primaryLabel" :disable="!canSubmitScript || streaming"
+                               :label="primaryLabel" :disable="streaming"
                                @click="submitCanvas(primaryId)"></q-btn>
                         <q-btn outline no-caps :label="schema.cancelLabel || 'Cancel'"
                                @click="newSession"></q-btn>
                     </div>
-                    <div v-else class="q-gutter-sm q-mt-md">
+                    <div v-else class="assist-actions">
                         <q-btn outline no-caps :label="schema.cancelLabel || 'Cancel'"
                                @click="newSession"></q-btn>
                     </div>
@@ -210,6 +211,63 @@ function scalarValue(v) {
         return '';
     }
     return unescapeHtml(String(v));
+}
+function assistDateKind(type) {
+    return (type === 'date' || type === 'time') ? type : 'date-time';
+}
+function assistDateMatches(text, kind) {
+    if (kind === 'date') return /^\d{4}-\d{2}-\d{2}$/.test(text);
+    if (kind === 'time') return /^\d{2}:\d{2}$/.test(text);
+    return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(text);
+}
+function assistPad(n) { return (n < 10 ? '0' : '') + n; }
+function assistFormatDateMs(ms, kind) {
+    var d = new Date(ms);
+    if (isNaN(d.getTime())) return '';
+    if (kind === 'time') return assistPad(d.getHours()) + ':' + assistPad(d.getMinutes());
+    var day = d.getFullYear() + '-' + assistPad(d.getMonth() + 1) + '-' + assistPad(d.getDate());
+    if (kind === 'date') return day;
+    return day + ' ' + assistPad(d.getHours()) + ':' + assistPad(d.getMinutes());
+}
+function assistEpochMillis(text) {
+    if (!/^-?\d{10,13}$/.test(text)) return null;
+    var n = Number(text);
+    if (!isFinite(n)) return null;
+    var abs = Math.abs(n);
+    if (abs >= 100000000000) return n;
+    if (abs >= 1000000000) return n * 1000;
+    return null;
+}
+function assistParseDateText(text) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/.exec(text);
+    if (m) {
+        var d = new Date(+m[1], +m[2] - 1, +m[3], m[4] != null ? +m[4] : 0, m[5] != null ? +m[5] : 0, m[6] != null ? +m[6] : 0);
+        if (!isNaN(d.getTime())) return d.getTime();
+    }
+    var t = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(text);
+    if (t) {
+        var clock = new Date();
+        clock.setHours(+t[1], +t[2], t[3] != null ? +t[3] : 0, 0);
+        return clock.getTime();
+    }
+    if (text.indexOf('T') > 0 || /Z$|[+-]\d{2}:\d{2}$/.test(text)) {
+        var p = Date.parse(text);
+        if (!isNaN(p)) return p;
+    }
+    return null;
+}
+/** m-date-time mask is YYYY-MM-DD HH:mm. Epoch millis/seconds and now become that string in the browser zone. */
+function assistFormatDateValue(value, type) {
+    if (value == null || value === '') return '';
+    if (typeof value === 'object') return '';
+    var kind = assistDateKind(type);
+    var text = String(value).trim();
+    if (text.toLowerCase() === 'now') return assistFormatDateMs(Date.now(), kind);
+    if (assistDateMatches(text, kind)) return text;
+    var ms = assistEpochMillis(text);
+    if (ms == null) ms = assistParseDateText(text);
+    if (ms == null) return text;
+    return assistFormatDateMs(ms, kind);
 }
 function subst(str, bag) {
     if (!str || !bag) return str;
@@ -478,9 +536,16 @@ module.exports = {
             ];
         },
         writeModeHint: function() {
-            var mode = this.writeMode === 'script'
-                ? 'This screen runs the listed actions when you click.'
-                : 'Assist runs the listed actions after you click.';
+            var acts = (this.schema && this.schema.actions) || [];
+            var openui = this.schema && this.schema.kind === 'openui';
+            var mode;
+            if (this.writeMode === 'script') {
+                mode = (openui || acts.length)
+                    ? 'This screen runs the listed actions when you click.'
+                    : 'A click sends this form to Assist, which runs the write.';
+            } else {
+                mode = 'Assist runs the listed actions after you click.';
+            }
             if (!this.forceSkillUse) return mode;
             return mode + ' Force Skill Use: select a skill or enter sim before other tools.';
         },
@@ -489,17 +554,20 @@ module.exports = {
             return root + '/llm/v1';
         },
         csrf: function() { return (this.$root && this.$root.moquiSessionToken) || ''; },
-        canSubmitScript: function() {
-            if (this.schema && this.schema.kind === 'openui') return true;
-            var acts = this.schema && this.schema.actions;
-            return this.writeMode !== 'script' || (acts && acts.length);
-        },
         showOpenUi: function() {
             return !!(this.schema && this.schema.kind === 'openui' && this.schema.lang);
         },
+        /** kind=openui with fields, actions, or submitLabel and no lang is a form the model mislabeled. */
+        formShapedOpenUi: function() {
+            var s = this.schema;
+            if (!s || s.kind !== 'openui' || s.lang) return false;
+            var fields = s.fields || [];
+            var acts = s.actions || [];
+            return fields.length > 0 || acts.length > 0 || !!s.submitLabel;
+        },
         showParentSubmit: function() {
             if (!this.schema) return false;
-            if (this.schema.kind === 'openui') return false;
+            if (this.schema.kind === 'openui' && !this.formShapedOpenUi) return false;
             return true;
         },
         visibleFields: function() {
@@ -523,7 +591,7 @@ module.exports = {
         showFormWidgets: function() {
             if (!this.schema || this.showVueSfc || this.showOpenUi) return false;
             if (this.schema.kind === 'vue-sfc') return this.vueSfcFailed;
-            if (this.schema.kind === 'openui') return false;
+            if (this.schema.kind === 'openui' && !this.formShapedOpenUi) return false;
             return true;
         }
     },
@@ -601,9 +669,15 @@ module.exports = {
             var h = { 'Content-Type': 'application/json', 'X-CSRF-Token': this.csrf, Accept: stream ? 'text/event-stream' : 'application/json' };
             return h;
         },
+        chatFlags: function() {
+            return {
+                forceSkillUse: !!this.forceSkillUse,
+                writeMode: this.writeMode === 'agent' ? 'agent' : 'script'
+            };
+        },
         chat: function(text) {
-            var body = { profile: 'assist', purpose: 'assist', canvasId: this.canvasId,
-                user: text, tools: this.toolNames(), stream: true, forceSkillUse: !!this.forceSkillUse };
+            var body = Object.assign({ profile: 'assist', purpose: 'assist', canvasId: this.canvasId,
+                user: text, tools: this.toolNames(), stream: true }, this.chatFlags());
             if (this.conversationId) body.conversationId = this.conversationId;
             this.runSse(this.llmBase + '/chat', body);
         },
@@ -612,9 +686,9 @@ module.exports = {
             if (!pending) { this.chat(text); return; }
             var content = this.writeUiResult(false, null);
             content.userMessage = text;
-            var body = { profile: 'assist', tools: this.toolNames(), user: text, stream: true,
-                forceSkillUse: !!this.forceSkillUse,
-                toolResults: [{ id: pending.id, name: pending.name || 'write_ui', content: content }] };
+            var body = Object.assign({ profile: 'assist', tools: this.toolNames(), user: text, stream: true,
+                toolResults: [{ id: pending.id, name: pending.name || 'write_ui', content: content }] },
+                this.chatFlags());
             this.runSse(this.llmBase + '/chat/' + encodeURIComponent(this.conversationId) + '/resume', body);
         },
         writeUiResult: function(submitted, button) {
@@ -653,12 +727,16 @@ module.exports = {
                 flds[fi].label = unescapeHtml(flds[fi].label);
             this.schema = schema;
             if (schema.sfcError) assistNotify(schema.sfcError, 'error');
+            if (schema.langError && schema.kind === 'openui' && !schema.lang)
+                assistNotify(schema.langError, 'error');
             var next = {};
             var fields = schema.fields || [];
             for (var i = 0; i < fields.length; i++) {
                 var f = fields[i];
                 if (!f || !f.name) continue;
                 if (prevDirty[f.name]) next[f.name] = prevVals[f.name];
+                else if (f.widget === 'date-time')
+                    next[f.name] = assistFormatDateValue(scalarValue(f.defaultValue), f.widgetType || 'date-time');
                 else next[f.name] = scalarValue(f.defaultValue);
             }
             Object.keys(prevVals).forEach(function(k) {
@@ -725,7 +803,7 @@ module.exports = {
             if (!errors || !errors.length) return;
             var critical = errors.filter(function(e) {
                 return e && (e.code === 'unknown-component' || e.code === 'parse-exception'
-                    || e.code === 'parse-failed' || e.code === 'type-mismatch');
+                    || e.code === 'parse-failed' || e.code === 'type-mismatch' || e.code === 'no-root');
             });
             if (critical.length)
                 assistNotify(critical[0].message || 'OpenUI parse error', 'warning');
@@ -841,14 +919,11 @@ module.exports = {
         },
         submitCanvas: function(buttonId) {
             if (this.streaming) return;
-            if (this.writeMode === 'script' && !this.canSubmitScript) {
-                assistNotify('No scripted actions on this screen. Switch to Agent or wait for actions.', 'warning');
-                return;
-            }
             var vm = this;
-            assistNotify(this.writeMode === 'script'
-                ? 'Running listed actions…' : 'Submitted — Assist is working…', 'info');
-            if (this.writeMode === 'script') {
+            var acts = (this.schema && this.schema.actions) || [];
+            var runActions = this.writeMode === 'script' && acts.length;
+            assistNotify(runActions ? 'Running listed actions…' : 'Submitted — Assist is working…', 'info');
+            if (runActions) {
                 this.runScriptActions().then(function(actionResults) {
                     assistNotify('Actions finished; Assist is reviewing results…', 'info');
                     vm.finishSubmit(buttonId, actionResults);
@@ -902,9 +977,9 @@ module.exports = {
         confirmTool: function(ok) {
             var pending = this.pendingConfirm();
             if (!pending || !this.conversationId || this.streaming) return;
-            var body = { profile: 'assist', tools: this.toolNames(), stream: true,
-                forceSkillUse: !!this.forceSkillUse,
-                toolResults: [{ id: pending.id, name: pending.name, content: { confirmed: !!ok } }] };
+            var body = Object.assign({ profile: 'assist', tools: this.toolNames(), stream: true,
+                toolResults: [{ id: pending.id, name: pending.name, content: { confirmed: !!ok } }] },
+                this.chatFlags());
             this.runSse(this.llmBase + '/chat/' + encodeURIComponent(this.conversationId) + '/resume', body);
         },
         finishSubmit: function(buttonId, actionResults) {
@@ -915,9 +990,9 @@ module.exports = {
             }
             var content = this.writeUiResult(true, buttonId);
             content.actionResults = actionResults || [];
-            var body = { profile: 'assist', tools: this.toolNames(), stream: true,
-                forceSkillUse: !!this.forceSkillUse,
-                toolResults: [{ id: pending.id, name: pending.name || 'write_ui', content: content }] };
+            var body = Object.assign({ profile: 'assist', tools: this.toolNames(), stream: true,
+                toolResults: [{ id: pending.id, name: pending.name || 'write_ui', content: content }] },
+                this.chatFlags());
             this.runSse(this.llmBase + '/chat/' + encodeURIComponent(this.conversationId) + '/resume', body);
         },
         runScriptActions: function() {
@@ -1153,4 +1228,7 @@ module.exports = {
 .assist-root { min-height: 60vh; }
 .assist-pane { height: 100%; overflow: hidden; }
 .assist-chat { border-right: 1px solid rgba(0,0,0,0.08); }
+/* Gutter classes use a negative margin, which overflow:auto clips. Gap keeps the first control's border inside the scrollport. */
+.assist-canvas-body { padding: 12px 16px 24px; box-sizing: border-box; }
+.assist-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
 </style>

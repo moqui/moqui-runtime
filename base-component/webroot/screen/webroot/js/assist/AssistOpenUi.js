@@ -109,6 +109,47 @@
         }
         return depth === 0;
     }
+    /**
+     * Query("request", {method, path, query:{...}, {rows:[]}) is missing the }
+     * that closes the options object. The parser then swallows root and reports
+     * no error, so the fetch runs and the canvas stays blank. A comma whose
+     * innermost opener is { and whose next token is { is that keyless value.
+     */
+    function closeObjectBeforeBareObject(src) {
+        var out = '', stack = [], i = 0;
+        while (i < src.length) {
+            var c = src.charAt(i);
+            if (c === '"') {
+                var s = readStringToken(src, i);
+                out += s.text;
+                i = s.end;
+                continue;
+            }
+            if (c === ',' && stack.length && stack[stack.length - 1] === '{') {
+                var j = i + 1;
+                while (src.charAt(j) === ' ' || src.charAt(j) === '\t' || src.charAt(j) === '\n' || src.charAt(j) === '\r') j++;
+                if (src.charAt(j) === '{') {
+                    out += '}';
+                    stack.pop();
+                }
+            }
+            if (c === '(' || c === '[' || c === '{') stack.push(c);
+            else if ((c === ')' || c === ']' || c === '}') && stack.length) stack.pop();
+            out += c;
+            i++;
+        }
+        return out;
+    }
+    function balanceBareObjects(src) {
+        var text = src, n = 0;
+        while (n < 8 && !structuresBalanced(text)) {
+            var next = closeObjectBeforeBareObject(text);
+            if (next === text) break;
+            text = next;
+            n++;
+        }
+        return text;
+    }
     function isIdentStart(c) {
         return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c === '_';
     }
@@ -358,6 +399,7 @@
         if (!src) return src || '';
         try {
             var text = rewriteJsNumbers(unquoteExprStrings(String(src)));
+            if (!structuresBalanced(text)) text = balanceBareObjects(text);
             if (structuresBalanced(text)) text = rewriteCalls(text);
             return rewriteLoopPluck(rewriteDollarComputes(text));
         } catch (e) {
@@ -529,7 +571,12 @@
         },
         computed: {
             isStreaming: function() { return !!this.streaming; },
-            library: function() { return root.AssistOpenUiLibrary; }
+            library: function() { return root.AssistOpenUiLibrary; },
+            rootMessage: function() {
+                var errs = this.parseErrors || [];
+                if (errs.length && errs[0] && errs[0].message) return errs[0].message;
+                return 'This screen has no root to render.';
+            }
         },
         created: function() {
             this._lastStoreInitKey = '';
@@ -762,6 +809,10 @@
                 }
                 if (!res.root) {
                     this.evaluatedRoot = null;
+                    if (!errors.length && !this.streaming) {
+                        errors = [{ source: 'parser', code: 'no-root',
+                            message: 'OpenUI program has no root. A call is usually missing } before {rows:[].' }];
+                    }
                     this.parseErrors = errors;
                     this.$emit('error', errors);
                     return;
@@ -885,7 +936,7 @@
                 '<div v-else-if="!ready" class="text-grey-7 q-pa-sm">Loading OpenUI…</div>' +
                 '<div v-else-if="isQueryLoading" class="text-caption text-grey-7 q-mb-sm">Loading data…</div>' +
                 '<assist-openui-node v-if="evaluatedRoot" :node="evaluatedRoot"></assist-openui-node>' +
-                '<div v-else-if="lang && !streaming" class="text-grey-7 q-pa-sm">Nothing to render yet.</div>' +
+                '<div v-else-if="lang && !streaming" class="text-grey-7 q-pa-sm">{{ rootMessage }}</div>' +
             '</div>'
     });
 

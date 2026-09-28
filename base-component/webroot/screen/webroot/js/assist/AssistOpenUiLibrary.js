@@ -31,6 +31,63 @@
     function truthy(v) {
         return v === true || v === 'true' || v === 'wrap' || v === 1 || v === '1';
     }
+    function assistDateKind(type) {
+        return (type === 'date' || type === 'time') ? type : 'date-time';
+    }
+    function assistDateMatches(text, kind) {
+        if (kind === 'date') return /^\d{4}-\d{2}-\d{2}$/.test(text);
+        if (kind === 'time') return /^\d{2}:\d{2}$/.test(text);
+        return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(text);
+    }
+    function assistPad(n) { return (n < 10 ? '0' : '') + n; }
+    function assistFormatDateMs(ms, kind) {
+        var d = new Date(ms);
+        if (isNaN(d.getTime())) return '';
+        if (kind === 'time') return assistPad(d.getHours()) + ':' + assistPad(d.getMinutes());
+        var day = d.getFullYear() + '-' + assistPad(d.getMonth() + 1) + '-' + assistPad(d.getDate());
+        if (kind === 'date') return day;
+        return day + ' ' + assistPad(d.getHours()) + ':' + assistPad(d.getMinutes());
+    }
+    function assistEpochMillis(text) {
+        if (!/^-?\d{10,13}$/.test(text)) return null;
+        var n = Number(text);
+        if (!isFinite(n)) return null;
+        var abs = Math.abs(n);
+        if (abs >= 100000000000) return n;
+        if (abs >= 1000000000) return n * 1000;
+        return null;
+    }
+    function assistParseDateText(text) {
+        var m = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/.exec(text);
+        if (m) {
+            var d = new Date(+m[1], +m[2] - 1, +m[3], m[4] != null ? +m[4] : 0, m[5] != null ? +m[5] : 0, m[6] != null ? +m[6] : 0);
+            if (!isNaN(d.getTime())) return d.getTime();
+        }
+        var t = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(text);
+        if (t) {
+            var clock = new Date();
+            clock.setHours(+t[1], +t[2], t[3] != null ? +t[3] : 0, 0);
+            return clock.getTime();
+        }
+        if (text.indexOf('T') > 0 || /Z$|[+-]\d{2}:\d{2}$/.test(text)) {
+            var p = Date.parse(text);
+            if (!isNaN(p)) return p;
+        }
+        return null;
+    }
+    /** m-date-time mask is YYYY-MM-DD HH:mm. Epoch millis/seconds and now become that string in the browser zone. */
+    function assistFormatDateValue(value, type) {
+        if (value == null || value === '') return '';
+        if (typeof value === 'object') return '';
+        var kind = assistDateKind(type);
+        var text = String(value).trim();
+        if (text.toLowerCase() === 'now') return assistFormatDateMs(Date.now(), kind);
+        if (assistDateMatches(text, kind)) return text;
+        var ms = assistEpochMillis(text);
+        if (ms == null) ms = assistParseDateText(text);
+        if (ms == null) return text;
+        return assistFormatDateMs(ms, kind);
+    }
     /** Vue 2 mustache JSON.stringifies plain objects, which dumps an unevaluated OpenUI AST onto the canvas. */
     function formatOpenUiText(v) {
         if (v == null) return '';
@@ -256,9 +313,12 @@
                 var t = (this.props && this.props.type) || 'date-time';
                 if (t === 'date' || t === 'time' || t === 'date-time') return t;
                 return 'date-time';
+            },
+            displayValue: function() {
+                return assistFormatDateValue(this.fieldValue, this.dateType);
             }
         },
-        template: '<m-date-time :name="fieldName || \'dt\'" :label="fieldLabel" :type="dateType" :value="fieldValue" @input="onFieldInput"></m-date-time>'
+        template: '<m-date-time :name="fieldName || \'dt\'" :label="fieldLabel" :type="dateType" :value="displayValue" @input="onFieldInput"></m-date-time>'
     };
     var Lookup = {
         mixins: [fieldMixin('Lookup')],
@@ -570,9 +630,9 @@
             render: function(h) {
                 var p = this.props || {};
                 var dir = p.direction === 'row' ? 'row' : 'column';
-                var gap = p.gap === 's' ? 'q-gutter-sm' : (p.gap === 'l' ? 'q-gutter-lg' : 'q-gutter-md');
+                var gap = p.gap === 's' ? '8px' : (p.gap === 'l' ? '24px' : '16px');
                 var wrap = truthy(p.wrap) ? ' wrap' : '';
-                return h('div', { class: dir + ' ' + gap + wrap }, this.renderNode(p.children));
+                return h('div', { class: dir + wrap, style: { gap: gap } }, this.renderNode(p.children));
             }
         },
         Card: {
@@ -715,7 +775,7 @@
                 var submit = p.submit ? this.renderNode(p.submit) : null;
                 var body = kids;
                 if (submit) body = kids.concat([h('div', { class: 'q-mt-md' }, asArray(submit))]);
-                return h('div', { class: 'column q-gutter-sm' }, body);
+                return h('div', { class: 'column', style: { gap: '8px' } }, body);
             }
         },
         FormControl: {
@@ -965,7 +1025,7 @@
         Buttons: {
             props: ['props', 'renderNode'],
             render: function(h) {
-                return h('div', { class: 'q-gutter-sm' }, this.renderNode(this.props && this.props.children));
+                return h('div', { class: 'row', style: { gap: '8px' } }, this.renderNode(this.props && this.props.children));
             }
         },
         Tabs: {
@@ -1022,5 +1082,6 @@
     }
 
     root.AssistOpenUiLibrary = library;
+    root.assistFormatDateValue = assistFormatDateValue;
     root.loadAssistOpenUiSpec = loadSpec;
 })(typeof window !== 'undefined' ? window : this);

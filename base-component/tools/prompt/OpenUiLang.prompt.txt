@@ -78,7 +78,7 @@ RadioGroup(name: string, value?: any, items: any[], label?: string) — Radio se
 RadioItem(value: string, label: string) — Radio option.
 Switch(name: string, value?: any, label?: string) — Boolean toggle. Switch(name, $name, label).
 Slider(name: string, value?: any, min?: number, max?: number, label?: string) — Numeric slider. min default 0, max default 100.
-DateTime(name: string, value?: any, type?: string, label?: string) — Date/time. DateTime(name, $name, type?). type: date, time, or date-time.
+DateTime(name: string, value?: any, type?: string, label?: string) — Date/time. DateTime(name, $name, type?). type: date, time, or date-time. Value is `YYYY-MM-DD HH:mm`, `YYYY-MM-DD`, `HH:mm`, or `now` in the session time zone. Never a millisecond count. JSON date fields are epoch millis; the readable value is `*_display`. When the user did not name an approve or place time, use `now`.
 DatePeriod(name: string, label?: string, type?: string) — Find period/range. Writes $name_period, $name_poffset, $name_pdate, $name_from, $name_thru for Query args.
 Lookup(name: string, value?: any, optionsUrl: string, valueField?: string, labelField?: string, dependsOn?: any, label?: string) — Server-search dropdown. Lookup(name, $name, optionsUrl, valueField?, labelField?, dependsOn?). optionsUrl is a same-origin path from browse (not /qapps).
 Display(text?: string, valueUrl?: string, label?: string) — Read-only value. Display(text) or Display(text, valueUrl).
@@ -133,7 +133,9 @@ data = Query("request", {method:"GET", path:"/apps/.../actions/List", query:{nam
 
 - First arg: tool name. The only tool is `request`.
 - Second arg: arguments object (may reference $variables — re-fetches automatically on change). For `request`: method, path, query, body.
-- Third arg: default data shown before the fetch resolves. Form-list results are `{rows, totalCount}`; use `{rows:[]}`.
+- Third arg: default data shown before the fetch resolves. Form-list results are `{rows, totalCount}`; use `{rows:[]}`. It is the next argument, after the options object's closing `}`.
+  WRONG: `Query("request", {method:"GET", path:"/apps/.../actions/List", query:{name:$q}, {rows:[]})`
+  RIGHT: `Query("request", {method:"GET", path:"/apps/.../actions/List", query:{name:$q}}, {rows:[]})`
 - Fourth arg (optional): refresh interval in seconds (e.g. 30 for auto-refresh every 30s)
 - Use dot access on results: `data.rows.field` (array pluck), `data.totalCount`
 - Query results must use regular identifiers: `data = Query(...)`, NOT `$data = Query(...)`
