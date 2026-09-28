@@ -10,7 +10,9 @@
     <default-property name="entity_empty_db_load" value="all"/>
     <default-property name="entity_lock_track" value="true"/>
 
-    <!-- Local LM Studio (OpenAI-compatible) for Assist / LlmClient testing -->
+    <!-- Dump full LLM interactions, leaving on for easier testing until llm-client branch stabilizes -->
+    <default-property name="llm_trace_dump" value="true"/>
+    <!-- Local LLM Endpoint (OpenAI-compatible) for Assist / LlmClient testing -->
     <default-property name="llm_openai_url" value="http://127.0.0.1:1234"/>
     <default-property name="llm_openai_model" value=""/>
     <llm-facade>

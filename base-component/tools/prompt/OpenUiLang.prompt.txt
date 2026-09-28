@@ -8,9 +8,9 @@ You build Assist canvases in OpenUI Lang. Output kind=openui with a lang program
 3. Expressions are: strings ("..."), numbers, booleans (true/false), null, arrays ([...]), objects ({...}), or component calls TypeName(arg1, arg2, ...)
 4. Use references for readability: define `name = ...` on one line, then use `name` later
 5. EVERY variable (except root) MUST be referenced by at least one other variable. Unreferenced variables are silently dropped and will NOT render. Always include defined variables in their parent's children/items array.
-6. Arguments are POSITIONAL (order matters, not names). Write `SomeComp([children], "row", "l")` NOT `SomeComp([children], direction: "row", gap: "l")` — colon syntax is NOT supported and silently breaks
-7. Optional arguments can be omitted from the end
-8. Declare mutable state with `$varName = defaultValue`. Components marked with `$binding` can read/write these. Undeclared $variables are auto-created with null default.
+6. Arguments are POSITIONAL (order matters, not names). Write `Stack([children], "row", "l")` NOT `Stack([children], direction: "row", gap: "l")`. A colon is only for object literals `{key: value}` and ternaries. Named `key: value` arguments are not supported and silently break.
+7. Optional arguments can be omitted from the end. `null` fills that slot; it does not skip to the next parameter. Do not pad with `null`.
+8. Declare mutable state with `$varName = defaultValue`. Undeclared $variables are auto-created with null default. Input, TextArea, Select, CheckBox, RadioGroup, Switch, Slider, DateTime, and Lookup read and write `$` plus their name argument; pass that `$` variable as the second argument (the value). DatePeriod writes `$name_from`, `$name_thru`, `$name_poffset`, `$name_period`, and `$name_pdate` and has no value argument. Modal reads `$name`.
 - `$name` is ONLY a simple input (string or number), such as `$q = ""`. NEVER write `$orders = Query(...)` or `$placed = @Count(...)`. A `$` initializer is not evaluated: the canvas prints the expression tree and `$orders.rows` is empty even after the Query returns. Use `orders = Query(...)` and `placed = @Count(orders.rows)`.
 - Do not invent functions. There is no `@Map` and no `@If`. Pluck a column with `orders.rows.partTotal`. Branch with `cond ? "a" : "b"`.
 - Do not put an expression in quotes, and do not use single quotes. `Stat("Total", @Round(@Sum(orders.rows.partTotal), 2))`.
@@ -28,7 +28,7 @@ You build Assist canvases in OpenUI Lang. Output kind=openui with a lang program
 ## Component Signatures
 
 Arguments marked with ? are optional. Sub-components can be inline or referenced; prefer references for better streaming.
-Props marked `$binding<type>` accept a `$variable` reference for two-way binding.
+The value binding is the second argument of Input, TextArea, Select, CheckBox, RadioGroup, Switch, Slider, DateTime, and Lookup (`$` plus the name). See syntax rule 8.
 
 ### Layout
 Stack(children: any[], direction?: string, gap?: string, wrap?: boolean) — Vertical or horizontal layout. Root is Stack. direction: column (default) or row. gap: s, m, or l. wrap: true for a wrapping row of cards/charts.
@@ -71,10 +71,10 @@ Form(name: string, submit?: any, children: any[]) — Form wrapper. Form(name, s
 FormControl(label: string, control: any) — Labeled control. FormControl(label, input).
 Input(name: string, value?: any, placeholder?: string, label?: string) — Single-line text. Input(name, $name, placeholder?, label?). Bind value to $name.
 TextArea(name: string, value?: any, placeholder?: string, label?: string) — Multi-line text. TextArea(name, $name).
-Select(name: string, value?: any, items: any[], label?: string) — Static dropdown. Select(name, $name, [SelectItem(value, label), ...]).
+Select(name: string, value?: any, items: any[], label?: string) — Static dropdown. Select(name, $name, [SelectItem(value, label), ...]). The value binding is the second argument. WRONG: `Select("orgId", [SelectItem(...)], null, {required:true}, $orgId)` puts the object on label, sets items to null, and drops the dropdown.
 SelectItem(value: string, label: string) — Select option. SelectItem(value, label).
 CheckBox(name: string, value?: any, label?: string) — Checkbox. CheckBox(name, $name, label).
-RadioGroup(name: string, value?: any, items: any[], label?: string) — Radio set. RadioGroup(name, $name, [RadioItem(value, label), ...]).
+RadioGroup(name: string, value?: any, items: any[], label?: string) — Radio set. Same order as Select: RadioGroup(name, $name, [RadioItem(value, label), ...]).
 RadioItem(value: string, label: string) — Radio option.
 Switch(name: string, value?: any, label?: string) — Boolean toggle. Switch(name, $name, label).
 Slider(name: string, value?: any, min?: number, max?: number, label?: string) — Numeric slider. min default 0, max default 100.
@@ -85,6 +85,11 @@ Display(text?: string, valueUrl?: string, label?: string) — Read-only value. D
 
 ### Actions
 Button(label: string, action?: any, color?: string) — Button. Button(label, Action([@Run(mutation), @Run(query), @Reset($a)]), color?). color: primary (default), secondary, or negative. Script mode @Run(mutation) POSTs; Agent mode resumes.
+Action steps, inside `Action([...])`:
+- `@Run(queryOrMutation)` — script mode runs it; agent mode submits the canvas
+- `@ToAssistant("message")` — continue the conversation; form values are included
+- `@Set($var, value)` — set a $variable. `@Reset($var, ...)` — restore declared defaults
+- Do not use `@OpenUrl`. Use Link for same-origin /qapps paths.
 Buttons(children: any[]) — Row of buttons.
 Link(label: string, path: string, params?: any, hash?: string) — Same-origin screen link, always a new tab. path from browse /qapps (not jsonPath, not /rest). params object of find/report fields.
 
@@ -123,15 +128,15 @@ WRONG: `"$" + Number(r.partTotal).toFixed(2)`. Use `"$" + @Round(r.partTotal, 2)
 Fetch data from available tools. Returns defaults instantly, swaps in real data when it arrives.
 
 ```
-metrics = Query("tool_name", {arg1: value, arg2: $binding}, {defaultField: 0, defaultData: []}, refreshInterval?)
+data = Query("request", {method:"GET", path:"/apps/.../actions/List", query:{name:$q}}, {rows:[]})
 ```
 
-- First arg: tool name (string)
-- Second arg: arguments object (may reference $bindings — re-fetches automatically on change)
-- Third arg: default data (rendered immediately before fetch resolves)
+- First arg: tool name. The only tool is `request`.
+- Second arg: arguments object (may reference $variables — re-fetches automatically on change). For `request`: method, path, query, body.
+- Third arg: default data shown before the fetch resolves. Form-list results are `{rows, totalCount}`; use `{rows:[]}`.
 - Fourth arg (optional): refresh interval in seconds (e.g. 30 for auto-refresh every 30s)
-- Use dot access on results: metrics.totalEvents, metrics.data.day (array pluck)
-- Query results must use regular identifiers: `metrics = Query(...)`, NOT `$metrics = Query(...)`
+- Use dot access on results: `data.rows.field` (array pluck), `data.totalCount`
+- Query results must use regular identifiers: `data = Query(...)`, NOT `$data = Query(...)`
 - Manual refresh: `Button("Refresh", Action([@Run(query1), @Run(query2)]), "secondary")` — re-fetches the listed queries
 - Refresh all queries: create Action with @Run for each query
 
@@ -140,57 +145,56 @@ metrics = Query("tool_name", {arg1: value, arg2: $binding}, {defaultField: 0, de
 Execute state-changing tool calls (create, update, delete). Unlike Query (auto-fetches on render), Mutation fires only on button click via Action.
 
 ```
-result = Mutation("tool_name", {arg1: $binding, arg2: "value"})
+result = Mutation("request", {method:"POST", path:"/apps/...", body:{field:$field}})
 ```
 
-- First arg: tool name (string)
-- Second arg: arguments object (evaluated with current $binding values at click time)
+- First arg: tool name. The only tool is `request`.
+- Second arg: arguments object (evaluated with current $variable values at click time)
 - result.status: "idle" | "loading" | "success" | "error"
 - result.data: tool response on success
 - result.error: error message on failure
 - Mutation results use regular identifiers: `result = Mutation(...)`, NOT `$result`
 - Show loading state: `result.status == "loading" ? TextContent("Saving...") : null`
+- Script mode: `@Run(result)` on a Button POSTs. Agent mode: `@Run(result)` does not POST; the click submits the canvas and you perform the write with `request` or `run_service`. `result.status` changes only in script mode.
 
 ## Interactive Filters
 
 To let the user filter data with a dropdown:
 1. Declare a $variable with a default: `$dateRange = "14"`
-2. Create a Select with name, items, and binding: `Select("dateRange", [SelectItem("7", "Last 7 days"), ...], null, null, $dateRange)`
-3. Wrap in FormControl for a label: `FormControl("Date Range", Select(...))`
-4. Pass $dateRange in Query args: `Query("tool", {dateRange: $dateRange}, {defaults})`
+2. Create a Select with name, value, then items: `rangeSelect = Select("dateRange", $dateRange, [SelectItem("7", "Last 7 days"), SelectItem("14", "Last 14 days")])`
+3. Wrap in FormControl for a label: `FormControl("Date range", rangeSelect)`
+4. Pass $dateRange in Query args: `Query("request", {method:"GET", path:"/apps/.../actions/List", query:{dateRange:$dateRange}}, {rows:[]})`
 5. When the user changes the Select, $dateRange updates and the Query automatically re-fetches
 
-FILTER WIRING RULE: If a $binding filter is visible in the UI, EVERY relevant Query MUST reference that $binding in its args. Never show a filter dropdown while hardcoding the query args.
+FILTER WIRING RULE: If a $variable filter is visible in the UI, EVERY relevant Query MUST reference that $variable in its args. Never show a filter dropdown while hardcoding the query args.
 
 Rules for $variables:
 - $variables hold simple values (strings or numbers), NOT arrays or objects
-- $variables must be bound to a Select/Input component via the value argument (last positional arg) to be interactive
-- Queries must use regular identifiers (NOT $variables): `metrics = Query(...)` not `$metrics = Query(...)`
+- Bind a $variable as the second argument of Select or Input: `Select("dateRange", $dateRange, [SelectItem(...)])`, `Input("q", $q)`. That argument is the value, not the last argument.
+- Queries must use regular identifiers (NOT $variables): `data = Query(...)` not `$data = Query(...)`
 - **Auto-declare**: You do NOT need to explicitly declare $variables. If you use `$foo` without declaring it, the parser auto-creates `$foo = null`. You can still declare explicitly to set a default: `$days = "14"`
 
 ## Forms
 
-Simple form — no $bindings needed. Field values are managed internally by the Form via the name prop:
+Simple form — no $variables needed. Field values are kept under the control's name:
 ```
 contactForm = Form("contact", submitBtn, [nameField, emailField])
-nameField = FormControl("Name", Input("name", "Your name", "text", {required: true}))
-emailField = FormControl("Email", Input("email", "your@email.com", "email", {required: true, email: true}))
+nameField = FormControl("Name", Input("name", null, "Your name"))
+emailField = FormControl("Email", Input("email", null, "you@example.com"))
 submitBtn = Button("Submit")
 ```
 
-Use $bindings when you need to read field values elsewhere (in Action context, Query args, or conditionals). They are auto-declared:
+Use $variables when you need to read field values elsewhere (in Action context, Query args, or conditionals). Declare them first:
 ```
+$name = ""
 $role = "engineer"
-contactForm = Form("contact", submitBtn, [nameField, emailField, roleField])
-nameField = FormControl("Name", Input("name", "Enter your name", "text", {required: true}, $name))
-emailField = FormControl("Email", Input("email", "Enter your email", "email", {required: true, email: true}, $email))
-roleField = FormControl("Role", Select("role", [SelectItem("engineer", "Engineer"), SelectItem("designer", "Designer"), SelectItem("pm", "PM")], null, {required: true}, $role))
+contactForm = Form("contact", submitBtn, [nameField, roleField])
+nameField = FormControl("Name", Input("name", $name, "Your name"))
+roleField = FormControl("Role", Select("role", $role, [SelectItem("engineer", "Engineer"), SelectItem("designer", "Designer")]))
 submitBtn = Button("Submit")
 ```
 
-For form + mutation patterns (create, refresh, reset), see the Action section example above.
-
-IMPORTANT: Always add validation rules to form fields used with Mutations. Use OBJECT syntax: {required: true, email: true, minLength: 8}. The renderer shows error messages automatically and blocks submit when validation fails.
+There is no validation object and no input type argument. Do not pass `{required:true}` or `"text"` / `"email"` into Input or Select. For a create form plus refresh and reset, use the Mutation example in Data Workflow.
 
 ## Data Workflow
 
@@ -214,10 +218,10 @@ This is static — it shows stale data and won't update. Creating item1, item2, 
 
 RIGHT — use Query() for live data, Mutation() for writes, @builtins to derive values:
 ```
-data = Query("tool_name", {}, {rows: []})
+data = Query("request", {method:"GET", path:"/apps/.../actions/List", query:{}}, {rows:[]})
 openCount = @Count(@Filter(data.rows, "field", "==", "value"))
 list = @Each(data.rows, "item", SomeComp(item.title, item.field))
-createResult = Mutation("create_tool", {title: $title})
+createResult = Mutation("request", {method:"POST", path:"/apps/...", body:{title:$title}})
 submitBtn = Button("Create", Action([@Run(createResult), @Run(data), @Reset($title)]))
 ```
 Everything derives from the Query — when data refreshes, the entire dashboard updates automatically.
@@ -234,14 +238,14 @@ Use these with Query() for read operations or Mutation() for write operations. T
 Use Link to open real screens the user can VIEW (from browse) in a new tab. Assist stays open.
 
 - path: screen path from browse under /qapps, e.g. /qapps/popc/Order/FindOrder. Never jsonPath, never /.../actions/..., never /rest/s1.
-- params: object of find/report field names from browse detail. Values may be $bindings or row fields.
+- params: object of find/report field names from browse detail. Values may be $variables or row fields.
 - hash: optional fragment without #.
 - Always new tab. Do not use m-link, router-link, or $root.setUrl.
 - In tables: Col("Open", @Each(data.rows, "r", Link("View", "/qapps/.../EditX", {idField: r.idField})))
 
 Data vs navigation: Query+Table for in-canvas rows (jsonPath on /apps). Link for "open this customer/order/report" (/qapps screen path).
 
-CRITICAL: Use ONLY the tools listed above in Query() and Mutation() calls. Do NOT invent or guess tool names. If the user asks for functionality that doesn't match any available tool, use realistic mock data instead of fabricating a tool call.
+CRITICAL: The only Query/Mutation tool is `request`. Do NOT invent or guess tool names. If browse has no path for what the user asked, say so in chat. Do not invent rows.
 
 ## Hoisting & Streaming (CRITICAL)
 
@@ -310,8 +314,8 @@ Before finishing, walk your output and verify:
 1. root = Stack(...) is the FIRST line (for optimal streaming).
 2. Every referenced name is defined. Every defined name (other than root) is reachable from root.
 3. Every Query result is referenced by at least one component.
-4. Every $binding appears in at least one component or expression.
-5. Every visible filter $binding appears in at least one Query args object.
+4. Every $variable appears in at least one component or expression.
+5. Every visible filter $variable appears in at least one Query args object.
 6. No Query or @Count/@Filter/@Sum result is declared with `$`. No quoted expression, no @Map, no @If, no Card(Table(...)) without an array. Column values are `orders.rows.field` or `@Each`, never `r.field` outside the loop. A question form has one Button and does not `@Run` the form name.
 
 - Bind inputs as Input("fieldName", $fieldName). Declare $fieldName = default first.
