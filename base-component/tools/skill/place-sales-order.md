@@ -18,9 +18,9 @@ Starts `OrderOpen`. Returns `orderId`.
 OrderDetail `/apps/marble/Order/OrderDetail?orderId=` **Add Product Item** POST `addProductItem`
 (`productId`, `quantity`; leave `unitAmount` empty for Calc Price).
 
-**Place** / **Place Warnings** POST `placeOrder` → `OrderPlaced`.
-**Approve** / **Approve Warnings** POST `approveOrder` → `OrderApproved` (needs ORDER_APPROVE).
+Stop after create and line items. **Place** (`placeOrder`) and **Approve** (`approveOrder`) are separate confirmed steps. Do not Place on the create submit.
 
 Link `/qapps/marble/Order/OrderDetail?orderId=`.
 
-Canvas: Form + Mutation POST `createOrder`. After `submitted:true`: `request` that POST, then `writeThrough` item fields and POST `addProductItem`, then POST `placeOrder`. Confirm with `orderId`.
+Script mode: the Mutation runs on click. Do not also `request` that same POST.
+Agent mode: after `submitted:true`, `request` the create, then items. Do not `placeOrder` in that same turn.

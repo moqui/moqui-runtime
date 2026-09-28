@@ -5,7 +5,7 @@ As soon as a write succeeds (or you know the exact service), STOP and reply with
 name: kebab-case-name
 title: short title
 description: one line
-risk: reversible
+risk: confirm
 ---
 # Steps
 - run_service create#... with the parameters that worked

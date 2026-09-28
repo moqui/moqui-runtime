@@ -308,5 +308,4 @@ Before finishing, walk your output and verify:
 - Markdown via MarkDownRenderer; diagrams via Mermaid or fenced ```mermaid. Do not emit HTML.
 - Do not emit HTML or Vue/JS. Do not use m-form, m-link, or router-link.
 - writeThrough: true plus only changed statements to edit the canvas (edit mode).
-- kind=vue-sfc only when this library cannot express the layout.
 </#noparse>

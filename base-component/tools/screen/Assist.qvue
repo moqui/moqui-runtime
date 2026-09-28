@@ -170,9 +170,14 @@ function isHtmlBody(text, contentType) {
         || head.indexOf('<body') === 0 || head.indexOf('<head') === 0;
 }
 function validateActionPath(path) {
+    if (window.AssistOpenUiNav && typeof window.AssistOpenUiNav.validatePath === 'function')
+        return window.AssistOpenUiNav.validatePath(path);
     if (!path || path.charAt(0) !== '/') return 'path must start with /';
+    if (/[\s\\\u0000-\u001f]/.test(path)) return 'path must not contain whitespace or backslash';
     if (path.indexOf('://') >= 0 || path.indexOf('//') === 0) return 'path must not contain a host';
     if (path.indexOf('..') >= 0) return 'path must not contain ..';
+    var lower = String(path).toLowerCase();
+    if (lower.indexOf('javascript:') >= 0 || lower.indexOf('data:') >= 0) return 'path scheme not allowed';
     return null;
 }
 function unescapeHtml(s) {
@@ -849,13 +854,13 @@ module.exports = {
                         return next(i + 1);
                     }
                 }
-                var pathErr = validateActionPath(act.path);
+                var path = subst(act.path, bag);
+                var pathErr = validateActionPath(path);
                 if (pathErr) {
                     failed[act.id] = true;
                     results.push({ id: act.id, error: pathErr });
                     return Promise.reject({ message: pathErr, actionResults: results });
                 }
-                var path = subst(act.path, bag);
                 var method = (act.method || 'POST').toUpperCase();
                 var bodyObj = {};
                 var keys = act.bodyFromFields || Object.keys(vm.fieldValues);

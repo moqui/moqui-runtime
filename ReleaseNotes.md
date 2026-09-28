@@ -1,6 +1,11 @@
 
 # Moqui Runtime Release Notes
 
+## Release 4.1.0 - Not Yet Released
+
+- Assist OpenUI paths (Query, Mutation, Link, markdown, Lookup options URL, and script-mode form actions) must stay on this origin. `kind=vue-sfc` is disabled unless the profile sets `allow-vue-sfc`.
+- `create-user-account` no longer defaults the new user to the ADMIN group. `place-sales-order` stops before Place.
+
 ## Release 4.0.0 - 27 Feb 2026
 
 - Upgrade build.gradle to comply with gradle version 9.2

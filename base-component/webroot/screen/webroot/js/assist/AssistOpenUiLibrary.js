@@ -65,11 +65,23 @@
         if (path == null || path === '') return 'path required';
         path = String(path);
         if (path.charAt(0) !== '/') return 'path must start with /';
+        if (/[\s\\\u0000-\u001f]/.test(path)) return 'path must not contain whitespace or backslash';
         if (path.indexOf('://') >= 0 || path.indexOf('//') === 0) return 'path must not contain a host';
-        if (path.indexOf('..') >= 0) return 'path must not contain ..';
-        var lower = path.toLowerCase();
+        var decoded = path;
+        try { decoded = decodeURIComponent(path); } catch (e) { return 'path is not a valid URL'; }
+        if (decoded.indexOf('..') >= 0 || decoded.indexOf('\\') >= 0 || /[\s\u0000-\u001f]/.test(decoded))
+            return 'path must not contain ..';
+        var lower = decoded.toLowerCase();
         if (lower.indexOf('javascript:') >= 0 || lower.indexOf('data:') >= 0 || lower.indexOf('mailto:') >= 0)
             return 'path scheme not allowed';
+        if (typeof URL !== 'undefined' && typeof location !== 'undefined' && location.origin) {
+            try {
+                var url = new URL(path, location.origin);
+                if (url.origin !== location.origin) return 'path must stay on this origin';
+            } catch (e2) {
+                return 'path is not a valid URL';
+            }
+        }
         return null;
     }
     function validateNavHash(hash) {
@@ -263,9 +275,15 @@
                     return o;
                 }
                 return undefined;
+            },
+            safeOptionsUrl: function() {
+                var url = this.props && this.props.optionsUrl;
+                if (url == null || url === '') return '';
+                if (validateNavPath(String(url)) != null) return '';
+                return String(url);
             }
         },
-        template: '<m-drop-down dense outlined :label="fieldLabel" :value="fieldValue" :name="fieldName" :options-url="props&&props.optionsUrl" :value-field="(props&&props.valueField)||\'value\'" :label-field="(props&&props.labelField)||\'label\'" :server-search="true" :depends-on="dependsOnObj" :fields="lookupFields" @input="onFieldInput"></m-drop-down>'
+        template: '<m-drop-down dense outlined :label="fieldLabel" :value="fieldValue" :name="fieldName" :options-url="safeOptionsUrl" :value-field="(props&&props.valueField)||\'value\'" :label-field="(props&&props.labelField)||\'label\'" :server-search="true" :depends-on="dependsOnObj" :fields="lookupFields" @input="onFieldInput"></m-drop-down>'
     };
     function optionItems(propItems) {
         return asArray(propItems).map(function(it) {

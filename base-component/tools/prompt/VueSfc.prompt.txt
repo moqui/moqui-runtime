@@ -1,0 +1,52 @@
+<#noparse>
+### kind=vue-sfc (escape hatch)
+
+Use **only** when the OpenUI library cannot express the layout. Assist is `/qapps/` (Vue **2** + Quasar **v1**). The SFC is a child of Assist, not a full screen.
+
+**Script:** Vue 2 Options API with `module.exports = { ... }`. Not `export default`, not `<script setup>`, not Vue 3.
+
+**Source:** `sfc` (full file) or `template` + `script` + `style`. Prefer parts if quoting a full file is awkward.
+
+**Props from parent:** `values` (object, read; emit changes), `schema`, `mode` (`script`|`agent`).
+
+**Events:** `$emit('input', {name, value})` or `$emit('input', valuesObject)`; optional `$emit('submit')` / `$emit('cancel')`. Parent still has Submit/Cancel.
+
+**Always** declare `actions[]` and keep `fields[].name` in sync with `values` keys.
+
+**Do not** wrap in `m-form` / `m-form-link` (they POST and leave Assist). Do not use `m-link`, `router-link`, or `$root.setUrl`. Same-origin `fetch` / `$.ajax` is allowed; CSRF is `this.$root.moquiSessionToken` and header `X-CSRF-Token`. `this.moqui` and `this.$q` are already on the instance. `m-*` components are global (do not import).
+
+**Quasar:** `q-btn`, `q-input`, `q-select`, `q-table`, `q-card`, `q-list`, `q-checkbox`, `q-banner`, `q-tabs`, `q-tooltip`. Convention: `dense outlined stack-label`.
+
+**Use these `/qapps/` widgets**
+
+- `m-text-line` — text. `:value` + `@input`, `dense outlined`, `label`, `tooltip`. Optional `default-url` + `:depends-on` + `:default-parameters` + `:fields="values"`.
+- `m-drop-down` — select. Static `:options="[{value,label}]"`. Lookup: `options-url` (same-origin path from `browse`/known REST, do not invent), `value-field`/`label-field` (default `value`/`label`), `:server-search="true"`, `:depends-on="{param:'fieldName'}"`, `:fields="values"`.
+- `m-date-time` — `type`: `date` | `time` | `date-time`. `name` required. Formats `YYYY-MM-DD` / `HH:mm` / `YYYY-MM-DD HH:mm`.
+- `m-display` — read-only. Optional `value-url` + `:depends-on`.
+- `m-date-period` — find-style period/range; needs `:fields="values"` and `name`.
+- `m-container-box` — card section: `title`, `initial-open`.
+
+**Avoid:** `m-form`, `m-form-link`, `m-form-list` (use `q-table` + `fetch`); `m-link`, `router-link`, `m-subscreens-*`, `m-menu-*`, `m-dynamic-container`; `m-script`, `m-stylesheet`; CKEditor. Prefer OpenUI `BarChart`/`MarkDownRenderer`/`Link` over vue-sfc charts, markdown, or `m-link`.
+
+`writeThrough` with `kind=vue-sfc`: omit `sfc`/`template`/`script`/`style` to keep the current component; send new source to replace it as a unit.
+
+Example (illustrative; get real `options-url` from `browse`):
+
+```
+<template>
+  <div>
+    <m-text-line dense outlined label="Name" name="firstName"
+                 :value="values.firstName" @input="$emit('input', {name:'firstName', value:$event})"></m-text-line>
+    <m-drop-down dense outlined label="Customer" name="customerPartyId"
+                 :value="values.customerPartyId" :fields="values"
+                 value-field="value" label-field="label" :server-search="true"
+                 @input="$emit('input', {name:'customerPartyId', value:$event})"></m-drop-down>
+  </div>
+</template>
+<script>
+module.exports = {
+  props: { values: { type: Object, default: function() { return {}; } }, schema: Object, mode: String }
+};
+</script>
+```
+</#noparse>

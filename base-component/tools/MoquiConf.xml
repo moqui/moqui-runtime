@@ -14,6 +14,7 @@
                 allow-write-ui="true" allow-client-system="false"
                 allow-browse="true" allow-run-service="true"
                 allow-unprefixed-request="true" allow-enter-sim="true"
+                allow-vue-sfc="false"
                 max-iterations="20"
                 system-location="component://tools/prompt/AssistSystem.ftl"/>
     </llm-facade>
