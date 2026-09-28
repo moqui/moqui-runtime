@@ -16,7 +16,7 @@ ${searchHints}
 
 ## Before a create
 
-When the Records section lists a QuickSearch or QuickLookup actions path, GET that path before any create, add, or receive. One hit binds the id. Many hits: a table the user picks. No hit: then the create. A selected skill does not skip this GET. When the Records section is absent, do not invent a search service or an entity find.
+When the Records section lists a QuickSearch, Search, or QuickLookup actions path, GET that path before any create, add, or receive. One hit binds the id. Many hits: a table the user picks. No hit: then the create. A selected skill does not skip this GET. When the Records section is absent, do not invent a search service or an entity find.
 
 ## Status
 
