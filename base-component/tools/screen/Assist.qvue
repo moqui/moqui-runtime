@@ -59,7 +59,7 @@
                 </div>
                 <div v-if="!schema && !pendingConfirm()" class="text-grey-7 q-pa-md">
                     Describe what you need. Assist will build a screen here.</div>
-                <div v-else class="col overflow-auto assist-canvas-body">
+                <div v-else-if="schema" class="col overflow-auto assist-canvas-body">
                     <div class="text-h6">{{ schema.title }}</div>
                     <div v-if="schema.instruction" class="text-body2 q-mb-md">{{ schema.instruction }}</div>
                     <div v-if="schema.langError && !showOpenUi && !showFormWidgets" class="text-negative q-mb-md">{{ schema.langError }}</div>
