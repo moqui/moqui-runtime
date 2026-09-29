@@ -75,7 +75,7 @@
                                        :csrf="csrf" :app-root="($root && $root.appRootPath) || ''"
                                        :initial-state="fieldValues"
                                        @action="onOpenUiAction" @state-update="onOpenUiState"
-                                       @error="onOpenUiError"></assist-openui>
+                                       @error="onOpenUiError" @request-notice="onOpenUiRequestNotice"></assist-openui>
                     </div>
                     <div v-if="showVueSfc" class="q-mb-md">
                         <component :is="vueSfcComp" :key="vueSfcKey"
@@ -127,6 +127,13 @@
                                             @input="onFieldInput(f.name, $event)"></q-option-group>
                         </div>
                         <div v-else class="text-body2"><span class="text-grey-7">{{ f.label || f.name }}:</span> {{ fieldValues[f.name] }}</div>
+                    </div>
+                    <div v-if="canvasNotices.length" id="assist-canvas-notices" class="q-mb-md">
+                        <div class="text-subtitle2">Problems with this screen</div>
+                        <ul class="q-pl-md q-mb-none">
+                            <li v-for="(n, ni) in canvasNotices" :key="'cn'+ni"
+                                :class="n.kind==='error' ? 'text-negative' : ''">{{ n.message }}</li>
+                        </ul>
                     </div>
                     <div v-if="showParentSubmit" class="assist-actions">
                         <q-btn id="assist-submit" unelevated color="primary" no-caps
@@ -205,7 +212,47 @@ function parseSseChunk(buffer, onEvent) {
     return rest;
 }
 var HTML_ACTION_ERROR = 'HTML screens are not valid tool results. Use /apps (not /qapps). GET {screen}/actions for screen JSON, GET {screen}/actions/{formListName} for form-list rows (browse jsonPath), or POST {screen}/{transitionName} for a named transition from browse (not /actions/{transition})';
-var ADJUST_INSTRUCTION = 'The user wants this screen changed or fixed. Do not submit it and do not run its actions. Call write_ui again so the screen matches the feedback. canvas is the screen they are looking at now, including field values they typed. notices are errors and warnings from rendering that screen; fix those too. For a small OpenUI change, set writeThrough true and send only the changed statements. If the screen failed to render or the structure is wrong, send a full lang program.';
+var ADJUST_INSTRUCTION = 'The user wants this screen changed or fixed. Do not submit it and do not run its actions. Call write_ui again so the screen matches the feedback. canvas is the screen they are looking at now, including field values they typed. notices are render errors and server messages from canvas requests (validation errors, service errors, warnings); fix those too. A validation error means the value sent was rejected: drop a timestamp the service defaults, or send YYYY-MM-DD HH:mm. For a small OpenUI change, set writeThrough true and send only the changed statements. If the screen failed to render or the structure is wrong, send a full lang program.';
+/** Same rules as AssistOpenUi.js screenResponseProblems. A transition can return HTTP 200 plus screenUrl when the service rejected the input. */
+function screenResponseProblems(parsed) {
+    if (typeof window.assistScreenResponseProblems === 'function')
+        return window.assistScreenResponseProblems(parsed);
+    var errors = [];
+    var warnings = [];
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+        return { errors: errors, warnings: warnings };
+    var val = parsed.validationErrors;
+    if (Array.isArray(val)) {
+        for (var i = 0; i < val.length; i++) {
+            var ve = val[i] || {};
+            var msg = ve.message ? String(ve.message) : 'Validation error';
+            var field = ve.fieldPretty || ve.field;
+            var svc = ve.serviceNamePretty || ve.serviceName;
+            var extra = [];
+            if (field) extra.push('for field ' + field);
+            if (svc) extra.push('of service ' + svc);
+            if (extra.length) msg += ' (' + extra.join(' ') + ')';
+            errors.push(msg);
+        }
+    }
+    var errs = parsed.errors;
+    if (Array.isArray(errs)) {
+        for (var e = 0; e < errs.length; e++) if (errs[e]) errors.push(String(errs[e]));
+    }
+    var infos = parsed.messageInfos;
+    if (Array.isArray(infos)) {
+        for (var m = 0; m < infos.length; m++) {
+            var info = infos[m] || {};
+            if (!info.message) continue;
+            var type = String(info.type || '').toLowerCase();
+            if (type === 'danger' || type === 'error') errors.push(String(info.message));
+            else if (type === 'warning') warnings.push(String(info.message));
+        }
+    }
+    return { errors: errors, warnings: warnings };
+}
+var RESPONSE_ENVELOPE = { screenPathList: 1, screenParameters: 1, screenUrl: 1, redirectUrl: 1,
+    currentParameters: 1, messageInfos: 1, errors: 1, validationErrors: 1 };
 function isHtmlBody(text, contentType) {
     if (contentType && String(contentType).toLowerCase().indexOf('html') >= 0) return true;
     if (text == null) return false;
@@ -914,6 +961,13 @@ module.exports = {
             });
             this.fieldValues = next;
         },
+        onOpenUiRequestNotice: function(payload) {
+            if (!payload) return;
+            var errors = payload.errors || [];
+            var warnings = payload.warnings || [];
+            for (var i = 0; i < errors.length; i++) this.noteCanvas(errors[i], 'error');
+            for (var w = 0; w < warnings.length; w++) this.noteCanvas(warnings[w], 'warning');
+        },
         onOpenUiError: function(errors) {
             if (!errors || !errors.length) return;
             var critical = errors.filter(function(e) {
@@ -1045,7 +1099,8 @@ module.exports = {
                     assistNotify('Actions finished; Assist is reviewing results…', 'info');
                     vm.finishSubmit(buttonId, actionResults);
                 }).catch(function(err) {
-                    assistNotify((err && err.message) || String(err), 'error');
+                    var msg = (err && err.message) || String(err);
+                    if (vm.recordCanvasNotice(msg, 'error')) assistNotify(msg, 'error');
                     vm.finishSubmit(buttonId, err.actionResults || []);
                 });
             } else {
@@ -1166,22 +1221,36 @@ module.exports = {
                         if (isHtmlBody(txt, ct)) {
                             failed[act.id] = true;
                             results.push({ id: act.id, status: r.status, error: HTML_ACTION_ERROR });
+                            vm.noteCanvas(HTML_ACTION_ERROR, 'error');
                             var htmlErr = new Error((act.label || act.id) + ' returned HTML, not JSON');
                             htmlErr.actionResults = results;
                             throw htmlErr;
                         }
                         var parsed = txt;
                         try { parsed = JSON.parse(txt); } catch (e) { /* keep */ }
+                        var problems = screenResponseProblems(parsed);
+                        for (var wi = 0; wi < problems.warnings.length; wi++)
+                            vm.noteCanvas(problems.warnings[wi], 'warning');
+                        var failedMsg = null;
+                        if (problems.errors.length) failedMsg = problems.errors.join('\n');
+                        else if (r.status >= 400) failedMsg = (act.label || act.id) + ' failed: ' + r.status;
                         var row = { id: act.id, status: r.status, body: parsed };
+                        if (failedMsg) row.error = failedMsg;
                         results.push(row);
-                        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-                            Object.keys(parsed).forEach(function(pk) { bag[pk] = parsed[pk]; });
-                        }
-                        if (r.status >= 400) {
+                        if (failedMsg) {
                             failed[act.id] = true;
-                            var err = new Error((act.label || act.id) + ' failed: ' + r.status);
+                            if (problems.errors.length) {
+                                for (var ei = 0; ei < problems.errors.length; ei++)
+                                    vm.noteCanvas(problems.errors[ei], 'error');
+                            } else vm.noteCanvas(failedMsg, 'error');
+                            var err = new Error(failedMsg);
                             err.actionResults = results;
                             throw err;
+                        }
+                        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                            Object.keys(parsed).forEach(function(pk) {
+                                if (!RESPONSE_ENVELOPE[pk]) bag[pk] = parsed[pk];
+                            });
                         }
                         return next(i + 1);
                     });

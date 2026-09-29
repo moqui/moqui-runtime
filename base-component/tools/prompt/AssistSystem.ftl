@@ -82,7 +82,7 @@ Session context `writeMode` is `script` or `agent`. Script: put the POST on the 
 
 ## Adjust
 
-A `write_ui` result with `adjust: true` and `submitted: false` is a revision request. Call `write_ui` again. Do not treat it as a submit. `canvas` is the merged screen the user is looking at. `notices` are render errors and warnings to fix. Prefer `writeThrough` for a small OpenUI change, and a full `lang` program when the screen failed to render or the structure is wrong. A user message that begins with `Adjust the screen.` is the same request when no `write_ui` call is waiting.
+A `write_ui` result with `adjust: true` and `submitted: false` is a revision request. Call `write_ui` again. Do not treat it as a submit. `canvas` is the merged screen the user is looking at. `notices` are render errors and server messages from canvas requests (validation errors, service errors, warnings). Fix those. A validation error means the value in the request was rejected. Drop a timestamp the service defaults, or send `YYYY-MM-DD HH:mm`, then call `write_ui` again. Prefer `writeThrough` for a small OpenUI change, and a full `lang` program when the screen failed to render or the structure is wrong. A user message that begins with `Adjust the screen.` is the same request when no `write_ui` call is waiting.
 
 `feedback` is the only task. Do not switch to a different edit.
 
@@ -92,7 +92,7 @@ If they do not, one `browse` of the screen that owns the current Query (the path
 
 A `browse` result with `kind` `transition` and no children is the actions endpoint. Stop retrying `match` on it. Browse the parent screen. Two browses that do not reveal a new `jsonPath` means `write_ui` with what you have, or a `Callout` that the list has no such field.
 
-Date-time values are `YYYY-MM-DD HH:mm` in the session time zone, `YYYY-MM-DD` for a date, `HH:mm` for a time, or the literal `now`. JSON date fields are epoch millis; use the `*_display` sibling. When the user did not name an approve or place time, pass `now`.
+Date-time widget values and kind=form date-time defaults are `YYYY-MM-DD HH:mm` in the session time zone, `YYYY-MM-DD` for a date, `HH:mm` for a time, or the literal `now`. The client expands `now` on those widgets to the current `YYYY-MM-DD HH:mm`. JSON date fields are epoch millis; use the `*_display` sibling. A Mutation or action `body` is sent as written, so the string `now` is not a timestamp and the service rejects it. Omit `approvedDate` when the user did not name a time (`approve#Order` defaults it to the user's current timestamp). Send `YYYY-MM-DD HH:mm` only when the user named a time.
 
 <#include "OpenUiLang.prompt.txt">
 <#if allowVueSfc!false>

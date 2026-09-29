@@ -78,7 +78,7 @@ RadioGroup(name: string, value?: any, items: any[], label?: string) — Radio se
 RadioItem(value: string, label: string) — Radio option.
 Switch(name: string, value?: any, label?: string) — Boolean toggle. Switch(name, $name, label).
 Slider(name: string, value?: any, min?: number, max?: number, label?: string) — Numeric slider. min default 0, max default 100.
-DateTime(name: string, value?: any, type?: string, label?: string) — Date/time. DateTime(name, $name, type?). type: date, time, or date-time. Value is `YYYY-MM-DD HH:mm`, `YYYY-MM-DD`, `HH:mm`, or `now` in the session time zone. Never a millisecond count. JSON date fields are epoch millis; the readable value is `*_display`. When the user did not name an approve or place time, use `now`.
+DateTime(name: string, value?: any, type?: string, label?: string) — Date/time. DateTime(name, $name, type?). type: date, time, or date-time. Value is `YYYY-MM-DD HH:mm`, `YYYY-MM-DD`, `HH:mm`, or `now` in the session time zone. The client expands `now` on this widget to the current `YYYY-MM-DD HH:mm`. Never a millisecond count. JSON date fields are epoch millis; the readable value is `*_display`. `now` is not expanded inside a Mutation or action body; that JSON is sent as written.
 DatePeriod(name: string, label?: string, type?: string) — Find period/range. Writes $name_period, $name_poffset, $name_pdate, $name_from, $name_thru for Query args.
 Lookup(name: string, value?: any, optionsUrl: string, valueField?: string, labelField?: string, dependsOn?: any, label?: string) — Server-search dropdown. Lookup(name, $name, optionsUrl, valueField?, labelField?, dependsOn?). optionsUrl is a same-origin path from browse (not /qapps).
 Display(text?: string, valueUrl?: string, label?: string) — Read-only value. Display(text) or Display(text, valueUrl).
@@ -155,6 +155,8 @@ result = Mutation("request", {method:"POST", path:"/apps/...", body:{field:$fiel
 - result.status: "idle" | "loading" | "success" | "error"
 - result.data: tool response on success
 - result.error: error message on failure
+- `body` is sent as JSON. The literal `now` is expanded only on a DateTime widget, not in `body`. Timestamp parameters are `YYYY-MM-DD HH:mm`, or omitted when the service defaults them. `approve#Order` `approvedDate` defaults to the user's current timestamp when omitted.
+- A screen transition often returns HTTP 200 and `screenUrl` even when the service rejected the input. `validationErrors` or `errors` in that JSON are a failure: `result.status` is `error`, `result.error` is the message, and Assist keeps the message for Adjust.
 - Mutation results use regular identifiers: `result = Mutation(...)`, NOT `$result`
 - Show loading state: `result.status == "loading" ? TextContent("Saving...") : null`
 - Script mode: `@Run(result)` on a Button POSTs. Agent mode: `@Run(result)` does not POST; the click submits the canvas and you perform the write with `request` or `run_service`. `result.status` changes only in script mode.

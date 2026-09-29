@@ -37,6 +37,43 @@
         return head.indexOf('<!doctype') === 0 || head.indexOf('<html') === 0
             || head.indexOf('<body') === 0 || head.indexOf('<head') === 0;
     }
+    /** Messages on a screen JSON body. A transition can return HTTP 200 plus screenUrl when the service rejected the input. */
+    function screenResponseProblems(parsed) {
+        var errors = [];
+        var warnings = [];
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+            return { errors: errors, warnings: warnings };
+        var val = parsed.validationErrors;
+        if (Array.isArray(val)) {
+            for (var i = 0; i < val.length; i++) {
+                var ve = val[i] || {};
+                var msg = ve.message ? String(ve.message) : 'Validation error';
+                var field = ve.fieldPretty || ve.field;
+                var svc = ve.serviceNamePretty || ve.serviceName;
+                var extra = [];
+                if (field) extra.push('for field ' + field);
+                if (svc) extra.push('of service ' + svc);
+                if (extra.length) msg += ' (' + extra.join(' ') + ')';
+                errors.push(msg);
+            }
+        }
+        var errs = parsed.errors;
+        if (Array.isArray(errs)) {
+            for (var e = 0; e < errs.length; e++) if (errs[e]) errors.push(String(errs[e]));
+        }
+        var infos = parsed.messageInfos;
+        if (Array.isArray(infos)) {
+            for (var m = 0; m < infos.length; m++) {
+                var info = infos[m] || {};
+                if (!info.message) continue;
+                var type = String(info.type || '').toLowerCase();
+                if (type === 'danger' || type === 'error') errors.push(String(info.message));
+                else if (type === 'warning') warnings.push(String(info.message));
+            }
+        }
+        return { errors: errors, warnings: warnings };
+    }
+    root.assistScreenResponseProblems = screenResponseProblems;
 
     var AST_KINDS = { Comp: 1, Ref: 1, StateRef: 1, RuntimeRef: 1, BinOp: 1, UnaryOp: 1, Ternary: 1,
         Member: 1, Index: 1, Assign: 1, Str: 1, Num: 1, Bool: 1, Null: 1, Arr: 1, Obj: 1, Ph: 1 };
@@ -674,6 +711,7 @@
                 };
             },
             callRequest: function(args) {
+                var vm = this;
                 var method = String(args.method || 'GET').toUpperCase();
                 var path = args.path;
                 var pathErr = validateActionPath(path);
@@ -703,8 +741,13 @@
                             throw new Error('HTML screens are not valid tool results. Use /apps (not /qapps).');
                         var parsed = txt;
                         try { parsed = JSON.parse(txt); } catch (e) { /* keep */ }
-                        if (r.status >= 400) {
-                            var err = new Error('request failed: ' + r.status);
+                        var problems = screenResponseProblems(parsed);
+                        if (r.status >= 400 && !problems.errors.length)
+                            problems.errors.push('request failed: ' + r.status);
+                        if (problems.errors.length || problems.warnings.length)
+                            vm.$emit('request-notice', problems);
+                        if (problems.errors.length) {
+                            var err = new Error(problems.errors.join('\n'));
                             err.body = parsed;
                             throw err;
                         }
