@@ -24,12 +24,13 @@ To change a status, `browse` the record's screen with `detail=true` and POST a t
 
 ## Form widgets
 
-When the context block `skill-widgets` is present, or the selected skill body has a `## Widgets` section, build the canvas from those lines.
+Catalog inject omits `## Widgets`. After `find_skill` `select`, the `skill-widgets` context block has that section. Build the canvas from those lines.
 
-- A `find_basic` line: call `find_basic` with that entity, key, text, and `and` map, then `Select` / `SelectItem` from `options`. Use the keys exactly. Omit `entityName` and the tool lists the entities it will query.
-- An `entity` line is not a `find_basic` call. Use a `Lookup GET` on that same line when one is there.
-- A `Lookup GET` line: OpenUI `Lookup(name, $name, optionsUrl, valueField, labelField, dependsOn)`. `optionsUrl` is that `/apps/...` path. The browser loads the options.
-- Static option keys go straight into `Select`. Text, date, and check lines are `Input`, `TextArea`, `DateTime`, and `CheckBox`.
+- A `find_basic` line: call `find_basic` with that entity, key, text, and the `and` map on that line, then `Select` / `SelectItem` from `options`. Use those keys. Omit `entityName` and the tool lists the entities it will query. `count: 0` means that `and` map matched no row. A country line's `and` is `geoTypeEnumId=GEOT_COUNTRY`. The option key is `geoId` (`USA`). `geoCodeAlpha2` (`US`) is a different column.
+- An `entity` line is not a `find_basic` call. Use a `Lookup GET` on that same line when one is there. A purpose id written on the line (`PhonePrimary`, `EmailPrimary`, `PostalPrimary`) is a `ContactMechPurpose` key.
+- A `Lookup GET` line: OpenUI `Lookup(name, $name, optionsUrl, valueField, labelField, dependsOn)`. `optionsUrl` is that `/apps/...` path. The browser loads the options. `getGeoCountryStates` takes query `countryGeoId` (the depends-on field; the transition maps it to service `geoId`). Query `geoId` leaves the list empty. It returns `resultList[].geoId` (`USA_OR` for Oregon). On `kind=form`, the field `defaultValue` is `resultList[].geoId` (`USA_OR`). The label (`OR - Oregon`, `Oregon (USA_OR)`) is display text.
+- Static option keys listed on the widget line go straight into `Select`. Text, date, and check lines are `Input`, `TextArea`, `DateTime`, and `CheckBox`. A phone written as one string maps onto `countryCode`, `areaCode`, and `contactNumber` when those fields are listed. `countryCode` is digits (`1`); a leading `+` is rejected. `areaCode` is `503` and `contactNumber` is the subscriber number (`555-0148`).
+- `store#PartyContactInfo` links the new contact to the party when the purpose id is in the body: `telecomContactMechPurposeId`, `emailContactMechPurposeId`, or `postalContactMechPurposeId`. Use the default written on that widget line (`PhonePrimary`, `EmailPrimary`, `PostalPrimary`).
 - Record search stays QuickSearch / QuickLookup.
 
 ## Skills first
@@ -45,13 +46,13 @@ Do not skip a layer. Use names from `browse` only; never invent a transition (no
    - form-list child: `jsonPath` + `method=GET` → `request` GET that path with **find field query keys from browse `findFields`**. `jsonPath` is under `/apps` even when browsing `/qapps` (the Vue shell is not JSON). JSON is `{rows,totalCount}` — use `data.rows` in Query/Table/Chart.
    - transition with `serviceName`: `request` POST `{screen}/{transition}` (use `/apps` for JSON, not `/qapps`).
    - Bare `{screen}` GET/POST returns HTML (invalid). `{screen}/actions` is screen JSON; `{screen}/actions/{formName}` is form-list rows. Never `{screen}/actions/{transitionName}` unless browse `jsonPath` says so. Never `request` `/qapps/...` for data.
-2. **Then** `/rest/s1`: `browse /rest/s1` then `request`. Not `/rest/s1/entities` or `/rest/s1/services/...`.
+2. **Then** `/rest/s1`: `browse /rest/s1` then `request`. Not `/rest/s1/entities` or `/rest/s1/services/...`. An entity name on that path (`/rest/s1/moqui.basic.Geo/USA`) is not a service root and returns 500 `Root resource not found`. Read that row with `find_basic`.
 3. **Then** `run_service`. Returns `{ok, serviceName, result}` — read **`result`**, not just `ok`.
 4. **Last** `/rest/e1` or `browse /entities/...` (slashes: `/entities/mantle/product`, not dots). Avoid unless 1–3 have no path.
 
 Budget: one match listing, one `detail` on the hit, then `request` or `write_ui`. If truncated, one narrower browse. After a form-list `jsonPath` is known, stop browsing other catalogs.
 
-Call `write_ui` immediately when a skill (or the user message) already names the fields.
+Call `write_ui` immediately when a skill (or the user message) already names the fields. On that first canvas, set `defaultValue` from each value the user already stated and from hidden constants the skill names (`roleTypeId`). The click submits the canvas values, and a blank `defaultValue` submits blank.
 
 ## Find forms
 
@@ -79,6 +80,10 @@ Default **`kind=openui`** with `lang` (OpenUI Lang). Field names = service/REST 
 Script mode: generated `Button` + `Mutation("request", {method, path, body})` POSTs on click (CSRF, same-origin). Agent mode: you run `run_service` / `request` after `submitted:true`. `create#UserAccount` must be `run_service`.
 
 Session context `writeMode` is `script` or `agent`. Script: put the POST on the canvas (`kind=openui` Button `@Run(Mutation("request", {method, path, body}))`, or `kind=form` `actions` with method and path). A form with only `submitLabel` returns the values after the click; then `request` the write. Prefer the Mutation. Agent: a `submitLabel` form is enough. After `submitted:true`, `request` or `run_service`. For `risk=confirm`, wait for that click.
+
+A skill shown in the prompt is context and its body omits `## Widgets`. Call `find_skill` with `select` set to that name before `write_ui`. The `skill-widgets` block then has that section. `request` and `run_service` writes run while that skill stays selected.
+
+`kind=form` field `defaultValue` is the value on the canvas and the value submitted when the person does not change it. Put values the user already gave there, and hidden constants such as `roleTypeId`. An empty hidden field submits empty. `prefill` loads one existing entity row (`entityName` plus `pk`) and copies columns onto fields that have no `defaultValue`. An empty `entityName` loads nothing. Do not put constants in `prefill.pk`. A form `actions` body sends field values (`bodyFromFields` / `bind`) under those field names. The names are the transition parameters (`contactNumber`, `emailAddress`, `address1`, the purpose ids, `countryGeoId`, `stateProvinceGeoId`). The `path` is that screen plus the transition. The widget line names the screen (`/apps/marble/Party/EditParty/UpdateContactInfo`) and the transition (`storeContactInfo`), so the POST path is `/apps/marble/Party/EditParty/UpdateContactInfo/storeContactInfo`. The parent screen plus the transition name does not run it. A `display` field is text on the canvas. It is not a parameter.
 
 ## Adjust
 
