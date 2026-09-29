@@ -22,6 +22,16 @@ When the Records section lists a QuickSearch, Search, or QuickLookup actions pat
 
 To change a status, `browse` the record's screen with `detail=true` and POST a transition that listing shows. Do not invent a `statusId`.
 
+## Form widgets
+
+When the context block `skill-widgets` is present, or the selected skill body has a `## Widgets` section, build the canvas from those lines.
+
+- A `find_basic` line: call `find_basic` with that entity, key, text, and `and` map, then `Select` / `SelectItem` from `options`. Use the keys exactly. Omit `entityName` and the tool lists the entities it will query.
+- An `entity` line is not a `find_basic` call. Use a `Lookup GET` on that same line when one is there.
+- A `Lookup GET` line: OpenUI `Lookup(name, $name, optionsUrl, valueField, labelField, dependsOn)`. `optionsUrl` is that `/apps/...` path. The browser loads the options.
+- Static option keys go straight into `Select`. Text, date, and check lines are `Input`, `TextArea`, `DateTime`, and `CheckBox`.
+- Record search stays QuickSearch / QuickLookup.
+
 ## Skills first
 
 Always look for a skill (`find_skill`, and skills injected as CONTEXT) before `browse`. Follow a matching skill. If none matches and the user wants a write, call `enter_sim` before `run_service` or `request` writes. You may `write_ui` a clarification form without sim; after `submitted:true` you must `enter_sim` before those writes if there is still no skill.

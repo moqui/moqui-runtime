@@ -714,7 +714,7 @@ module.exports = {
             if (this.pendingToolCalls.length) this.resumeChat(text);
             else this.chat(text);
         },
-        toolNames: function() { return ['find_skill', 'enter_sim', 'browse', 'request', 'write_ui', 'run_service', 'pin']; },
+        toolNames: function() { return ['find_skill', 'enter_sim', 'browse', 'find_basic', 'request', 'write_ui', 'run_service', 'pin']; },
         headers: function(stream) {
             var h = { 'Content-Type': 'application/json', 'X-CSRF-Token': this.csrf, Accept: stream ? 'text/event-stream' : 'application/json' };
             return h;

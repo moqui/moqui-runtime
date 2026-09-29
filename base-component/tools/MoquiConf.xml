@@ -15,7 +15,9 @@
                 allow-browse="true" allow-run-service="true"
                 allow-unprefixed-request="true" allow-enter-sim="true"
                 allow-vue-sfc="false"
-                max-iterations="20"
-                system-location="component://tools/prompt/AssistSystem.ftl"/>
+                timeout-seconds="360" max-iterations="30"
+                system-location="component://tools/prompt/AssistSystem.ftl">
+            <allowed-basic-entity package="moqui.basic"/>
+        </profile>
     </llm-facade>
 </moqui-conf>

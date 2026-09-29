@@ -17,7 +17,7 @@
     <default-property name="llm_openai_model" value=""/>
     <llm-facade>
         <!-- For the assist profile timeout-seconds and max-iterations need to be somewhat high for skill learning R&D loops -->
-        <profile name="assist" timeout-seconds="900" max-iterations="32"/>
+        <profile name="assist" timeout-seconds="900" max-iterations="40" allow-vue-sfc="true"/>
         <profile name="default" timeout-seconds="900"/>
     </llm-facade>
 
