@@ -15,11 +15,6 @@
     <!-- Local LLM Endpoint (OpenAI-compatible) for Assist / LlmClient testing -->
     <default-property name="llm_openai_url" value="http://127.0.0.1:1234"/>
     <default-property name="llm_openai_model" value=""/>
-    <llm-facade>
-        <!-- For the assist profile timeout-seconds and max-iterations need to be somewhat high for skill learning R&D loops -->
-        <profile name="assist" timeout-seconds="900" max-iterations="40" allow-vue-sfc="true"/>
-        <profile name="default" timeout-seconds="900"/>
-    </llm-facade>
 
     <!-- minimal overrides for testing on local mysql8:
     <default-property name="entity_ds_db_conf" value="mysql8"/>
@@ -92,6 +87,12 @@
             refer to a file to override the default macros. -->
         <screen-text-output type="html" mime-type="text/html" macro-template-location="template/screen-macro/ScreenHtmlMacros.ftl"/>
     </screen-facade>
+
+    <llm-facade>
+        <!-- For the assist profile timeout-seconds and max-iterations need to be somewhat high for skill learning R&D loops -->
+        <profile name="assist" timeout-seconds="900" max-iterations="40" allow-vue-sfc="true"/>
+        <profile name="default" timeout-seconds="900"/>
+    </llm-facade>
 
     <entity-facade query-stats="true">
         <!-- add datasource elements here to configure databases -->
