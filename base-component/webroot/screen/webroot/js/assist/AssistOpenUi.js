@@ -7,6 +7,59 @@
             return v.value;
         return v;
     }
+    function sameOpenUiLiteral(a, b) {
+        var av = unwrapFieldValue(a), bv = unwrapFieldValue(b);
+        if (av === bv) return true;
+        if (av == null || bv == null) return false;
+        if (typeof av === 'object' || typeof bv === 'object') return false;
+        return String(av) === String(bv);
+    }
+    function isScalarDecl(v) {
+        return v == null || typeof v !== 'object';
+    }
+    /** fieldValues echo the last store. createStore.initialize writes that echo first and
+     *  applies a $ literal only when the key is absent, so a revised literal must be written
+     *  into the echo when the echo is still the previous literal. A different echo is a user edit. */
+    function persistedOpenUiState(decls, prevDecls, initial) {
+        var persisted = {};
+        var src = initial || {};
+        var prior = prevDecls || {};
+        Object.keys(src).forEach(function(k) {
+            var bare = k.charAt(0) === '$' ? k.slice(1) : k;
+            persisted['$' + bare] = src[k];
+        });
+        if (!decls) return persisted;
+        Object.keys(decls).forEach(function(dollar) {
+            if (!isScalarDecl(decls[dollar])) return;
+            if (!Object.prototype.hasOwnProperty.call(prior, dollar)) return;
+            if (!isScalarDecl(prior[dollar])) return;
+            if (sameOpenUiLiteral(prior[dollar], decls[dollar])) return;
+            var bare = dollar.charAt(0) === '$' ? dollar.slice(1) : dollar;
+            var incoming = Object.prototype.hasOwnProperty.call(src, dollar) ? src[dollar]
+                : (Object.prototype.hasOwnProperty.call(src, bare) ? src[bare] : undefined);
+            if (incoming !== undefined && !sameOpenUiLiteral(incoming, prior[dollar])) return;
+            persisted[dollar] = decls[dollar];
+        });
+        return persisted;
+    }
+    /** Drop edit flags that only echo the previous literal, and flags for fields the new program removed. */
+    function reconcileUserEdits(edited, prevDecls, decls, pre) {
+        var next = {};
+        if (!edited) return next;
+        var prior = prevDecls || {};
+        Object.keys(edited).forEach(function(name) {
+            if (!edited[name]) return;
+            if (!decls || !Object.prototype.hasOwnProperty.call(decls, name)) return;
+            var decl = decls[name];
+            if (!isScalarDecl(decl)) { next[name] = true; return; }
+            var cur = pre ? pre[name] : undefined;
+            var old = Object.prototype.hasOwnProperty.call(prior, name) ? prior[name] : undefined;
+            if (old !== undefined && isScalarDecl(old) && sameOpenUiLiteral(cur, old)) return;
+            if (sameOpenUiLiteral(cur, decl)) return;
+            next[name] = true;
+        });
+        return next;
+    }
     function flattenRender(list) {
         var out = [];
         function walk(v) {
@@ -617,7 +670,11 @@
         },
         created: function() {
             this._lastStoreInitKey = '';
+            this._lastDecls = null;
             this._lastErrorKey = '';
+            this._userEdited = {};
+            this._replacedLiteral = null;
+            this._echoTimer = null;
             var self = this;
             var boot = function() {
                 var OpenUI = root.OpenUILang;
@@ -651,6 +708,7 @@
             } else boot();
         },
         beforeDestroy: function() {
+            if (this._echoTimer) clearTimeout(this._echoTimer);
             if (this._unsubStore) this._unsubStore();
             if (this._unsubQm) this._unsubQm();
             if (this._qm) this._qm.dispose();
@@ -667,6 +725,16 @@
             },
             setState: function(name, value) {
                 if (!this._store) return;
+                var decl = this._parseResult && this._parseResult.stateDeclarations;
+                var fromDecl = decl && Object.prototype.hasOwnProperty.call(decl, name) ? decl[name] : undefined;
+                var replaced = this._replacedLiteral;
+                if (replaced && Object.prototype.hasOwnProperty.call(replaced, name)
+                        && sameOpenUiLiteral(value, replaced[name]) && !sameOpenUiLiteral(value, fromDecl))
+                    return;
+                if (fromDecl !== undefined && isScalarDecl(fromDecl) && !sameOpenUiLiteral(value, fromDecl)) {
+                    if (!this._userEdited) this._userEdited = {};
+                    this._userEdited[name] = true;
+                }
                 this._store.set(name, value);
             },
             getFieldValue: function(formName, name) {
@@ -809,17 +877,32 @@
                 }
                 this._parseResult = parseResult;
                 var decls = (parseResult && parseResult.stateDeclarations) || {};
-                var initial = this.initialState || {};
-                var key = JSON.stringify(decls) + '::' + JSON.stringify(initial);
+                var self = this;
+                var pre = {};
+                Object.keys(decls).forEach(function(name) { pre[name] = self.getState(name); });
+                this._userEdited = reconcileUserEdits(this._userEdited, this._lastDecls, decls, pre);
+                var persisted = persistedOpenUiState(decls, this._lastDecls, this.initialState);
+                var key = JSON.stringify(decls) + '::' + JSON.stringify(persisted);
                 if (key !== this._lastStoreInitKey) {
                     this._lastStoreInitKey = key;
-                    var persisted = {};
-                    Object.keys(initial).forEach(function(k) {
-                        if (k.charAt(0) === '$') persisted[k] = initial[k];
-                        else persisted['$' + k] = initial[k];
-                    });
                     this._store.initialize(decls, persisted);
                 }
+                var edited = this._userEdited || {};
+                Object.keys(decls).forEach(function(name) {
+                    if (edited[name] || !isScalarDecl(decls[name])) return;
+                    if (sameOpenUiLiteral(self.getState(name), decls[name])) return;
+                    if (!self._replacedLiteral) self._replacedLiteral = {};
+                    self._replacedLiteral[name] = self.getState(name);
+                    self._store.set(name, decls[name]);
+                });
+                if (this._replacedLiteral) {
+                    if (this._echoTimer) clearTimeout(this._echoTimer);
+                    this._echoTimer = setTimeout(function() {
+                        self._replacedLiteral = null;
+                        self._echoTimer = null;
+                    }, 500);
+                }
+                this._lastDecls = decls;
                 this.reeval();
             },
             reeval: function() {
