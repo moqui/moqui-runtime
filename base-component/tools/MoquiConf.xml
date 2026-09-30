@@ -8,6 +8,7 @@
             <subscreens-item name="tools" menu-title="Tools" menu-index="99" location="component://tools/screen/Tools.xml"/>
         </screen>
         <screen location="component://webroot/screen/webroot/uapps.xml">
+            <subscreens-item name="assist" menu-title="Assist" menu-index="97" location="component://tools/screen/Assist.xml"/>
             <subscreens-item name="system" menu-title="System" menu-index="98" location="component://tools/screen/System.xml"/>
             <subscreens-item name="tools" menu-title="Tools" menu-index="99" location="component://tools/screen/Tools.xml"/>
         </screen>
