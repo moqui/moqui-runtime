@@ -958,7 +958,19 @@
                 this.evaluatedRoot = evaluated;
                 var all = errors.concat(runtimeErrors);
                 this.parseErrors = all;
-                var ek = JSON.stringify(all);
+                var seen = {};
+                var distinctKey = [];
+                for (var di = 0; di < all.length; di++) {
+                    var dm = (all[di] && all[di].message) || '';
+                    var dn = String(dm).trim().replace(/\s+/g, ' ');
+                    var dc = (all[di] && all[di].code) || '';
+                    var dk = dc + '|' + dn;
+                    if (seen[dk]) continue;
+                    seen[dk] = true;
+                    distinctKey.push(dk);
+                }
+                distinctKey.sort();
+                var ek = distinctKey.join('\n');
                 if (ek !== this._lastErrorKey) {
                     this._lastErrorKey = ek;
                     this.$emit('error', all);

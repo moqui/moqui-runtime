@@ -132,7 +132,7 @@
                         <div class="text-subtitle2">Problems with this screen</div>
                         <ul class="q-pl-md q-mb-none">
                             <li v-for="(n, ni) in canvasNotices" :key="'cn'+ni"
-                                :class="n.kind==='error' ? 'text-negative' : ''">{{ n.message }}</li>
+                                :class="n.kind==='error' ? 'text-negative' : ''">{{ n.message }}<span v-if="n.count && n.count > 1"> (×{{ n.count }})</span></li>
                         </ul>
                     </div>
                     <div v-if="showParentSubmit" class="assist-actions">
@@ -173,7 +173,7 @@
                     <div class="text-subtitle2">Problems with this screen</div>
                     <ul class="q-pl-md q-mb-none">
                         <li v-for="(n, ni) in canvasNotices" :key="ni"
-                            :class="n.kind==='error' ? 'text-negative' : ''">{{ n.message }}</li>
+                            :class="n.kind==='error' ? 'text-negative' : ''">{{ n.message }}<span v-if="n.count && n.count > 1"> (×{{ n.count }})</span></li>
                     </ul>
                 </div>
                 <q-input id="assist-adjust-text" outlined autogrow type="textarea" v-model="adjustText"
@@ -612,6 +612,7 @@ module.exports = {
             messages: [], pendingToolCalls: [],
             schema: null, fieldValues: {}, dirtyFields: {},
             adjustOpen: false, adjustText: '', canvasNotices: [],
+            autoValidationCount: 0, lastAutoHash: '', maxAutoValidations: 4,
             vueSfcComp: null, vueSfcKey: null, vueSfcGen: 0, vueSfcFailed: false,
             speechSupported: false, recognizing: false,
             recognition: null, abortCtl: null,
@@ -715,6 +716,8 @@ module.exports = {
             this.adjustOpen = false;
             this.adjustText = '';
             this.canvasNotices = [];
+            this.autoValidationCount = 0;
+            this.lastAutoHash = '';
             this.vueSfcComp = null;
             this.vueSfcKey = null;
             this.vueSfcFailed = false;
@@ -801,10 +804,18 @@ module.exports = {
         recordCanvasNotice: function(message, kind) {
             if (!message) return false;
             var text = String(message);
+            var norm = text.trim().replace(/\s+/g, ' ');
             var list = this.canvasNotices || [];
             this.canvasNotices = list;
-            for (var i = 0; i < list.length; i++) if (list[i].message === text) return false;
-            list.push({ kind: kind === 'error' ? 'error' : (kind || 'warning'), message: text });
+            for (var i = 0; i < list.length; i++) {
+                var existing = list[i];
+                var existingNorm = String(existing.message || '').trim().replace(/\s+/g, ' ');
+                if (existingNorm === norm) {
+                    existing.count = (existing.count || 1) + 1;
+                    return false;
+                }
+            }
+            list.push({ kind: kind === 'error' ? 'error' : (kind || 'warning'), message: text, count: 1 });
             return true;
         },
         noteCanvas: function(message, kind) {
@@ -832,7 +843,9 @@ module.exports = {
             var notices = this.canvasNotices || [];
             if (notices.length) {
                 pack.notices = notices.map(function(n) {
-                    return { kind: n.kind, message: n.message };
+                    var row = { kind: n.kind, message: n.message };
+                    if (n.count && n.count > 1) row.count = n.count;
+                    return row;
                 });
             }
             return pack;
@@ -908,6 +921,8 @@ module.exports = {
         },
         applyYield: function(args) {
             if (!args) return;
+            this.autoValidationCount = 0;
+            this.lastAutoHash = '';
             this.applySchema(args);
             if (args.kind === 'openui') {
                 this.vueSfcGen = (this.vueSfcGen || 0) + 1;
@@ -967,17 +982,108 @@ module.exports = {
             var warnings = payload.warnings || [];
             for (var i = 0; i < errors.length; i++) this.noteCanvas(errors[i], 'error');
             for (var w = 0; w < warnings.length; w++) this.noteCanvas(warnings[w], 'warning');
+            if (errors.length) this.maybeAutoResumeValidation();
         },
         onOpenUiError: function(errors) {
             if (!errors || !errors.length) return;
-            var critical = errors.filter(function(e) {
-                return e && (e.code === 'unknown-component' || e.code === 'parse-exception'
-                    || e.code === 'parse-failed' || e.code === 'type-mismatch' || e.code === 'no-root');
-            });
-            if (!critical.length) return;
-            assistNotify(critical[0].message || 'OpenUI parse error', 'warning');
-            for (var i = 0; i < critical.length; i++)
-                this.recordCanvasNotice((critical[i] && critical[i].message) || 'OpenUI parse error', 'warning');
+            var seen = {};
+            var distinct = [];
+            for (var i = 0; i < errors.length; i++) {
+                var msg = (errors[i] && errors[i].message) || 'OpenUI parse error';
+                var norm = String(msg).trim().replace(/\s+/g, ' ');
+                if (seen[norm]) continue;
+                seen[norm] = true;
+                distinct.push(errors[i]);
+            }
+            if (!distinct.length) return;
+            for (var d = 0; d < distinct.length; d++)
+                this.recordCanvasNotice((distinct[d] && distinct[d].message) || 'OpenUI parse error', 'error');
+            assistNotify(distinct.length + ' screen problem' + (distinct.length > 1 ? 's' : '') + ': '
+                + ((distinct[0] && distinct[0].message) || 'OpenUI parse error'), 'warning');
+            this.maybeAutoResumeValidation();
+        },
+        autoValidationHash: function() {
+            var list = this.canvasNotices || [];
+            var errs = [];
+            for (var i = 0; i < list.length; i++) if (list[i] && list[i].kind === 'error') errs.push(String(list[i].message || ''));
+            errs.sort();
+            return errs.join('\n');
+        },
+        buildValidationSnippet: function() {
+            var lang = this.schema && this.schema.lang;
+            if (!lang) return null;
+            var lines = String(lang).split('\n');
+            var firstErr = null;
+            var list = this.canvasNotices || [];
+            for (var i = 0; i < list.length; i++) {
+                if (list[i] && list[i].kind === 'error' && list[i].message) { firstErr = String(list[i].message); break; }
+            }
+            var at = -1;
+            if (firstErr) {
+                var m = /`([^`=\n]{1,64})`/.exec(firstErr) || /["']([A-Za-z_][A-Za-z0-9_]{0,63})["']/.exec(firstErr);
+                if (m) {
+                    var name = m[1];
+                    for (var li = 0; li < lines.length; li++) {
+                        if (lines[li].match(new RegExp('(^|\\s)' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*='))) { at = li; break; }
+                    }
+                }
+            }
+            var start, end;
+            if (at >= 0) { start = Math.max(0, at - 2); end = Math.min(lines.length, at + 3); }
+            else { start = 0; end = Math.min(lines.length, 15); }
+            return { statementHint: firstErr, startLine: start + 1, lines: lines.slice(start, end), langChars: String(lang).length };
+        },
+        autoValidationPackage: function(feedback) {
+            var pack = this.adjustPackage(feedback);
+            pack.autoValidation = true;
+            pack.origin = 'auto-validation';
+            pack.attempt = (this.autoValidationCount || 0) + 1;
+            pack.maxAttempts = this.maxAutoValidations || 4;
+            var snippet = this.buildValidationSnippet();
+            if (snippet) pack.snippet = snippet;
+            var notices = this.canvasNotices || [];
+            if (notices.length) {
+                pack.notices = notices.map(function(n) {
+                    var row = { kind: n.kind, message: n.message };
+                    if (n.count && n.count > 1) row.count = n.count;
+                    return row;
+                });
+            }
+            return pack;
+        },
+        maybeAutoResumeValidation: function() {
+            if (this.streaming) return;
+            var pending = this.pendingToolCalls && this.pendingToolCalls[0];
+            if (!pending || pending.name !== 'write_ui' || !this.conversationId) return;
+            if (this.pendingConfirm()) return;
+            var hash = this.autoValidationHash();
+            if (!hash) return;
+            var max = this.maxAutoValidations || 4;
+            if ((this.autoValidationCount || 0) >= max) return;
+            if (hash === this.lastAutoHash) return;
+            this.lastAutoHash = hash;
+            this.autoValidationCount = (this.autoValidationCount || 0) + 1;
+            var n = this.autoValidationCount;
+            var firstLine = hash.split('\n')[0] || 'validation failed';
+            var errCount = hash.split('\n').length;
+            var feedback = 'OpenUI validation failed (attempt ' + n + '/' + max + '): '
+                + errCount + ' problem' + (errCount > 1 ? 's' : '') + '. First: ' + firstLine
+                + '. Fix all notices with write_ui (prefer a small writeThrough patch, or a full lang program if the screen failed to render).';
+            var pack = this.autoValidationPackage(feedback);
+            pack.userMessage = feedback;
+            this.messages.push({ role: 'user', content: 'Auto-adjust (validation ' + n + '/' + max + '): ' + firstLine });
+            assistNotify('Checking screen, attempt ' + n + '/' + max + '…', 'info');
+            if (n >= max) {
+                var vm = this;
+                setTimeout(function() {
+                    assistNotify('Validation still failing after ' + max + ' attempts — ' + errCount
+                        + ' problems listed; use Adjust or edit the request.', 'warning');
+                }, 0);
+            }
+            var body = Object.assign({ profile: 'assist', tools: this.toolNames(), user: feedback, stream: true,
+                toolResults: [{ id: pending.id, name: 'write_ui', content: pack }] },
+                this.chatFlags());
+            this.runSse(this.llmBase + '/chat/' + encodeURIComponent(this.conversationId) + '/resume', body);
         },
         onOpenUiAction: function(ev) {
             if (!ev) return;
@@ -1143,7 +1249,7 @@ module.exports = {
             add('', args.body || {}, 0);
             add('', args.query || {}, 0);
             var text = lines.join('\n');
-            if (text.length > 600) text = text.substring(0, 600) + '…';
+            if (text.length > 4000) text = text.substring(0, 4000) + '…';
             return text;
         },
         confirmTool: function(ok) {
