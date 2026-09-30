@@ -30,6 +30,9 @@ def fileMap = [
     "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.ttf":"",
     "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.woff":"",
     "twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.woff2":"",
+    // Bootstrap 5 (for uapps.xml - UNPOLY theme)
+    "bootstrap/5.3.3/css/bootstrap.min.css":"bootstrap5/css/bootstrap.min.css",
+    "bootstrap/5.3.3/js/bootstrap.bundle.min.js":"bootstrap5/js/bootstrap.bundle.min.js",
 
     "bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css":"",
     // js/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js 4.17.47 has a small change so that keyBinds are handled properly
@@ -37,13 +40,15 @@ def fileMap = [
 
     "mouse0270-bootstrap-notify/3.1.7/bootstrap-notify.min.js":"",
 
-    "font-awesome/4.7.0/css/font-awesome.min.css":"",
-    "font-awesome/4.7.0/fonts/FontAwesome.otf":"",
-    "font-awesome/4.7.0/fonts/fontawesome-webfont.eot":"",
-    "font-awesome/4.7.0/fonts/fontawesome-webfont.svg":"",
-    "font-awesome/4.7.0/fonts/fontawesome-webfont.ttf":"",
-    "font-awesome/4.7.0/fonts/fontawesome-webfont.woff":"",
-    "font-awesome/4.7.0/fonts/fontawesome-webfont.woff2":"",
+    // Font Awesome 6 Free (v4 icon names still work via v4-shims.min.css)
+    "font-awesome/6.7.2/css/all.min.css":"",
+    "font-awesome/6.7.2/css/v4-shims.min.css":"",
+    "font-awesome/6.7.2/webfonts/fa-solid-900.woff2":"",
+    "font-awesome/6.7.2/webfonts/fa-solid-900.ttf":"",
+    "font-awesome/6.7.2/webfonts/fa-regular-400.woff2":"",
+    "font-awesome/6.7.2/webfonts/fa-regular-400.ttf":"",
+    "font-awesome/6.7.2/webfonts/fa-brands-400.woff2":"",
+    "font-awesome/6.7.2/webfonts/fa-brands-400.ttf":"",
 
     "jeditable.js/1.7.3/jeditable.min.js":"",
 
@@ -88,7 +93,12 @@ def fileMap = [
 ]
 
 def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
-def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js"]
+def jsdelivrList = [
+    "quasar@1.22.10/dist/quasar.min.css",
+    "quasar@1.22.10/dist/quasar.umd.min.js",
+    "unpoly@3.10.2/unpoly.css",
+    "unpoly@3.10.2/unpoly.js"
+]
 
 String getTargetPath(String sourcePath, String targetPath) {
     if (!targetPath) {
@@ -233,6 +243,47 @@ task combineBaseJs {
         })
     }
 }
+def base5Js = []
+// RSVP (promises, futures)
+base5Js.add(libsPath + '/rsvp/rsvp.min.js')
+// jQuery
+base5Js.add(libsPath + '/jquery/jquery.min.js')
+// Bootstrap 5 bundle (includes Popper)
+base5Js.add(libsPath + '/bootstrap5/js/bootstrap.bundle.min.js')
+// Autocomplete (Twitter TypeAhead)
+base5Js.add(libsPath + '/typeahead.js/typeahead.jquery.min.js')
+// Input Masking
+base5Js.add(libsPath + '/jquery.inputmask/jquery.inputmask.bundle.min.js')
+// Form Validation and AJAX (jquery-validation, jquery-form)
+base5Js.add(libsPath + '/jquery-validate/jquery.validate.min.js')
+base5Js.add(libsPath + '/jquery-validate/additional-methods.min.js')
+// Date/Time (Moment, bootstrap-datetimepicker)
+base5Js.add(libsPath + '/moment.js/moment-with-locales.min.js')
+base5Js.add(webrootPath + '/js/bootstrap-datetimepicker.min.js')
+// Drop-down (Select2, Selectivity)
+base5Js.add(webrootPath + '/js/select2.min.js')
+base5Js.add(libsPath + '/Selectivity.js/selectivity-full.min.js')
+// Notify/Growl (Bootstrap Notify)
+base5Js.add(libsPath + '/mouse0270-bootstrap-notify/bootstrap-notify.min.js')
+// Inline Editable
+base5Js.add(libsPath + '/jeditable.js/jeditable.min.js')
+// Sortable Hierarchical List
+base5Js.add(webrootPath + '/js/jquery-sortable-lists/jquery-sortable-lists.min.js')
+// Moqui Library (3rd party lib workarounds, NotificationClient, etc)
+base5Js.add(webrootPath + '/js/MoquiLib.min.js')
+
+task combineBase5Js {
+    dependsOn downloadFiles
+    dependsOn minifyJsDir
+    doLast {
+        def destFile = file("${webrootPath}/js/CombinedBase5.min.js")
+        destFile.write("")
+        base5Js.each({
+            destFile.append(file(it).getText("UTF-8"), "UTF-8")
+            destFile.append("\n")
+        })
+    }
+}
 task combineVuetJs {
     dependsOn downloadFiles
     dependsOn minifyJsDir
@@ -252,6 +303,7 @@ task build {
     dependsOn minifyJsDir
 
     dependsOn combineBaseJs
+    dependsOn combineBase5Js
     dependsOn combineVuetJs
 }
 task clean { doLast {

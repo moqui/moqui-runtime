@@ -18,7 +18,10 @@ along with this software (see the LICENSE.md file). If not, see
     <!-- Required CSS files for layout/widgets/etc used in XML Screen/Form template macros -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="1" resourceTypeEnumId="STRT_STYLESHEET" resourceValue=""/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="2" resourceTypeEnumId="STRT_STYLESHEET"
-            resourceValue="/libs/font-awesome/css/font-awesome.min.css"/>
+            resourceValue="/libs/font-awesome/css/all.min.css"/>
+    <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="11" resourceTypeEnumId="STRT_STYLESHEET"
+            resourceValue="/libs/font-awesome/css/v4-shims.min.css"/>
+    <!-- Bootstrap 3 stylesheet -->
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="3" resourceTypeEnumId="STRT_STYLESHEET"
             resourceValue="/libs/twitter-bootstrap/css/bootstrap.min.css"/>
     <moqui.screen.ScreenThemeResource screenThemeId="DEFAULT" sequenceNum="4" resourceTypeEnumId="STRT_STYLESHEET"

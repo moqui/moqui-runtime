@@ -1,0 +1,1416 @@
+/* This software is in the public domain under CC0 1.0 Universal plus a Grant of Patent License. */
+
+:root {
+    --moqui-top-height: 48px;
+    --moqui-footer-height: 50px;
+    --moqui-footer-gap: 10px;
+    --moqui-content-padding-x: 16px;
+    --moqui-content-padding-y: 16px;
+    --moqui-border-color: #dddddf;
+    --moqui-muted-border: #8c8c8c;
+    --moqui-dark-pre-bg: #3a3a3a;
+    --moqui-dark-pre-color: #eeeeee;
+    --moqui-dark-pre-border: #222222;
+    --moqui-image-hover-bg: #fff6e8;
+    --moqui-table-row-print: #eeeeee;
+    --moqui-zindex-datepicker: 2000;
+    --moqui-zindex-select2: 2001;
+    --moqui-zindex-modal-backdrop: 1040;
+    --moqui-zindex-modal: 1050;
+}
+
+/* ========================================================================== */
+/* Page shell                                                                  */
+/* ========================================================================== */
+
+html,
+body,
+#apps-root {
+    height: 100%;
+}
+
+/* body { padding-top: 51px; } */
+/* this is the initial load setting, will get set dynamically for navbar-fixed-top */
+
+#top {
+    min-height: var(--moqui-top-height);
+    height: auto;
+    position: relative;
+    z-index: 1030;
+}
+
+#top .navbar {
+    min-height: var(--moqui-top-height);
+    height: auto;
+    margin-bottom: 0;
+    border-radius: 0;
+    overflow: visible;
+}
+
+.mobile-only {
+    display: block;
+}
+
+.desktop-only,
+.desktop-spacer {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    #top .navbar {
+        min-height: var(--moqui-top-height);
+        height: auto;
+        overflow-y: visible;
+    }
+
+    .navbar-text {
+        margin-left: 8px;
+    }
+
+    .desktop-spacer {
+        display: block;
+    }
+}
+
+@media (min-width: 576px) {
+    .mobile-only {
+        display: none;
+    }
+
+    .desktop-only {
+        display: block;
+    }
+}
+
+/* #top, #content>.inner, #footer are the main page structure elements */
+#content {
+    overflow: visible;
+    background: transparent;
+    min-height: calc(100% - (var(--moqui-top-height) + var(--moqui-footer-height)));
+}
+
+/* inner contains a bootstrap container-fluid div which has 16px left/right padding */
+.inner {
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    padding: var(--moqui-content-padding-y) 0 calc(var(--moqui-footer-height) + var(--moqui-footer-gap)) 0;
+}
+
+#footer {
+    position: relative;
+    width: 100%;
+    height: var(--moqui-footer-height);
+    margin: 0 auto;
+}
+
+#footer p {
+    padding: 0.2em 0 0 0;
+    margin: 0;
+    font-size: 0.9em;
+    text-align: center;
+}
+
+#apps-footer-content {
+    margin-top: 4px;
+    text-align: center;
+}
+
+/* ========================================================================== */
+/* Header utilities                                                            */
+/* ========================================================================== */
+
+#dynamic-menus .glyphicon,
+#dynamic-menus .fa {
+    top: 0;
+    font-size: 10px;
+}
+
+#navbar-buttons .btn .label {
+    top: -2px;
+}
+
+#notify-history-menu ul {
+    min-width: 500px;
+}
+
+#notify-history-menu li {
+    padding: 8px;
+}
+
+#notify-history-menu li div {
+    margin-bottom: 0;
+}
+
+#top .navbar:not(.moqui-topbar) #header-menus,
+#top .navbar:not(.moqui-topbar) #navbar-menu-crumbs {
+    display: inline-block;
+    vertical-align: top;
+}
+
+#top .navbar:not(.moqui-topbar) #navbar-menu-crumbs .navbar-text {
+    display: inline-block;
+    float: none;
+}
+
+/* Bootstrap 3/5 bridge around navbar spacing */
+#top .navbar:not(.moqui-topbar) .navbar-brand > img {
+    height: 30px;
+    margin-top: -5px;
+}
+
+#top .navbar:not(.moqui-topbar) .navbar-right:is(.btn, .btn-group),
+#top .navbar:not(.moqui-topbar) .navbar-right :is(.btn, .btn-group) {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+#top .navbar:not(.moqui-topbar) .navbar-collapse {
+    padding-right: 0;
+}
+
+#top .navbar:not(.moqui-topbar) .nav > li > a {
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+/* ========================================================================== */
+/* Typography and general elements                                             */
+/* ========================================================================== */
+
+div.message {
+    border: 1px solid var(--moqui-border-color);
+}
+
+div.error span {
+    color: red;
+}
+
+strong,
+.text-strong {
+    font-weight: bold;
+}
+
+tt,
+pre,
+pre code {
+    font-family: "Courier New", Courier, monospace;
+}
+
+p,
+pre {
+    white-space: pre-line;
+    word-wrap: normal;
+    word-break: normal;
+}
+
+.bg-dark pre {
+    background-color: var(--moqui-dark-pre-bg);
+    color: var(--moqui-dark-pre-color);
+    border-color: var(--moqui-dark-pre-border);
+}
+
+pre.pre-plain {
+    white-space: pre;
+}
+
+p {
+    margin: 0 0 8px 0;
+}
+
+.padding-top-8 {
+    padding-top: 8px;
+}
+
+.padding-top-16 {
+    padding-top: 16px;
+}
+
+address {
+    margin-bottom: 4px;
+}
+
+form {
+    display: inline;
+}
+
+a.disabled {
+    pointer-events: none;
+    text-decoration: none;
+}
+
+ul.tree-list,
+ul.tree-list ul {
+    list-style-type: none;
+    padding: 4px 4px 4px 20px;
+}
+
+/* ========================================================================== */
+/* XML Screen layout                                                           */
+/* ========================================================================== */
+
+div.container-panel-middle {
+    display: table;
+    width: 100%;
+    height: 100%;
+    table-layout: auto;
+}
+
+div.container-panel-left,
+div.container-panel-center-only,
+div.container-panel-center-left,
+div.container-panel-center-both,
+div.container-panel-center-right,
+div.container-panel-right {
+    display: table-cell;
+    height: 100%;
+    vertical-align: top;
+}
+
+div.container-panel-left {
+    padding-right: 8px;
+}
+
+div.container-panel-right {
+    padding-left: 8px;
+}
+
+div.container-panel-center-only {
+    width: 100%;
+    padding: 0 8px;
+}
+
+div.container-panel-center-left,
+div.container-panel-center-both,
+div.container-panel-center-right {
+    padding: 0 8px;
+}
+
+div.container-panel-header,
+div.container-panel-footer {
+    width: 100%;
+}
+
+/* ========================================================================== */
+/* Form layout and field presentation                                          */
+/* ========================================================================== */
+
+.big-row-item {
+    display: inline-block;
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+.big-row-item input,
+.big-row-item select,
+.big-row-item span.select2-container {
+    display: inline-block;
+}
+
+.big-row-item > .form-group {
+    margin-bottom: 0;
+}
+
+.big-row-item > .form-group > label {
+    display: block;
+    text-align: left;
+}
+
+.form-title {
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.form-order-by {
+    display: inline-block;
+    height: 18px;
+    margin: 0;
+    vertical-align: top;
+    white-space: nowrap;
+}
+
+.form-order-by a {
+    display: block;
+    height: 10px;
+    margin: -2px 0;
+    font-size: 14px;
+}
+
+.form-header-field {
+    white-space: nowrap;
+    padding-top: 4px;
+}
+
+td span.form-display {
+    display: inline-block;
+    width: 100%;
+}
+
+.form-date-find,
+.form-range-find {
+    display: inline-block;
+    padding-bottom: 4px;
+}
+
+.form-text-find input,
+.form-range-find input {
+    display: inline-block;
+}
+
+td .Long,
+td .Double,
+td .Float,
+td .Integer {
+    text-align: center;
+}
+
+td .BigDecimal,
+td .currency {
+    text-align: right;
+}
+
+.table-condensed .form-group {
+    margin-bottom: 0;
+}
+
+td.form-list-sub-row-cell {
+    padding: 0 !important;
+}
+
+.form-list-sub-rows {
+    margin-left: 23px;
+    padding-left: 8px;
+    border-left: 1px dashed var(--moqui-muted-border);
+}
+
+.form-list-sub-rows > table {
+    margin-bottom: 0;
+}
+
+.form-control {
+    display: inline;
+    min-width: 20px;
+    width: auto;
+    max-width: 100%;
+}
+
+.input-group {
+    display: inline-block;
+    white-space: nowrap;
+    margin-right: 0;
+    margin-top: -2px;
+}
+
+.input-group .form-control {
+    display: inline;
+    min-width: 20px;
+    width: auto;
+}
+
+.input-group .input-group-addon,
+.input-group .input-group-text,
+.input-group .input-group-btn {
+    display: inline;
+    line-height: 34px;
+    padding: 8px 12px;
+}
+
+.form-group > div > p,
+.form-group > div > span.text-inline,
+.form-group > div > a:not(.btn) {
+    display: inline-block;
+    min-height: 34px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    margin-bottom: 0;
+}
+
+table .form-group > div > a:not(.btn),
+table .form-group > div > span.text-inline {
+    min-height: 10px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.form-header-field > button.btn,
+.form-group > div > a.btn {
+    margin-top: 2px !important;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+    height: auto;
+}
+
+/* ========================================================================== */
+/* Navigation, tabs, buttons, pagination                                       */
+/* ========================================================================== */
+
+.nav.nav-tabs {
+    margin-bottom: 8px;
+}
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+    cursor: pointer;
+}
+
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-link.active:hover,
+.nav-tabs .nav-link.active:focus {
+    cursor: pointer;
+}
+
+.pagination {
+    margin: 6px 0;
+}
+
+nav.form-list-nav .pagination {
+    margin: 0;
+}
+
+nav.form-list-nav {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.5rem;
+}
+
+nav.form-list-nav > form.form-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+}
+
+nav.form-list-nav > .btn,
+nav.form-list-nav > .btn-group,
+nav.form-list-nav > .pagination,
+nav.form-list-nav > span.select2-container {
+    margin: 0;
+}
+
+nav.form-list-nav > span.select2-container {
+    min-width: 100px;
+    max-width: 160px;
+}
+
+nav.form-list-nav .pagination .page-link {
+    padding: 0.35rem 0.6rem;
+    line-height: 1.1;
+}
+
+nav.form-list-nav .pagination .page-item.active .page-link {
+    font-weight: 600;
+}
+
+.btn {
+    margin: 4px 4px 4px 0;
+}
+
+.btn-group .btn {
+    margin-right: 0;
+}
+
+.btn-group {
+    margin-right: 4px;
+    margin-left: 4px;
+}
+
+.btn-group-condensed > .btn:not(.dropdown-toggle) {
+    padding-left: 4px;
+    padding-right: 4px;
+    border-left: 0;
+    border-right: 0;
+}
+
+.btn-group-condensed > .btn:first-child {
+    padding-right: 4px;
+    border-right: 0;
+}
+
+.btn-group-condensed > .btn:last-child {
+    padding-left: 4px;
+    border-left: 0;
+}
+
+/* ========================================================================== */
+/* Tables                                                                      */
+/* ========================================================================== */
+
+.table {
+    margin-bottom: 8px;
+}
+
+.table > thead > tr > th {
+    vertical-align: top;
+}
+
+.table > tbody > tr > td {
+    vertical-align: middle;
+}
+
+/* by CSS spec either x or y not visible changes the visible to auto, this breaks bootstrap-datetimepicker, select2 still works:
+.table-scroll-wrapper { overflow-x: auto; overflow-y: visible; } */
+/* this fixes bootstrap-datetimepicker but causes horizontal scroll bar to overlap elements below, and for some reason breaks find screens like FindOrder
+.table-scroll-wrapper { overflow-x: auto; overflow-y: visible; padding-bottom: 300px; margin-bottom: -300px; padding-top: 300px; margin-top: -300px; } */
+
+/* ========================================================================== */
+/* Cards/panels/wells compatibility                                            */
+/* ========================================================================== */
+
+.panel .panel-heading,
+.card > .card-header {
+    position: relative;
+}
+
+.panel .panel-heading .panel-toolbar,
+.card > .card-header :is(.panel-toolbar, .card-toolbar) {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.panel .panel-toolbar .label {
+    display: inline-block;
+    margin: 4px 4px 4px 0;
+}
+
+.panel .panel-heading > h5,
+.panel .panel-heading > span,
+.card > .card-header > h5,
+.card > .card-header > span,
+.card > .card-header > .card-title {
+    display: inline-block;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 16px;
+}
+
+:is(.panel, .card),
+:is(.panel, .card) :is(.panel-body, .card-body) {
+    background: transparent;
+}
+
+.panel-body > table.table,
+.card-body > table.table {
+    width: calc(100% + 30px);
+    max-width: none;
+    margin: -15px;
+}
+
+:is(.panel, .card) {
+    margin-bottom: 12px;
+}
+
+:is(.panel-body, .card-body) {
+    padding: 8px;
+}
+
+.well > .list-inline {
+    margin-bottom: 0;
+}
+
+/* ========================================================================== */
+/* Handy app styles                                                            */
+/* ========================================================================== */
+
+.col {
+    display: inline-block;
+}
+
+.progress {
+    margin-bottom: 8px;
+}
+
+ul.float-box,
+ul.float-plain {
+    display: inline-block;
+    list-style: none outside none;
+    margin: 0 0 -8px 0;
+    padding: 0;
+}
+
+ul.float-box li,
+ul.float-plain li {
+    display: inline-block;
+    float: left;
+    line-height: 18px;
+    margin: 0 8px 8px 0;
+    padding: 8px;
+}
+
+ul.float-box li.box-narrow {
+    max-width: 300px;
+}
+
+ul.float-plain.condensed {
+    margin: 0;
+}
+
+ul.float-plain.condensed li {
+    margin: 0 4px 0 0;
+    padding: 4px;
+}
+
+.shaded-area {
+    margin-bottom: 8px;
+    padding: 8px;
+    line-height: 18px;
+}
+
+span.shaded-area {
+    display: inline-block;
+    white-space: normal;
+}
+
+.shaded-area.condensed {
+    margin-bottom: 4px;
+    padding: 4px;
+}
+
+.diagram-sequence {
+    width: 900px;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 16px;
+    text-align: center;
+}
+
+.diagram-sequence > div {
+    border-right: rgb(127, 127, 127) dashed thin;
+}
+
+.diagram-sequence > div:first-child {
+    border-left: rgb(127, 127, 127) dashed thin;
+}
+
+.diagram-sequence p {
+    margin-bottom: 10px;
+}
+
+.diagram-sequence-item {
+    position: relative;
+    margin-bottom: 8px;
+    border-bottom: rgb(127, 127, 127) solid 2px;
+}
+
+.diagram-sequence-item.smaller {
+    font-size: 14px;
+}
+
+.diagram-sequence-item i.left,
+.diagram-sequence-item i.right {
+    position: absolute;
+    bottom: -8px;
+    font-size: 14px;
+    color: rgb(127, 127, 127);
+}
+
+.diagram-sequence-item i.left {
+    left: -2px;
+}
+
+.diagram-sequence-item i.right {
+    right: -2px;
+}
+
+.diagram-sequence-item i.left:before {
+    content: "\f053";
+}
+
+.diagram-sequence-item i.right:before {
+    content: "\f054";
+}
+
+.diagram-sequence-actor {
+    margin-bottom: 14px;
+    border-top: rgb(127, 127, 127) solid 1px;
+    border-bottom: rgb(127, 127, 127) solid 1px;
+    font-size: larger;
+    font-weight: bold;
+}
+
+/* ========================================================================== */
+/* Plugin compatibility shims                                                  */
+/* ========================================================================== */
+
+.select2-container {
+    display: inline-block;
+    min-width: 60px;
+    max-width: 100%;
+    margin-top: -2px;
+}
+
+.date-period .select2-container--bootstrap {
+    display: inline-block;
+}
+
+.date-period {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: nowrap;
+}
+
+.date-period > .select2-container--bootstrap {
+    flex: 0 0 auto;
+}
+
+.date-period > .input-group.date {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: clamp(9rem, 20vw, 13rem);
+    max-width: 100%;
+}
+
+.date-period > .input-group.date .form-control {
+    height: 34px;
+    padding: 6px 12px;
+    line-height: 1.42857143;
+}
+
+.date-period > .input-group.date .input-group-text,
+.date-period > .input-group.date .input-group-addon {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 6px 12px;
+    line-height: 1.42857143;
+}
+
+@media (max-width: 575.98px) {
+    .date-period {
+        flex-wrap: wrap;
+    }
+
+    .date-period > .input-group.date {
+        width: 100%;
+    }
+}
+
+a.jstree-anchor {
+    white-space: normal;
+}
+
+.jstree-default .jstree-anchor {
+    height: auto;
+}
+
+.modal-dialog {
+    text-align: left;
+    max-width: calc(100vw - 2rem);
+    margin: 1rem auto;
+}
+
+.modal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.modal .modal-header .modal-title {
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding-right: 0.5rem;
+}
+
+.modal .modal-header .btn-close {
+    order: 2;
+    flex: 0 0 auto;
+    margin: 0 0 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+.modal .modal-content {
+    resize: both;
+    overflow: visible;
+    min-width: 320px;
+    min-height: 180px;
+    max-height: none;
+}
+
+.modal .modal-body {
+    overflow: visible;
+    max-height: none;
+}
+
+@media (max-width: 767.98px) {
+    .modal-dialog {
+        max-width: calc(100vw - 1rem);
+        margin: 0.5rem auto;
+    }
+
+    .modal .modal-content {
+        resize: none;
+        min-width: 0;
+        max-height: none;
+    }
+}
+
+.datepicker {
+    white-space: initial;
+}
+
+.bootstrap-datetimepicker-widget.dropdown-menu,
+.modal .bootstrap-datetimepicker-widget.dropdown-menu {
+    z-index: var(--moqui-zindex-datepicker);
+}
+
+.select2-container--open {
+    z-index: var(--moqui-zindex-select2);
+}
+
+.bootstrap-datetimepicker-widget .collapse {
+    display: none;
+}
+
+.bootstrap-datetimepicker-widget .collapse.in {
+    display: block;
+}
+
+.bootstrap-datetimepicker-widget .table-condensed {
+    margin-bottom: 0;
+}
+
+.bootstrap-datetimepicker-widget .table-condensed > tbody > tr > td,
+.bootstrap-datetimepicker-widget .table-condensed > thead > tr > th {
+    padding: 4px;
+}
+
+/* Glyphicon fallback using Font Awesome (BS5 no longer ships glyphicons) */
+.bootstrap-datetimepicker-widget .glyphicon {
+    display: inline-block;
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+}
+
+.bootstrap-datetimepicker-widget .glyphicon-chevron-left:before { content: "\f053"; }
+.bootstrap-datetimepicker-widget .glyphicon-chevron-right:before { content: "\f054"; }
+.bootstrap-datetimepicker-widget .glyphicon-chevron-up:before { content: "\f077"; }
+.bootstrap-datetimepicker-widget .glyphicon-chevron-down:before { content: "\f078"; }
+.bootstrap-datetimepicker-widget .glyphicon-time:before { content: "\f017"; }
+.bootstrap-datetimepicker-widget .glyphicon-trash:before { content: "\f1f8"; }
+.bootstrap-datetimepicker-widget .glyphicon-remove:before { content: "\f00d"; }
+.bootstrap-datetimepicker-widget .glyphicon-screenshot:before { content: "\f05b"; }
+
+.notify-container {
+    padding-right: 30px;
+}
+
+.twitter-typeahead {
+    display: inline !important;
+}
+
+.tt-menu {
+    width: 360px;
+    margin: 18px 0;
+    padding: 8px 0;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+}
+
+.tt-suggestion {
+    padding: 4px 8px;
+}
+
+.tt-suggestion p {
+    margin: 0;
+}
+
+/* ========================================================================== */
+/* Screen-specific styles                                                      */
+/* ========================================================================== */
+
+.app-list-link {
+    display: block;
+    width: 320px;
+    margin: 8px auto;
+    font-size: 1.5em;
+}
+
+.ScreenTreeNested {
+    margin: 4px 0 4px 12px;
+    padding: 0 0 0 12px;
+    border-left: 1px dashed lightgrey;
+}
+
+.Login .form-signin {
+    display: block;
+    width: 380px;
+    padding: 10px;
+    margin: 0 auto;
+    border-radius: 3px;
+}
+
+.Login .form-signin input {
+    width: 100%;
+    height: auto;
+    font-size: 1.2em;
+}
+
+.Login .form-signin input.top {
+    margin-bottom: -1px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.Login .form-signin input.middle {
+    margin-bottom: -1px;
+    border-radius: 0;
+}
+
+.Login .form-signin input.bottom {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+#wiki-page-area {
+    width: 100%;
+    overflow-x: scroll;
+    overflow-y: visible;
+}
+
+#wiki-page-area th,
+#wiki-page-area td {
+    padding: 2px 4px;
+    border: thin solid lightgrey;
+}
+
+.CodeMirror,
+.CodeMirror-scroll {
+    min-width: 800px;
+    min-height: 600px;
+}
+
+/* ========================================================================== */
+/* Image thumbnail hover styles                                                */
+/* ========================================================================== */
+
+span.hover-image-container img.hover-image {
+    position: absolute;
+    display: none;
+    padding: 6px;
+    background-color: var(--moqui-image-hover-bg);
+    box-shadow: 0 0 6px rgba(132, 132, 132, 0.75);
+    border-radius: 4px;
+}
+
+span.hover-image-container:hover img.hover-image {
+    display: initial;
+    margin: 10px 0 0 5px;
+}
+
+/* ========================================================================== */
+/* Hide-nav (mainly for printing)                                              */
+/* ========================================================================== */
+
+.hide-nav button,
+.hide-nav a.btn,
+.hide-nav .form-list-nav,
+.hide-nav .nav {
+    display: none;
+}
+
+body.hide-nav {
+    padding-top: 0;
+}
+
+/* ========================================================================== */
+/* Print                                                                       */
+/* ========================================================================== */
+
+@media print {
+    /* use white background for all, bootstrap uses white background for tables but leaves all else transparent */
+    *,
+    *:before,
+    *:after {
+        background: transparent none !important;
+    }
+
+    body,
+    #content,
+    .inner,
+    .container-fluid {
+        background: white none !important;
+    }
+
+    /* don't show URL for links as bootstrap does by default, makes a mess */
+    a[href]:after {
+        content: "";
+    }
+
+    body {
+        font-size: 10px;
+        padding-top: 0;
+    }
+
+    /* condense more for printing (bootstrap default 5px), note still has border between rows */
+    .table-condensed tbody tr td {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    button,
+    a.btn,
+    #footer,
+    .nav,
+    .form-order-by,
+    .form-list-nav-row {
+        display: none !important;
+    }
+
+    #content {
+        min-height: 100%;
+    }
+
+    #top {
+        height: 0;
+    }
+
+    .modal {
+        background: white !important;
+    }
+
+    body.modal-open {
+        visibility: hidden;
+    }
+
+    body.modal-open .modal.in,
+    body.modal-open .modal.show {
+        visibility: visible;
+    }
+
+    .chart-container canvas {
+        width: auto !important;
+        height: auto !important;
+        min-height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    .table-striped > tbody > tr:nth-child(even) > td {
+        background-color: var(--moqui-table-row-print) !important;
+    }
+
+    /* Legacy grid print fallback (BS3 + BS5 width classes) */
+    .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6,
+    .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12,
+    .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6,
+    .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12,
+    .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6,
+    .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12,
+    .col-xl-1, .col-xl-2, .col-xl-3, .col-xl-4, .col-xl-5, .col-xl-6,
+    .col-xl-7, .col-xl-8, .col-xl-9, .col-xl-10, .col-xl-11, .col-xl-12,
+    .col-xxl-1, .col-xxl-2, .col-xxl-3, .col-xxl-4, .col-xxl-5, .col-xxl-6,
+    .col-xxl-7, .col-xxl-8, .col-xxl-9, .col-xxl-10, .col-xxl-11, .col-xxl-12,
+    .col-1, .col-2, .col-3, .col-4, .col-5, .col-6,
+    .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {
+        float: left;
+    }
+
+    :is(.col-12, .col-sm-12, .col-md-12, .col-lg-12, .col-xl-12, .col-xxl-12) { width: 100%; }
+    :is(.col-11, .col-sm-11, .col-md-11, .col-lg-11, .col-xl-11, .col-xxl-11) { width: 91.66666667%; }
+    :is(.col-10, .col-sm-10, .col-md-10, .col-lg-10, .col-xl-10, .col-xxl-10) { width: 83.33333333%; }
+    :is(.col-9, .col-sm-9, .col-md-9, .col-lg-9, .col-xl-9, .col-xxl-9) { width: 75%; }
+    :is(.col-8, .col-sm-8, .col-md-8, .col-lg-8, .col-xl-8, .col-xxl-8) { width: 66.66666667%; }
+    :is(.col-7, .col-sm-7, .col-md-7, .col-lg-7, .col-xl-7, .col-xxl-7) { width: 58.33333333%; }
+    :is(.col-6, .col-sm-6, .col-md-6, .col-lg-6, .col-xl-6, .col-xxl-6) { width: 50%; }
+    :is(.col-5, .col-sm-5, .col-md-5, .col-lg-5, .col-xl-5, .col-xxl-5) { width: 41.66666667%; }
+    :is(.col-4, .col-sm-4, .col-md-4, .col-lg-4, .col-xl-4, .col-xxl-4) { width: 33.33333333%; }
+    :is(.col-3, .col-sm-3, .col-md-3, .col-lg-3, .col-xl-3, .col-xxl-3) { width: 25%; }
+    :is(.col-2, .col-sm-2, .col-md-2, .col-lg-2, .col-xl-2, .col-xxl-2) { width: 16.66666667%; }
+    :is(.col-1, .col-sm-1, .col-md-1, .col-lg-1, .col-xl-1, .col-xxl-1) { width: 8.33333333%; }
+}
+
+
+/* Moqui topbar, Bootstrap 5 oriented and Unpoly-first */
+.moqui-topbar {
+    padding: 0;  /* reset Bootstrap .navbar default 0.5rem top/bottom */
+    min-height: 48px;
+    background: linear-gradient(90deg, #10151b 0%, #1a1e24 45%, #181c22 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+    overflow: visible;
+}
+
+.moqui-topbar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 48px;
+}
+
+.moqui-topbar__brand-zone {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.moqui-topbar__brand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+}
+
+.moqui-topbar__brand img {
+    display: block;
+    max-height: 26px;
+    width: auto;
+    margin: 0;
+}
+
+.moqui-topbar__context {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+    overflow: visible;
+    flex-wrap: nowrap;
+}
+
+.moqui-topbar #header-menus,
+.moqui-topbar #navbar-menu-crumbs {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.moqui-topbar__app-title,
+.moqui-topbar__crumbs,
+.moqui-topbar__current {
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.moqui-topbar__app-title {
+    font-size: 1.05rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.moqui-topbar__app-title:hover,
+.moqui-topbar__current:hover,
+.moqui-topbar__crumbs a:hover {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.moqui-topbar__crumbs,
+.moqui-topbar__current {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+    font-size: 0.98rem;
+    white-space: nowrap;
+}
+
+.moqui-topbar__crumbs .navbar-text,
+.moqui-topbar__crumbs a {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.72);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.moqui-topbar__current {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.moqui-topbar__crumbs i,
+.moqui-topbar__current i {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+}
+
+.moqui-topbar__collapse {
+    flex: 0 0 auto;
+}
+
+.moqui-topbar__menus {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0 0.35rem 0 0.15rem;
+    padding: 0;
+    list-style: none;
+    white-space: nowrap;
+}
+
+#header-menus.navbar-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+}
+
+.moqui-topbar__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-left: auto;
+}
+
+.moqui-topbar__icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 999px;
+    border-width: 1px;
+    box-shadow: none;
+}
+
+.moqui-topbar__icon-btn .fa {
+    font-size: 0.9rem;
+}
+
+.moqui-topbar__dropdown .dropdown-menu {
+    margin-top: 0.75rem;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0.85rem;
+    min-width: 16rem;
+}
+
+.moqui-topbar__history-menu {
+    max-width: min(32rem, 92vw);
+}
+
+.moqui-topbar__history-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: normal;
+}
+
+#header-menus.navbar-nav > li.dropdown > a,
+#header-menus.navbar-nav > li > a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.35rem;
+    color: rgba(255, 255, 255, 0.88);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+#header-menus.navbar-nav > li {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+#header-menus.navbar-nav > li.dropdown > a:hover,
+#header-menus.navbar-nav > li > a:hover,
+#header-menus.navbar-nav > li.active > a {
+    color: #ffffff;
+}
+
+#header-menus .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 2000;
+    min-width: 14rem;
+    margin-top: 0.5rem;
+    padding: 0.35rem 0;
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.14);
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+#header-menus > li.dropdown.open > .dropdown-menu,
+#header-menus > li.dropdown.show > .dropdown-menu {
+    display: block;
+}
+
+#header-menus > li.dropdown:focus-within > .dropdown-menu,
+#header-menus > li.dropdown:hover > .dropdown-menu {
+    display: block;
+}
+
+#header-menus .dropdown-menu > li {
+    margin: 0;
+    list-style: none;
+}
+
+#header-menus .dropdown-menu > li > a {
+    display: block;
+    width: 100%;
+    padding: 0.4rem 0.9rem;
+    clear: both;
+    color: #212529;
+    text-decoration: none;
+    white-space: nowrap;
+    background-color: transparent;
+}
+
+#header-menus .dropdown-menu > li > a:hover,
+#header-menus .dropdown-menu > li > a:focus {
+    color: #1e2125;
+    background-color: #e9ecef;
+    text-decoration: none;
+}
+
+#header-menus .dropdown-menu > li.active > a {
+    color: #fff;
+    background-color: #0d6efd;
+}
+
+@media (max-width: 767.98px) {
+    .moqui-topbar__inner {
+        align-items: flex-start;
+    }
+
+    .moqui-topbar__brand-zone {
+        width: 100%;
+    }
+
+    .moqui-topbar__context {
+        flex-wrap: wrap;
+        row-gap: 0.25rem;
+    }
+
+    .moqui-topbar__menus {
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .moqui-topbar__collapse {
+        width: 100%;
+    }
+
+    .moqui-topbar__actions {
+        justify-content: flex-end;
+        width: 100%;
+        padding-top: 0.75rem;
+    }
+}
