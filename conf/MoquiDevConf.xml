@@ -92,6 +92,16 @@
         <!-- For the assist profile timeout-seconds and max-iterations need to be somewhat high for skill learning R&D loops -->
         <profile name="assist" timeout-seconds="900" max-iterations="40" allow-vue-sfc="true"/>
         <profile name="default" timeout-seconds="900"/>
+        <!-- Opt-in Responses API profile: set llm_openai_api_key and llm_openai_model outside the repository. -->
+        <profile name="openai-responses" protocol="org.moqui.impl.llm.OpenAiResponsesProtocol"
+                url="" api-key="" model=""
+                timeout-seconds="900"/>
+        <!-- Hugging Face Inference Providers Responses API: set hf_token (or huggingface_api_key)
+             and hf_responses_model outside the repository. Example model: openai/gpt-oss-20b. -->
+        <profile name="hf-responses" protocol="org.moqui.impl.llm.OpenResponsesProtocol"
+                url="https://router.huggingface.co" api-key="${hf_token ?: huggingface_api_key}"
+                model="${hf_responses_model}" timeout-seconds="900"/>
+
     </llm-facade>
 
     <entity-facade query-stats="true">
