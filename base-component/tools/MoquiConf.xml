@@ -14,7 +14,7 @@
                 allow-write-ui="true" allow-client-system="false"
                 allow-browse="true" allow-run-service="true"
                 allow-unprefixed-request="true" allow-enter-sim="true"
-                allow-vue-sfc="false"
+                allow-vue-sfc="false" summarize-conversation="true"
                 timeout-seconds="360" max-iterations="30"
                 system-location="component://tools/prompt/AssistSystem.ftl">
             <allowed-basic-entity package="moqui.basic"/>

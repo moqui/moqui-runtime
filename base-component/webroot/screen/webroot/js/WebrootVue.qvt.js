@@ -2593,7 +2593,8 @@ moqui.webrootVue = new Vue({
 });
 window.addEventListener('popstate', function() { moqui.webrootVue.setUrl(window.location.pathname + window.location.search, null, null, false); });
 
-// NOTE: simulate vue-router so this.$router.resolve() works in a basic form; required for use of q-btn 'to' attribute along with router-link component defined above
+// NOTE: simulate vue-router so this.$router.resolve() works in a basic form; required for use of q-btn 'to' attribute along with router-link component defined above.
+// Quasar 1.22 calls push(location).catch() after a q-expansion-item / q-btn `to` click. The promise is what it catches.
 moqui.webrootRouter = {
     resolve: function resolve(to, current, append) {
         var location = moqui.isString(to) ? moqui.parseHref(to) : to;
@@ -2608,8 +2609,14 @@ moqui.webrootRouter = {
             hash:location.hash||"", query:location.query||"", params: {}, fullPath:path, matched:[] };
         return { location:location, route:route, href:moqui.makeHref(location), normalizedTo:location, resolved:route }
     },
-    replace: function(location, onComplete, onAbort) { moqui.webrootVue.setUrl(location, null, onComplete); },
-    push: function(location, onComplete, onAbort) { moqui.webrootVue.setUrl(location, null, onComplete); }
+    replace: function(location, onComplete, onAbort) {
+        moqui.webrootVue.setUrl(location, null, onComplete);
+        return Promise.resolve(location);
+    },
+    push: function(location, onComplete, onAbort) {
+        moqui.webrootVue.setUrl(location, null, onComplete);
+        return Promise.resolve(location);
+    }
 }
 Object.defineProperty(Vue.prototype, '$router', {
     get: function get() { return moqui.webrootRouter; }
