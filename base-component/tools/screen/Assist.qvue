@@ -15,20 +15,44 @@
                    @click="toggleSide"></q-btn>
         </div>
         <div class="col-auto">
-            <q-btn dense outline no-caps label="New session" @click="newSession"></q-btn>
+            <q-btn id="assist-conversations" dense outline no-caps icon="history" label="Chats"
+                   @click="toggleConvDrawer"></q-btn>
+        </div>
+        <div class="col-auto">
+            <q-btn id="assist-source" dense outline no-caps icon="open_in_new" label="Source" :disable="!schema"
+                   @click="sourceOpen = true"></q-btn>
+        </div>
+        <div class="col-auto">
+            <q-btn dense outline no-caps label="New" @click="newSession"></q-btn>
         </div>
         <div class="col-auto">
             <q-btn dense outline no-caps color="negative" label="Cancel" :disable="!streaming" @click="cancelTurn"></q-btn>
         </div>
     </div>
-    <q-splitter v-if="!isMobile" v-model="splitPct" :reverse="!chatOnLeft" style="height: calc(100vh - 140px)">
+    <q-tabs v-if="isMobile" v-model="mobileTab" dense class="text-primary">
+        <q-tab name="chat" label="Chat"></q-tab>
+        <q-tab name="screen" label="Screen"></q-tab>
+    </q-tabs>
+    <q-splitter v-model="splitterPct" class="assist-split" :class="splitClass" style="height: calc(100vh - 140px)">
         <template v-slot:before>
-            <div class="assist-pane assist-chat q-pa-sm column" style="height:100%">
+            <div ref="paneBefore" class="assist-pane-host"></div>
+        </template>
+        <template v-slot:after>
+            <div ref="paneAfter" class="assist-pane-host"></div>
+        </template>
+    </q-splitter>
+    <!-- Quasar sizes the before panel and treats it as the left side. The panes are moved into
+         that order so a rightward drag grows the left pane. Row-reverse made the drag run backwards. -->
+    <div ref="paneHolder" class="assist-pane-holder">
+            <div ref="chatPane" class="assist-pane assist-chat q-pa-sm column" style="height:100%">
                 <div class="col overflow-auto" style="min-height:0">
                     <div v-for="(m, i) in messages" :key="i" class="q-mb-sm">
                         <div v-if="m.role!=='tool' && m.role!=='done'" class="text-caption text-grey-7">{{ m.role }}<span v-if="m.name"> {{ m.name }}</span></div>
                         <div v-if="m.role==='tool'" class="text-caption">{{ m.kind }} {{ m.name }}<span v-if="toolSummary(m)"> — {{ toolSummary(m) }}</span></div>
                         <div v-else-if="m.role==='done'" class="text-caption text-grey-7">{{ m.content }}</div>
+                        <div v-else-if="m.pending && !String(m.content || '').trim()"
+                             class="assist-wait" :class="{ 'assist-wait-go': m.connected }" role="status"
+                             :aria-label="m.connected ? 'Waiting for the model' : 'Connecting'"><div></div></div>
                         <div v-else style="white-space:pre-wrap">{{ m.content }}</div>
                     </div>
                 </div>
@@ -44,9 +68,7 @@
                     </q-input>
                 </div>
             </div>
-        </template>
-        <template v-slot:after>
-            <div class="assist-pane assist-canvas column" style="height:100%">
+            <div ref="canvasPane" class="assist-pane assist-canvas column" style="height:100%">
                 <div v-if="pendingConfirm()" class="q-pa-md">
                     <div class="text-subtitle1">Confirm this action</div>
                     <div class="text-body2 q-mb-md" style="white-space:pre-wrap">{{ confirmSummary(pendingConfirm()) }}</div>
@@ -132,36 +154,27 @@
                         <div class="text-subtitle2">Problems with this screen</div>
                         <ul class="q-pl-md q-mb-none">
                             <li v-for="(n, ni) in canvasNotices" :key="'cn'+ni"
-                                :class="n.kind==='error' ? 'text-negative' : ''">{{ n.message }}</li>
+                                :class="n.kind==='error' ? 'text-negative' : ''">{{ n.message }}<span v-if="n.count && n.count > 1"> (×{{ n.count }})</span></li>
                         </ul>
                     </div>
                     <div v-if="showParentSubmit" class="assist-actions">
                         <q-btn id="assist-submit" unelevated color="primary" no-caps
                                :label="primaryLabel" :disable="streaming"
                                @click="submitCanvas(primaryId)"></q-btn>
-                        <q-btn id="assist-adjust" outline no-caps label="Adjust"
+                        <q-btn id="assist-adjust" outline no-caps icon="open_in_new" label="Adjust"
                                :disable="streaming || !!pendingConfirm()" @click="adjustOpen = true"></q-btn>
                         <q-btn outline no-caps :label="schema.cancelLabel || 'Cancel'"
                                @click="newSession"></q-btn>
                     </div>
                     <div v-else class="assist-actions">
-                        <q-btn id="assist-adjust" outline no-caps label="Adjust"
+                        <q-btn id="assist-adjust" outline no-caps icon="open_in_new" label="Adjust"
                                :disable="streaming || !!pendingConfirm()" @click="adjustOpen = true"></q-btn>
                         <q-btn outline no-caps :label="schema.cancelLabel || 'Cancel'"
                                @click="newSession"></q-btn>
                     </div>
                 </div>
             </div>
-        </template>
-    </q-splitter>
-    <q-tabs v-if="isMobile" v-model="mobileTab" dense class="text-primary">
-        <q-tab name="chat" label="Chat"></q-tab>
-        <q-tab name="screen" label="Screen"></q-tab>
-    </q-tabs>
-    <q-tab-panels v-if="isMobile" v-model="mobileTab">
-        <q-tab-panel name="chat" class="q-pa-sm">Use desktop split view for Assist, or rotate to landscape.</q-tab-panel>
-        <q-tab-panel name="screen" class="q-pa-sm">Use desktop split view for Assist, or rotate to landscape.</q-tab-panel>
-    </q-tab-panels>
+    </div>
     <q-dialog id="assist-adjust-dialog" v-model="adjustOpen">
         <q-card style="min-width:360px; max-width:560px; width:92vw">
             <q-card-section>
@@ -173,7 +186,7 @@
                     <div class="text-subtitle2">Problems with this screen</div>
                     <ul class="q-pl-md q-mb-none">
                         <li v-for="(n, ni) in canvasNotices" :key="ni"
-                            :class="n.kind==='error' ? 'text-negative' : ''">{{ n.message }}</li>
+                            :class="n.kind==='error' ? 'text-negative' : ''">{{ n.message }}<span v-if="n.count && n.count > 1"> (×{{ n.count }})</span></li>
                     </ul>
                 </div>
                 <q-input id="assist-adjust-text" outlined autogrow type="textarea" v-model="adjustText"
@@ -183,6 +196,84 @@
                 <q-btn flat no-caps label="Cancel" v-close-popup></q-btn>
                 <q-btn id="assist-adjust-submit" unelevated color="primary" no-caps label="Adjust"
                        :disable="streaming || !(adjustText && adjustText.trim())" @click="submitAdjust"></q-btn>
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
+    <div v-if="convDrawer" class="assist-conv-backdrop" @click="convDrawer = false"></div>
+    <div v-if="convDrawer" id="assist-conv-drawer" class="assist-conv-drawer column"
+         :class="chatOnLeft ? 'assist-conv-left' : 'assist-conv-right'">
+        <div class="row items-center q-pa-sm">
+            <div class="col text-subtitle1">Chats</div>
+            <q-btn flat round dense icon="close" @click="convDrawer = false"></q-btn>
+        </div>
+        <div class="q-px-sm q-pb-sm">
+            <q-input id="assist-conv-search" dense outlined v-model="convSearch"
+                     placeholder="Search (3+ letters for the message)" @input="onConvSearch"></q-input>
+        </div>
+        <div class="col overflow-auto">
+            <div v-if="!conversations.length" class="text-grey-7 q-pa-md">No conversations</div>
+            <div v-for="row in conversations" :key="row.conversationId"
+                 class="assist-conv-row q-px-sm q-py-xs cursor-pointer"
+                 :class="{ 'assist-conv-open': row.conversationId === conversationId }"
+                 @click="openConversation(row.conversationId)">
+                <div class="row items-start no-wrap">
+                    <div class="col">
+                        <div class="text-body2">{{ row.summary || row.title || 'New conversation' }}</div>
+                        <div class="text-caption text-grey-7">
+                            Started {{ formatWhen(row.createdDate) }}
+                            <span v-if="row.lastMessageDate"> · Updated {{ formatWhen(row.lastMessageDate) }}</span>
+                        </div>
+                        <div class="text-caption text-grey-7">
+                            {{ convStatusLabel(row.status) }}
+                            <span v-if="row.messageCount != null"> · {{ row.messageCount }} messages</span>
+                            <span v-if="row.hasCanvas"> · Canvas</span>
+                        </div>
+                    </div>
+                    <q-btn flat round dense icon="delete" color="negative"
+                           :disable="streaming && row.conversationId === conversationId"
+                           @click.stop="askDelete(row)"></q-btn>
+                </div>
+            </div>
+        </div>
+        <div v-if="convPages > 1" class="row justify-center q-pa-sm">
+            <q-pagination :value="convPageIndex + 1" :max="convPages" :max-pages="6" direction-links
+                          @input="onConvPage"></q-pagination>
+        </div>
+    </div>
+    <q-dialog id="assist-source-dialog" v-model="sourceOpen">
+        <q-card style="min-width:360px; max-width:720px; width:92vw">
+            <q-card-section>
+                <div class="text-h6">Canvas source</div>
+            </q-card-section>
+            <q-card-section class="q-pt-none">
+                <div class="row items-center q-mb-xs">
+                    <div class="col text-subtitle2">Source</div>
+                    <q-btn flat dense no-caps label="Copy" :disable="!sourceText" @click="copyText(sourceText)"></q-btn>
+                </div>
+                <pre class="assist-source-pre">{{ sourceText || 'No source' }}</pre>
+                <div v-if="submitScriptText" class="q-mt-md">
+                    <div class="row items-center q-mb-xs">
+                        <div class="col text-subtitle2">Submit script</div>
+                        <q-btn flat dense no-caps label="Copy" @click="copyText(submitScriptText)"></q-btn>
+                    </div>
+                    <pre class="assist-source-pre">{{ submitScriptText }}</pre>
+                </div>
+            </q-card-section>
+            <q-card-actions align="right">
+                <q-btn flat no-caps label="Close" v-close-popup></q-btn>
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
+    <q-dialog v-model="deleteOpen">
+        <q-card style="min-width:320px">
+            <q-card-section>
+                <div class="text-h6">Delete conversation</div>
+            </q-card-section>
+            <q-card-section class="q-pt-none">{{ deletePrompt }}</q-card-section>
+            <q-card-actions align="right">
+                <q-btn flat no-caps label="Cancel" v-close-popup></q-btn>
+                <q-btn id="assist-conv-delete" unelevated color="negative" no-caps label="Delete"
+                       @click="deleteConversation"></q-btn>
             </q-card-actions>
         </q-card>
     </q-dialog>
@@ -210,6 +301,67 @@ function parseSseChunk(buffer, onEvent) {
         onEvent(event, parsed);
     }
     return rest;
+}
+var CONV_STORAGE_KEY = 'assist.conversationId';
+function formatWhen(ms) {
+    if (ms == null || ms === '') return '';
+    var n = typeof ms === 'number' ? ms : Number(ms);
+    if (!n) return '';
+    try { return new Date(n).toLocaleString(); } catch (e) { return ''; }
+}
+function convStatusLabel(status) {
+    if (!status) return '';
+    return String(status).replace(/^Llmcs/, '');
+}
+function historyToMessages(history) {
+    var out = [];
+    (history || []).forEach(function(m) {
+        if (!m || m.role === 'system' || m.role === 'context') return;
+        if (m.role === 'tool') {
+            out.push({ role: 'tool', kind: 'result', name: m.name, content: m.content, toolCallId: m.toolCallId });
+            return;
+        }
+        if (m.role === 'assistant' && m.toolCalls && m.toolCalls.length) {
+            if (m.content) out.push({ role: 'assistant', content: m.content });
+            m.toolCalls.forEach(function(c) {
+                if (!c) return;
+                out.push({ role: 'tool', kind: 'call', name: c.name, arguments: c.arguments, summary: c.summary });
+            });
+            return;
+        }
+        out.push({ role: m.role, content: m.content || '', name: m.name });
+    });
+    return out;
+}
+function canvasSourceText(schema) {
+    if (!schema) return '';
+    if (schema.lang) return schema.lang;
+    if (schema.kind === 'vue-sfc') return assembleSfc(schema);
+    var rows = schema.rows || [];
+    var copy = {
+        kind: schema.kind, title: schema.title, instruction: schema.instruction,
+        fields: schema.fields, columns: schema.columns, actions: schema.actions
+    };
+    if (rows.length > 20) {
+        copy.rows = rows.slice(0, 20);
+        copy.rowsOmitted = rows.length - 20;
+    } else if (rows.length) copy.rows = rows;
+    return JSON.stringify(copy, null, 2);
+}
+function canvasSubmitText(schema) {
+    if (!schema) return '';
+    var parts = [];
+    var assembled = schema.kind === 'vue-sfc' ? assembleSfc(schema) : '';
+    if (schema.script && assembled.indexOf(schema.script) < 0) parts.push(schema.script);
+    (schema.actions || []).forEach(function(a) {
+        if (!a) return;
+        var line = (a.method || '') + ' ' + (a.path || '');
+        if (a.body) line += '\n' + JSON.stringify(a.body, null, 2);
+        else if (a.bodyFromFields && a.bodyFromFields.length)
+            line += '\nbodyFromFields: ' + a.bodyFromFields.join(', ');
+        parts.push(line.trim());
+    });
+    return parts.filter(function(p) { return p; }).join('\n\n');
 }
 var HTML_ACTION_ERROR = 'HTML screens are not valid tool results. Use /apps (not /qapps). GET {screen}/actions for screen JSON, GET {screen}/actions/{formListName} for form-list rows (browse jsonPath), or POST {screen}/{transitionName} for a named transition from browse (not /actions/{transition})';
 var ADJUST_INSTRUCTION = 'The user wants this screen changed or fixed. Do not submit it and do not run its actions. Call write_ui again so the screen matches the feedback. canvas is the screen they are looking at now, including field values they typed. notices are render errors and server messages from canvas requests (validation errors, service errors, warnings); fix those too. A validation error means the value sent was rejected: drop a timestamp the service defaults, or send YYYY-MM-DD HH:mm. For a small OpenUI change, set writeThrough true and send only the changed statements. If the screen failed to render or the structure is wrong, send a full lang program.';
@@ -606,22 +758,52 @@ module.exports = {
     data: function() {
         return {
             chatOnLeft: true, writeMode: 'script', forceSkillUse: false, splitPct: 40,
-            mobileTab: 'chat',
+            viewportWidth: typeof window !== 'undefined' ? window.innerWidth : 1200,
+            mobileTab: 'chat', openGen: 0,
             composer: '', streaming: false,
             conversationId: null, canvasId: null,
             messages: [], pendingToolCalls: [],
             schema: null, fieldValues: {}, dirtyFields: {},
             adjustOpen: false, adjustText: '', canvasNotices: [],
+            autoValidationCount: 0, lastAutoHash: '', maxAutoValidations: 4,
             vueSfcComp: null, vueSfcKey: null, vueSfcGen: 0, vueSfcFailed: false,
             speechSupported: false, recognizing: false,
             recognition: null, abortCtl: null,
-            conversations: [], profileFlags: {}
+            conversations: [], profileFlags: {},
+            convDrawer: false, convSearch: '', convPageIndex: 0, convTotal: 0, convPageSize: 20,
+            convSearchTimer: null, sourceOpen: false, deleteOpen: false, deleteTarget: null
         };
     },
     computed: {
         isMobile: function() {
-            return (window.innerWidth && window.innerWidth <= 600) ||
-                (window.Quasar && Quasar.Platform && Quasar.Platform.is && Quasar.Platform.is.mobile);
+            var narrow = this.viewportWidth <= 600;
+            var phone = window.Quasar && Quasar.Platform && Quasar.Platform.is && Quasar.Platform.is.mobile;
+            return narrow || !!phone;
+        },
+        /** Phone shows one pane. Desktop flips the splitter so chat and the drawer share a side. */
+        splitClass: function() {
+            if (this.isMobile) return this.mobileTab === 'screen' ? 'assist-mobile-screen' : 'assist-mobile-chat';
+            return this.chatOnLeft ? '' : 'assist-split-flip';
+        },
+        /** Quasar applies this to the left pane. splitPct stays the chat pane's share of the width. */
+        splitterPct: {
+            get: function() {
+                var chatPct = this.splitPct;
+                if (chatPct == null || isNaN(chatPct)) chatPct = 40;
+                if (this.chatOnLeft || this.isMobile) return chatPct;
+                return 100 - chatPct;
+            },
+            set: function(v) {
+                var n = Number(v);
+                if (isNaN(n)) return;
+                this.splitPct = (this.chatOnLeft || this.isMobile) ? n : (100 - n);
+            }
+        },
+        deletePrompt: function() {
+            var row = this.deleteTarget;
+            var name = (row && (row.summary || row.title)) || 'this conversation';
+            var who = row && row.userId ? ' (' + row.userId + ')' : '';
+            return 'Delete "' + name + '"' + who + '? The chat and canvas are removed.';
         },
         writeModeOptions: function() {
             return [
@@ -682,11 +864,24 @@ module.exports = {
         showVueSfc: function() {
             return !!(this.vueSfcComp && this.schema && this.schema.kind === 'vue-sfc');
         },
+        convPages: function() {
+            var size = this.convPageSize || 20;
+            return Math.max(1, Math.ceil((this.convTotal || 0) / size));
+        },
+        sourceText: function() { return canvasSourceText(this.schema); },
+        submitScriptText: function() { return canvasSubmitText(this.schema); },
         showFormWidgets: function() {
             if (!this.schema || this.showVueSfc || this.showOpenUi) return false;
             if (this.schema.kind === 'vue-sfc') return this.vueSfcFailed;
             if (this.schema.kind === 'openui' && !this.formShapedOpenUi) return false;
             return true;
+        }
+    },
+    watch: {
+        streaming: function(v) {
+            if (v) return;
+            var list = this.messages || [];
+            for (var i = 0; i < list.length; i++) if (list[i] && list[i].pending) list[i].pending = false;
         }
     },
     methods: {
@@ -703,22 +898,23 @@ module.exports = {
             this.chatOnLeft = !this.chatOnLeft;
             this.persistPref('ASSIST_CHAT_SIDE', this.chatOnLeft ? 'left' : 'right');
         },
+        /** Put the chat in the left slot unless the desktop layout has it on the right. A phone never flips. */
+        placePanes: function() {
+            var before = this.$refs.paneBefore;
+            var after = this.$refs.paneAfter;
+            var chat = this.$refs.chatPane;
+            var canvas = this.$refs.canvasPane;
+            if (!before || !after || !chat || !canvas) return;
+            var chatLeft = this.chatOnLeft || this.isMobile;
+            var left = chatLeft ? chat : canvas;
+            var right = chatLeft ? canvas : chat;
+            if (left.parentNode !== before) before.appendChild(left);
+            if (right.parentNode !== after) after.appendChild(right);
+        },
         newSession: function() {
+            this.openGen = (this.openGen || 0) + 1;
             this.cancelTurn();
-            this.conversationId = null;
-            this.canvasId = 'c' + Date.now();
-            this.messages = [];
-            this.pendingToolCalls = [];
-            this.schema = null;
-            this.fieldValues = {};
-            this.dirtyFields = {};
-            this.adjustOpen = false;
-            this.adjustText = '';
-            this.canvasNotices = [];
-            this.vueSfcComp = null;
-            this.vueSfcKey = null;
-            this.vueSfcFailed = false;
-            this.vueSfcGen = (this.vueSfcGen || 0) + 1;
+            this.clearLocalSession();
         },
         loadPrefs: function() {
             var vm = this;
@@ -745,14 +941,127 @@ module.exports = {
                         assistNotify('Assist profile tools are limited; browse/request may be unavailable.', 'warning');
                 }).catch(function() { /* ignore */ });
         },
-        loadConversations: function() {
+        loadConversations: function(pageIndex) {
             var vm = this;
-            fetch(this.llmBase + '/conversations?profile=assist&purpose=assist',
-                { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+            var page = pageIndex == null ? (this.convPageIndex || 0) : pageIndex;
+            if (page < 0) page = 0;
+            var search = (this.convSearch || '').trim();
+            var url = this.llmBase + '/conversations?profile=assist&purpose=assist&pageIndex=' + page;
+            if (search) url += '&search=' + encodeURIComponent(search);
+            fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
                 .then(function(r) { return r.json(); })
-                .then(function(body) { vm.conversations = (body && body.conversations) || []; })
+                .then(function(body) {
+                    vm.conversations = (body && body.conversations) || [];
+                    vm.convTotal = body && body.totalCount != null ? body.totalCount : vm.conversations.length;
+                    vm.convPageIndex = body && body.pageIndex != null ? body.pageIndex : page;
+                    if (body && body.pageSize) vm.convPageSize = body.pageSize;
+                })
                 .catch(function() { vm.conversations = []; });
         },
+        toggleConvDrawer: function() {
+            this.convDrawer = !this.convDrawer;
+            if (this.convDrawer) this.loadConversations(this.convPageIndex || 0);
+        },
+        onConvSearch: function() {
+            var vm = this;
+            if (this.convSearchTimer) clearTimeout(this.convSearchTimer);
+            this.convSearchTimer = setTimeout(function() { vm.loadConversations(0); }, 300);
+        },
+        onConvPage: function(page) {
+            this.loadConversations((page || 1) - 1);
+        },
+        openConversation: function(id) {
+            if (!id || this.streaming) return;
+            var vm = this;
+            var gen = (this.openGen = (this.openGen || 0) + 1);
+            // Id already shown when this GET starts. A turn can assign a new id without another
+            // open. Ignore the response only in that case, so choosing a different chat still loads.
+            var openedOver = this.conversationId;
+            fetch(this.llmBase + '/conversations/' + encodeURIComponent(id),
+                { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+                .then(function(r) {
+                    if (gen !== vm.openGen || vm.streaming) return null;
+                    if (r.status === 404) {
+                        try {
+                            if (sessionStorage.getItem(CONV_STORAGE_KEY) === id)
+                                sessionStorage.removeItem(CONV_STORAGE_KEY);
+                        } catch (e) { /* ignore */ }
+                        if (vm.conversationId === id) vm.conversationId = null;
+                        return null;
+                    }
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                })
+                .then(function(body) {
+                    if (gen !== vm.openGen || vm.streaming) return;
+                    if (body && vm.conversationId && vm.conversationId !== openedOver
+                            && vm.conversationId !== body.conversationId) return;
+                    if (!body || !body.conversationId) return;
+                    vm.restoreConversation(body);
+                })
+                .catch(function(err) { assistNotify((err && err.message) || 'Could not open conversation', 'warning'); });
+        },
+        restoreConversation: function(body) {
+            this.conversationId = body.conversationId;
+            try { sessionStorage.setItem(CONV_STORAGE_KEY, body.conversationId); } catch (e) { /* ignore */ }
+            this.messages = historyToMessages(body.history);
+            this.pendingToolCalls = body.pendingToolCalls || [];
+            this.schema = null;
+            this.fieldValues = {};
+            this.dirtyFields = {};
+            this.canvasNotices = [];
+            this.adjustOpen = false;
+            this.adjustText = '';
+            this.autoValidationCount = 0;
+            this.lastAutoHash = '';
+            this.vueSfcComp = null;
+            this.vueSfcKey = null;
+            this.vueSfcFailed = false;
+            this.vueSfcGen = (this.vueSfcGen || 0) + 1;
+            var canvas = body.canvas;
+            if (!canvas) {
+                var pending = this.pendingToolCalls[0];
+                var args = pending && pending.name === 'write_ui' ? pending.arguments : null;
+                if (typeof args === 'string') { try { args = JSON.parse(args); } catch (e) { args = null; } }
+                if (isWriteUiArgs(args)) canvas = args;
+            }
+            if (canvas) this.applyYield(canvas);
+            this.convDrawer = false;
+        },
+        askDelete: function(row) {
+            this.deleteTarget = row;
+            this.deleteOpen = true;
+        },
+        deleteConversation: function() {
+            var row = this.deleteTarget;
+            if (!row || !row.conversationId) return;
+            var vm = this;
+            var id = row.conversationId;
+            this.deleteOpen = false;
+            fetch(this.llmBase + '/conversations/' + encodeURIComponent(id), {
+                method: 'DELETE', credentials: 'same-origin', headers: this.headers(false), body: '{}'
+            }).then(function(r) {
+                return r.json().catch(function() { return {}; }).then(function(body) {
+                    if (!r.ok || body.deleted === false) {
+                        assistNotify((body && body.message) || 'Could not delete', 'warning');
+                        return;
+                    }
+                    if (vm.conversationId === id) {
+                        vm.openGen = (vm.openGen || 0) + 1;
+                        vm.clearLocalSession();
+                    }
+                    vm.loadConversations(vm.convPageIndex || 0);
+                });
+            }).catch(function(err) { assistNotify((err && err.message) || 'Could not delete', 'warning'); });
+        },
+        copyText: function(text) {
+            if (!text) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).catch(function() { /* ignore */ });
+            }
+        },
+        formatWhen: function(ms) { return formatWhen(ms); },
+        convStatusLabel: function(status) { return convStatusLabel(status); },
         send: function() {
             var text = (this.composer || '').trim();
             if (!text || this.streaming) return;
@@ -801,10 +1110,18 @@ module.exports = {
         recordCanvasNotice: function(message, kind) {
             if (!message) return false;
             var text = String(message);
+            var norm = text.trim().replace(/\s+/g, ' ');
             var list = this.canvasNotices || [];
             this.canvasNotices = list;
-            for (var i = 0; i < list.length; i++) if (list[i].message === text) return false;
-            list.push({ kind: kind === 'error' ? 'error' : (kind || 'warning'), message: text });
+            for (var i = 0; i < list.length; i++) {
+                var existing = list[i];
+                var existingNorm = String(existing.message || '').trim().replace(/\s+/g, ' ');
+                if (existingNorm === norm) {
+                    existing.count = (existing.count || 1) + 1;
+                    return false;
+                }
+            }
+            list.push({ kind: kind === 'error' ? 'error' : (kind || 'warning'), message: text, count: 1 });
             return true;
         },
         noteCanvas: function(message, kind) {
@@ -832,7 +1149,9 @@ module.exports = {
             var notices = this.canvasNotices || [];
             if (notices.length) {
                 pack.notices = notices.map(function(n) {
-                    return { kind: n.kind, message: n.message };
+                    var row = { kind: n.kind, message: n.message };
+                    if (n.count && n.count > 1) row.count = n.count;
+                    return row;
                 });
             }
             return pack;
@@ -908,6 +1227,8 @@ module.exports = {
         },
         applyYield: function(args) {
             if (!args) return;
+            this.autoValidationCount = 0;
+            this.lastAutoHash = '';
             this.applySchema(args);
             if (args.kind === 'openui') {
                 this.vueSfcGen = (this.vueSfcGen || 0) + 1;
@@ -967,17 +1288,108 @@ module.exports = {
             var warnings = payload.warnings || [];
             for (var i = 0; i < errors.length; i++) this.noteCanvas(errors[i], 'error');
             for (var w = 0; w < warnings.length; w++) this.noteCanvas(warnings[w], 'warning');
+            if (errors.length) this.maybeAutoResumeValidation();
         },
         onOpenUiError: function(errors) {
             if (!errors || !errors.length) return;
-            var critical = errors.filter(function(e) {
-                return e && (e.code === 'unknown-component' || e.code === 'parse-exception'
-                    || e.code === 'parse-failed' || e.code === 'type-mismatch' || e.code === 'no-root');
-            });
-            if (!critical.length) return;
-            assistNotify(critical[0].message || 'OpenUI parse error', 'warning');
-            for (var i = 0; i < critical.length; i++)
-                this.recordCanvasNotice((critical[i] && critical[i].message) || 'OpenUI parse error', 'warning');
+            var seen = {};
+            var distinct = [];
+            for (var i = 0; i < errors.length; i++) {
+                var msg = (errors[i] && errors[i].message) || 'OpenUI parse error';
+                var norm = String(msg).trim().replace(/\s+/g, ' ');
+                if (seen[norm]) continue;
+                seen[norm] = true;
+                distinct.push(errors[i]);
+            }
+            if (!distinct.length) return;
+            for (var d = 0; d < distinct.length; d++)
+                this.recordCanvasNotice((distinct[d] && distinct[d].message) || 'OpenUI parse error', 'error');
+            assistNotify(distinct.length + ' screen problem' + (distinct.length > 1 ? 's' : '') + ': '
+                + ((distinct[0] && distinct[0].message) || 'OpenUI parse error'), 'warning');
+            this.maybeAutoResumeValidation();
+        },
+        autoValidationHash: function() {
+            var list = this.canvasNotices || [];
+            var errs = [];
+            for (var i = 0; i < list.length; i++) if (list[i] && list[i].kind === 'error') errs.push(String(list[i].message || ''));
+            errs.sort();
+            return errs.join('\n');
+        },
+        buildValidationSnippet: function() {
+            var lang = this.schema && this.schema.lang;
+            if (!lang) return null;
+            var lines = String(lang).split('\n');
+            var firstErr = null;
+            var list = this.canvasNotices || [];
+            for (var i = 0; i < list.length; i++) {
+                if (list[i] && list[i].kind === 'error' && list[i].message) { firstErr = String(list[i].message); break; }
+            }
+            var at = -1;
+            if (firstErr) {
+                var m = /`([^`=\n]{1,64})`/.exec(firstErr) || /["']([A-Za-z_][A-Za-z0-9_]{0,63})["']/.exec(firstErr);
+                if (m) {
+                    var name = m[1];
+                    for (var li = 0; li < lines.length; li++) {
+                        if (lines[li].match(new RegExp('(^|\\s)' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*='))) { at = li; break; }
+                    }
+                }
+            }
+            var start, end;
+            if (at >= 0) { start = Math.max(0, at - 2); end = Math.min(lines.length, at + 3); }
+            else { start = 0; end = Math.min(lines.length, 15); }
+            return { statementHint: firstErr, startLine: start + 1, lines: lines.slice(start, end), langChars: String(lang).length };
+        },
+        autoValidationPackage: function(feedback) {
+            var pack = this.adjustPackage(feedback);
+            pack.autoValidation = true;
+            pack.origin = 'auto-validation';
+            pack.attempt = (this.autoValidationCount || 0) + 1;
+            pack.maxAttempts = this.maxAutoValidations || 4;
+            var snippet = this.buildValidationSnippet();
+            if (snippet) pack.snippet = snippet;
+            var notices = this.canvasNotices || [];
+            if (notices.length) {
+                pack.notices = notices.map(function(n) {
+                    var row = { kind: n.kind, message: n.message };
+                    if (n.count && n.count > 1) row.count = n.count;
+                    return row;
+                });
+            }
+            return pack;
+        },
+        maybeAutoResumeValidation: function() {
+            if (this.streaming) return;
+            var pending = this.pendingToolCalls && this.pendingToolCalls[0];
+            if (!pending || pending.name !== 'write_ui' || !this.conversationId) return;
+            if (this.pendingConfirm()) return;
+            var hash = this.autoValidationHash();
+            if (!hash) return;
+            var max = this.maxAutoValidations || 4;
+            if ((this.autoValidationCount || 0) >= max) return;
+            if (hash === this.lastAutoHash) return;
+            this.lastAutoHash = hash;
+            this.autoValidationCount = (this.autoValidationCount || 0) + 1;
+            var n = this.autoValidationCount;
+            var firstLine = hash.split('\n')[0] || 'validation failed';
+            var errCount = hash.split('\n').length;
+            var feedback = 'OpenUI validation failed (attempt ' + n + '/' + max + '): '
+                + errCount + ' problem' + (errCount > 1 ? 's' : '') + '. First: ' + firstLine
+                + '. Fix all notices with write_ui (prefer a small writeThrough patch, or a full lang program if the screen failed to render).';
+            var pack = this.autoValidationPackage(feedback);
+            pack.userMessage = feedback;
+            this.messages.push({ role: 'user', content: 'Auto-adjust (validation ' + n + '/' + max + '): ' + firstLine });
+            assistNotify('Checking screen, attempt ' + n + '/' + max + '…', 'info');
+            if (n >= max) {
+                var vm = this;
+                setTimeout(function() {
+                    assistNotify('Validation still failing after ' + max + ' attempts — ' + errCount
+                        + ' problems listed; use Adjust or edit the request.', 'warning');
+                }, 0);
+            }
+            var body = Object.assign({ profile: 'assist', tools: this.toolNames(), user: feedback, stream: true,
+                toolResults: [{ id: pending.id, name: 'write_ui', content: pack }] },
+                this.chatFlags());
+            this.runSse(this.llmBase + '/chat/' + encodeURIComponent(this.conversationId) + '/resume', body);
         },
         onOpenUiAction: function(ev) {
             if (!ev) return;
@@ -1143,7 +1555,7 @@ module.exports = {
             add('', args.body || {}, 0);
             add('', args.query || {}, 0);
             var text = lines.join('\n');
-            if (text.length > 600) text = text.substring(0, 600) + '…';
+            if (text.length > 4000) text = text.substring(0, 4000) + '…';
             return text;
         },
         confirmTool: function(ok) {
@@ -1260,9 +1672,11 @@ module.exports = {
         },
         runSse: function(url, body) {
             var vm = this;
+            // A turn replaces an in-flight open, same as New.
+            this.openGen = (this.openGen || 0) + 1;
             this.streaming = true;
             this.abortCtl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-            var assistant = { role: 'assistant', content: '' };
+            var assistant = { role: 'assistant', content: '', pending: true, connected: false };
             this.messages.push(assistant);
             fetch(url, {
                 method: 'POST', credentials: 'same-origin',
@@ -1283,7 +1697,11 @@ module.exports = {
                 var buf = '';
                 function pump() {
                     return reader.read().then(function(chunk) {
-                        if (chunk.done) { vm.streaming = false; return; }
+                        if (chunk.done) {
+                            vm.streaming = false;
+                            vm.loadConversations(vm.convPageIndex || 0);
+                            return;
+                        }
                         buf += decoder.decode(chunk.value, { stream: true });
                         buf = parseSseChunk(buf, function(event, data) { vm.onSse(event, data, assistant); });
                         return pump();
@@ -1302,7 +1720,10 @@ module.exports = {
             if (event === 'conversation' && data && data.conversationId) {
                 var first = !this.conversationId;
                 this.conversationId = data.conversationId;
+                try { sessionStorage.setItem(CONV_STORAGE_KEY, data.conversationId); } catch (e) { /* ignore */ }
                 if (first) this.maybeTitle();
+            } else if (event === 'llm') {
+                assistant.connected = true;
             } else if (event === 'delta' && data && data.content) {
                 assistant.content = (assistant.content || '') + data.content;
             } else if (event === 'write_ui_delta') {
@@ -1321,11 +1742,13 @@ module.exports = {
                 if (isWriteUiArgs(args)) this.applyYield(args);
                 // FUTURE: args.kind === 'screen-xml' → POST to a compile/render transition (server round-trip)
                 this.streaming = false;
+                this.loadConversations(this.convPageIndex || 0);
             } else if (event === 'done') {
                 this.streaming = false;
                 if (data && !data.yielded) this.pendingToolCalls = [];
                 var doneLine = formatDoneLine(data);
                 if (doneLine) this.messages.push({ role: 'done', content: doneLine });
+                this.loadConversations(this.convPageIndex || 0);
             } else if (event === 'error') {
                 this.streaming = false;
                 assistNotify((data && data.message) || 'LLM error', 'warning');
@@ -1344,6 +1767,7 @@ module.exports = {
             }
             var doneLine = formatDoneLine(j);
             if (doneLine) this.messages.push({ role: 'done', content: doneLine });
+            this.loadConversations(this.convPageIndex || 0);
         },
         maybeTitle: function() {
             if (!this.conversationId) return;
@@ -1353,10 +1777,31 @@ module.exports = {
             $.ajax({ type: 'POST', url: 'setTitle', dataType: 'json',
                 data: { moquiSessionToken: this.csrf, conversationId: this.conversationId, title: title } });
         },
+        clearLocalSession: function() {
+            this.conversationId = null;
+            try { sessionStorage.removeItem(CONV_STORAGE_KEY); } catch (e) { /* ignore */ }
+            this.canvasId = 'c' + Date.now();
+            this.messages = [];
+            this.pendingToolCalls = [];
+            this.schema = null;
+            this.fieldValues = {};
+            this.dirtyFields = {};
+            this.canvasNotices = [];
+            this.adjustOpen = false;
+            this.adjustText = '';
+            this.autoValidationCount = 0;
+            this.lastAutoHash = '';
+            this.vueSfcComp = null;
+            this.vueSfcKey = null;
+            this.vueSfcFailed = false;
+            this.vueSfcGen = (this.vueSfcGen || 0) + 1;
+        },
         cancelTurn: function() {
-            if (this.abortCtl) try { this.abortCtl.abort(); } catch (e) { /* ignore */ }
+            var inFlight = this.streaming;
+            if (inFlight && this.abortCtl) try { this.abortCtl.abort(); } catch (e) { /* ignore */ }
+            if (!inFlight) this.abortCtl = null;
             this.streaming = false;
-            if (!this.conversationId) return;
+            if (!inFlight || !this.conversationId) return;
             fetch(this.llmBase + '/chat/' + encodeURIComponent(this.conversationId) + '/cancel', {
                 method: 'POST', credentials: 'same-origin',
                 headers: this.headers(false), body: '{}'
@@ -1401,19 +1846,66 @@ module.exports = {
         this.canvasId = 'c' + Date.now();
         this.loadPrefs();
         this.loadProfiles();
-        this.loadConversations();
+        this.loadConversations(0);
+        var saved = null;
+        try { saved = sessionStorage.getItem(CONV_STORAGE_KEY); } catch (e) { /* ignore */ }
+        if (saved) this.openConversation(saved);
         this.setupSpeech();
+        var vm = this;
+        this.onViewport = function() { vm.viewportWidth = window.innerWidth; };
+        window.addEventListener('resize', this.onViewport);
+        this.placePanes();
     },
+    updated: function() { this.placePanes(); },
     beforeDestroy: function() {
+        if (this.onViewport) window.removeEventListener('resize', this.onViewport);
         this.cancelTurn();
         if (this.recognition && this.recognizing) try { this.recognition.stop(); } catch (e) { /* ignore */ }
     }
 };
 </script>
 <style>
-.assist-root { min-height: 60vh; }
+.assist-root { min-height: 60vh; position: relative; }
+.assist-conv-backdrop { position: absolute; inset: 0; z-index: 15; background: rgba(0,0,0,0.12); }
+.assist-conv-drawer {
+    position: absolute; top: 0; bottom: 0; width: 320px; max-width: 92%; z-index: 16;
+    background: #fff; box-shadow: 0 0 16px rgba(0,0,0,0.18); display: flex;
+}
+.assist-conv-left { left: 0; }
+.assist-conv-right { right: 0; }
+.assist-pane-host { height: 100%; min-height: 0; }
+.assist-pane-holder { display: none; }
+.assist-split-flip .assist-chat { border-right: none; border-left: 1px solid rgba(0,0,0,0.08); }
+.assist-mobile-chat .q-splitter__separator,
+.assist-mobile-chat .q-splitter__after { display: none; }
+.assist-mobile-chat .q-splitter__before { width: 100% !important; max-width: 100% !important; }
+.assist-mobile-screen .q-splitter__separator,
+.assist-mobile-screen .q-splitter__before { display: none; }
+.assist-mobile-screen .q-splitter__after { width: 100% !important; max-width: 100% !important; }
+.assist-conv-row { border-bottom: 1px solid rgba(0,0,0,0.06); }
+.assist-conv-open { background: rgba(25, 118, 210, 0.08); }
+.assist-source-pre {
+    margin: 0; max-height: 40vh; overflow: auto; white-space: pre-wrap; word-break: break-word;
+    background: #f5f5f5; padding: 8px; border-radius: 4px; font-size: 12px;
+}
 .assist-pane { height: 100%; overflow: hidden; }
 .assist-chat { border-right: 1px solid rgba(0,0,0,0.08); }
+/* qapps does not load webroot-theme.css, so the shared .spinner rules never apply here.
+   The marks stay drawn; only the rotation waits for the model connection. */
+@keyframes assist-spin { to { transform: rotate(1turn); } }
+.assist-chat .assist-wait {
+    position: relative; display: inline-block; width: 18px; height: 18px; overflow: hidden;
+    animation: assist-spin 0.9s infinite steps(8); animation-play-state: paused;
+}
+.assist-chat .assist-wait.assist-wait-go { animation-play-state: running; }
+.assist-chat .assist-wait:before, .assist-chat .assist-wait:after,
+.assist-chat .assist-wait > div:before, .assist-chat .assist-wait > div:after {
+    content: ''; position: absolute; top: 0; left: 7.5px; width: 3px; height: 5px; border-radius: 1px;
+    background: #555; box-shadow: 0 13px #ccc; transform-origin: 50% 9px;
+}
+.assist-chat .assist-wait:after { transform: rotate(-45deg); background: #777; }
+.assist-chat .assist-wait > div:before { transform: rotate(-90deg); background: #999; }
+.assist-chat .assist-wait > div:after { transform: rotate(-135deg); background: #bbb; }
 /* Gutter classes use a negative margin, which overflow:auto clips. Gap keeps the first control's border inside the scrollport. */
 .assist-canvas-body { padding: 12px 16px 24px; box-sizing: border-box; }
 .assist-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }

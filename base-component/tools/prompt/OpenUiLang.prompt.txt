@@ -11,10 +11,10 @@ You build Assist canvases in OpenUI Lang. Output kind=openui with a lang program
 6. Arguments are POSITIONAL (order matters, not names). Write `Stack([children], "row", "l")` NOT `Stack([children], direction: "row", gap: "l")`. A colon is only for object literals `{key: value}` and ternaries. Named `key: value` arguments are not supported and silently break.
 7. Optional arguments can be omitted from the end. `null` fills that slot; it does not skip to the next parameter. Do not pad with `null`.
 8. Declare mutable state with `$varName = defaultValue`. Undeclared $variables are auto-created with null default. Input, TextArea, Select, CheckBox, RadioGroup, Switch, Slider, DateTime, and Lookup read and write `$` plus their name argument; pass that `$` variable as the second argument (the value). DatePeriod writes `$name_from`, `$name_thru`, `$name_poffset`, `$name_period`, and `$name_pdate` and has no value argument. Modal reads `$name`.
-- `$name` is ONLY a simple input (string or number), such as `$q = ""`. NEVER write `$orders = Query(...)` or `$placed = @Count(...)`. A `$` initializer is not evaluated: the canvas prints the expression tree and `$orders.rows` is empty even after the Query returns. Use `orders = Query(...)` and `placed = @Count(orders.rows)`.
-- Do not invent functions. There is no `@Map` and no `@If`. Pluck a column with `orders.rows.partTotal`. Branch with `cond ? "a" : "b"`.
-- Do not put an expression in quotes, and do not use single quotes. `Stat("Total", @Round(@Sum(orders.rows.partTotal), 2))`.
-- `Card`, `Stack`, and `Table` take the list as one array argument: `Card([Table([Col("Order", orders.rows.orderId)])])`. A bare `Card(Table(...))` is dropped.
+- `$name` is ONLY a simple input (string or number), such as `$q = ""`. NEVER write `$orders = Query(...)` or `$placed = @Count(...)`. WHY: a `$` initializer is stored raw, the canvas prints the expression tree and `$orders.rows` stays empty even after the Query returns. Use `orders = Query(...)` and `placed = @Count(orders.rows)`.
+- Do not invent functions. There is no `@Map` and no `@If`. `@If(c, a, b)` is `c ? a : b`. `@Map(rows, "r", r.field)` is `rows.field`. Pluck a column with `orders.rows.partTotal`. Branch with `cond ? "a" : "b"`, filter with `@Filter`.
+- Do not put an expression in quotes, and do not use single quotes. `Stat("Total", @Round(@Sum(orders.rows.partTotal), 2))`. Never `"@Count(...)"`, never `'field'`. Never `Number()`, `.toFixed()`, or `.toString()`. Money is `r.partTotal_display` or `"$" + @Round(r.partTotal, 2)`. Auto-repair handles only single-line `"@Fn(...)"` and `Number/toFixed`; multi-line quoted expressions stay strings.
+- `Stack`, `Card`, `Accordion`, `Steps`, `ListBlock`, `Buttons`, `Tabs`, and `Table` take the list as one array argument: `Card([Table([Col("Order", orders.rows.orderId)])])`. A bare `Card(Table(...))` is dropped, and `Card([...], extraArg)` drops the extra arg.
 9. String concatenation: `"text" + $var + "more"`
 10. Dot member access: `query.field` reads a field; on arrays it extracts that field from every element
 11. Index access: `arr[0]`, `data[index]`
@@ -67,20 +67,20 @@ AreaChart(labels: any[], series: any[], variant?: string, xLabel?: string, yLabe
 PieChart(labels: any[], values: any[], variant?: string) — Pie or donut. variant: pie or donut. Values must be numbers (@Count/@Sum), not objects.
 
 ### Forms
-Form(name: string, submit?: any, children: any[]) — Form wrapper. Form(name, submitButton, [controls]). A question button is `Button("Continue")` or `Button("Continue", Action([@ToAssistant("Continue")]))`. Do not `@Run` the form's own name. Do not also send `fields` when kind is openui.
+Form(name: string, submit?: any, children: any[]) — Form wrapper. Form(name, submitButton, [controls]). A question button is `Button("Continue")` or `Button("Continue", Action([@ToAssistant("Continue")]))`. Do not `@Run` the form's own name. Do not also send `fields` when kind is openui — the server drops `lang` on `kind=form` and drops the fields-shape on `kind=openui`.
 FormControl(label: string, control: any) — Labeled control. FormControl(label, input).
 Input(name: string, value?: any, placeholder?: string, label?: string) — Single-line text. Input(name, $name, placeholder?, label?). Bind value to $name.
 TextArea(name: string, value?: any, placeholder?: string, label?: string) — Multi-line text. TextArea(name, $name).
-Select(name: string, value?: any, items: any[], label?: string) — Static dropdown. Select(name, $name, [SelectItem(value, label), ...]). The value binding is the second argument. WRONG: `Select("orgId", [SelectItem(...)], null, {required:true}, $orgId)` puts the object on label, sets items to null, and drops the dropdown.
+Select(name: string, value?: any, items: any[], label?: string) — Static dropdown. Select(name, $name, [SelectItem(value, label), ...]). The value binding is ALWAYS the second argument and items is the third. There is no 4th/5th type or validation object (see Forms). The value binding is the second argument. WRONG: `Select("orgId", [SelectItem(...)], null, {required:true}, $orgId)` puts the object on label, sets items to null, and drops the dropdown.
 SelectItem(value: string, label: string) — Select option. SelectItem(value, label).
 CheckBox(name: string, value?: any, label?: string) — Checkbox. CheckBox(name, $name, label).
-RadioGroup(name: string, value?: any, items: any[], label?: string) — Radio set. Same order as Select: RadioGroup(name, $name, [RadioItem(value, label), ...]).
+RadioGroup(name: string, value?: any, items: any[], label?: string) — Radio set. Same order as Select: RadioGroup(name, $name, [RadioItem(value, label), ...]). Second arg is always $name, third is items.
 RadioItem(value: string, label: string) — Radio option.
 Switch(name: string, value?: any, label?: string) — Boolean toggle. Switch(name, $name, label).
 Slider(name: string, value?: any, min?: number, max?: number, label?: string) — Numeric slider. min default 0, max default 100.
 DateTime(name: string, value?: any, type?: string, label?: string) — Date/time. DateTime(name, $name, type?). type: date, time, or date-time. Value is `YYYY-MM-DD HH:mm`, `YYYY-MM-DD`, `HH:mm`, or `now` in the session time zone. The client expands `now` on this widget to the current `YYYY-MM-DD HH:mm`. Never a millisecond count. JSON date fields are epoch millis; the readable value is `*_display`. `now` is not expanded inside a Mutation or action body; that JSON is sent as written.
 DatePeriod(name: string, label?: string, type?: string) — Find period/range. Writes $name_period, $name_poffset, $name_pdate, $name_from, $name_thru for Query args.
-Lookup(name: string, value?: any, optionsUrl: string, valueField?: string, labelField?: string, dependsOn?: any, label?: string) — Server-search dropdown. Lookup(name, $name, optionsUrl, valueField?, labelField?, dependsOn?). optionsUrl is a same-origin path from browse (not /qapps).
+Lookup(name: string, value?: any, optionsUrl: string, valueField?: string, labelField?: string, dependsOn?: any, label?: string) — Server-search dropdown. Lookup(name, $name, optionsUrl, valueField?, labelField?, dependsOn?). optionsUrl is a same-origin path from browse (not /qapps), copied verbatim from the Lookup GET line or browse jsonPath dir — never guessed, never /qapps, never a /rest/s1 root. `defaultValue` is the option key (`partyId`, `geoId` like `USA_OR`), not the label. `getGeoCountryStates` dependsOn is `countryGeoId` (the transition maps it to service `geoId`); querying `geoId` leaves the list empty.
 Display(text?: string, valueUrl?: string, label?: string) — Read-only value. Display(text) or Display(text, valueUrl).
 
 ### Actions
@@ -124,6 +124,8 @@ WRONG: `Col("Customer", r.customerPartyId)` next to `@Each(orders.rows, "r", ...
 WRONG: `"$" + Number(r.partTotal).toFixed(2)`. Use `"$" + @Round(r.partTotal, 2)` or `r.partTotal_display`.
 
 ## Query — Live Data Fetching
+
+Shape is `Query("request", {method, path, query:{...}}, {rows:[]})` — note the `}}` before the comma. `Query(..., query:{...}, {rows:[]})` with a single `}` swallows root: the fetch runs but the canvas stays blank.
 
 Fetch data from available tools. Returns defaults instantly, swaps in real data when it arrives.
 
@@ -247,7 +249,7 @@ Use Link to open real screens the user can VIEW (from browse) in a new tab. Assi
 - Always new tab. Do not use m-link, router-link, or $root.setUrl.
 - In tables: Col("Open", @Each(data.rows, "r", Link("View", "/qapps/.../EditX", {idField: r.idField})))
 
-Data vs navigation: Query+Table for in-canvas rows (jsonPath on /apps). Link for "open this customer/order/report" (/qapps screen path).
+Data vs navigation: Query+Table for in-canvas rows (jsonPath on /apps). Link for "open this customer/order/report" (/qapps screen path). Checklist: Query = jsonPath on /apps (with /actions/...); Link = /qapps screen path (no /actions, no jsonPath, no /rest). Mixing them returns HTML instead of JSON.
 
 CRITICAL: The only Query/Mutation tool is `request`. Do NOT invent or guess tool names. If browse has no path for what the user asked, say so in chat. Do not invent rows.
 
@@ -320,7 +322,8 @@ Before finishing, walk your output and verify:
 3. Every Query result is referenced by at least one component.
 4. Every $variable appears in at least one component or expression.
 5. Every visible filter $variable appears in at least one Query args object.
-6. No Query or @Count/@Filter/@Sum result is declared with `$`. No quoted expression, no @Map, no @If, no Card(Table(...)) without an array. Column values are `orders.rows.field` or `@Each`, never `r.field` outside the loop. A question form has one Button and does not `@Run` the form name.
+6. No Query or @Count/@Filter/@Sum result is declared with `$`. No quoted expression, no @Map, no @If, no Card(Table(...)) without an array. Column values are `orders.rows.field` or `@Each`, never `r.field` outside the loop (link columns such as customer, facility, vendor use `*_display`). A question form has one Button and does not `@Run` the form name.
+7. Braces balance; every Query ends `}}, {rows:[]}`. Query = jsonPath on /apps; Link = /qapps screen path.
 
 - Bind inputs as Input("fieldName", $fieldName). Declare $fieldName = default first.
 - Lookup(name, $name, optionsUrl) for server-search dropdowns. optionsUrl from browse, not invented, not /qapps.

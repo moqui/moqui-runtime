@@ -715,8 +715,15 @@
             if (this._store) this._store.dispose();
         },
         watch: {
-            lang: function() { this.reparse(); },
-            streaming: function(v) { if (!v) this.reparse(); }
+            // Registered first so this flush runs before lang. A stream often ends in the
+            // same tick the finished lang arrives; clearing the key here lets that parse
+            // emit once, and the lang reparse sees the same key and stays quiet.
+            streaming: function(v) {
+                if (v) return;
+                this._lastErrorKey = '';
+                this.reparse();
+            },
+            lang: function() { this.reparse(); }
         },
         methods: {
             getState: function(name) {
@@ -863,6 +870,29 @@
                 };
                 return ctx;
             },
+            // Streamed lang is cut off mid-call (FormControl("Organization" with no control yet).
+            // Those parser errors are not canvas notices. The finished program is reported
+            // once streaming stops and the error key is cleared.
+            emitErrors: function(errors) {
+                if (this.streaming) return;
+                var list = errors || [];
+                var seen = {};
+                var distinctKey = [];
+                for (var di = 0; di < list.length; di++) {
+                    var dm = (list[di] && list[di].message) || '';
+                    var dn = String(dm).trim().replace(/\s+/g, ' ');
+                    var dc = (list[di] && list[di].code) || '';
+                    var dk = dc + '|' + dn;
+                    if (seen[dk]) continue;
+                    seen[dk] = true;
+                    distinctKey.push(dk);
+                }
+                distinctKey.sort();
+                var ek = distinctKey.join('\n');
+                if (ek === this._lastErrorKey) return;
+                this._lastErrorKey = ek;
+                this.$emit('error', list);
+            },
             reparse: function() {
                 if (!this.ready || !this._parser) return;
                 var OpenUI = this._OpenUI;
@@ -872,7 +902,7 @@
                 catch (e) {
                     this.parseErrors = [{ source: 'parser', code: 'parse-exception', message: (e && e.message) || String(e) }];
                     this.evaluatedRoot = null;
-                    this.$emit('error', this.parseErrors);
+                    this.emitErrors(this.parseErrors);
                     return;
                 }
                 this._parseResult = parseResult;
@@ -940,7 +970,7 @@
                             message: 'OpenUI program has no root. A call is usually missing } before {rows:[].' }];
                     }
                     this.parseErrors = errors;
-                    this.$emit('error', errors);
+                    this.emitErrors(errors);
                     return;
                 }
                 var runtimeErrors = [];
@@ -958,11 +988,7 @@
                 this.evaluatedRoot = evaluated;
                 var all = errors.concat(runtimeErrors);
                 this.parseErrors = all;
-                var ek = JSON.stringify(all);
-                if (ek !== this._lastErrorKey) {
-                    this._lastErrorKey = ek;
-                    this.$emit('error', all);
-                }
+                this.emitErrors(all);
             },
             navGetLinkPath: function() {
                 var r = this.$root;
