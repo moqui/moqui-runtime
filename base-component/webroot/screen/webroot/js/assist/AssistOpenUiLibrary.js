@@ -561,6 +561,23 @@
             });
         });
     }
+    /* Callers that redraw per delta would otherwise re-enter loadMarkdownStack for every chunk;
+     * load it once and queue callers until it settles (0 unknown, 1 loading, 2 ready, 3 failed). */
+    var MD_STATE_UNKNOWN = 0, MD_STATE_LOADING = 1, MD_STATE_READY = 2, MD_STATE_FAILED = 3;
+    var mdState = MD_STATE_UNKNOWN, mdWaiters = [];
+    function ensureMarkdownStack(cb) {
+        if (mdState === MD_STATE_READY) { cb(null); return; }
+        if (mdState === MD_STATE_FAILED) { cb(new Error('Markdown libraries failed to load')); return; }
+        mdWaiters.push(cb);
+        if (mdState === MD_STATE_LOADING) return;
+        mdState = MD_STATE_LOADING;
+        loadMarkdownStack(function(err) {
+            mdState = err ? MD_STATE_FAILED : MD_STATE_READY;
+            var waiters = mdWaiters;
+            mdWaiters = [];
+            for (var i = 0; i < waiters.length; i++) waiters[i](err);
+        });
+    }
     function rewriteMdLinks(container) {
         var as = container.querySelectorAll('a[href]');
         var i, a, href;
@@ -935,7 +952,7 @@
                     var vm = this;
                     var el = this.$refs.body;
                     if (!el) return;
-                    loadMarkdownStack(function(err) {
+                    ensureMarkdownStack(function(err) {
                         if (err) { vm.loadError = 'Markdown libraries failed to load'; return; }
                         vm.loadError = null;
                         renderMarkdownInto(el, vm.props && vm.props.textMarkdown, true);
@@ -1080,6 +1097,43 @@
             cb(null, j);
         }).catch(function(err) { cb(err); });
     }
+
+    /* Shared markdown renderer for anything outside the OpenUI canvas (the Assist chat bubbles).
+     * Renders through renderMarkdownInto so link rewriting, highlighting, and the DOMPurify pass
+     * are the same ones OpenUI uses; a v-html string would lose all of that on every re-render.
+     * Registered here (not in AssistOpenUi.js) so it works without lang-core. */
+    function registerMarkdownComponent() {
+        if (typeof Vue === 'undefined' || Vue.component('assist-markdown')) return;
+        Vue.component('assist-markdown', {
+            name: 'assist-markdown',
+            props: { text: { type: String, default: '' } },
+            data: function() { return { loadError: null }; },
+            mounted: function() { this.draw(); },
+            watch: { text: function() { this.draw(); } },
+            methods: {
+                draw: function() {
+                    var vm = this;
+                    var el = this.$refs.body;
+                    if (!el) return;
+                    if (!vm.text) { el.textContent = ''; return; }
+                    ensureMarkdownStack(function(err) {
+                        if (err) {
+                            vm.loadError = 'Markdown libraries failed to load';
+                            el.textContent = String(vm.text);
+                            return;
+                        }
+                        vm.loadError = null;
+                        renderMarkdownInto(el, vm.text, true);
+                    });
+                }
+            },
+            template: '<div>' +
+                '<div v-if="loadError" class="text-negative text-caption">{{loadError}}</div>' +
+                '<div ref="body"></div></div>'
+        });
+    }
+    registerMarkdownComponent();
+    root.registerAssistMarkdownComponent = registerMarkdownComponent;
 
     root.AssistOpenUiLibrary = library;
     root.assistFormatDateValue = assistFormatDateValue;

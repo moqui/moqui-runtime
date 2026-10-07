@@ -3,16 +3,17 @@
     <div class="row items-center q-mb-sm q-col-gutter-sm">
         <div class="col-auto">
             <q-btn-toggle dense unelevated v-model="writeMode" :options="writeModeOptions"
-                          toggle-color="primary" @input="persistWriteMode"></q-btn-toggle>
+                           toggle-color="primary" @input="persistWriteMode" :disable="streaming"></q-btn-toggle>
         </div>
         <div class="col-auto">
             <q-toggle dense v-model="forceSkillUse" label="Force Skill Use"
-                      @input="persistForceSkillUse"></q-toggle>
+                      @input="persistForceSkillUse" :disable="streaming"></q-toggle>
         </div>
         <div class="col text-caption text-grey-7">{{ writeModeHint }}</div>
+        <div v-if="sessionTurns" class="col-auto text-caption text-grey-7">{{ sessionTurns }} turn{{ sessionTurns === 1 ? '' : 's' }} · {{ sessionTokens }} tokens</div>
         <div class="col-auto">
             <q-btn dense outline no-caps :label="chatOnLeft ? 'Chat | Screen' : 'Screen | Chat'"
-                   @click="toggleSide"></q-btn>
+                   @click="toggleSide" :disable="streaming"></q-btn>
         </div>
         <div class="col-auto">
             <q-btn id="assist-conversations" dense outline no-caps icon="history" label="Chats"
@@ -45,25 +46,45 @@
          that order so a rightward drag grows the left pane. Row-reverse made the drag run backwards. -->
     <div ref="paneHolder" class="assist-pane-holder">
             <div ref="chatPane" class="assist-pane assist-chat q-pa-sm column" style="height:100%">
-                <div class="col overflow-auto" style="min-height:0">
+                <div class="col overflow-auto" style="min-height:0" role="log" aria-live="polite"
+                     aria-relevant="additions text" aria-label="Assist conversation">
                     <div v-for="(m, i) in messages" :key="i" class="q-mb-sm">
                         <div v-if="m.role!=='tool' && m.role!=='done'" class="text-caption text-grey-7">{{ m.role }}<span v-if="m.name"> {{ m.name }}</span></div>
-                        <div v-if="m.role==='tool'" class="text-caption">{{ m.kind }} {{ m.name }}<span v-if="toolSummary(m)"> — {{ toolSummary(m) }}</span></div>
-                        <div v-else-if="m.role==='done'" class="text-caption text-grey-7">{{ m.content }}</div>
+                        <div v-if="m.role==='tool'">
+                            <div class="text-caption assist-tool-row cursor-pointer" tabindex="0" role="button"
+                                 :aria-expanded="m._open ? 'true' : 'false'"
+                                 @click="toggleTool(m)" @keyup.enter.space.prevent="toggleTool(m)"
+                                 :title="m._open ? 'Collapse detail' : 'Expand detail'">{{ m.kind }} {{ m.name }}<span v-if="toolSummary(m)"> — {{ toolSummary(m) }}</span><span class="text-grey-5"> {{ m._open ? '▾' : '▸' }}</span></div>
+                            <div v-if="m._open" class="q-mt-xs">
+                                <pre class="assist-source-pre">{{ toolDetail(m) }}</pre>
+                                <div class="row justify-end"><q-btn flat dense no-caps label="Copy" @click.stop="copyText(toolDetail(m))"></q-btn></div>
+                            </div>
+                        </div>
+                        <div v-else-if="m.role==='done'" class="text-caption text-grey-7" :class="{ 'text-negative': m.error }">{{ m.content }}</div>
                         <div v-else-if="m.pending && !String(m.content || '').trim()"
                              class="assist-wait" :class="{ 'assist-wait-go': m.connected }" role="status"
                              :aria-label="m.connected ? 'Waiting for the model' : 'Connecting'"><div></div></div>
-                        <div v-else style="white-space:pre-wrap">{{ m.content }}</div>
+                        <div v-else-if="m.role==='assistant' && String(m.content || '').trim()">
+                            <div class="row items-start no-wrap">
+                                <div class="col assist-md">
+                                    <assist-markdown v-if="openUiRuntimeReady" :text="m.content"></assist-markdown>
+                                    <div v-else class="assist-md-fallback" v-html="renderMd(m)"></div>
+                                </div>
+                                <q-btn flat round dense icon="content_copy" title="Copy reply" aria-label="Copy reply"
+                                       @click="copyText(m.content || '')"></q-btn>
+                            </div>
+                        </div>
+                        <div v-else-if="String(m.content || '').trim()" style="white-space:pre-wrap">{{ m.content }}</div>
                     </div>
                 </div>
                 <div class="col-auto q-pt-sm">
-                    <q-input id="assist-composer" outlined autogrow v-model="composer" placeholder="Describe what you need"
+                    <q-input id="assist-composer" outlined autogrow type="textarea" v-model="composer" placeholder="Describe what you need (Shift+Enter for newline)"
                              @keyup.enter.exact.prevent="send" :disable="streaming">
                         <template v-slot:append>
                             <q-btn v-if="speechSupported" flat round dense :icon="recognizing ? 'mic' : 'mic_none'"
-                                   @click="toggleMic"></q-btn>
+                                   @click="toggleMic" :disable="streaming" title="Voice input" aria-label="Voice input"></q-btn>
                             <q-btn id="assist-send" flat round dense icon="send" :disable="streaming || !composer"
-                                   @click="send"></q-btn>
+                                   @click="send" title="Send" aria-label="Send"></q-btn>
                         </template>
                     </q-input>
                 </div>
@@ -156,6 +177,13 @@
                             <li v-for="(n, ni) in canvasNotices" :key="'cn'+ni"
                                 :class="n.kind==='error' ? 'text-negative' : ''">{{ n.message }}<span v-if="n.count && n.count > 1"> (×{{ n.count }})</span></li>
                         </ul>
+                    </div>
+                    <div v-if="resultLinks.length" id="assist-result-links" class="q-mb-md">
+                        <div class="text-subtitle2">Result screens</div>
+                        <div class="assist-actions" style="margin-top:8px">
+                            <q-btn v-for="l in resultLinks" :key="l.id + l.href" outline no-caps
+                                   icon="open_in_new" :label="l.label" @click="openResultLink(l.href)"></q-btn>
+                        </div>
                     </div>
                     <div v-if="showParentSubmit" class="assist-actions">
                         <q-btn id="assist-submit" unelevated color="primary" no-caps
@@ -303,6 +331,8 @@ function parseSseChunk(buffer, onEvent) {
     return rest;
 }
 var CONV_STORAGE_KEY = 'assist.conversationId';
+/** No SSE chunk (the server pings while a turn is running) for this long ends the turn. */
+var IDLE_TIMEOUT_MS = 90000;
 function formatWhen(ms) {
     if (ms == null || ms === '') return '';
     var n = typeof ms === 'number' ? ms : Number(ms);
@@ -429,6 +459,97 @@ function unescapeHtml(s) {
     if (s == null || s === '') return s;
     return String(s).replace(/&amp;/g, '&').replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+}
+function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+/** Copy fallback for browsers without navigator.clipboard (any insecure origin). */
+function legacyCopyText(text) {
+    var ta = document.createElement('textarea');
+    ta.value = String(text);
+    ta.setAttribute('readonly', 'readonly');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    var ok = false;
+    try { ta.select(); ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+}
+/** Fallback markdown for chat bubbles rendered before AssistOpenUiLibrary.js loads (code
+ *  fences to <pre>, inline code to <code>, bold to <strong>, everything else escaped). The
+ *  real renderer is the assist-markdown component; this never sees a sanitizing pipeline, so
+ *  it must escape before adding any markup. */
+function renderMdMinimal(s) {
+    var text = String(s == null ? '' : s);
+    var parts = text.split(/```/);
+    var out = '';
+    for (var i = 0; i < parts.length; i++) {
+        var chunk = parts[i];
+        if (i % 2 === 1) {
+            var code = chunk.replace(/^[a-zA-Z0-9+-]+\n/, '');
+            out += '<pre>' + escapeHtml(code.replace(/^\n+|\n+$/g, '')) + '</pre>';
+        } else {
+            var esc = escapeHtml(chunk);
+            esc = esc.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+            esc = esc.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            out += esc;
+        }
+    }
+    return out;
+}
+/** Cached per message: the fallback branch re-renders on every streaming delta. */
+function messageMdHtml(m) {
+    if (!m) return '';
+    if (m._mdFor !== m.content) {
+        m._mdFor = m.content;
+        m._mdHtml = renderMdMinimal(m.content);
+    }
+    return m._mdHtml;
+}
+/** Pretty-printed tool call arguments or tool result content, cached on the message because
+ *  the template renders it twice per pass (the <pre> and the Copy click handler). */
+function toolDetailText(m) {
+    if (!m) return '';
+    var payload = m.kind === 'call' ? m.arguments : m.content;
+    if (payload == null) return '';
+    if (m._detailFor === payload && m._detail != null) return m._detail;
+    var text;
+    if (typeof payload === 'string') {
+        // Tool arguments usually arrive as a JSON string; parse it so redaction applies.
+        var parsed = null;
+        try { parsed = JSON.parse(payload); } catch (e) { parsed = null; }
+        text = parsed == null ? payload : JSON.stringify(redactValues(parsed), null, 2);
+    } else {
+        try { text = JSON.stringify(redactValues(payload), null, 2); }
+        catch (e) { text = String(payload); }
+    }
+    if (text.length > 4000) text = text.slice(0, 4000) + '…';
+    m._detailFor = payload;
+    m._detail = text;
+    return text;
+}
+/** Raw result-screen paths from runScriptActions rows (href built in the component).
+ * Paths go through validateActionPath (same rules as action paths) so a response body can
+ * never turn a result link into an off-origin URL. */
+function extractResultScreens(actionResults) {
+    var out = [];
+    (actionResults || []).forEach(function(row) {
+        if (!row || row.error || row.skipped) return;
+        var body = row.body;
+        if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { return; } }
+        if (!body || typeof body !== 'object' || Array.isArray(body)) return;
+        var path = body.screenUrl || body.redirectUrl;
+        if (!path && Array.isArray(body.screenPathList) && body.screenPathList.length)
+            path = body.screenPathList[0];
+        if (!path) return;
+        path = String(path);
+        if (validateActionPath(path)) return;
+        out.push({ id: row.id || 'result', path: path });
+    });
+    return out;
 }
 function scalarValue(v) {
     if (v == null) return '';
@@ -618,6 +739,22 @@ function redactValueMap(src) {
     });
     return out;
 }
+/** Deep copy with sensitive keys masked, so an expanded tool row cannot print a password or
+ *  apiKey that confirmArgs and the adjust package already hide. */
+function redactValues(v, depth) {
+    if (depth == null) depth = 0;
+    if (v == null || typeof v !== 'object' || depth > 6) return v;
+    if (Array.isArray(v)) {
+        var arr = [];
+        for (var i = 0; i < v.length; i++) arr.push(redactValues(v[i], depth + 1));
+        return arr;
+    }
+    var out = {};
+    Object.keys(v).forEach(function(k) {
+        out[k] = sensitiveValueKey(k) ? '***' : redactValues(v[k], depth + 1);
+    });
+    return out;
+}
 function formatArgsFallback(name, args) {
     if (!args || typeof args !== 'object' || Array.isArray(args)) return '';
     var parts = [];
@@ -726,6 +863,7 @@ function formatDoneLine(data) {
     if (data.yielded) parts.push('yielded');
     else if (data.finishReason) parts.push(data.finishReason);
     if (data.durationMs != null && data.durationMs !== '') parts.push(data.durationMs + 'ms');
+    if (data.model) parts.push(String(data.model));
     var u = data.usage;
     if (u && (u.promptTokens != null || u.completionTokens != null || u.totalTokens != null)) {
         parts.push('tokens=' + (u.promptTokens != null ? u.promptTokens : '?') + '/'
@@ -767,11 +905,12 @@ module.exports = {
             adjustOpen: false, adjustText: '', canvasNotices: [],
             autoValidationCount: 0, lastAutoHash: '', maxAutoValidations: 4,
             vueSfcComp: null, vueSfcKey: null, vueSfcGen: 0, vueSfcFailed: false,
-            speechSupported: false, recognizing: false,
-            recognition: null, abortCtl: null,
-            conversations: [], profileFlags: {},
+            speechSupported: false, recognizing: false, speechBase: '', openUiRuntimeReady: false,
+            recognition: null, abortCtl: null, idleTimer: null,
+            sessionTurns: 0, sessionTokens: 0, lastActionResults: [],
+            conversations: [], profileFlags: {}, profilesLoaded: false,
             convDrawer: false, convSearch: '', convPageIndex: 0, convTotal: 0, convPageSize: 20,
-            convSearchTimer: null, sourceOpen: false, deleteOpen: false, deleteTarget: null
+            convSearchTimer: null, splitSaveTimer: null, sourceOpen: false, deleteOpen: false, deleteTarget: null
         };
     },
     computed: {
@@ -797,6 +936,11 @@ module.exports = {
                 var n = Number(v);
                 if (isNaN(n)) return;
                 this.splitPct = (this.chatOnLeft || this.isMobile) ? n : (100 - n);
+                var vm = this;
+                if (this.splitSaveTimer) clearTimeout(this.splitSaveTimer);
+                this.splitSaveTimer = setTimeout(function() {
+                    vm.persistPref('ASSIST_SPLIT_PCT', String(Math.round(vm.splitPct)));
+                }, 800);
             }
         },
         deletePrompt: function() {
@@ -870,6 +1014,36 @@ module.exports = {
         },
         sourceText: function() { return canvasSourceText(this.schema); },
         submitScriptText: function() { return canvasSubmitText(this.schema); },
+        resultLinks: function() {
+            var raws = extractResultScreens(this.lastActionResults);
+            if (!raws.length) return [];
+            var vm = this;
+            var Nav = window.AssistOpenUiNav;
+            var seen = {};
+            var out = [];
+            for (var i = 0; i < raws.length && out.length < 4; i++) {
+                var r = raws[i];
+                if (seen[r.path]) continue;
+                seen[r.path] = true;
+                // Nav is only there once AssistOpenUiLibrary.js has loaded; paths are already
+                // validated by extractResultScreens so appRoot + path is a safe fallback.
+                var href = null;
+                if (Nav && Nav.build) {
+                    var built = Nav.build(r.path, null, null, {
+                        appRoot: (vm.$root && vm.$root.appRootPath) || '',
+                        getLinkPath: vm.$root && vm.$root.getLinkPath && vm.$root.getLinkPath.bind(vm.$root),
+                        rewriteShell: true
+                    });
+                    if (built && built.href) href = built.href;
+                }
+                if (!href && vm.$root && vm.$root.appRootPath && r.path.indexOf(vm.$root.appRootPath) !== 0)
+                    href = vm.$root.appRootPath + r.path;
+                if (!href) href = r.path;
+                var name = /\/([A-Za-z0-9_-]+)\/?$/.exec(r.path.split(/[?#]/)[0]);
+                out.push({ id: r.id, path: r.path, href: href, label: 'Open ' + (name ? name[1] : (r.id || 'result')) });
+            }
+            return out;
+        },
         showFormWidgets: function() {
             if (!this.schema || this.showVueSfc || this.showOpenUi) return false;
             if (this.schema.kind === 'vue-sfc') return this.vueSfcFailed;
@@ -927,6 +1101,12 @@ module.exports = {
                         vm.writeMode = prefs.ASSIST_WRITE_MODE;
                     if (prefs.ASSIST_FORCE_SKILL_USE === 'true') vm.forceSkillUse = true;
                     if (prefs.ASSIST_FORCE_SKILL_USE === 'false') vm.forceSkillUse = false;
+                    var pct = Number(prefs.ASSIST_SPLIT_PCT);
+                    if (!isNaN(pct) && pct >= 15 && pct <= 85) vm.splitPct = pct;
+                    // No UI writes this one; set the ASSIST_MAX_AUTO_VALIDATIONS preference (or the
+                    // profile) to change the cap on client-side validation retries.
+                    var mav = Number(prefs.ASSIST_MAX_AUTO_VALIDATIONS);
+                    if (!isNaN(mav) && mav >= 0 && mav <= 10) vm.maxAutoValidations = mav;
                 } });
         },
         loadProfiles: function() {
@@ -935,10 +1115,13 @@ module.exports = {
                 .then(function(r) { return r.json(); })
                 .then(function(body) {
                     var list = (body && body.profiles) || [];
-                    var assist = list.filter(function(p) { return p.name === 'assist'; })[0] || list[0];
+                    var assist = list.filter(function(p) { return p.name === 'assist'; })[0];
                     vm.profileFlags = assist || {};
-                    if (assist && assist.allowUnprefixedRequest === false && assist.allowBrowse === false)
-                        assistNotify('Assist profile tools are limited; browse/request may be unavailable.', 'warning');
+                    vm.profilesLoaded = true;
+                    if (assist && assist.allowUnprefixedRequest === false && assist.allowBrowse === false) {
+                        var msg = 'Assist profile tools are limited; browse/request may be unavailable.';
+                        vm.noteCanvas(msg, 'warning');
+                    }
                 }).catch(function() { /* ignore */ });
         },
         loadConversations: function(pageIndex) {
@@ -1006,10 +1189,16 @@ module.exports = {
             try { sessionStorage.setItem(CONV_STORAGE_KEY, body.conversationId); } catch (e) { /* ignore */ }
             this.messages = historyToMessages(body.history);
             this.pendingToolCalls = body.pendingToolCalls || [];
+            this.warnMultiPending();
             this.schema = null;
             this.fieldValues = {};
             this.dirtyFields = {};
             this.canvasNotices = [];
+            this.lastActionResults = [];
+            this.sessionTurns = (body.history || []).filter(function(m) {
+                return m && m.role === 'user';
+            }).length;
+            this.sessionTokens = 0;
             this.adjustOpen = false;
             this.adjustText = '';
             this.autoValidationCount = 0;
@@ -1056,9 +1245,78 @@ module.exports = {
         },
         copyText: function(text) {
             if (!text) return;
+            var ok = function() { assistNotify('Copied to clipboard', 'success'); };
+            var failed = function() { assistNotify('Could not copy — select the text and copy manually', 'warning'); };
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).catch(function() { /* ignore */ });
+                navigator.clipboard.writeText(text).then(ok, function() {
+                    if (legacyCopyText(text)) ok(); else failed();
+                });
+                return;
             }
+            // navigator.clipboard is undefined on an insecure origin, not just failing.
+            if (legacyCopyText(text)) ok(); else failed();
+        },
+        toggleTool: function(m) {
+            if (!m) return;
+            this.$set(m, '_open', !m._open);
+        },
+        toolDetail: function(m) { return toolDetailText(m); },
+        renderMd: function(m) { return messageMdHtml(m); },
+        openResultLink: function(href) {
+            if (!href) return;
+            window.open(href, '_blank', 'noopener,noreferrer');
+        },
+        /** Error entries stay in the thread; notify alone is lost once a bubble has partial content. */
+        noteError: function(message) {
+            if (!message) return;
+            var text = String(message);
+            assistNotify(text, 'warning');
+            var list = this.messages || [];
+            var entry = 'Error: ' + text;
+            for (var i = list.length - 1; i >= 0; i--) {
+                var m = list[i];
+                if (m && m.role === 'done' && m.error && m.content === entry) return;
+            }
+            this.messages.push({ role: 'done', content: entry, error: true });
+        },
+        touchSse: function() { this.clearIdle(); this.armIdle(); },
+        clearIdle: function() {
+            if (this.idleTimer) { clearTimeout(this.idleTimer); this.idleTimer = null; }
+        },
+        armIdle: function() {
+            var vm = this;
+            this.clearIdle();
+            this.idleTimer = setTimeout(function() {
+                if (!vm.streaming) return;
+                try { if (vm.abortCtl) vm.abortCtl.abort(); } catch (e) { /* ignore */ }
+                vm.streaming = false;
+                vm.clearIdle();
+                // Aborting the fetch does not stop the server turn; it has to be cancelled.
+                vm.cancelServerTurn();
+                vm.noteError('No response for ' + (IDLE_TIMEOUT_MS / 1000)
+                    + 's — the turn was cancelled. Try again.');
+            }, IDLE_TIMEOUT_MS);
+        },
+        recordDoneStats: function(data) {
+            this.sessionTurns = (this.sessionTurns || 0) + 1;
+            var u = data && data.usage;
+            var total = u && u.totalTokens != null ? Number(u.totalTokens) : NaN;
+            if (isNaN(total) && u)
+                total = (Number(u.promptTokens) || 0) + (Number(u.completionTokens) || 0);
+            if (!isNaN(total) && total > 0) this.sessionTokens = (this.sessionTokens || 0) + total;
+        },
+        /* Only pendingToolCalls[0] can be answered from this screen (finishSubmit, confirmTool,
+         * resumeChat, submitAdjust all send a single toolResult), so extra calls need a
+         * follow-up turn. Leave a trace in the thread, not just a toast. */
+        warnMultiPending: function() {
+            var calls = this.pendingToolCalls || [];
+            if (calls.length <= 1) return;
+            var msg = calls.length + ' pending tool calls; answering the first — the rest need a server follow-up.';
+            var list = this.messages || [];
+            var last = list[list.length - 1];
+            if (last && last.role === 'done' && last.content === msg) return;
+            assistNotify(msg, 'warning');
+            list.push({ role: 'done', content: msg });
         },
         formatWhen: function(ms) { return formatWhen(ms); },
         convStatusLabel: function(status) { return convStatusLabel(status); },
@@ -1070,7 +1328,20 @@ module.exports = {
             if (this.pendingToolCalls.length) this.resumeChat(text);
             else this.chat(text);
         },
-        toolNames: function() { return ['find_skill', 'enter_sim', 'browse', 'find_basic', 'request', 'write_ui', 'run_service', 'pin']; },
+        toolNames: function() {
+            var names = ['find_skill', 'enter_sim', 'browse', 'find_basic', 'request', 'write_ui', 'run_service', 'pin'];
+            // The server only registers tools the profile allows (LlmGateway.applyTools), so this
+            // is defence in depth: do not offer a tool that can never arrive. Before /profiles
+            // answers, assume everything is allowed so a slow load cannot silently drop tools.
+            if (!this.profilesLoaded) return names;
+            var flags = this.profileFlags || {};
+            var blocked = [];
+            if (flags.allowBrowse === false) blocked.push('browse');
+            if (flags.allowRunService === false) blocked.push('run_service');
+            if (flags.allowEnterSim === false) blocked.push('enter_sim');
+            if (!blocked.length) return names;
+            return names.filter(function(n) { return blocked.indexOf(n) < 0; });
+        },
         headers: function(stream) {
             var h = { 'Content-Type': 'application/json', 'X-CSRF-Token': this.csrf, Accept: stream ? 'text/event-stream' : 'application/json' };
             return h;
@@ -1245,23 +1516,41 @@ module.exports = {
             }
         },
         loadOpenUi: function() {
-            if (window.OpenUILang && window.AssistOpenUiReady) return Promise.resolve();
+            return this.ensureOpenUiRuntime(true);
+        },
+        /** Load AssistOpenUiLibrary.js, which registers the shared markdown component; the canvas
+         *  path additionally needs lang-core and AssistOpenUi.js. */
+        ensureOpenUiRuntime: function(withCanvasRuntime) {
+            var vm = this;
             var root = (this.$root && this.$root.appRootPath) || '';
             var ver = pageResourceVersion();
             var q = ver ? ('?v=' + ver) : '';
-            var files = [
-                root + '/js/assist/lang-core.umd.min.js' + q,
-                root + '/js/assist/AssistOpenUiLibrary.js' + q,
-                root + '/js/assist/AssistOpenUi.js' + q
-            ];
+            if (withCanvasRuntime && window.OpenUILang && window.AssistOpenUiReady) return Promise.resolve();
+            var files = [root + '/js/assist/AssistOpenUiLibrary.js' + q];
+            if (withCanvasRuntime) files.unshift(root + '/js/assist/lang-core.umd.min.js' + q);
+            if (withCanvasRuntime) files.push(root + '/js/assist/AssistOpenUi.js' + q);
             var chain = Promise.resolve();
             files.forEach(function(src) {
                 chain = chain.then(function() { return loadScriptOnce(src); });
             });
-            var vm = this;
-            return chain.catch(function(err) {
+            return chain.then(function() {
+                if (window.registerAssistMarkdownComponent) window.registerAssistMarkdownComponent();
+                vm.openUiRuntimeReady = true;
+            }, function(err) {
+                if (!withCanvasRuntime) return;
                 vm.noteCanvas((err && err.message) || String(err), 'error');
             });
+        },
+        /** Chat bubbles only need markdown; load the library on mount so the first reply renders
+         *  with links, highlighting, and sanitizing instead of the plain-text fallback. */
+        ensureMarkdownRuntime: function() {
+            if (this.openUiRuntimeReady) return;
+            if (window.AssistOpenUiLibrary) {
+                if (window.registerAssistMarkdownComponent) window.registerAssistMarkdownComponent();
+                this.openUiRuntimeReady = true;
+                return;
+            }
+            this.ensureOpenUiRuntime(false);
         },
         onOpenUiState: function(snap) {
             if (!snap || typeof snap !== 'object') return;
@@ -1503,15 +1792,20 @@ module.exports = {
         submitCanvas: function(buttonId) {
             if (this.streaming) return;
             var vm = this;
+            // Result links describe the run that is about to happen, so clear them here and keep
+            // them across the write_ui yield that follows (applyYield must not reset them).
+            this.lastActionResults = [];
             var acts = (this.schema && this.schema.actions) || [];
             var runActions = this.writeMode === 'script' && acts.length;
             assistNotify(runActions ? 'Running listed actions…' : 'Submitted — Assist is working…', 'info');
             if (runActions) {
                 this.runScriptActions().then(function(actionResults) {
+                    vm.lastActionResults = actionResults || [];
                     assistNotify('Actions finished; Assist is reviewing results…', 'info');
                     vm.finishSubmit(buttonId, actionResults);
                 }).catch(function(err) {
                     var msg = (err && err.message) || String(err);
+                    vm.lastActionResults = (err && err.actionResults) || [];
                     if (vm.recordCanvasNotice(msg, 'error')) assistNotify(msg, 'error');
                     vm.finishSubmit(buttonId, err.actionResults || []);
                 });
@@ -1676,6 +1970,7 @@ module.exports = {
             this.openGen = (this.openGen || 0) + 1;
             this.streaming = true;
             this.abortCtl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+            this.armIdle();
             var assistant = { role: 'assistant', content: '', pending: true, connected: false };
             this.messages.push(assistant);
             fetch(url, {
@@ -1699,9 +1994,11 @@ module.exports = {
                     return reader.read().then(function(chunk) {
                         if (chunk.done) {
                             vm.streaming = false;
+                            vm.clearIdle();
                             vm.loadConversations(vm.convPageIndex || 0);
                             return;
                         }
+                        vm.touchSse();
                         buf += decoder.decode(chunk.value, { stream: true });
                         buf = parseSseChunk(buf, function(event, data) { vm.onSse(event, data, assistant); });
                         return pump();
@@ -1710,13 +2007,15 @@ module.exports = {
                 return pump();
             }).catch(function(err) {
                 vm.streaming = false;
+                vm.clearIdle();
                 if (err && err.name === 'AbortError') return;
                 var msg = (err && err.message) || String(err);
-                assistNotify(msg, 'warning');
-                assistant.content = assistant.content || msg;
+                if (assistant.content) vm.noteError(msg);
+                else assistant.content = msg;
             });
         },
         onSse: function(event, data, assistant) {
+            this.touchSse();
             if (event === 'conversation' && data && data.conversationId) {
                 var first = !this.conversationId;
                 this.conversationId = data.conversationId;
@@ -1736,35 +2035,46 @@ module.exports = {
                     content: data && data.content, summary: data && data.summary });
             } else if (event === 'yield') {
                 this.pendingToolCalls = (data && data.pendingToolCalls) || [];
+                this.warnMultiPending();
                 var call = this.pendingToolCalls[0];
                 var args = call && call.arguments;
                 if (typeof args === 'string') { try { args = JSON.parse(args); } catch (e) { args = null; } }
                 if (isWriteUiArgs(args)) this.applyYield(args);
                 // FUTURE: args.kind === 'screen-xml' → POST to a compile/render transition (server round-trip)
                 this.streaming = false;
+                this.clearIdle();
                 this.loadConversations(this.convPageIndex || 0);
             } else if (event === 'done') {
                 this.streaming = false;
+                this.clearIdle();
                 if (data && !data.yielded) this.pendingToolCalls = [];
+                this.recordDoneStats(data);
                 var doneLine = formatDoneLine(data);
                 if (doneLine) this.messages.push({ role: 'done', content: doneLine });
                 this.loadConversations(this.convPageIndex || 0);
             } else if (event === 'error') {
                 this.streaming = false;
-                assistNotify((data && data.message) || 'LLM error', 'warning');
+                this.clearIdle();
+                this.noteError((data && data.message) || 'LLM error');
             }
         },
         handleJsonTurn: function(j, assistant) {
             this.streaming = false;
-            if (j.conversationId) this.conversationId = j.conversationId;
+            this.clearIdle();
+            if (j.conversationId) {
+                this.conversationId = j.conversationId;
+                try { sessionStorage.setItem(CONV_STORAGE_KEY, j.conversationId); } catch (e) { /* ignore */ }
+            }
             if (j.content) assistant.content = j.content;
             if (j.yielded && j.pendingToolCalls) {
                 this.pendingToolCalls = j.pendingToolCalls;
+                this.warnMultiPending();
                 var call = this.pendingToolCalls[0];
                 var args = call && call.arguments;
                 if (typeof args === 'string') { try { args = JSON.parse(args); } catch (e) { args = null; } }
                 if (isWriteUiArgs(args)) this.applyYield(args);
             }
+            this.recordDoneStats(j);
             var doneLine = formatDoneLine(j);
             if (doneLine) this.messages.push({ role: 'done', content: doneLine });
             this.loadConversations(this.convPageIndex || 0);
@@ -1787,6 +2097,9 @@ module.exports = {
             this.fieldValues = {};
             this.dirtyFields = {};
             this.canvasNotices = [];
+            this.lastActionResults = [];
+            this.sessionTurns = 0;
+            this.sessionTokens = 0;
             this.adjustOpen = false;
             this.adjustText = '';
             this.autoValidationCount = 0;
@@ -1795,13 +2108,21 @@ module.exports = {
             this.vueSfcKey = null;
             this.vueSfcFailed = false;
             this.vueSfcGen = (this.vueSfcGen || 0) + 1;
+            this.clearIdle();
         },
         cancelTurn: function() {
             var inFlight = this.streaming;
             if (inFlight && this.abortCtl) try { this.abortCtl.abort(); } catch (e) { /* ignore */ }
             if (!inFlight) this.abortCtl = null;
             this.streaming = false;
-            if (!inFlight || !this.conversationId) return;
+            this.clearIdle();
+            if (inFlight) this.messages.push({ role: 'done', content: 'Cancelled' });
+            if (!inFlight) return;
+            this.cancelServerTurn();
+        },
+        /** Tell the server to stop the turn; aborting the browser fetch alone does not. */
+        cancelServerTurn: function() {
+            if (!this.conversationId) return;
             fetch(this.llmBase + '/chat/' + encodeURIComponent(this.conversationId) + '/cancel', {
                 method: 'POST', credentials: 'same-origin',
                 headers: this.headers(false), body: '{}'
@@ -1812,20 +2133,43 @@ module.exports = {
             this.speechSupported = !!Rec;
             if (!Rec) return;
             var rec = new Rec();
-            rec.lang = (navigator.language || 'en-US');
-            rec.interimResults = false;
             var vm = this;
+            rec.lang = (navigator.language || 'en-US');
+            rec.interimResults = true;
+            rec.continuous = true;
+            /* Interim results keep changing, so build the box from what was there when the mic
+             * started plus finals plus the current interim. Appending each interim would repeat
+             * the growing prefix ("hello" then "hello wor" -> "hello hello wor"). */
             rec.onresult = function(ev) {
-                var t = ev.results && ev.results[0] && ev.results[0][0] && ev.results[0][0].transcript;
-                if (t) vm.composer = (vm.composer ? vm.composer + ' ' : '') + t;
+                var finals = [], interim = '';
+                for (var i = ev.resultIndex; i < ev.results.length; i++) {
+                    var r = ev.results[i];
+                    var text = r && r[0] && r[0].transcript;
+                    if (!text) continue;
+                    if (r.isFinal) finals.push(text);
+                    else interim += text;
+                }
+                vm.composer = [vm.speechBase, finals.join(' '), interim]
+                    .filter(function(s) { return s; }).join(' ').trim();
             };
-            rec.onend = function() { vm.recognizing = false; };
+            rec.onerror = function(ev) {
+                vm.recognizing = false;
+                if (ev && ev.error === 'not-allowed')
+                    assistNotify('Microphone permission denied', 'warning');
+            };
+            rec.onend = function() { vm.recognizing = false; vm.speechBase = ''; };
             this.recognition = rec;
         },
         toggleMic: function() {
-            if (!this.recognition) return;
-            if (this.recognizing) { this.recognition.stop(); this.recognizing = false; }
-            else { this.recognition.start(); this.recognizing = true; }
+            if (!this.recognition || this.streaming) return;
+            if (this.recognizing) {
+                this.recognition.stop();
+                this.recognizing = false;
+                this.speechBase = '';
+            } else {
+                this.speechBase = this.composer || '';
+                try { this.recognition.start(); this.recognizing = true; } catch (e) { this.recognizing = false; }
+            }
         },
         widgetComponent: function(widget) {
             if (widget === 'text-area') return 'q-input';
@@ -1851,6 +2195,7 @@ module.exports = {
         try { saved = sessionStorage.getItem(CONV_STORAGE_KEY); } catch (e) { /* ignore */ }
         if (saved) this.openConversation(saved);
         this.setupSpeech();
+        this.ensureMarkdownRuntime();
         var vm = this;
         this.onViewport = function() { vm.viewportWidth = window.innerWidth; };
         window.addEventListener('resize', this.onViewport);
@@ -1860,6 +2205,7 @@ module.exports = {
     beforeDestroy: function() {
         if (this.onViewport) window.removeEventListener('resize', this.onViewport);
         this.cancelTurn();
+        if (this.splitSaveTimer) { clearTimeout(this.splitSaveTimer); this.splitSaveTimer = null; }
         if (this.recognition && this.recognizing) try { this.recognition.stop(); } catch (e) { /* ignore */ }
     }
 };
@@ -1887,6 +2233,23 @@ module.exports = {
 .assist-source-pre {
     margin: 0; max-height: 40vh; overflow: auto; white-space: pre-wrap; word-break: break-word;
     background: #f5f5f5; padding: 8px; border-radius: 4px; font-size: 12px;
+}
+.assist-tool-row:hover { background: rgba(0,0,0,0.04); }
+/* .assist-md holds the shared assist-markdown renderer output; .assist-md-fallback is the
+   plain escape-then-tag renderer used until the library script has loaded. */
+.assist-md { word-break: break-word; }
+.assist-md-fallback { white-space: pre-wrap; word-break: break-word; }
+.assist-md pre, .assist-md-fallback pre, .assist-md-fallback > pre {
+    margin: 4px 0; max-height: 40vh; overflow: auto; white-space: pre; word-break: break-word;
+    background: #f5f5f5; padding: 8px; border-radius: 4px; font-size: 12px;
+}
+.assist-md code, .assist-md-fallback code, .assist-md pre code, .assist-md-fallback pre code {
+    background: #f5f5f5; padding: 0 4px; border-radius: 3px; font-size: 0.92em;
+}
+.assist-md pre code, .assist-md-fallback pre code { padding: 0; background: transparent; }
+.assist-md table, .assist-md-fallback table { border-collapse: collapse; margin: 4px 0; }
+.assist-md th, .assist-md td, .assist-md-fallback th, .assist-md-fallback td {
+    border: 1px solid rgba(0,0,0,0.15); padding: 2px 6px;
 }
 .assist-pane { height: 100%; overflow: hidden; }
 .assist-chat { border-right: 1px solid rgba(0,0,0,0.08); }
