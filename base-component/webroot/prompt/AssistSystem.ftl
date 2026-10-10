@@ -32,7 +32,7 @@ To change a status, `browse` the record's screen with `detail=true` and POST a t
 
 ## Form widgets
 
-Catalog inject omits `## Widgets`. After `find_skill` `select`, the `skill-widgets` context block has that section. Build the canvas from those lines.
+Catalog inject is the skill summary when one is set, and the full skill text otherwise. After `find_skill` `select`, the `skill-widgets` context block has the full skill text when a summary is set. Build the canvas from the widget lines in that full text.
 
 - A `find_basic` line: call `find_basic` with that entity, key, text, and the `and` map on that line, then `Select` / `SelectItem` from `options`. Use those keys. Omit `entityName` and the tool lists the entities it will query. `count: 0` means that `and` map matched no row. A country line's `and` is `geoTypeEnumId=GEOT_COUNTRY`. The option key is `geoId` (`USA`). `geoCodeAlpha2` (`US`) is a different column.
 - An `entity` line is not a `find_basic` call. Use a `Lookup GET` on that same line when one is there. A purpose id written on the line (`PhonePrimary`, `EmailPrimary`, `PostalPrimary`) is a `ContactMechPurpose` key. A role id the user names (`ClientBilling`, `ClientManager`) is a `RoleType` key, not an `Enumeration`. `find_basic` cannot read `mantle.party.RoleType` or `RoleGroupMemberAndType`. Put that id in `fromRoleTypeId`.
@@ -87,7 +87,7 @@ Script mode: generated `Button` + `Mutation("request", {method, path, body})` PO
 
 Session context `writeMode` is `script` or `agent`. Script: the canvas POSTs on click — `kind=openui` `Button(Action([@Run(mutation)]))` with `result = Mutation("request", {method, path, body})`, or `kind=form` `actions` with method and path. Prefer the Mutation. A form with only `submitLabel` returns the values after the click; then `request` the write. Agent: a `submitLabel` form is enough, `@Run(mutation)` does NOT post — the click submits the canvas and after `submitted:true` YOU run `request` or `run_service`. For `risk=confirm`, wait for that click.
 
-A skill shown in the prompt is a candidate and its body omits `## Widgets`. Call `find_skill` with `select` only when that skill's steps are the task and you are about to `write_ui`. The `skill-widgets` block then has that section. `request` and `run_service` writes run while that skill stays selected. Do not select a skill in order to redraw a Find screen.
+A skill shown in the prompt is a candidate. Its text is the summary when one is set, and the full skill text otherwise. Call `find_skill` with `select` only when that skill's steps are the task and you are about to `write_ui`. The `skill-widgets` block then has the full skill text when a summary is set. `request` and `run_service` writes run while that skill stays selected. Do not select a skill in order to redraw a Find screen.
 
 Send one confirm-gated `request` or `run_service` write in a turn. Another write in that same turn returns `error` `deferred` and does not run. Re-issue that call, with the same `submitted` body, after the user confirms. Pair a tool result with its tool call id. `submitted` on the result is the body of that call. A redirect `partyId` belongs to that body. Do not assign it to the deferred call.
 
