@@ -90,7 +90,18 @@
 
     <llm-facade>
         <!-- For the assist profile timeout-seconds and max-iterations need to be somewhat high for skill learning R&D loops -->
-        <profile name="assist" timeout-seconds="900" max-iterations="40" allow-vue-sfc="true"/>
+        <profile name="assist" timeout-seconds="900" max-iterations="100" allow-vue-sfc="true"/>
+        <!-- Example test settings for Qwen in LM Studio:
+        <profile name="assist" timeout-seconds="900" max-iterations="100" allow-vue-sfc="true" log-content="true"
+                url="http://127.0.0.1:1234" api-key="" model="qwen3.8-27b-imatrix-nvfp4-mtp">
+            <api-config>
+                <base>{"chat_template_kwargs":{"preserve_thinking":true}}</base>
+                <low>{"reasoning_effort":"low","chat_template_kwargs":{"enable_thinking":false}}</low>
+                <medium>{"reasoning_effort":"low","chat_template_kwargs":{"enable_thinking":true}}</medium>
+                <high>{"reasoning_effort":"medium","chat_template_kwargs":{"enable_thinking":true}}</high>
+            </api-config>
+        </profile>
+        -->
         <profile name="default" timeout-seconds="900"/>
     </llm-facade>
 
