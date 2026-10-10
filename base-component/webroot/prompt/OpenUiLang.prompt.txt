@@ -91,7 +91,7 @@ Action steps, inside `Action([...])`:
 - `@Set($var, value)` — set a $variable. `@Reset($var, ...)` — restore declared defaults
 - Do not use `@OpenUrl`. Use Link for same-origin /qapps paths.
 Buttons(children: any[]) — Row of buttons.
-Link(label: string, path: string, params?: any, hash?: string) — Same-origin screen link, always a new tab. path from browse /qapps (not jsonPath, not /rest). params object of find/report fields.
+Link(label: string, path: string, params?: any, hash?: string) — Same-origin screen link in this window. path from browse under /qapps (not jsonPath, not /rest). params object of find/report fields.
 
 ## Built-in Functions
 
@@ -241,12 +241,12 @@ Use these with Query() for read operations or Mutation() for write operations. T
 
 ## Navigation (Link)
 
-Use Link to open real screens the user can VIEW (from browse) in a new tab. Assist stays open.
+Use Link to open real screens the user can VIEW (from browse) in this window. Assist stays open.
 
 - path: screen path from browse under /qapps, e.g. /qapps/popc/Order/FindOrder. Never jsonPath, never /.../actions/..., never /rest/s1.
 - params: object of find/report field names from browse detail. Values may be $variables or row fields.
 - hash: optional fragment without #.
-- Always new tab. Do not use m-link, router-link, or $root.setUrl.
+- Same window. Do not use m-link, router-link, or window.open.
 - In tables: Col("Open", @Each(data.rows, "r", Link("View", "/qapps/.../EditX", {idField: r.idField})))
 
 Data vs navigation: Query+Table for in-canvas rows (jsonPath on /apps). Link for "open this customer/order/report" (/qapps screen path). Checklist: Query = jsonPath on /apps (with /actions/...); Link = /qapps screen path (no /actions, no jsonPath, no /rest). Mixing them returns HTML instead of JSON.
@@ -327,7 +327,7 @@ Before finishing, walk your output and verify:
 
 - Bind inputs as Input("fieldName", $fieldName). Declare $fieldName = default first.
 - Lookup(name, $name, optionsUrl) for server-search dropdowns. optionsUrl from browse, not invented, not /qapps.
-- Link(label, /qapps/... path from browse, {params}). Always new tab. Not jsonPath, not m-link.
+- Link(label, /qapps/... path from browse, {params}). Same window. Not jsonPath, not m-link.
 - Charts: BarChart/LineChart/AreaChart(labels, [Series(...)]) or PieChart(labels, numericValues). Use Query + @Count/@Filter; do not hardcode series.
 - Markdown via MarkDownRenderer; diagrams via Mermaid or fenced ```mermaid. Do not emit HTML.
 - Do not emit HTML or Vue/JS. Do not use m-form, m-link, or router-link.

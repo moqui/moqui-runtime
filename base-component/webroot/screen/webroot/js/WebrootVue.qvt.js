@@ -588,6 +588,54 @@ Vue.component('m-editable', {
 
 /* ========== form components ========== */
 
+moqui.screenForms = [];
+moqui.registerScreenForm = function(vm) {
+    if (!vm || moqui.screenForms.indexOf(vm) >= 0) return;
+    moqui.screenForms.push(vm);
+};
+moqui.unregisterScreenForm = function(vm) {
+    var i = moqui.screenForms.indexOf(vm);
+    if (i >= 0) moqui.screenForms.splice(i, 1);
+};
+/** A form-link navigates. An m-form submits only for a read-only GET. Posts stay a user click. */
+moqui.screenSubmitAllowed = function(vm) {
+    if (!vm || !vm.$options) return false;
+    var name = vm.$options.name;
+    if (name === 'mFormLink') return true;
+    if (name !== 'mForm') return false;
+    var method = String(vm.method || 'POST').toUpperCase();
+    return method === 'GET' && vm.readOnly === true;
+};
+moqui.formForElement = function(el) {
+    if (!el) return null;
+    var forms = moqui.screenForms;
+    for (var i = forms.length - 1; i >= 0; i--) {
+        var vm = forms[i];
+        if (vm && vm.$el && vm.$el.contains && vm.$el.contains(el)) return vm;
+    }
+    return null;
+};
+moqui.notifyScreenWatch = function(vm, eventName, extra) {
+    var root = vm && vm.$root;
+    if (root && root.assistNavSilent) return;
+    var assist = window.moquiAssistVm;
+    if (!assist || typeof assist.onScreenEvent !== 'function') return;
+    var attrs = (vm && vm.$attrs) || {};
+    var info = extra || {};
+    assist.onScreenEvent({
+        event: eventName,
+        form: attrs.id || attrs.name || (vm && vm.name) || '',
+        action: vm && vm.action,
+        method: (vm && vm.method) || '',
+        navigationOnly: moqui.screenSubmitAllowed(vm),
+        fields: vm && vm.fields,
+        messageInfos: info.messageInfos || null,
+        errors: info.errors || null,
+        validationErrors: info.validationErrors || null,
+        screenUrl: info.screenUrl || info.redirectUrl || ''
+    });
+};
+
 moqui.checkboxSetMixin = {
     // NOTE: checkboxCount is used to init the checkbox state array, defaults to 100 and must be greater than or equal to the actual number of checkboxes (not including the All checkbox)
     props: { checkboxCount:{type:Number,'default':100}, checkboxParameter:String, checkboxListMode:Boolean, checkboxValues:Array },
@@ -661,6 +709,7 @@ Vue.component('m-form', {
     name: "mForm",
     mixins:[moqui.checkboxSetMixin],
     props: { fieldsInitial:Object, action:{type:String,required:true}, method:{type:String,'default':'POST'},
+        readOnly:{type:Boolean,'default':false},
         submitMessage:String, submitReloadId:String, submitHideId:String, focusField:String, noValidate:Boolean,
         excludeEmptyFields:Boolean, parentCheckboxSet:Object },
     data: function() { return { fields:Object.assign({}, this.fieldsInitial),
@@ -844,6 +893,7 @@ Vue.component('m-form', {
             xhr.send(formData);
         },
         handleResponse: function(resp) {
+            if (moqui.notifyScreenWatch) moqui.notifyScreenWatch(this, 'submit', resp);
             var notified = false;
             // console.info('m-form response ' + JSON.stringify(resp));
             if (resp && moqui.isPlainObject(resp)) {
@@ -883,7 +933,9 @@ Vue.component('m-form', {
         // TODO: find other way to get button clicked (Vue event?)
         // watch button clicked
         jqEl.find('button[type="submit"], input[type="submit"], input[type="image"]').on('click', function() { vm.buttonClicked = this; });
-    }
+        moqui.registerScreenForm(this);
+    },
+    beforeDestroy: function() { moqui.unregisterScreenForm(this); }
 });
 Vue.component('m-form-link', {
     name: "mFormLink",
@@ -975,6 +1027,7 @@ Vue.component('m-form-link', {
             var url = this.action;
             if (url.indexOf('?') > 0) { url = url + '&' + parmStr; } else { url = url + '?' + parmStr; }
             // console.log("form-link url " + url + " bodyParameters " + JSON.stringify(bodyParameters));
+            if (moqui.notifyScreenWatch) moqui.notifyScreenWatch(this, 'submit', { screenUrl: url });
             this.$root.setUrl(url, bodyParameters);
 
         },
@@ -1005,7 +1058,9 @@ Vue.component('m-form-link', {
         });*/
         // TODO jqEl.find('[data-toggle="tooltip"]').tooltip({placement:'auto top'});
         if (this.focusField && this.focusField.length > 0) jqEl.find('[name=' + this.focusField + ']').addClass('default-focus').focus();
-    }
+        moqui.registerScreenForm(this);
+    },
+    beforeDestroy: function() { moqui.unregisterScreenForm(this); }
 });
 
 Vue.component('m-form-paginate', {
@@ -1233,7 +1288,9 @@ Vue.component('m-form-list', {
     mounted: function() {
         if (this.search) { this.searchObj = this.search; } else { this.searchObj = this.$root.currentParameters; }
         if (moqui.isArray(this.rows)) { this.rowList = this.rows; } else { this.fetchRows(); }
-    }
+        moqui.registerScreenForm(this);
+    },
+    beforeDestroy: function() { moqui.unregisterScreenForm(this); }
 });
 
 /* ========== form field widget components ========== */
@@ -2143,7 +2200,9 @@ moqui.webrootVue = new Vue({
         lastNavTime:Date.now(), loading:0, currentLoadRequest:null, activeContainers:{}, urlListeners:[],
         moquiSessionToken:"", appHost:"", appRootPath:"", userId:"", username:"", locale:"en",
         reLoginShow:false, reLoginPassword:null, reLoginMfaData:null, reLoginOtp:null,
-        notificationClient:null, sessionTokenBc:null, qzVue:null, leftOpen:false, moqui:moqui },
+        notificationClient:null, sessionTokenBc:null, qzVue:null, leftOpen:false, moqui:moqui,
+        assistEnabled:false, assistComp:null, assistOpen:false, assistSide:'left', assistNarrow:false, menuOverlay:false,
+        assistCanvasOn:false, assistPanelPx:420, assistNavSilent:false },
     methods: {
         setUrl: function(url, bodyParameters, onComplete, pushState=true) {
             // cancel current load if needed
@@ -2161,6 +2220,9 @@ moqui.webrootVue = new Vue({
                 this.reloadSubscreens(); /* console.info('reloading, same url ' + url); */
                 if (onComplete) this.callOnComplete(onComplete, this.currentPath);
             } else {
+                if (this.assistCanvasOn && !this.assistNavSilent && window.moquiAssistVm
+                        && typeof window.moquiAssistVm.onUserNavigate === 'function')
+                    window.moquiAssistVm.onUserNavigate();
                 var redirectedFrom = this.currentPath;
                 var urlInfo = moqui.parseHref(url);
                 // clear out extra path, to be set from nav menu data if needed
@@ -2168,6 +2230,10 @@ moqui.webrootVue = new Vue({
                 // set currentSearch before currentPath so that it is available when path updates
                 this.currentSearch = urlInfo.search;
                 this.currentPath = urlInfo.path;
+                if (!this.assistNavSilent && window.moquiAssistVm
+                        && typeof window.moquiAssistVm.onScreenEvent === 'function')
+                    window.moquiAssistVm.onScreenEvent({ event: 'navigate', path: this.currentPath,
+                        search: this.currentSearch || '' });
                 // with url cleaned up through setters now get current screen url for menu
                 var srch = this.currentSearch;
                 var screenUrl = this.currentPath + (srch.length > 0 ? '?' + srch : '');
@@ -2304,6 +2370,65 @@ moqui.webrootVue = new Vue({
             this.leftOpen = !this.leftOpen;
             $.ajax({ type:'POST', url:(this.appRootPath + '/apps/setPreference'), error:moqui.handleAjaxError,
                 data:{ moquiSessionToken:this.moquiSessionToken, preferenceKey:'QUASAR_LEFT_OPEN', preferenceValue:(this.leftOpen ? 'true' : 'false') } });
+        },
+        persistAssistPref: function(key, value) {
+            $.ajax({ type:'POST', url:(this.appRootPath + '/apps/setPreference'), error:moqui.handleAjaxError,
+                data:{ moquiSessionToken:this.moquiSessionToken, preferenceKey:key, preferenceValue:value } });
+        },
+        toggleAssist: function() {
+            this.assistOpen = !this.assistOpen;
+            this.persistAssistPref('ASSIST_OPEN', this.assistOpen ? 'true' : 'false');
+        },
+        openAssist: function() {
+            if (!this.assistEnabled) return;
+            if (this.assistOpen) return;
+            this.assistOpen = true;
+            this.persistAssistPref('ASSIST_OPEN', 'true');
+        },
+        syncAssistNarrow: function() {
+            var phone = window.Quasar && Quasar.Platform && Quasar.Platform.is && Quasar.Platform.is.mobile;
+            this.assistNarrow = window.innerWidth <= 600 || !!phone;
+            this.menuOverlay = window.innerWidth < 1024;
+        },
+        startAssistResize: function(ev) {
+            if (this.assistNarrow || !ev) return;
+            var vm = this;
+            var originX = ev.clientX;
+            var originPx = this.assistPanelPx;
+            var side = this.assistSide;
+            var move = function(e) {
+                var delta = e.clientX - originX;
+                if (side === 'right') delta = -delta;
+                var next = originPx + delta;
+                var max = Math.floor(window.innerWidth * 0.5);
+                if (next < 320) next = 320;
+                if (next > max) next = max;
+                vm.assistPanelPx = next;
+            };
+            var up = function() {
+                document.removeEventListener('mousemove', move);
+                document.removeEventListener('mouseup', up);
+                vm.persistAssistPref('ASSIST_DRAWER_PX', String(vm.assistPanelPx));
+            };
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', up);
+        },
+        loadAssistComponent: function() {
+            if ($('#confAssist').val() !== 'true') return;
+            this.assistEnabled = true;
+            var vm = this;
+            // Static qvue under the root screen. .qvue is application/octet-stream in the default mime map.
+            var path = (this.appRootPath || '') + '/js/assist/Assist.qvue';
+            var cached = moqui.componentCache.get(path);
+            if (cached) { this.assistComp = cached; return; }
+            $.ajax({ type:'GET', url:path, dataType:'text', error:function() { vm.assistEnabled = false; },
+                success:function(resp, status, jqXHR) {
+                    if (!resp) { vm.assistEnabled = false; return; }
+                    var comp = httpVueLoader.parse(resp, path.substr(0, path.lastIndexOf('/') + 1));
+                    var cacheControl = jqXHR.getResponseHeader('Cache-Control') || '';
+                    if (cacheControl.indexOf('max-age') >= 0) moqui.componentCache.put(path, comp);
+                    vm.assistComp = comp;
+                }});
         },
         stopProp: function (e) { e.stopPropagation(); },
         getNavHref: function(navIndex) {
@@ -2501,6 +2626,9 @@ moqui.webrootVue = new Vue({
             navHistoryList.unshift({ title:newTitle, pathWithParams:curUrl, image:cur.image, imageType:cur.imageType });
             while (navHistoryList.length > 25) { navHistoryList.pop(); }
             document.title = newTitle;
+            var onAssist = !!(cur.path && /\/assist\/?$/.test(cur.path));
+            if (onAssist && this._assistSeenPath !== cur.path) this.openAssist();
+            this._assistSeenPath = cur.path;
         }},
         currentPathList: function(newList) {
             // console.info('set currentPathList to ' + JSON.stringify(newList) + ' activeSubscreens.length ' + this.activeSubscreens.length);
@@ -2550,6 +2678,8 @@ moqui.webrootVue = new Vue({
         this.username = $("#confUsername").val();
         this.locale = $("#confLocale").val(); if (moqui.localeMap[this.locale]) this.locale = moqui.localeMap[this.locale];
         this.leftOpen = $("#confLeftOpen").val() === 'true';
+        this.assistOpen = $("#confAssist").val() === 'true' && $("#confAssistOpen").val() === 'true';
+        this.syncAssistNarrow();
 
         var confDarkMode = $("#confDarkMode").val();
         this.$q.dark.set(confDarkMode === "true");
@@ -2574,6 +2704,11 @@ moqui.webrootVue = new Vue({
         this.setUrl(window.location.pathname + window.location.search);
         // init the NotificationClient and register 'displayNotify' as the default listener
         this.notificationClient.registerListener("ALL");
+        this.syncAssistNarrow();
+        var vmAssist = this;
+        this._assistResizeListener = function() { vmAssist.syncAssistNarrow(); };
+        window.addEventListener('resize', this._assistResizeListener);
+        this.loadAssistComponent();
 
         // request Notification permission on load if not already granted or denied
         if (window.Notification && Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -2588,6 +2723,7 @@ moqui.webrootVue = new Vue({
     },
     beforeDestroy: function() {
         this.sessionTokenBc.close();
+        if (this._assistResizeListener) window.removeEventListener('resize', this._assistResizeListener);
     }
 
 });

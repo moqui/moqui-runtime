@@ -25,6 +25,20 @@ along with this software (see the LICENSE.md file). If not, see
             ]]></script></actions>
         <default-response type="none"/>
     </transition>
+    <transition name="setAssistTitle">
+        <parameter name="conversationId" required="true"/>
+        <parameter name="title"/>
+        <actions>
+            <if condition="!ec.user.hasPermission('LlmGateway')">
+                <return error="true" message="User does not have permission to use Assist"/></if>
+            <script><![CDATA[
+            def conv = ec.llm.getConversation(conversationId)
+            if (conv != null && title) conv.setTitle(title)
+            ec.web.sendJsonResponse([conversationId: conversationId, title: title])
+            ]]></script>
+        </actions>
+        <default-response type="none"/>
+    </transition>
     <transition name="setPrefGoLast" read-only="true">
         <parameter name="preferenceKey"/><parameter name="preferenceValue"/>
         <actions><script><![CDATA[

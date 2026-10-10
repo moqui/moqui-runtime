@@ -37,6 +37,29 @@ body.test.body--dark #top { background:#224422!important; color:white; }
 
 .body--dark .q-menu { background-color:black; }
 .body--dark .q-drawer { background-color: black; }
+
+/* Under the header the row is Assist, then the menu, then the page. */
+.assist-shell-row { display:flex; align-items:stretch; height:calc(100vh - 86px); min-height:0; overflow:hidden; }
+.app-menu-col { flex:0 0 300px; width:300px; min-height:0; overflow:auto; border-right:1px solid rgba(0,0,0,0.12); background:#fff; }
+.app-menu-overlay { position:fixed; z-index:2000; top:50px; bottom:0; left:0; box-shadow:0 0 16px rgba(0,0,0,0.2); }
+.body--dark .app-menu-col { background:#000; border-right-color:rgba(255,255,255,0.12); }
+.assist-page-col { flex:1 1 auto; min-width:0; min-height:0; overflow:auto; }
+.assist-page-col.q-page { min-height:0 !important; }
+.assist-panel-wrap { display:flex; flex:0 0 auto; min-width:0; max-width:50vw; min-height:0; }
+.assist-panel-slot { flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+.assist-panel-slot > .assist-chat { flex:1 1 auto; min-height:0; height:auto; }
+.assist-panel-grip { flex:0 0 6px; cursor:col-resize; background:rgba(0,0,0,0.08); }
+.assist-panel-grip:hover { background:rgba(30,123,142,0.45); }
+.assist-canvas-slot { min-height:calc(100vh - 110px); display:flex; flex-direction:column; }
+.assist-canvas-slot > .assist-canvas { flex:1 1 auto; min-height:0; height:auto; }
+.assist-narrow-overlay {
+    position:fixed; z-index:3000; top:50px; bottom:0; width:min(420px, 100vw);
+    display:flex; flex-direction:column; background:#fff; box-shadow:0 0 24px rgba(0,0,0,0.25);
+}
+.assist-narrow-left { left:0; }
+.assist-narrow-right { right:0; }
+.body--dark .assist-narrow-overlay { background:#1d1d1d; }
+.assist-narrow-overlay > .assist-chat { flex:1 1 auto; min-height:0; height:auto; }
 .body--dark img.invertible { -webkit-filter: invert(90%); filter: invert(90%); }
 
 @media (min-width:576px) {

@@ -1,52 +1,36 @@
 <template>
-<div class="assist-root">
-    <div class="row items-center q-mb-sm q-col-gutter-sm">
-        <div class="col-auto">
-            <q-btn-toggle dense unelevated v-model="writeMode" :options="writeModeOptions"
-                           toggle-color="primary" @input="persistWriteMode" :disable="streaming"></q-btn-toggle>
-        </div>
-        <div class="col-auto">
-            <q-toggle dense v-model="forceSkillUse" label="Force Skill Use"
-                      @input="persistForceSkillUse" :disable="streaming"></q-toggle>
-        </div>
-        <div class="col text-caption text-grey-7">{{ writeModeHint }}</div>
-        <div v-if="sessionTurns" class="col-auto text-caption text-grey-7">{{ sessionTurns }} turn{{ sessionTurns === 1 ? '' : 's' }} · {{ sessionTokens }} tokens</div>
-        <div class="col-auto">
-            <q-btn dense outline no-caps :label="chatOnLeft ? 'Chat | Screen' : 'Screen | Chat'"
-                   @click="toggleSide" :disable="streaming"></q-btn>
-        </div>
-        <div class="col-auto">
-            <q-btn id="assist-conversations" dense outline no-caps icon="history" label="Chats"
-                   @click="toggleConvDrawer"></q-btn>
-        </div>
-        <div class="col-auto">
-            <q-btn id="assist-source" dense outline no-caps icon="open_in_new" label="Source" :disable="!schema"
-                   @click="sourceOpen = true"></q-btn>
-        </div>
-        <div class="col-auto">
-            <q-btn dense outline no-caps label="New" @click="newSession"></q-btn>
-        </div>
-        <div class="col-auto">
-            <q-btn dense outline no-caps color="negative" label="Cancel" :disable="!streaming" @click="cancelTurn"></q-btn>
-        </div>
-    </div>
-    <q-tabs v-if="isMobile" v-model="mobileTab" dense class="text-primary">
-        <q-tab name="chat" label="Chat"></q-tab>
-        <q-tab name="screen" label="Screen"></q-tab>
-    </q-tabs>
-    <q-splitter v-model="splitterPct" class="assist-split" :class="splitClass" style="height: calc(100vh - 140px)">
-        <template v-slot:before>
-            <div ref="paneBefore" class="assist-pane-host"></div>
-        </template>
-        <template v-slot:after>
-            <div ref="paneAfter" class="assist-pane-host"></div>
-        </template>
-    </q-splitter>
-    <!-- Quasar sizes the before panel and treats it as the left side. The panes are moved into
-         that order so a rightward drag grows the left pane. Row-reverse made the drag run backwards. -->
+<div class="assist-root assist-shell">
+    <!-- Chat and canvas start here. placePanes moves them into the shell slots. Vue keeps the
+         elements; updated() puts them back if a patch reparents them. -->
     <div ref="paneHolder" class="assist-pane-holder">
-            <div ref="chatPane" class="assist-pane assist-chat q-pa-sm column" style="height:100%">
-                <div class="col overflow-auto" style="min-height:0" role="log" aria-live="polite"
+            <div ref="chatPane" class="assist-pane assist-chat column">
+                <div class="row items-center q-pa-xs q-col-gutter-xs">
+                    <div class="col-auto">
+                        <q-btn id="assist-conversations" dense outline no-caps icon="history" label="Chats"
+                               @click="toggleConvDrawer"></q-btn>
+                    </div>
+                    <div class="col-auto">
+                        <q-btn id="assist-settings" dense outline no-caps icon="open_in_new" label="Settings"
+                               @click="settingsOpen = true"></q-btn>
+                    </div>
+                    <q-space></q-space>
+                    <div class="col-auto">
+                        <q-btn dense outline icon="swap_horiz" @click="toggleSide" :disable="streaming"
+                               :aria-label="chatOnLeft ? 'Move Assist to the right' : 'Move Assist to the left'">
+                            <q-tooltip>{{ chatOnLeft ? 'Move Assist to the right' : 'Move Assist to the left' }}</q-tooltip>
+                        </q-btn>
+                    </div>
+                    <div class="col-auto">
+                        <q-btn id="assist-new" dense unelevated icon="add" color="positive" @click="newSession" aria-label="New chat">
+                            <q-tooltip>New chat</q-tooltip>
+                        </q-btn>
+                    </div>
+                    <div v-if="streaming" class="col-auto">
+                        <q-btn dense outline no-caps color="negative" label="Cancel" @click="cancelTurn"></q-btn>
+                    </div>
+                    <div class="col-12 text-caption text-grey-7">{{ writeModeHint }}<span v-if="sessionTurns"> · {{ sessionTurns }} turn{{ sessionTurns === 1 ? '' : 's' }} · {{ sessionTokens }} tokens</span></div>
+                </div>
+                <div class="col overflow-auto q-px-sm" style="min-height:0" role="log" aria-live="polite"
                      aria-relevant="additions text" aria-label="Assist conversation">
                     <div v-for="(m, i) in messages" :key="i" class="q-mb-sm">
                         <div v-if="m.role!=='tool' && m.role!=='done'" class="text-caption text-grey-7">{{ m.role }}<span v-if="m.name"> {{ m.name }}</span></div>
@@ -77,8 +61,24 @@
                         <div v-else-if="String(m.content || '').trim()" style="white-space:pre-wrap">{{ m.content }}</div>
                     </div>
                 </div>
-                <div class="col-auto q-pt-sm">
-                    <q-input id="assist-composer" outlined autogrow type="textarea" v-model="composer" placeholder="Describe what you need (Shift+Enter for newline)"
+                <div v-if="screenWatch && !pendingConfirm()" class="col-auto q-pa-sm">
+                    <div class="text-body2 q-mb-xs">Watching this screen. Assist continues when you {{ screenWatchLabel() }}.</div>
+                    <q-btn id="assist-watch-cancel" outline no-caps label="Cancel" :disable="streaming"
+                           @click="cancelScreenWatch"></q-btn>
+                </div>
+                <div v-if="pendingConfirm()" class="col-auto q-pa-sm">
+                    <div class="text-subtitle1">Confirm this action</div>
+                    <div class="text-body2 q-mb-sm" style="white-space:pre-wrap">{{ confirmSummary(pendingConfirm()) }}</div>
+                    <div class="assist-actions">
+                        <q-btn id="assist-confirm" unelevated color="primary" no-caps label="Confirm"
+                               :disable="streaming" @click="confirmTool(true)"></q-btn>
+                        <q-btn id="assist-confirm-cancel" outline no-caps label="Cancel"
+                               :disable="streaming" @click="confirmTool(false)"></q-btn>
+                    </div>
+                </div>
+                <div class="col-auto q-pa-sm">
+                    <q-input id="assist-composer" class="assist-composer" outlined autogrow type="textarea" v-model="composer"
+                             :placeholder="'What can I do for you?\n(Shift+Enter for newline)'"
                              @keyup.enter.exact.prevent="send" :disable="streaming">
                         <template v-slot:append>
                             <q-btn v-if="speechSupported" flat round dense :icon="recognizing ? 'mic' : 'mic_none'"
@@ -88,22 +88,62 @@
                         </template>
                     </q-input>
                 </div>
-            </div>
-            <div ref="canvasPane" class="assist-pane assist-canvas column" style="height:100%">
-                <div v-if="pendingConfirm()" class="q-pa-md">
-                    <div class="text-subtitle1">Confirm this action</div>
-                    <div class="text-body2 q-mb-md" style="white-space:pre-wrap">{{ confirmSummary(pendingConfirm()) }}</div>
-                    <div class="assist-actions">
-                        <q-btn id="assist-confirm" unelevated color="primary" no-caps label="Confirm"
-                               :disable="streaming" @click="confirmTool(true)"></q-btn>
-                        <q-btn id="assist-confirm-cancel" outline no-caps label="Cancel"
-                               :disable="streaming" @click="confirmTool(false)"></q-btn>
+                <!-- Stay inside the chat pane. placePanes moves the pane, and a v-if sibling of
+                     the pane holder is no longer a child of that parent when the drawer closes. -->
+                <div v-if="convDrawer" class="assist-conv-backdrop" @click="convDrawer = false"></div>
+                <div v-if="convDrawer" id="assist-conv-drawer" class="assist-conv-drawer column"
+                     :class="chatOnLeft ? 'assist-conv-left' : 'assist-conv-right'">
+                    <div class="row items-center q-pa-sm">
+                        <div class="col text-subtitle1">Chats</div>
+                        <q-btn id="assist-conv-close" flat round dense icon="close" @click="convDrawer = false"></q-btn>
+                    </div>
+                    <div class="q-px-sm q-pb-sm">
+                        <q-input id="assist-conv-search" dense outlined v-model="convSearch"
+                                 placeholder="Search (3+ letters for the message)" @input="onConvSearch"></q-input>
+                    </div>
+                    <div class="col overflow-auto">
+                        <div v-if="!conversations.length" class="text-grey-7 q-pa-md">No conversations</div>
+                        <div v-for="row in conversations" :key="row.conversationId"
+                             class="assist-conv-row q-px-sm q-py-xs cursor-pointer"
+                             :class="{ 'assist-conv-open': row.conversationId === conversationId }"
+                             @click="openConversation(row.conversationId)">
+                            <div class="row items-start no-wrap">
+                                <div class="col">
+                                    <div class="text-body2">{{ row.summary || row.title || 'New conversation' }}</div>
+                                    <div class="text-caption text-grey-7">
+                                        Started {{ formatWhen(row.createdDate) }}
+                                        <span v-if="row.lastMessageDate"> · Updated {{ formatWhen(row.lastMessageDate) }}</span>
+                                    </div>
+                                    <div class="text-caption text-grey-7">
+                                        {{ convStatusLabel(row.status) }}
+                                        <span v-if="row.messageCount != null"> · {{ row.messageCount }} messages</span>
+                                        <span v-if="row.hasCanvas"> · Canvas</span>
+                                    </div>
+                                </div>
+                                <q-btn flat round dense icon="delete" color="negative"
+                                       :disable="streaming && row.conversationId === conversationId"
+                                       @click.stop="askDelete(row)"></q-btn>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="convPages > 1" class="row justify-center q-pa-sm">
+                        <q-pagination :value="convPageIndex + 1" :max="convPages" :max-pages="6" direction-links
+                                      @input="onConvPage"></q-pagination>
                     </div>
                 </div>
-                <div v-if="!schema && !pendingConfirm()" class="text-grey-7 q-pa-md">
-                    Describe what you need. Assist will build a screen here.</div>
-                <div v-else-if="schema" class="col overflow-auto assist-canvas-body">
-                    <div class="text-h6">{{ schema.title }}</div>
+            </div>
+            <div ref="canvasPane" class="assist-pane assist-canvas column">
+                <div v-if="schema" class="row items-center q-px-md q-pt-sm q-col-gutter-sm">
+                    <div class="col text-h6">{{ schema.title || 'Generated screen' }}</div>
+                    <div class="col-auto">
+                        <q-btn id="assist-source" dense outline no-caps icon="open_in_new" label="Source"
+                               @click="sourceOpen = true"></q-btn>
+                    </div>
+                    <div class="col-auto">
+                        <q-btn id="assist-back" dense outline no-caps :label="backLabel" @click="leaveCanvas"></q-btn>
+                    </div>
+                </div>
+                <div v-if="schema" class="col overflow-auto assist-canvas-body">
                     <div v-if="schema.instruction" class="text-body2 q-mb-md">{{ schema.instruction }}</div>
                     <div v-if="schema.langError && !showOpenUi && !showFormWidgets" class="text-negative q-mb-md">{{ schema.langError }}</div>
                     <div v-if="(schema.actions||[]).length" class="q-mb-md">
@@ -203,6 +243,28 @@
                 </div>
             </div>
     </div>
+    <q-dialog id="assist-settings-dialog" v-model="settingsOpen">
+        <q-card style="min-width:280px; max-width:360px">
+            <q-card-section>
+                <div class="text-h6">Settings</div>
+            </q-card-section>
+            <q-card-section class="q-pt-none">
+                <div>
+                    <q-toggle dense :value="writeMode === 'script'" label="Force Script"
+                              @input="setForceScript" :disable="streaming"></q-toggle>
+                    <q-tooltip>On: a generated screen runs its actions when you click. Off: Assist runs them after you click.</q-tooltip>
+                </div>
+                <div class="q-mt-sm">
+                    <q-toggle dense v-model="forceSkillUse" label="Force Skill"
+                              @input="persistForceSkillUse" :disable="streaming"></q-toggle>
+                    <q-tooltip>On: Assist picks a skill before it uses other tools.</q-tooltip>
+                </div>
+            </q-card-section>
+            <q-card-actions align="right">
+                <q-btn flat no-caps label="Close" v-close-popup></q-btn>
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
     <q-dialog id="assist-adjust-dialog" v-model="adjustOpen">
         <q-card style="min-width:360px; max-width:560px; width:92vw">
             <q-card-section>
@@ -227,47 +289,6 @@
             </q-card-actions>
         </q-card>
     </q-dialog>
-    <div v-if="convDrawer" class="assist-conv-backdrop" @click="convDrawer = false"></div>
-    <div v-if="convDrawer" id="assist-conv-drawer" class="assist-conv-drawer column"
-         :class="chatOnLeft ? 'assist-conv-left' : 'assist-conv-right'">
-        <div class="row items-center q-pa-sm">
-            <div class="col text-subtitle1">Chats</div>
-            <q-btn flat round dense icon="close" @click="convDrawer = false"></q-btn>
-        </div>
-        <div class="q-px-sm q-pb-sm">
-            <q-input id="assist-conv-search" dense outlined v-model="convSearch"
-                     placeholder="Search (3+ letters for the message)" @input="onConvSearch"></q-input>
-        </div>
-        <div class="col overflow-auto">
-            <div v-if="!conversations.length" class="text-grey-7 q-pa-md">No conversations</div>
-            <div v-for="row in conversations" :key="row.conversationId"
-                 class="assist-conv-row q-px-sm q-py-xs cursor-pointer"
-                 :class="{ 'assist-conv-open': row.conversationId === conversationId }"
-                 @click="openConversation(row.conversationId)">
-                <div class="row items-start no-wrap">
-                    <div class="col">
-                        <div class="text-body2">{{ row.summary || row.title || 'New conversation' }}</div>
-                        <div class="text-caption text-grey-7">
-                            Started {{ formatWhen(row.createdDate) }}
-                            <span v-if="row.lastMessageDate"> · Updated {{ formatWhen(row.lastMessageDate) }}</span>
-                        </div>
-                        <div class="text-caption text-grey-7">
-                            {{ convStatusLabel(row.status) }}
-                            <span v-if="row.messageCount != null"> · {{ row.messageCount }} messages</span>
-                            <span v-if="row.hasCanvas"> · Canvas</span>
-                        </div>
-                    </div>
-                    <q-btn flat round dense icon="delete" color="negative"
-                           :disable="streaming && row.conversationId === conversationId"
-                           @click.stop="askDelete(row)"></q-btn>
-                </div>
-            </div>
-        </div>
-        <div v-if="convPages > 1" class="row justify-center q-pa-sm">
-            <q-pagination :value="convPageIndex + 1" :max="convPages" :max-pages="6" direction-links
-                          @input="onConvPage"></q-pagination>
-        </div>
-    </div>
     <q-dialog id="assist-source-dialog" v-model="sourceOpen">
         <q-card style="min-width:360px; max-width:720px; width:92vw">
             <q-card-section>
@@ -789,6 +810,13 @@ function formatArgsFallback(name, args) {
         if (args.goal) parts.push('goal=' + args.goal);
         return parts.join(' ');
     }
+    if (name === 'screen_use') {
+        if (args.action) parts.push(String(args.action));
+        if (args.path) parts.push(String(args.path));
+        if (args.form) parts.push('form=' + args.form);
+        if (args.until) parts.push('until=' + args.until);
+        return parts.join(' ');
+    }
     if (name === 'write_ui') {
         parts.push('kind=' + (args.kind || 'form'));
         if (args.title) parts.push('title=' + args.title);
@@ -893,14 +921,15 @@ function ensureSfcProps(comp) {
 }
 
 module.exports = {
+    props: { shell: { type: Boolean, default: false } },
     data: function() {
         return {
-            chatOnLeft: true, writeMode: 'script', forceSkillUse: false, splitPct: 40,
+            chatOnLeft: true, writeMode: 'script', forceSkillUse: false, splitPct: 40, canvasHidden: false,
             viewportWidth: typeof window !== 'undefined' ? window.innerWidth : 1200,
             mobileTab: 'chat', openGen: 0,
             composer: '', streaming: false,
             conversationId: null, canvasId: null,
-            messages: [], pendingToolCalls: [],
+            messages: [], pendingToolCalls: [], screenWatch: null,
             schema: null, fieldValues: {}, dirtyFields: {},
             adjustOpen: false, adjustText: '', canvasNotices: [],
             autoValidationCount: 0, lastAutoHash: '', maxAutoValidations: 4,
@@ -910,7 +939,7 @@ module.exports = {
             sessionTurns: 0, sessionTokens: 0, lastActionResults: [],
             conversations: [], profileFlags: {}, profilesLoaded: false,
             convDrawer: false, convSearch: '', convPageIndex: 0, convTotal: 0, convPageSize: 20,
-            convSearchTimer: null, splitSaveTimer: null, sourceOpen: false, deleteOpen: false, deleteTarget: null
+            convSearchTimer: null, splitSaveTimer: null, settingsOpen: false, sourceOpen: false, deleteOpen: false, deleteTarget: null
         };
     },
     computed: {
@@ -949,25 +978,19 @@ module.exports = {
             var who = row && row.userId ? ' (' + row.userId + ')' : '';
             return 'Delete "' + name + '"' + who + '? The chat and canvas are removed.';
         },
-        writeModeOptions: function() {
-            return [
-                { label: 'Script', value: 'script' },
-                { label: 'Agent', value: 'agent' }
-            ];
-        },
         writeModeHint: function() {
             var acts = (this.schema && this.schema.actions) || [];
             var openui = this.schema && this.schema.kind === 'openui';
             var mode;
             if (this.writeMode === 'script') {
                 mode = (openui || acts.length)
-                    ? 'This screen runs the listed actions when you click.'
-                    : 'A click sends this form to Assist, which runs the write.';
+                    ? 'Mode: form submit runs the listed actions.'
+                    : 'Mode: form submit does what is described with a pre-written script.';
             } else {
-                mode = 'Assist runs the listed actions after you click.';
+                mode = 'Mode: form submit instructs the Assist agent to do what is described.';
             }
             if (!this.forceSkillUse) return mode;
-            return mode + ' Force Skill Use: select a skill or enter sim before other tools.';
+            return mode + ' Force Skill: select a skill or enter sim before other tools.';
         },
         llmBase: function() {
             var root = (this.$root && this.$root.appRootPath) || '';
@@ -1014,6 +1037,11 @@ module.exports = {
         },
         sourceText: function() { return canvasSourceText(this.schema); },
         submitScriptText: function() { return canvasSubmitText(this.schema); },
+        backLabel: function() {
+            var title = this.$root && this.$root.ScreenTitle;
+            if (!title || title === 'Assist') return 'Back to the application';
+            return 'Back to ' + title;
+        },
         resultLinks: function() {
             var raws = extractResultScreens(this.lastActionResults);
             if (!raws.length) return [];
@@ -1056,7 +1084,10 @@ module.exports = {
             if (v) return;
             var list = this.messages || [];
             for (var i = 0; i < list.length; i++) if (list[i] && list[i].pending) list[i].pending = false;
-        }
+        },
+        // The shell template does not read isMobile, so a width change never re-renders this
+        // component. The chat node has to be moved into the phone overlay by hand.
+        isMobile: function() { if (this.shell) this.placePanes(); }
     },
     methods: {
         persistPref: function(key, value) {
@@ -1065,25 +1096,77 @@ module.exports = {
                 error: moqui.handleAjaxError });
         },
         persistWriteMode: function() { this.persistPref('ASSIST_WRITE_MODE', this.writeMode); },
+        setForceScript: function(on) {
+            this.writeMode = on ? 'script' : 'agent';
+            this.persistWriteMode();
+        },
         persistForceSkillUse: function() {
             this.persistPref('ASSIST_FORCE_SKILL_USE', this.forceSkillUse ? 'true' : 'false');
         },
         toggleSide: function() {
             this.chatOnLeft = !this.chatOnLeft;
             this.persistPref('ASSIST_CHAT_SIDE', this.chatOnLeft ? 'left' : 'right');
+            this.placePanes();
         },
-        /** Put the chat in the left slot unless the desktop layout has it on the right. A phone never flips. */
+        syncShell: function() {
+            var root = this.$root;
+            if (!root) return;
+            root.assistSide = this.chatOnLeft ? 'left' : 'right';
+            root.assistNarrow = !!this.isMobile;
+            root.assistCanvasOn = !!(this.shell && this.schema && !this.canvasHidden);
+        },
+        /** Move the chat into the side slot and the canvas into the page slot. */
         placePanes: function() {
-            var before = this.$refs.paneBefore;
-            var after = this.$refs.paneAfter;
+            if (!this.shell) return;
             var chat = this.$refs.chatPane;
             var canvas = this.$refs.canvasPane;
-            if (!before || !after || !chat || !canvas) return;
-            var chatLeft = this.chatOnLeft || this.isMobile;
-            var left = chatLeft ? chat : canvas;
-            var right = chatLeft ? canvas : chat;
-            if (left.parentNode !== before) before.appendChild(left);
-            if (right.parentNode !== after) after.appendChild(right);
+            var holder = this.$refs.paneHolder;
+            if (!chat || !canvas || !holder) return;
+            this.syncShell();
+            var panelId = this.isMobile ? 'assist-panel-slot-narrow'
+                : (this.chatOnLeft ? 'assist-panel-slot' : 'assist-panel-slot-right');
+            var panel = document.getElementById(panelId);
+            if (panel && chat.parentNode !== panel) panel.appendChild(chat);
+            var slot = document.getElementById('assist-canvas-slot');
+            var showCanvas = !!(this.schema && !this.canvasHidden);
+            if (showCanvas && slot) {
+                if (canvas.parentNode !== slot) slot.appendChild(canvas);
+            } else if (canvas.parentNode !== holder) {
+                holder.appendChild(canvas);
+            }
+        },
+        onUserNavigate: function() {
+            if (!this.schema || this.canvasHidden) return;
+            this.canvasHidden = true;
+            this.syncShell();
+            this.placePanes();
+            this.answerLeftCanvas();
+        },
+        leaveCanvas: function() { this.onUserNavigate(); },
+        answerLeftCanvas: function() {
+            var pending = this.pendingToolCalls && this.pendingToolCalls[0];
+            if (!pending || pending.name !== 'write_ui' || !this.conversationId || this.streaming) return;
+            var content = this.writeUiResult(false, null);
+            content.left = true;
+            content.submitted = false;
+            content.userMessage = 'The user left the generated screen and is looking at the application screen. Do not rebuild it unless they ask.';
+            this.messages.push({ role: 'user', content: 'Closed the generated screen.' });
+            var body = Object.assign({ profile: 'assist', tools: this.toolNames(), user: content.userMessage, stream: true,
+                toolResults: [{ id: pending.id, name: 'write_ui', content: content }] }, this.chatFlags());
+            this.runSse(this.llmBase + '/chat/' + encodeURIComponent(this.conversationId) + '/resume', body);
+        },
+        goShell: function(href) {
+            if (!href) return;
+            var root = this.$root;
+            var sameOrigin = href.charAt(0) === '/' || (root && root.appRootPath && href.indexOf(root.appRootPath) === 0);
+            if (sameOrigin && root && root.setUrl) {
+                this.canvasHidden = true;
+                root.assistCanvasOn = false;
+                root.setUrl(href);
+                this.answerLeftCanvas();
+                return;
+            }
+            window.open(href, '_blank', 'noopener,noreferrer');
         },
         newSession: function() {
             this.openGen = (this.openGen || 0) + 1;
@@ -1103,6 +1186,8 @@ module.exports = {
                     if (prefs.ASSIST_FORCE_SKILL_USE === 'false') vm.forceSkillUse = false;
                     var pct = Number(prefs.ASSIST_SPLIT_PCT);
                     if (!isNaN(pct) && pct >= 15 && pct <= 85) vm.splitPct = pct;
+                    var px = Number(prefs.ASSIST_DRAWER_PX);
+                    if (!isNaN(px) && px >= 320 && px <= 1600 && vm.$root) vm.$root.assistPanelPx = px;
                     // No UI writes this one; set the ASSIST_MAX_AUTO_VALIDATIONS preference (or the
                     // profile) to change the cap on client-side validation retries.
                     var mav = Number(prefs.ASSIST_MAX_AUTO_VALIDATIONS);
@@ -1215,6 +1300,9 @@ module.exports = {
                 if (isWriteUiArgs(args)) canvas = args;
             }
             if (canvas) this.applyYield(canvas);
+            var pendingUse = this.pendingToolCalls && this.pendingToolCalls[0];
+            if (pendingUse && pendingUse.name === 'screen_use')
+                this.applyScreenUse(pendingUse, this.parseToolArgs(pendingUse));
             this.convDrawer = false;
         },
         askDelete: function(row) {
@@ -1262,10 +1350,7 @@ module.exports = {
         },
         toolDetail: function(m) { return toolDetailText(m); },
         renderMd: function(m) { return messageMdHtml(m); },
-        openResultLink: function(href) {
-            if (!href) return;
-            window.open(href, '_blank', 'noopener,noreferrer');
-        },
+        openResultLink: function(href) { this.goShell(href); },
         /** Error entries stay in the thread; notify alone is lost once a bubble has partial content. */
         noteError: function(message) {
             if (!message) return;
@@ -1329,7 +1414,7 @@ module.exports = {
             else this.chat(text);
         },
         toolNames: function() {
-            var names = ['find_skill', 'enter_sim', 'browse', 'find_basic', 'request', 'write_ui', 'run_service', 'pin'];
+            var names = ['find_skill', 'enter_sim', 'browse', 'find_basic', 'request', 'screen_use', 'write_ui', 'run_service', 'pin'];
             // The server only registers tools the profile allows (LlmGateway.applyTools), so this
             // is defence in depth: do not offer a tool that can never arrive. Before /profiles
             // answers, assume everything is allowed so a slow load cannot silently drop tools.
@@ -1361,12 +1446,431 @@ module.exports = {
         resumeChat: function(text) {
             var pending = this.pendingToolCalls[0];
             if (!pending) { this.chat(text); return; }
-            var content = this.writeUiResult(false, null);
-            content.userMessage = text;
+            var name = pending.name || 'write_ui';
+            var content;
+            if (name === 'screen_use') {
+                this.screenWatch = null;
+                content = { cancelled: true, reason: 'user_message' };
+            } else {
+                content = this.writeUiResult(false, null);
+                content.userMessage = text;
+            }
             var body = Object.assign({ profile: 'assist', tools: this.toolNames(), user: text, stream: true,
-                toolResults: [{ id: pending.id, name: pending.name || 'write_ui', content: content }] },
+                toolResults: [{ id: pending.id, name: name, content: content }] },
                 this.chatFlags());
             this.runSse(this.llmBase + '/chat/' + encodeURIComponent(this.conversationId) + '/resume', body);
+        },
+        screenWatchLabel: function() {
+            var until = this.screenWatch && this.screenWatch.until;
+            if (until === 'submit') return 'submit a form';
+            if (until === 'navigate') return 'go to another screen';
+            return 'submit a form or go to another screen';
+        },
+        screenTitle: function() {
+            var root = this.$root || {};
+            var menu = root.navMenuList || [];
+            var last = menu.length ? menu[menu.length - 1] : null;
+            var title = (last && last.title) || root.ScreenTitle || '';
+            if (title === 'Assist') return '';
+            return title;
+        },
+        screenContext: function() {
+            var root = this.$root || {};
+            var selected = [];
+            var forms = (window.moqui && moqui.screenForms) || [];
+            for (var i = 0; i < forms.length; i++) {
+                var form = forms[i];
+                if (!form || typeof form.getCheckboxValueArray !== 'function') continue;
+                var vals = form.getCheckboxValueArray() || [];
+                for (var v = 0; v < vals.length && selected.length < 50; v++) selected.push(vals[v]);
+            }
+            return {
+                path: root.currentPath || '',
+                title: this.screenTitle(),
+                parameters: redactValueMap(root.currentParameters || {}),
+                selected: selected
+            };
+        },
+        resumeScreenUse: function(pending, content) {
+            if (!pending || !this.conversationId || this.streaming) return;
+            this.screenWatch = null;
+            var body = Object.assign({ profile: 'assist', tools: this.toolNames(), stream: true,
+                toolResults: [{ id: pending.id, name: 'screen_use', content: content }] }, this.chatFlags());
+            this.runSse(this.llmBase + '/chat/' + encodeURIComponent(this.conversationId) + '/resume', body);
+        },
+        cancelScreenWatch: function() {
+            var pending = this.pendingToolCalls && this.pendingToolCalls[0];
+            this.screenWatch = null;
+            if (!pending || pending.name !== 'screen_use') return;
+            this.resumeScreenUse(pending, { cancelled: true, reason: 'cancel' });
+        },
+        onScreenEvent: function(ev) {
+            if (!this.screenWatch || !ev) return;
+            if (this.$root && this.$root.assistNavSilent) return;
+            var until = this.screenWatch.until || 'either';
+            if (until === 'submit' && ev.event !== 'submit') return;
+            if (until === 'navigate' && ev.event !== 'navigate') return;
+            var pending = this.pendingToolCalls && this.pendingToolCalls[0];
+            if (!pending || pending.name !== 'screen_use' || this.streaming || !this.conversationId) return;
+            this.screenWatch = null;
+            var path = ev.screenUrl || ev.path || (this.$root && this.$root.currentPath) || '';
+            this.resumeScreenUse(pending, {
+                event: ev.event,
+                path: path,
+                title: this.screenTitle(),
+                form: ev.form || null,
+                action: ev.action || null,
+                method: ev.method || null,
+                navigationOnly: !!ev.navigationOnly,
+                fields: this.clipFieldMap(ev.fields),
+                messageInfos: this.clipMessages(ev.messageInfos),
+                errors: ev.errors || null,
+                validationErrors: ev.validationErrors || null
+            });
+        },
+        clipFieldMap: function(src) {
+            var out = {};
+            var redacted = redactValueMap(src);
+            var keys = Object.keys(redacted);
+            for (var i = 0; i < keys.length && i < 40; i++) {
+                var v = redacted[keys[i]];
+                if (v != null && typeof v === 'object') continue;
+                if (typeof v === 'string' && v.length > 300) v = v.slice(0, 300);
+                out[keys[i]] = v;
+            }
+            return out;
+        },
+        clipMessages: function(list) {
+            if (!list || !list.length) return null;
+            var out = [];
+            for (var i = 0; i < list.length && i < 8; i++) {
+                var row = list[i];
+                if (!row) continue;
+                var text = row.message || row;
+                out.push(typeof text === 'string' && text.length > 300 ? text.slice(0, 300) : text);
+            }
+            return out;
+        },
+        parseToolArgs: function(call) {
+            var args = call && call.arguments;
+            if (typeof args === 'string') { try { args = JSON.parse(args); } catch (e) { args = null; } }
+            return args && typeof args === 'object' ? args : {};
+        },
+        applyScreenUse: function(call, args) {
+            args = args || {};
+            var action = args.action;
+            var vm = this;
+            if (action === 'watch') {
+                var until = args.until === 'submit' || args.until === 'navigate' ? args.until : 'either';
+                this.screenWatch = { until: until };
+                return;
+            }
+            var work;
+            if (action === 'navigate') work = this.screenNavigate(args);
+            else if (action === 'snapshot') work = Promise.resolve(this.screenSnapshot(args));
+            else if (action === 'fill') work = Promise.resolve(this.screenFill(args));
+            else if (action === 'set_selection') work = Promise.resolve(this.screenSetSelection(args));
+            else if (action === 'submit_find') work = this.screenSubmitFind(args);
+            else if (action === 'click_nav') work = this.screenClickNav(args);
+            else work = Promise.resolve({ error: 'bad_action', action: action || null });
+            Promise.resolve(work).then(function(content) {
+                vm.resumeScreenUse(call, content || { error: 'empty' });
+            }).catch(function(err) {
+                vm.resumeScreenUse(call, { error: 'client', message: (err && err.message) || String(err) });
+            });
+        },
+        screenUseUrl: function(path, parameters) {
+            var q = [];
+            var params = parameters || {};
+            Object.keys(params).forEach(function(k) {
+                var v = params[k];
+                if (v == null || v === '') return;
+                if (Array.isArray(v)) {
+                    for (var i = 0; i < v.length; i++)
+                        q.push(encodeURIComponent(k) + '=' + encodeURIComponent(v[i]));
+                } else q.push(encodeURIComponent(k) + '=' + encodeURIComponent(String(v)));
+            });
+            var base = path || '';
+            if (!q.length) return base;
+            return base + (base.indexOf('?') >= 0 ? '&' : '?') + q.join('&');
+        },
+        waitScreenSettled: function(root, done) {
+            var start = Date.now();
+            var saw = root.loading > 0;
+            function tick() {
+                if (root.loading > 0) saw = true;
+                var elapsed = Date.now() - start;
+                if (saw && root.loading === 0) { setTimeout(done, 50); return; }
+                if (!saw && elapsed > 700) { done(); return; }
+                if (elapsed > 8000) { done(); return; }
+                setTimeout(tick, 40);
+            }
+            setTimeout(tick, 20);
+        },
+        screenNavigate: function(args) {
+            var vm = this;
+            var root = this.$root;
+            if (!root || typeof root.setUrl !== 'function')
+                return Promise.resolve({ error: 'no_shell', path: args && args.path });
+            var url = this.screenUseUrl(args.path, args.parameters);
+            this.canvasHidden = true;
+            root.assistCanvasOn = false;
+            return new Promise(function(resolve) {
+                var prevSilent = root.assistNavSilent;
+                var finished = false;
+                function finish() {
+                    if (finished) return;
+                    finished = true;
+                    root.assistNavSilent = prevSilent;
+                    vm.$nextTick(function() {
+                        var applied = vm.applyScreenFields(args.fields);
+                        resolve({
+                            path: root.currentPath,
+                            title: vm.screenTitle(),
+                            filled: applied.filled,
+                            missing: applied.missing,
+                            ignored: args.ignored || []
+                        });
+                    });
+                }
+                root.assistNavSilent = true;
+                var timer = setTimeout(finish, 8000);
+                root.setUrl(url, null, function() {
+                    vm.waitScreenSettled(root, function() {
+                        clearTimeout(timer);
+                        finish();
+                    });
+                });
+            });
+        },
+        screenFormId: function(vm) {
+            if (!vm) return '';
+            var attrs = vm.$attrs || {};
+            return attrs.id || attrs.name || vm.id || vm.name || (vm.$el && vm.$el.id) || '';
+        },
+        screenForms: function() {
+            return (window.moqui && moqui.screenForms) ? moqui.screenForms.slice() : [];
+        },
+        matchScreenForm: function(wanted) {
+            if (!wanted) return null;
+            var forms = this.screenForms();
+            for (var i = 0; i < forms.length; i++) {
+                var id = this.screenFormId(forms[i]);
+                if (id === wanted || forms[i].name === wanted) return forms[i];
+            }
+            return null;
+        },
+        applyScreenFields: function(fields) {
+            var filled = [];
+            var missing = [];
+            if (!fields || typeof fields !== 'object') return { filled: filled, missing: missing };
+            var forms = this.screenForms();
+            Object.keys(fields).forEach(function(name) {
+                var hit = false;
+                for (var i = 0; i < forms.length; i++) {
+                    var form = forms[i];
+                    if (!form || !form.fields) continue;
+                    var known = Object.prototype.hasOwnProperty.call(form.fields, name)
+                        || (form.fieldsInitial && Object.prototype.hasOwnProperty.call(form.fieldsInitial, name));
+                    if (!known) continue;
+                    if (typeof form.$set === 'function') form.$set(form.fields, name, fields[name]);
+                    else form.fields[name] = fields[name];
+                    hit = true;
+                }
+                if (hit) filled.push(name); else missing.push(name);
+            });
+            return { filled: filled, missing: missing };
+        },
+        screenSnapshot: function(args) {
+            var root = this.$root || {};
+            var wanted = args && args.form;
+            var forms = [];
+            var list = this.screenForms();
+            for (var i = 0; i < list.length; i++) {
+                var vm = list[i];
+                if (!vm || !vm.$options) continue;
+                var comp = vm.$options.name;
+                if (comp !== 'mForm' && comp !== 'mFormLink' && comp !== 'mFormList') continue;
+                var id = this.screenFormId(vm);
+                if (wanted && id !== wanted && vm.name !== wanted) continue;
+                var kind = comp === 'mFormLink' ? 'm-form-link' : (comp === 'mFormList' ? 'm-form-list' : 'm-form');
+                var row = {
+                    id: id,
+                    kind: kind,
+                    action: vm.action || null,
+                    method: vm.method || (comp === 'mFormLink' ? 'GET' : 'POST'),
+                    navigationOnly: !!(window.moqui && moqui.screenSubmitAllowed && moqui.screenSubmitAllowed(vm))
+                };
+                if (vm.fields) row.fields = redactValueMap(vm.fields);
+                if (typeof vm.getCheckboxValueArray === 'function') {
+                    var sel = vm.getCheckboxValueArray() || [];
+                    if (sel.length) row.selected = sel.slice(0, 50);
+                }
+                forms.push(row);
+                if (wanted) break;
+            }
+            var out = {
+                path: root.currentPath || '',
+                title: this.screenTitle(),
+                parameters: redactValueMap(root.currentParameters || {}),
+                forms: forms,
+                dialogs: this.screenDialogs()
+            };
+            if (!wanted) {
+                var text = '';
+                try { text = JSON.stringify(out); } catch (e) { text = ''; }
+                if (text.length > 6000) {
+                    out.forms = forms.map(function(f) {
+                        return { id: f.id, kind: f.kind, navigationOnly: f.navigationOnly,
+                            fieldCount: f.fields ? Object.keys(f.fields).length : 0 };
+                    });
+                    out.truncated = true;
+                    out.instruction = 'Pass form to snapshot one form in full.';
+                }
+            }
+            return out;
+        },
+        screenFill: function(args) {
+            var applied = this.applyScreenFields(args && args.fields);
+            applied.form = (args && args.form) || null;
+            return applied;
+        },
+        screenSetSelection: function(args) {
+            var wanted = args && args.form;
+            var values = (args && args.values) || [];
+            var want = {};
+            for (var i = 0; i < values.length; i++) want[String(values[i])] = true;
+            var matched = false;
+            var forms = this.screenForms();
+            for (var f = 0; f < forms.length; f++) {
+                var vm = forms[f];
+                if (wanted && this.screenFormId(vm) !== wanted && vm.name !== wanted) continue;
+                if (!vm.checkboxValues || !vm.checkboxStates) continue;
+                matched = true;
+                var n = Math.min(vm.checkboxValues.length, vm.checkboxStates.length);
+                for (var c = 0; c < n; c++) {
+                    var on = !!want[String(vm.checkboxValues[c])];
+                    if (typeof vm.$set === 'function') vm.$set(vm.checkboxStates, c, on);
+                    else vm.checkboxStates[c] = on;
+                }
+            }
+            return { form: wanted || null, selected: Object.keys(want), matched: matched };
+        },
+        screenSubmitForm: function(form) {
+            var vm = this;
+            var root = this.$root;
+            if (!form || typeof form.submitGo !== 'function' || !root)
+                return Promise.resolve({ refused: true, reason: 'not_navigation' });
+            if (!(window.moqui && moqui.screenSubmitAllowed && moqui.screenSubmitAllowed(form)))
+                return Promise.resolve({ refused: true, reason: 'posts' });
+            return new Promise(function(resolve) {
+                var prev = root.assistNavSilent;
+                var finished = false;
+                function finish() {
+                    if (finished) return;
+                    finished = true;
+                    root.assistNavSilent = prev;
+                    resolve({
+                        submitted: true,
+                        navigationOnly: true,
+                        path: root.currentPath,
+                        title: vm.screenTitle()
+                    });
+                }
+                root.assistNavSilent = true;
+                var timer = setTimeout(finish, 8000);
+                form.submitGo();
+                vm.waitScreenSettled(root, function() {
+                    clearTimeout(timer);
+                    finish();
+                });
+            });
+        },
+        screenSubmitFind: function(args) {
+            var form = this.matchScreenForm(args && args.form);
+            if (!form) {
+                var nav = this.screenForms().filter(function(vm) {
+                    return window.moqui && moqui.screenSubmitAllowed && moqui.screenSubmitAllowed(vm);
+                });
+                if (nav.length === 1) form = nav[0];
+                else return Promise.resolve({ refused: true, reason: nav.length ? 'form_required' : 'not_navigation',
+                    forms: nav.map(function(vm) { return vm && (vm.name || (vm.$attrs && vm.$attrs.id)) || ''; }) });
+            }
+            var self = this;
+            return this.screenSubmitForm(form).then(function(result) {
+                if (result && result.refused) return result;
+                var snap = self.screenSnapshot({ form: args && args.form });
+                result.snapshot = snap;
+                return result;
+            });
+        },
+        screenDialogs: function() {
+            var out = [];
+            function walk(vm) {
+                if (!vm || out.length >= 20) return;
+                if (vm.$options && vm.$options.name === 'mContainerDialog') {
+                    out.push({ id: vm.id || '', title: vm.title || '', button: vm.buttonText || '', open: !!vm.isShown });
+                }
+                var kids = vm.$children || [];
+                for (var i = 0; i < kids.length; i++) walk(kids[i]);
+            }
+            walk(this.$root);
+            return out;
+        },
+        openScreenDialog: function(id) {
+            var found = null;
+            function walk(vm) {
+                if (!vm || found) return;
+                if (vm.$options && vm.$options.name === 'mContainerDialog' && vm.id === id) { found = vm; return; }
+                var kids = vm.$children || [];
+                for (var i = 0; i < kids.length; i++) walk(kids[i]);
+            }
+            walk(this.$root);
+            if (!found || typeof found.show !== 'function') return false;
+            found.show();
+            return true;
+        },
+        screenClickNav: function(args) {
+            var vm = this;
+            var el = args && args.id ? document.getElementById(args.id) : null;
+            if (args && args.id && !el) {
+                if (this.openScreenDialog(args.id)) {
+                    return new Promise(function(resolve) {
+                        vm.$nextTick(function() {
+                            setTimeout(function() {
+                                var snap = vm.screenSnapshot(null);
+                                snap.opened = args.id;
+                                resolve(snap);
+                            }, 200);
+                        });
+                    });
+                }
+                return Promise.resolve({ refused: true, reason: 'not_found', id: args.id });
+            }
+            if (el) {
+                var owner = window.moqui && moqui.formForElement ? moqui.formForElement(el) : null;
+                var type = (el.getAttribute && el.getAttribute('type') || '').toLowerCase();
+                var submitEl = type === 'submit' || (el.closest && el.closest('button[type="submit"], input[type="submit"]'));
+                if (submitEl) {
+                    if (!owner || !(window.moqui && moqui.screenSubmitAllowed && moqui.screenSubmitAllowed(owner)))
+                        return Promise.resolve({ refused: true, reason: 'posts', id: args.id });
+                    return this.screenSubmitForm(owner);
+                }
+            }
+            if (args && args.path) return this.screenNavigate(args);
+            if (!el) return Promise.resolve({ refused: true, reason: 'nothing_to_click' });
+            var root = this.$root;
+            return new Promise(function(resolve) {
+                var prev = root ? root.assistNavSilent : false;
+                if (root) root.assistNavSilent = true;
+                el.click();
+                vm.waitScreenSettled(root || { loading: 0 }, function() {
+                    if (root) root.assistNavSilent = prev;
+                    var snap = vm.screenSnapshot(null);
+                    snap.clicked = args.id;
+                    resolve(snap);
+                });
+            });
         },
         writeUiResult: function(submitted, button) {
             return {
@@ -1462,6 +1966,7 @@ module.exports = {
         },
         applySchema: function(schema) {
             if (!schema) return;
+            this.canvasHidden = false;
             this.canvasNotices = [];
             var prevDirty = Object.assign({}, this.dirtyFields);
             var prevVals = Object.assign({}, this.fieldValues);
@@ -1692,10 +2197,10 @@ module.exports = {
                     getLinkPath: this.$root && this.$root.getLinkPath && this.$root.getLinkPath.bind(this.$root),
                     rewriteShell: true
                 }) : null;
-                if (built && built.href) window.open(built.href, '_blank', 'noopener,noreferrer');
+                if (built && built.href) this.goShell(built.href);
                 else if (!built && url && url.charAt(0) === '/' && url.indexOf('://') < 0 && url.indexOf('//') !== 0
                         && url.indexOf('..') < 0)
-                    window.open(((this.$root && this.$root.appRootPath) || '') + url, '_blank', 'noopener,noreferrer');
+                    this.goShell(((this.$root && this.$root.appRootPath) || '') + url);
                 return;
             }
             if (type === 'submit' || type === 'continue_conversation') {
@@ -1966,6 +2471,7 @@ module.exports = {
         },
         runSse: function(url, body) {
             var vm = this;
+            if (body && typeof body === 'object') body.screen = this.screenContext();
             // A turn replaces an in-flight open, same as New.
             this.openGen = (this.openGen || 0) + 1;
             this.streaming = true;
@@ -2037,9 +2543,9 @@ module.exports = {
                 this.pendingToolCalls = (data && data.pendingToolCalls) || [];
                 this.warnMultiPending();
                 var call = this.pendingToolCalls[0];
-                var args = call && call.arguments;
-                if (typeof args === 'string') { try { args = JSON.parse(args); } catch (e) { args = null; } }
-                if (isWriteUiArgs(args)) this.applyYield(args);
+                var args = this.parseToolArgs(call);
+                if (call && call.name === 'screen_use') this.applyScreenUse(call, args);
+                else if (isWriteUiArgs(args)) this.applyYield(args);
                 // FUTURE: args.kind === 'screen-xml' → POST to a compile/render transition (server round-trip)
                 this.streaming = false;
                 this.clearIdle();
@@ -2070,9 +2576,9 @@ module.exports = {
                 this.pendingToolCalls = j.pendingToolCalls;
                 this.warnMultiPending();
                 var call = this.pendingToolCalls[0];
-                var args = call && call.arguments;
-                if (typeof args === 'string') { try { args = JSON.parse(args); } catch (e) { args = null; } }
-                if (isWriteUiArgs(args)) this.applyYield(args);
+                var args = this.parseToolArgs(call);
+                if (call && call.name === 'screen_use') this.applyScreenUse(call, args);
+                else if (isWriteUiArgs(args)) this.applyYield(args);
             }
             this.recordDoneStats(j);
             var doneLine = formatDoneLine(j);
@@ -2084,7 +2590,8 @@ module.exports = {
             var first = this.messages.filter(function(m) { return m.role === 'user'; })[0];
             if (!first || !first.content) return;
             var title = first.content.length > 80 ? first.content.slice(0, 77) + '...' : first.content;
-            $.ajax({ type: 'POST', url: 'setTitle', dataType: 'json',
+            var root = (this.$root && this.$root.appRootPath) || '';
+            $.ajax({ type: 'POST', url: root + '/apps/setAssistTitle', dataType: 'json',
                 data: { moquiSessionToken: this.csrf, conversationId: this.conversationId, title: title } });
         },
         clearLocalSession: function() {
@@ -2093,6 +2600,7 @@ module.exports = {
             this.canvasId = 'c' + Date.now();
             this.messages = [];
             this.pendingToolCalls = [];
+            this.screenWatch = null;
             this.schema = null;
             this.fieldValues = {};
             this.dirtyFields = {};
@@ -2187,6 +2695,8 @@ module.exports = {
         }
     },
     mounted: function() {
+        if (!this.shell) return;
+        window.moquiAssistVm = this;
         this.canvasId = 'c' + Date.now();
         this.loadPrefs();
         this.loadProfiles();
@@ -2203,6 +2713,8 @@ module.exports = {
     },
     updated: function() { this.placePanes(); },
     beforeDestroy: function() {
+        if (window.moquiAssistVm === this) window.moquiAssistVm = null;
+        if (!this.shell) return;
         if (this.onViewport) window.removeEventListener('resize', this.onViewport);
         this.cancelTurn();
         if (this.splitSaveTimer) { clearTimeout(this.splitSaveTimer); this.splitSaveTimer = null; }
@@ -2211,7 +2723,16 @@ module.exports = {
 };
 </script>
 <style>
-.assist-root { min-height: 60vh; position: relative; }
+.assist-root { min-height: 0; height: 100%; position: relative; }
+.assist-chat { position: relative; }
+/* Two placeholder lines, centered in the box by equal padding above and below. */
+.assist-composer.q-textarea .q-field__control { min-height: 68px; align-items: center; }
+.assist-composer.q-textarea .q-field__native {
+    line-height: 20px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    min-height: 68px;
+}
 .assist-conv-backdrop { position: absolute; inset: 0; z-index: 15; background: rgba(0,0,0,0.12); }
 .assist-conv-drawer {
     position: absolute; top: 0; bottom: 0; width: 320px; max-width: 92%; z-index: 16;
@@ -2219,6 +2740,7 @@ module.exports = {
 }
 .assist-conv-left { left: 0; }
 .assist-conv-right { right: 0; }
+.assist-chat .assist-conv-drawer { left: 0; right: 0; width: auto; max-width: none; }
 .assist-pane-host { height: 100%; min-height: 0; }
 .assist-pane-holder { display: none; }
 .assist-split-flip .assist-chat { border-right: none; border-left: 1px solid rgba(0,0,0,0.08); }

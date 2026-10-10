@@ -3,21 +3,8 @@
 <moqui-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/moqui-conf-3.xsd">
     <screen-facade>
         <screen location="component://webroot/screen/webroot/apps.xml">
-            <subscreens-item name="assist" menu-title="Assist" menu-index="97" location="component://tools/screen/Assist.xml"/>
             <subscreens-item name="system" menu-title="System" menu-index="98" location="component://tools/screen/System.xml"/>
             <subscreens-item name="tools" menu-title="Tools" menu-index="99" location="component://tools/screen/Tools.xml"/>
         </screen>
     </screen-facade>
-    <llm-facade>
-        <profile name="assist" url="${llm_openai_url}" api-key="${llm_openai_api_key}"
-                model="${llm_openai_model}" log-content="${llm_log_content}"
-                allow-write-ui="true" allow-client-system="false"
-                allow-browse="true" allow-run-service="true"
-                allow-unprefixed-request="true" allow-enter-sim="true"
-                allow-vue-sfc="false" summarize-conversation="true"
-                timeout-seconds="360" max-iterations="30"
-                system-location="component://tools/prompt/AssistSystem.ftl">
-            <allowed-basic-entity package="moqui.basic"/>
-        </profile>
-    </llm-facade>
 </moqui-conf>

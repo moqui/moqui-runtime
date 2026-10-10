@@ -48,14 +48,6 @@ along with this software (see the LICENSE.md file). If not, see
             footer_scripts.add('/js/WebrootVue.qvt.js')
         }
 
-        // OpenUI Lang runtime for Assist only (full page /qapps/assist). SPA navigation loads these from Assist.qvue.
-        def assistPath = sri.screenUrlInfo?.fullPathNameList
-        if (assistPath != null && assistPath.contains('assist')) {
-            footer_scripts.add('/js/assist/lang-core.umd.min.js')
-            footer_scripts.add('/js/assist/AssistOpenUiLibrary.js')
-            footer_scripts.add('/js/assist/AssistOpenUi.js')
-        }
-
         // conditional QZ Tray scripts, only include if enabled
         if (ec.user.getPreference("qz.print.enabled") == "true") {
             footer_scripts.add('/js/qz-tray/sha-256.min.js')
