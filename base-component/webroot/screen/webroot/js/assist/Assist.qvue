@@ -259,6 +259,13 @@
                               @input="persistForceSkillUse" :disable="streaming"></q-toggle>
                     <q-tooltip>On: Assist picks a skill before it uses other tools.</q-tooltip>
                 </div>
+                <div class="q-mt-sm" v-if="profileFlags.apiConfig">
+                    <div class="text-caption text-grey-7 q-mb-xs">Reasoning</div>
+                    <q-btn-toggle id="assist-reasoning" dense no-caps spread unelevated toggle-color="primary"
+                            :value="reasoning" :options="reasoningOptions" :disable="streaming"
+                            @input="setReasoning"></q-btn-toggle>
+                    <q-tooltip>How much this chat should think. Low uses less time and cost.</q-tooltip>
+                </div>
             </q-card-section>
             <q-card-actions align="right">
                 <q-btn flat no-caps label="Close" v-close-popup></q-btn>
@@ -924,7 +931,7 @@ module.exports = {
     props: { shell: { type: Boolean, default: false } },
     data: function() {
         return {
-            chatOnLeft: true, writeMode: 'script', forceSkillUse: false, splitPct: 40, canvasHidden: false,
+            chatOnLeft: true, writeMode: 'script', forceSkillUse: false, reasoning: 'low', splitPct: 40, canvasHidden: false,
             viewportWidth: typeof window !== 'undefined' ? window.innerWidth : 1200,
             mobileTab: 'chat', openGen: 0,
             composer: '', streaming: false,
@@ -939,7 +946,8 @@ module.exports = {
             sessionTurns: 0, sessionTokens: 0, lastActionResults: [],
             conversations: [], profileFlags: {}, profilesLoaded: false,
             convDrawer: false, convSearch: '', convPageIndex: 0, convTotal: 0, convPageSize: 20,
-            convSearchTimer: null, splitSaveTimer: null, settingsOpen: false, sourceOpen: false, deleteOpen: false, deleteTarget: null
+            convSearchTimer: null, splitSaveTimer: null, settingsOpen: false, sourceOpen: false, deleteOpen: false, deleteTarget: null,
+            reasoningOptions: [{ label: 'Low', value: 'low' }, { label: 'Medium', value: 'medium' }, { label: 'High', value: 'high' }]
         };
     },
     computed: {
@@ -1102,6 +1110,16 @@ module.exports = {
         },
         persistForceSkillUse: function() {
             this.persistPref('ASSIST_FORCE_SKILL_USE', this.forceSkillUse ? 'true' : 'false');
+        },
+        setReasoning: function(level) {
+            if (level !== 'low' && level !== 'medium' && level !== 'high') return;
+            if (this.streaming || level === this.reasoning) return;
+            this.reasoning = level;
+            if (!this.conversationId) return;
+            fetch(this.llmBase + '/conversations/' + encodeURIComponent(this.conversationId), {
+                method: 'POST', credentials: 'same-origin', headers: this.headers(false),
+                body: JSON.stringify({ reasoning: level })
+            }).catch(function() { assistNotify('Could not save reasoning level', 'warning'); });
         },
         toggleSide: function() {
             this.chatOnLeft = !this.chatOnLeft;
@@ -1292,6 +1310,8 @@ module.exports = {
             this.vueSfcKey = null;
             this.vueSfcFailed = false;
             this.vueSfcGen = (this.vueSfcGen || 0) + 1;
+            var level = body.attributes && body.attributes.reasoning;
+            this.reasoning = (level === 'low' || level === 'medium' || level === 'high') ? level : 'low';
             var canvas = body.canvas;
             if (!canvas) {
                 var pending = this.pendingToolCalls[0];
@@ -1432,9 +1452,12 @@ module.exports = {
             return h;
         },
         chatFlags: function() {
+            var level = this.reasoning;
+            if (level !== 'medium' && level !== 'high') level = 'low';
             return {
                 forceSkillUse: !!this.forceSkillUse,
-                writeMode: this.writeMode === 'agent' ? 'agent' : 'script'
+                writeMode: this.writeMode === 'agent' ? 'agent' : 'script',
+                reasoning: level
             };
         },
         chat: function(text) {
@@ -2616,6 +2639,7 @@ module.exports = {
             this.vueSfcKey = null;
             this.vueSfcFailed = false;
             this.vueSfcGen = (this.vueSfcGen || 0) + 1;
+            this.reasoning = 'low';
             this.clearIdle();
         },
         cancelTurn: function() {
