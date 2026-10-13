@@ -646,10 +646,12 @@ function assistFormatDateValue(value, type) {
     if (ms == null) return text;
     return assistFormatDateMs(ms, kind);
 }
-function subst(str, bag) {
+function subst(str, bag, encode) {
     if (!str || !bag) return str;
     return String(str).replace(/\{([a-zA-Z0-9_.]+)\}/g, function(m, k) {
-        return bag[k] != null ? bag[k] : m;
+        if (bag[k] == null) return m;
+        // Values substituted into a path must not add segments, a query or a host
+        return encode ? encodeURIComponent(String(bag[k])) : bag[k];
     });
 }
 function stripSfcFences(s) {
@@ -753,11 +755,11 @@ function sensitiveArgKey(k) {
     if (!k) return false;
     var l = String(k).toLowerCase();
     if (l === 'token' || l === 'sfc' || l === 'template' || l === 'script' || l === 'style' || l === 'lang') return true;
-    return /password|secret|api[_-]?key|authorization|ssn|creditcard/.test(l);
+    return /password|passwd|secret|token|api[_-]?key|authorization|ssn|creditcard|card[_-]?number|cvv|cvc|iban|account[_-]?number|routing[_-]?number|pin$/.test(l);
 }
 function sensitiveValueKey(k) {
     if (!k) return false;
-    return /password|secret|api[_-]?key|authorization|ssn|creditcard/.test(String(k).toLowerCase());
+    return /password|passwd|secret|token|api[_-]?key|authorization|ssn|creditcard|card[_-]?number|cvv|cvc|iban|account[_-]?number|routing[_-]?number|pin$/.test(String(k).toLowerCase());
 }
 function redactValueMap(src) {
     var out = {};
@@ -2243,6 +2245,14 @@ module.exports = {
         },
         loadVueSfc: function(schema) {
             var vm = this;
+            // Generated SFCs run with page privileges. Honor the profile flag here too, because a canvas
+            // restored from a saved conversation reaches this method without passing the server check.
+            if (this.profilesLoaded && !(this.profileFlags && this.profileFlags.allowVueSfc)) {
+                this.vueSfcGen = (this.vueSfcGen || 0) + 1;
+                if (!this.vueSfcComp) this.vueSfcFailed = true;
+                vm.noteCanvas('Generated Vue screens are disabled for this profile', 'error');
+                return;
+            }
             var text = assembleSfc(schema);
             if (!text || text.toLowerCase().indexOf('<template') < 0) {
                 this.vueSfcGen = (this.vueSfcGen || 0) + 1;
@@ -2417,7 +2427,7 @@ module.exports = {
                         return next(i + 1);
                     }
                 }
-                var path = subst(act.path, bag);
+                var path = subst(act.path, bag, true);
                 var pathErr = validateActionPath(path);
                 if (pathErr) {
                     failed[act.id] = true;

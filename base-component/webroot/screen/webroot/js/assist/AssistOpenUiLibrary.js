@@ -614,9 +614,10 @@
         var html = window.marked.parse(text, { gfm: true, breaks: false });
         html = window.DOMPurify.sanitize(html, {
             USE_PROFILES: { html: true },
-            ADD_ATTR: ['id', 'data-openui-mmd'],
-            FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form'],
-            FORBID_ATTR: ['style']
+            ADD_ATTR: ['data-openui-mmd'],
+            // Media tags and srcset/poster fetch external URLs, which would let injected markdown beacon data out
+            FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'img', 'picture', 'source', 'video', 'audio', 'track', 'link', 'meta', 'base'],
+            FORBID_ATTR: ['style', 'srcset', 'poster', 'background', 'ping', 'formaction']
         });
         el.innerHTML = html;
         rewriteMdLinks(el);

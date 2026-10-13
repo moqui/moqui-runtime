@@ -785,16 +785,29 @@
                     }
                 };
             },
+            armGesture: function() {
+                var nonce = Math.random().toString(36).slice(2) + Date.now().toString(36);
+                this._gestureNonce = nonce;
+                return nonce;
+            },
             callRequest: function(args) {
                 var vm = this;
+                var gesture = args.__gesture;
+                if (gesture !== undefined) { args = Object.assign({}, args); delete args.__gesture; }
                 var method = String(args.method || 'GET').toUpperCase();
                 var path = args.path;
                 var pathErr = validateActionPath(path);
                 if (pathErr) return Promise.reject(new Error(pathErr));
                 if (path.indexOf('/qapps') === 0)
                     return Promise.reject(new Error('Use /apps (not /qapps) for JSON'));
-                if (method !== 'GET' && method !== 'HEAD' && this.mode === 'agent')
-                    return Promise.reject(new Error('Agent mode does not POST from the canvas'));
+                if (method !== 'GET' && method !== 'HEAD') {
+                    if (this.mode === 'agent')
+                        return Promise.reject(new Error('Agent mode does not POST from the canvas'));
+                    // Writes run only from a user click. A Query evaluated on render never carries the nonce.
+                    if (!gesture || gesture !== this._gestureNonce)
+                        return Promise.reject(new Error('Writes only run from a user action, not from a Query'));
+                    this._gestureNonce = null;
+                }
                 var url = (this.appRoot || '') + path;
                 var init = { method: method, credentials: 'same-origin',
                     headers: { 'Accept': 'application/json', 'X-CSRF-Token': this.csrf } };
@@ -1032,6 +1045,8 @@
                                 })[0];
                                 var evaluatedArgs = {};
                                 if (mn && mn.argsAST) evaluatedArgs = OpenUI.evaluate(mn.argsAST, self.evaluationContext()) || {};
+                                // Only a mutation fired by this click may write. A Query that evaluates on render has no nonce.
+                                evaluatedArgs = Object.assign({}, evaluatedArgs, { __gesture: self.armGesture() });
                                 self._qm.fireMutation(step.statementId, evaluatedArgs).then(function(ok) {
                                     if (ok) next();
                                 });
