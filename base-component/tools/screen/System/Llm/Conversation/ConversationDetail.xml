@@ -100,6 +100,8 @@ along with this software (see the LICENSE.md file). If not, see
                     <row-col xs="7"><label text="${messageList.size()}"/></row-col></container-row>
                 <container-row><row-col xs="5" style="text-right"><label text="Provider Calls" type="strong"/></row-col>
                     <row-col xs="7"><label text="${callList.size()} (${callErrors} errors, ${callTotalTokens} tokens, ${callTotalMs} ms)"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Turn Lease" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${conversation.turnOwner ? ('node ' + conversation.turnOwner.take(8) + ' until ' + ec.l10n.format(conversation.turnLeaseThru, '')) : 'none'}"/></row-col></container-row>
             </row-col></container-row>
         </box-body></container-box>
 

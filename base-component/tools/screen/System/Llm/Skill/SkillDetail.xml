@@ -86,6 +86,8 @@ along with this software (see the LICENSE.md file). If not, see
                     <row-col xs="7"><label text="${riskEnum?.description ?: skill.riskId}${skill.provenanceId != 'LskpHuman' &amp;&amp; skill.riskId == 'LskReversible' ? ' (ignored until human-reviewed)' : ''}"/></row-col></container-row>
                 <container-row><row-col xs="5" style="text-right"><label text="Version" type="strong"/></row-col>
                     <row-col xs="7"><label text="${skill.version}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Kind" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${skill.kind ?: 'procedure'}"/></row-col></container-row>
             </row-col><row-col md="4">
                 <container-row><row-col xs="5" style="text-right"><label text="World Passes" type="strong"/></row-col>
                     <row-col xs="7"><label text="${skill.worldSuccessCount ?: 0}"/></row-col></container-row>
@@ -116,6 +118,7 @@ along with this software (see the LICENSE.md file). If not, see
                     <field name="summary"><default-field><text-area cols="100" rows="2"/></default-field></field>
                     <field name="body"><default-field><text-area cols="100" rows="22" autogrow="true"/></default-field></field>
                     <field name="riskId" title="Risk"><default-field><drop-down><option key="LskReversible" text="Reversible (runs without a click, once reviewed)"/><option key="LskConfirm" text="Confirm (user clicks before a write)"/><option key="LskIrreversible" text="Irreversible (user clicks, cannot be undone)"/></drop-down></default-field></field>
+                    <field name="kind"><default-field><drop-down allow-empty="true"><option key="procedure" text="Procedure (steps the agent follows)"/><option key="reference" text="Reference (background card, never run as steps)"/></drop-down></default-field></field>
                     <field name="submitButton"><default-field title="Save"><submit/></default-field></field>
                 </form-single>
             </box-body></container-box>

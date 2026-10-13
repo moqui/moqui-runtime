@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets
 
 def webrootPath = "screen/webroot"
 def libsPath = webrootPath + "/libs"
-def downloadBase = "http://cdnjs.cloudflare.com/ajax/libs/"
+def downloadBase = "https://cdnjs.cloudflare.com/ajax/libs/"
 def fileMap = [
     "rsvp/4.8.3/rsvp.min.js":"",
 
@@ -90,6 +90,73 @@ def fileMap = [
 def jsdelivrBase = "https://cdn.jsdelivr.net/npm/"
 def jsdelivrList = ["quasar@1.22.10/dist/quasar.min.css", "quasar@1.22.10/dist/quasar.umd.min.js"]
 
+// SHA-256 of each downloaded library, keyed by its path under libs/. A download, or a file already there, that does not
+// match fails the build, so a changed or tampered library cannot slip in. When you move a library to a new version,
+// update its entry here along with the version in fileMap or jsdelivrList. The failure message prints the actual hash.
+def libChecksums = [
+    "Chart.js/Chart.min.js":"478a6a70e615f25b7bb27c4c40efc749b5421513cc76b84014c1febebf608982",
+    "Selectivity.js/selectivity-full.min.css":"e62c8a73845e68d7ee7880c5dea659810756a1dbcc0fd7dcf42739a0a8193c85",
+    "Selectivity.js/selectivity-full.min.js":"76a238a071607d9aa6fbf5ca31ba9d616be2972210a372a1acb3f50b0f9e9fd4",
+    "bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css":"c8c8da579e363feab54671fa5c1c823c37d416198e69f59b78b3e6a8a875d73a",
+    "dompurify/purify.min.js":"c2f26ea4fc0d88141c9aa430eb515ac86fce59418ceebd85fa475b87a8d6c3e6",
+    "font-awesome/css/font-awesome.min.css":"799aeb25cc0373fdee0e1b1db7ad6c2f6a0e058dfadaa3379689f583213190bd",
+    "font-awesome/fonts/FontAwesome.otf":"444dd4366615ffc4a16d012b2fa90137065d3ccb410fa6fd5e4ddd7b5e4ffcd5",
+    "font-awesome/fonts/fontawesome-webfont.eot":"7bfcab6db99d5cfbf1705ca0536ddc78585432cc5fa41bbd7ad0f009033b2979",
+    "font-awesome/fonts/fontawesome-webfont.svg":"ad6157926c1622ba4e1d03d478f1541368524bfc46f51e42fe0d945f7ef323e4",
+    "font-awesome/fonts/fontawesome-webfont.ttf":"aa58f33f239a0fb02f5c7a6c45c043d7a9ac9a093335806694ecd6d4edc0d6a8",
+    "font-awesome/fonts/fontawesome-webfont.woff":"ba0c59deb5450f5cb41b3f93609ee2d0d995415877ddfa223e8a8a7533474f07",
+    "font-awesome/fonts/fontawesome-webfont.woff2":"2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe",
+    "highlight.js/highlight.min.js":"62960a35954a685dbe12958092f661a185231e9f5f5c44dc3c1e237d9e087d5a",
+    "highlight.js/styles/github-dark.min.css":"9f208d022102b1d0c7aebfecd8e42ca7997d5de636649d2b31ea63093d809019",
+    "jeditable.js/jeditable.min.js":"b76e0536e5ae607a8453dc2dd7ac8d08779ba93e8f8700113ee2c1106f31fd79",
+    "jquery-validate/additional-methods.min.js":"d1883f7a26d574acb192e568d50c21d03b29a14087bd26e6fe83a8615cf7d814",
+    "jquery-validate/jquery.validate.min.js":"17a879e50c3ab3078afaded288e257fb66e94806b76ff7e796b54226f9848f50",
+    "jquery.form/jquery.form.min.js":"f06fc176d714316c3773a8f99c1bd5b736a88f7b2afe45fac4d376150d30d0c6",
+    "jquery.inputmask/jquery.inputmask.bundle.min.js":"1d00a43e3b1c901b663bad31799b39eb483cff9bf4e03bce932128d35ce14a9a",
+    "jquery/jquery.min.js":"fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a",
+    "jstree/jstree.min.js":"34f3175686f672feab1ff90a52ecd5db25ca010205533470faf241ab808b8b61",
+    "jstree/themes/default/32px.png":"f842c9fbe07cac5374863523c76edbd89e2409ff800490fcc3e20d322758976f",
+    "jstree/themes/default/40px.png":"3f51cc429f305e4847ce5356903db9d15c76fa24b75c57c83ff9e0e0a03c3c0d",
+    "jstree/themes/default/style.min.css":"817f59e047affc40e0f556796089262904aa7001cbf2d493f74747bedbad8d38",
+    "jstree/themes/default/throbber.gif":"8ba42d58eef879572d87eb2ba2de9361daeabbd1d6075bc7b80fb4411cbc2ec1",
+    "marked/marked.umd.min.js":"cde22cf2b5875fe2dd957fbd0c458ed5a77df184c81f2e55bf753f9fc18b7cac",
+    "mermaid/mermaid.min.js":"41d4c6d584cb2d3c03ddbf798cba85c69417f6e62e24c340b55660c0a5f8a185",
+    "moment.js/moment-with-locales.min.js":"01d40df7c31566ce3812adb24f0b682ae7e19d4fae67bbf69179c3e6fab3655a",
+    "mouse0270-bootstrap-notify/bootstrap-notify.min.js":"2e53746b427784c9032ced6685c330cbe18831b21157b92f287c78a02c4da312",
+    "quasar/quasar.min.css":"eb7359d005e0d3cac084a220fc8e36c9e332c5e2d293744746e23e3f45761e5f",
+    "quasar/quasar.umd.min.js":"4a57e4098e3a2e4f38bee96590cd34ecd96d898ed10647f66ba4efa23259e981",
+    "rsvp/rsvp.min.js":"519de79f6f5f2a1a895edc77427df0314da3b63e0996a80692a2b069d1c950de",
+    "select2-bootstrap-theme/select2-bootstrap.min.css":"9dbc9ab5ad8f2518c89a10724338a4da8b7a8121d25380aa773e5b3582f6cdc5",
+    "select2/css/select2.min.css":"c493991dfa712d1fee861d41c18152e5f8663807484506a23ae97917f6fbbf7b",
+    "simplemde/simplemde.min.css":"22cd1735f357f0a17fef42769eff107ba056ca25ebb45c4a7c9047a0380d0043",
+    "simplemde/simplemde.min.js":"eac66cece18fd14cdc97b503b0b68db32d4ad0a4d9c75fbac8456b449327d883",
+    "twitter-bootstrap/css/bootstrap.min.css":"6d92dfc1700fd38cd130ad818e23bc8aef697f815b2ea5face2b5dfad22f2e11",
+    "twitter-bootstrap/fonts/glyphicons-halflings-regular.eot":"13634da87d9e23f8c3ed9108ce1724d183a39ad072e73e1b3d8cbf646d2d0407",
+    "twitter-bootstrap/fonts/glyphicons-halflings-regular.svg":"42f60659d265c1a3c30f9fa42abcbb56bd4a53af4d83d316d6dd7a36903c43e5",
+    "twitter-bootstrap/fonts/glyphicons-halflings-regular.ttf":"e395044093757d82afcb138957d06a1ea9361bdcf0b442d06a18a8051af57456",
+    "twitter-bootstrap/fonts/glyphicons-halflings-regular.woff":"a26394f7ede100ca118eff2eda08596275a9839b959c226e15439557a5a80742",
+    "twitter-bootstrap/fonts/glyphicons-halflings-regular.woff2":"fe185d11a49676890d47bb783312a0cda5a44c4039214094e7957b4c040ef11c",
+    "twitter-bootstrap/js/bootstrap.min.js":"9ee2fcff6709e4d0d24b09ca0fc56aade12b4961ed9c43fd13b03248bfb57afe",
+    "typeahead.js/typeahead.jquery.min.js":"9ce4658f427c663bc6cfeeabb476f625c734403012b0350d3b05247dcc285bc0",
+    "vue/vue.js":"a2029697010cdf442eea110b24c9735fdacfa9219860ad6ed888b320d102e609",
+    "vue/vue.min.js":"d601f229247b261d18181988f7337b3f652165187f3c22a109821a50ea96a0f9"
+]
+
+import java.security.MessageDigest
+String sha256Of(File f) {
+    MessageDigest md = MessageDigest.getInstance("SHA-256")
+    f.withInputStream { is -> byte[] buf = new byte[8192]; int n; while ((n = is.read(buf)) > 0) md.update(buf, 0, n) }
+    return md.digest().collect { String.format("%02x", it) }.join()
+}
+void verifyChecksum(String targetPath, File f, Map checksums) {
+    String expected = checksums.get(targetPath)
+    if (expected == null) throw new GradleException("No checksum for library ${targetPath}. Add its SHA-256 to libChecksums in build.gradle.")
+    String actual = sha256Of(f)
+    if (!expected.equals(actual))
+        throw new GradleException("Checksum mismatch for library ${targetPath}: expected ${expected} but ${f.absolutePath} is ${actual}. " +
+                "Delete the file to download it again, or update libChecksums if this change is intended.")
+}
+
 String getTargetPath(String sourcePath, String targetPath) {
     if (!targetPath) {
         String[] sourceSplit = sourcePath.split("/")
@@ -103,12 +170,13 @@ task downloadFiles { doLast {
         String targetPath = getTargetPath(sourcePath, (String) fileEntry.value)
 
         File targetFile = file(libsPath + '/' + targetPath)
-        if (targetFile.exists()) continue
-
-        String sourceUrl = downloadBase + sourcePath
-        logger.lifecycle("Downloading ${sourceUrl} to ${targetFile.absolutePath}")
-        targetFile.getParentFile().mkdirs()
-        ant.get(src: sourceUrl, dest: targetFile)
+        if (!targetFile.exists()) {
+            String sourceUrl = downloadBase + sourcePath
+            logger.lifecycle("Downloading ${sourceUrl} to ${targetFile.absolutePath}")
+            targetFile.getParentFile().mkdirs()
+            ant.get(src: sourceUrl, dest: targetFile)
+        }
+        verifyChecksum(targetPath, targetFile, libChecksums)
     }
 
     for (String jsdPath in jsdelivrList) {
@@ -117,12 +185,13 @@ task downloadFiles { doLast {
         String targetPath = libDir + '/' + sourceSplit[sourceSplit.length-1]
 
         File targetFile = file(libsPath + '/' + targetPath)
-        if (targetFile.exists()) continue
-
-        String sourceUrl = jsdelivrBase + jsdPath
-        logger.lifecycle("Downloading ${sourceUrl} to ${targetFile.absolutePath}")
-        targetFile.getParentFile().mkdirs()
-        ant.get(src: sourceUrl, dest: targetFile)
+        if (!targetFile.exists()) {
+            String sourceUrl = jsdelivrBase + jsdPath
+            logger.lifecycle("Downloading ${sourceUrl} to ${targetFile.absolutePath}")
+            targetFile.getParentFile().mkdirs()
+            ant.get(src: sourceUrl, dest: targetFile)
+        }
+        verifyChecksum(targetPath, targetFile, libChecksums)
     }
 
     // CKEditor 4.14.1 (the build cdn.ckeditor.com/4.14.1/standard-all/ckeditor.js actually serves:
@@ -216,6 +285,8 @@ task minifyJsDir(type: org.gradlewebtools.minify.JsMinifyTask) {
         file(webrootPath + '/js/qz-tray/MoquiQzComponent.min.js').delete()
         file(webrootPath + '/js/assist/AssistOpenUi.min.js').delete()
         file(webrootPath + '/js/assist/AssistOpenUiLibrary.min.js').delete()
+        file(webrootPath + '/js/assist/AssistSandboxFrame.min.js').delete()
+        file(webrootPath + '/js/assist/AssistSandboxRuntime.min.js').delete()
         // keep committed lang-core.umd.min.js (already minified vendor bundle)
     }
 }

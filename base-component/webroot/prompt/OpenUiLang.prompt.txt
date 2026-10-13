@@ -274,11 +274,11 @@ $q = ""
 data = Query("request", {method:"GET", path:"/apps/example/FindThing/actions/ListThings", query:{name:$q, pageSize:"50"}}, {rows:[]})
 root = Stack([CardHeader("Find"), Form("find", Button("Search", Action([@Run(data)])), [FormControl("Name", Input("q", $q))]), Table([Col("Name", data.rows.name), Col("Open", @Each(data.rows, "r", Link("View", "/qapps/example/EditThing", {thingId: r.thingId})))])])
 
-Open orders (do not prefix the Query or the counts with $; a link column such as orderId is the id plus orderId_display for the link text):
-orders = Query("request", {method:"GET", path:"/apps/marble/Order/FindOrder/actions/OrderList", query:{orderType:"Sales", partStatusId:"OrderPlaced,OrderApproved", partStatusId_op:"in", pageSize:"200"}}, {rows:[]})
-placed = @Count(@Filter(orders.rows, "partStatusId", "==", "OrderPlaced"))
-approved = @Count(@Filter(orders.rows, "partStatusId", "==", "OrderApproved"))
-root = Stack([CardHeader("Open Sales Orders"), Stack([Stat("Open orders", @Count(orders.rows)), Stat("Placed", placed), Stat("Approved", approved), Stat("Total", @Round(@Sum(orders.rows.partTotal), 2))], "row"), Table([Col("Order", orders.rows.orderId), Col("Status", orders.rows.partStatusId), Col("Total", orders.rows.partTotal)])])
+Service hit summary (do not prefix the Query or the counts with $; a link column is the id plus a <field>_display field for the link text):
+hits = Query("request", {method:"GET", path:"/apps/system/ArtifactHitSummary/actions/ArtifactHitSummaryList", query:{artifactType:"AT_SERVICE", pageSize:"200"}}, {rows:[]})
+scriptHits = @Count(@Filter(hits.rows, "artifactSubType", "==", "script"))
+inlineHits = @Count(@Filter(hits.rows, "artifactSubType", "==", "inline"))
+root = Stack([CardHeader("Service hits"), Stack([Stat("Services", @Count(hits.rows)), Stat("Script", scriptHits), Stat("Inline", inlineHits), Stat("Total hits", @Sum(hits.rows.hitCount))], "row"), Table([Col("Service", hits.rows.artifactName), Col("Type", hits.rows.artifactSubType), Col("Hits", hits.rows.hitCount)])])
 
 Chart from a form-list (jsonShape {rows,totalCount}; findFields option keys exactly; pageSize not limit):
 $artifactType = "AT_SERVICE"

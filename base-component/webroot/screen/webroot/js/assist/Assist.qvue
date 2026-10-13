@@ -161,9 +161,13 @@
                                        @error="onOpenUiError" @request-notice="onOpenUiRequestNotice"></assist-openui>
                     </div>
                     <div v-if="showVueSfc" class="q-mb-md">
-                        <component :is="vueSfcComp" :key="vueSfcKey"
+                        <!-- Generated code runs in a sandboxed frame with no access to this page; see AssistSandboxFrame.js -->
+                        <assist-sandbox-frame :key="vueSfcKey" :sfc="vueSfcSource"
                                    :values="fieldValues" :schema="schema" :mode="writeMode"
-                                   @input="onSfcInput" @submit="onSfcSubmit" @cancel="newSession"></component>
+                                   read-base="/llm/v1" profile="assist" :app-root="($root && $root.appRootPath) || ''"
+                                   :version="resourceVersion()"
+                                   @input="onSfcInput" @submit="onSfcSubmit" @cancel="newSession"
+                                   @error="onSfcFrameError"></assist-sandbox-frame>
                     </div>
                     <div v-else-if="schema.kind==='vue-sfc' && !vueSfcFailed" class="text-grey-7 q-mb-md">
                         Loading generated screen…</div>
@@ -336,7 +340,7 @@
 </div>
 </template>
 <script>
-/* Assist Universal Screen. Canvas kinds: form spec, vue-sfc (httpVueLoader.parse).
+/* Assist Universal Screen. Canvas kinds: form spec, openui, vue-sfc (rendered in a sandboxed frame).
  * FUTURE: screen-xml POST to a compile/render transition (server round-trip).
  */
 function parseSseChunk(buffer, onEvent) {
@@ -909,26 +913,6 @@ function formatDoneLine(data) {
     }
     return parts.join(' ');
 }
-function ensureSfcProps(comp) {
-    if (!comp) return comp;
-    var base = {
-        values: { type: Object, 'default': function() { return {}; } },
-        schema: { type: Object },
-        mode: { type: String }
-    };
-    if (!comp.props) { comp.props = base; return comp; }
-    if (Array.isArray(comp.props)) {
-        ['values', 'schema', 'mode'].forEach(function(p) {
-            if (comp.props.indexOf(p) < 0) comp.props.push(p);
-        });
-        return comp;
-    }
-    if (!comp.props.values) comp.props.values = base.values;
-    if (!comp.props.schema) comp.props.schema = base.schema;
-    if (!comp.props.mode) comp.props.mode = base.mode;
-    return comp;
-}
-
 module.exports = {
     props: { shell: { type: Boolean, default: false } },
     data: function() {
@@ -942,7 +926,7 @@ module.exports = {
             schema: null, fieldValues: {}, dirtyFields: {},
             adjustOpen: false, adjustText: '', canvasNotices: [],
             autoValidationCount: 0, lastAutoHash: '', maxAutoValidations: 4,
-            vueSfcComp: null, vueSfcKey: null, vueSfcGen: 0, vueSfcFailed: false,
+            vueSfcSource: null, vueSfcKey: null, vueSfcGen: 0, vueSfcFailed: false,
             speechSupported: false, recognizing: false, speechBase: '', openUiRuntimeReady: false,
             recognition: null, abortCtl: null, idleTimer: null,
             sessionTurns: 0, sessionTokens: 0, lastActionResults: [],
@@ -1039,7 +1023,7 @@ module.exports = {
             return (p && p.id) || (acts[0] && acts[0].id) || 'submit';
         },
         showVueSfc: function() {
-            return !!(this.vueSfcComp && this.schema && this.schema.kind === 'vue-sfc');
+            return !!(this.vueSfcSource && this.schema && this.schema.kind === 'vue-sfc');
         },
         convPages: function() {
             var size = this.convPageSize || 20;
@@ -1308,7 +1292,7 @@ module.exports = {
             this.adjustText = '';
             this.autoValidationCount = 0;
             this.lastAutoHash = '';
-            this.vueSfcComp = null;
+            this.vueSfcSource = null;
             this.vueSfcKey = null;
             this.vueSfcFailed = false;
             this.vueSfcGen = (this.vueSfcGen || 0) + 1;
@@ -2033,14 +2017,14 @@ module.exports = {
             this.applySchema(args);
             if (args.kind === 'openui') {
                 this.vueSfcGen = (this.vueSfcGen || 0) + 1;
-                this.vueSfcComp = null;
+                this.vueSfcSource = null;
                 this.vueSfcKey = null;
                 this.vueSfcFailed = false;
                 this.loadOpenUi();
             } else if (args.kind === 'vue-sfc') this.loadVueSfc(args);
             else {
                 this.vueSfcGen = (this.vueSfcGen || 0) + 1;
-                this.vueSfcComp = null;
+                this.vueSfcSource = null;
                 this.vueSfcKey = null;
                 this.vueSfcFailed = false;
             }
@@ -2245,53 +2229,53 @@ module.exports = {
         },
         loadVueSfc: function(schema) {
             var vm = this;
-            // Generated SFCs run with page privileges. Honor the profile flag here too, because a canvas
+            // Generated code is only ever run in the sandboxed frame. Still honor the profile flag here, because a canvas
             // restored from a saved conversation reaches this method without passing the server check.
             if (this.profilesLoaded && !(this.profileFlags && this.profileFlags.allowVueSfc)) {
                 this.vueSfcGen = (this.vueSfcGen || 0) + 1;
-                if (!this.vueSfcComp) this.vueSfcFailed = true;
+                if (!this.vueSfcSource) this.vueSfcFailed = true;
                 vm.noteCanvas('Generated Vue screens are disabled for this profile', 'error');
                 return;
             }
             var text = assembleSfc(schema);
             if (!text || text.toLowerCase().indexOf('<template') < 0) {
                 this.vueSfcGen = (this.vueSfcGen || 0) + 1;
-                if (!this.vueSfcComp) this.vueSfcFailed = true;
+                if (!this.vueSfcSource) this.vueSfcFailed = true;
                 if (schema && schema.sfcError) vm.noteCanvas(schema.sfcError, 'error');
                 return;
             }
             var key = hashString(text);
-            if (key === this.vueSfcKey && this.vueSfcComp) { this.vueSfcFailed = false; return; }
-            if (typeof httpVueLoader === 'undefined' || !httpVueLoader.parse) {
-                vm.noteCanvas('Generated screen failed to compile: httpVueLoader is not available', 'error');
-                if (!this.vueSfcComp) this.vueSfcFailed = true;
-                return;
-            }
+            if (key === this.vueSfcKey && this.vueSfcSource) { this.vueSfcFailed = false; return; }
             this.vueSfcFailed = false;
             this.vueSfcGen = (this.vueSfcGen || 0) + 1;
             var gen = this.vueSfcGen;
-            var parsed;
-            try { parsed = httpVueLoader.parse(text, ''); }
-            catch (e) {
-                vm.noteCanvas('Generated screen failed to compile: ' + ((e && e.message) || String(e)), 'error');
-                if (!this.vueSfcComp) this.vueSfcFailed = true;
-                return;
-            }
-            Promise.resolve(typeof parsed === 'function' ? parsed() : parsed).then(function(comp) {
+            // The frame component is loaded on first use. Compile errors come back from the frame as an error event.
+            this.ensureSandboxFrame().then(function() {
                 if (gen !== vm.vueSfcGen) return;
-                if (!comp || !comp.template) {
-                    vm.noteCanvas('Generated screen failed to compile: missing template', 'error');
-                    if (!vm.vueSfcComp) vm.vueSfcFailed = true;
-                    return;
-                }
-                vm.vueSfcComp = ensureSfcProps(comp);
+                vm.vueSfcSource = text;
                 vm.vueSfcKey = key;
                 vm.vueSfcFailed = false;
-            }).catch(function(err) {
+            }, function(err) {
                 if (gen !== vm.vueSfcGen) return;
-                vm.noteCanvas('Generated screen failed to compile: ' + ((err && err.message) || String(err)), 'error');
-                if (!vm.vueSfcComp) vm.vueSfcFailed = true;
+                vm.noteCanvas('Generated screen could not start: ' + ((err && err.message) || String(err)), 'error');
+                if (!vm.vueSfcSource) vm.vueSfcFailed = true;
             });
+        },
+        ensureSandboxFrame: function() {
+            if (window.Vue && window.Vue.options.components['assist-sandbox-frame']) return Promise.resolve();
+            var root = (this.$root && this.$root.appRootPath) || '';
+            var ver = pageResourceVersion();
+            return loadScriptOnce(root + '/js/assist/AssistSandboxFrame.js' + (ver ? ('?v=' + ver) : ''));
+        },
+        resourceVersion: function() { return pageResourceVersion(); },
+        onSfcFrameError: function(e) {
+            var message = (e && e.message) || 'The generated screen failed';
+            this.noteCanvas(message, 'error');
+            // A screen that never compiled falls back to the plain form fields. A runtime error leaves it showing.
+            if (e && e.phase === 'compile') {
+                this.vueSfcSource = null;
+                this.vueSfcFailed = true;
+            }
         },
         onSfcInput: function(payload) {
             if (payload == null || typeof payload !== 'object' || Array.isArray(payload)) return;
@@ -2645,7 +2629,7 @@ module.exports = {
             this.adjustText = '';
             this.autoValidationCount = 0;
             this.lastAutoHash = '';
-            this.vueSfcComp = null;
+            this.vueSfcSource = null;
             this.vueSfcKey = null;
             this.vueSfcFailed = false;
             this.vueSfcGen = (this.vueSfcGen || 0) + 1;

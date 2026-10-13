@@ -28,7 +28,7 @@ along with this software (see the LICENSE.md file). If not, see
     <actions>
         <entity-find entity-name="moqui.llm.LlmSkill" list="skillList" use-clone="true">
             <search-form-inputs default-order-by="name"/>
-            <select-field field-name="skillId,name,title,description,riskId,statusId,provenanceId,speaker,version,worldSuccessCount,simSuccessCount,lastUsedDate,lastUpdatedStamp"/>
+            <select-field field-name="skillId,name,title,description,riskId,statusId,provenanceId,speaker,kind,version,worldSuccessCount,simSuccessCount,lastUsedDate,lastUpdatedStamp"/>
         </entity-find>
         <script><![CDATA[
             // Shipped skill files win over a database row of the same name, so show them and any shadowing row
@@ -78,6 +78,8 @@ along with this software (see the LICENSE.md file). If not, see
                 <header-field title="Risk" show-order-by="true"><drop-down allow-empty="true"><entity-options key="${enumId}" text="${description}"><entity-find entity-name="moqui.basic.Enumeration" cache="true"><econdition field-name="enumTypeId" value="LlmSkillRisk"/><order-by field-name="enumId"/></entity-find></entity-options></drop-down></header-field>
                 <default-field><display-entity entity-name="moqui.basic.Enumeration" key-field-name="enumId" text="${description}"/></default-field>
             </field>
+            <field name="kind"><header-field show-order-by="true"><drop-down allow-empty="true"><option key="procedure"/><option key="reference"/></drop-down></header-field>
+                <default-field><display/></default-field></field>
             <field name="version"><header-field show-order-by="true"/><default-field><display/></default-field></field>
             <field name="worldSuccessCount" title="World Passes"><header-field title="World Passes" show-order-by="true"/><default-field><display/></default-field></field>
             <field name="simSuccessCount" title="Sim Passes"><header-field title="Sim Passes" show-order-by="true"/><default-field><display/></default-field></field>
@@ -98,7 +100,7 @@ along with this software (see the LICENSE.md file). If not, see
             <form-list-column><field-ref name="name"/><field-ref name="title"/></form-list-column>
             <form-list-column><field-ref name="statusId"/><field-ref name="provenanceId"/><field-ref name="riskId"/></form-list-column>
             <form-list-column><field-ref name="worldSuccessCount"/><field-ref name="simSuccessCount"/></form-list-column>
-            <form-list-column><field-ref name="version"/><field-ref name="lastUsedDate"/></form-list-column>
+            <form-list-column><field-ref name="kind"/><field-ref name="version"/><field-ref name="lastUsedDate"/></form-list-column>
             <form-list-column><field-ref name="description"/></form-list-column>
             <form-list-column><field-ref name="review"/></form-list-column>
         </form-list>
