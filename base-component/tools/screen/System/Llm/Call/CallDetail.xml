@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-include="false">
+
+    <parameter name="callId" required="true"/>
+
+    <transition name="conversationDetail"><default-response url="../../Conversation/ConversationDetail"/></transition>
+    <transition name="userAccountDetail"><default-response url="//system/Security/UserAccountDetail"/></transition>
+    <transition name="visitDetail"><default-response url="//system/Visit/VisitDetail"/></transition>
+
+    <actions>
+        <entity-find-one entity-name="moqui.llm.LlmCallLog" value-field="call"/>
+        <if condition="call == null"><return error="true" message="Call not found with ID ${callId}"/></if>
+        <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
+            <field-map field-name="userId" from="call.userId"/></entity-find-one>
+        <set field="maxJsonChars" from="40000"/>
+    </actions>
+    <widgets>
+        <container-box><box-header title="Provider Call ${callId}"/><box-body>
+            <container-row><row-col md="4">
+                <container-row><row-col xs="5" style="text-right"><label text="Started" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(call.startDate, '')}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Conversation" type="strong"/></row-col>
+                    <row-col xs="7"><link url="conversationDetail" text="${call.conversationId}" link-type="anchor"
+                            parameter-map="[conversationId:call.conversationId]" condition="call.conversationId"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Iteration" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${call.iteration}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="User" type="strong"/></row-col>
+                    <row-col xs="7"><link url="userAccountDetail" text="UsernameTemplate" text-map="userAccount" link-type="anchor"
+                            parameter-map="[userId:call.userId]" condition="call.userId"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Visit" type="strong"/></row-col>
+                    <row-col xs="7"><link url="visitDetail" text="${call.visitId}" link-type="anchor"
+                            parameter-map="[visitId:call.visitId]" condition="call.visitId"/></row-col></container-row>
+            </row-col><row-col md="4">
+                <container-row><row-col xs="5" style="text-right"><label text="Profile" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${call.profileName}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Model" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${call.model}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Protocol" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${call.protocolName}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Duration" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${call.durationMs} ms"/></row-col></container-row>
+            </row-col><row-col md="4">
+                <container-row><row-col xs="5" style="text-right"><label text="HTTP Status" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${call.httpStatus}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Finish Reason" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${call.finishReason}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Tokens" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${call.promptTokens ?: 0} prompt + ${call.completionTokens ?: 0} completion = ${call.totalTokens ?: 0}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Error" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${call.wasError == 'Y' ? (call.errorMessage ?: 'yes') : 'no'}"/></row-col></container-row>
+            </row-col></container-row>
+        </box-body></container-box>
+
+        <container-box><box-header title="Request"/><box-body>
+            <label text="Not logged. The profile has log-content=false, or this call predates logging." type="i"
+                    condition="!call.requestJson"/>
+            <label text="${call.requestJson.take(maxJsonChars)}${call.requestJson.length() > maxJsonChars ? ' ... [truncated]' : ''}" type="pre"
+                    condition="call.requestJson"/>
+        </box-body></container-box>
+        <container-box><box-header title="Response"/><box-body>
+            <label text="Not logged. The profile has log-content=false, or this call predates logging." type="i"
+                    condition="!call.responseJson"/>
+            <label text="${call.responseJson.take(maxJsonChars)}${call.responseJson.length() > maxJsonChars ? ' ... [truncated]' : ''}" type="pre"
+                    condition="call.responseJson"/>
+        </box-body></container-box>
+    </widgets>
+</screen>

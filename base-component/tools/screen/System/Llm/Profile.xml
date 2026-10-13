@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Profiles" default-menu-index="5">
+
+    <transition name="testProfile" begin-transaction="false">
+        <actions>
+            <service-call name="org.moqui.impl.LlmAdminServices.test#LlmProfile" in-map="[profileName:profileName]" out-map="testResult"/>
+            <if condition="testResult.ok">
+                <then><message>Profile ${profileName} answered in ${testResult.durationMs} ms (model ${testResult.model}, finish ${testResult.finishReason}): ${testResult.content}</message></then>
+                <else><message error="true">Profile ${profileName} failed after ${testResult.durationMs} ms${testResult.httpStatus ? ' (HTTP ' + testResult.httpStatus + ')' : ''}: ${testResult.error}</message></else>
+            </if>
+        </actions>
+        <default-response url="."/>
+    </transition>
+    <transition name="artifactGroupList"><default-response url="//system/Security/ArtifactGroup"/></transition>
+
+    <actions>
+        <service-call name="org.moqui.impl.LlmAdminServices.get#LlmProfileDetails" out-map="context"/>
+        <set field="runtimeSwitchList" from="runtimeSwitches.collect { [name: it.key, value: it.value] }"/>
+    </actions>
+    <widgets>
+        <label text="Effective configuration of each profile, from the MoquiConf XML. Credentials are never shown. Edit profiles in the conf file and restart. Access and rate limits for profiles are Artifact Authz and Tarpit on the LlmProfiles artifact group."
+                type="p"/>
+        <link url="artifactGroupList" text="Artifact Groups" link-type="anchor"/>
+
+        <section-iterate name="ProfileSection" list="profileDetailList" entry="profile"><widgets>
+            <container-box><box-header title="${profile.name}"/><box-toolbar>
+                <link url="testProfile" text="Test Connection" btn-type="info" parameter-map="[profileName:profile.name]"
+                        confirmation="Send one small request through ${profile.name}? It calls the provider for real and counts toward the tarpit."/>
+            </box-toolbar><box-body>
+                <label text="Endpoint: ${profile.endpoint}" type="div"/>
+                <container-row><row-col md="4">
+                    <container-row><row-col xs="5" style="text-right"><label text="Protocol" type="strong"/></row-col>
+                        <row-col xs="7"><label text="${profile.protocol}"/></row-col></container-row>
+                    <container-row><row-col xs="5" style="text-right"><label text="Model" type="strong"/></row-col>
+                        <row-col xs="7"><label text="${profile.model}"/></row-col></container-row>
+                    <container-row><row-col xs="5" style="text-right"><label text="API Key" type="strong"/></row-col>
+                        <row-col xs="7"><label text="${profile.hasApiKey ? 'set' : 'not set'} (${profile.authHeaderName})"/></row-col></container-row>
+                    <container-row><row-col xs="5" style="text-right"><label text="Max Tokens" type="strong"/></row-col>
+                        <row-col xs="7"><label text="${profile.maxTokens ?: 'provider default'} via ${profile.maxTokensParameter ?: 'protocol default'}"/></row-col></container-row>
+                    <container-row><row-col xs="5" style="text-right"><label text="Temperature" type="strong"/></row-col>
+                        <row-col xs="7"><label text="${profile.temperature ?: 'provider default'}"/></row-col></container-row>
+                </row-col><row-col md="4">
+                    <container-row><row-col xs="5" style="text-right"><label text="Timeout" type="strong"/></row-col>
+                        <row-col xs="7"><label text="${profile.timeoutSeconds} s"/></row-col></container-row>
+                    <container-row><row-col xs="5" style="text-right"><label text="Retries" type="strong"/></row-col>
+                        <row-col xs="7"><label text="${profile.retryMax} max, ${profile.retryInitialSeconds} s initial, timeout retry ${profile.timeoutRetry}, empty retries ${profile.emptyRetries}"/></row-col></container-row>
+                    <container-row><row-col xs="5" style="text-right"><label text="Log Content" type="strong"/></row-col>
+                        <row-col xs="7"><label text="${profile.logContent ? 'yes (prompts and responses are stored)' : 'no (calls store sizes and status only)'}"/></row-col></container-row>
+                    <container-row><row-col xs="5" style="text-right"><label text="SSE Ping" type="strong"/></row-col>
+                        <row-col xs="7"><label text="${profile.ssePingSeconds} s"/></row-col></container-row>
+                    <container-row><row-col xs="5" style="text-right"><label text="Summaries" type="strong"/></row-col>
+                        <row-col xs="7"><label text="${profile.summarizeConversation ? 'LLM-written titles' : 'first-message titles'}"/></row-col></container-row>
+                    <container-row><row-col xs="5" style="text-right"><label text="API Config" type="strong"/></row-col>
+                        <row-col xs="7"><label text="${profile.apiConfig ? 'reasoning presets defined' : 'none'}"/></row-col></container-row>
+                </row-col><row-col md="4">
+                    <label text="Tools" type="strong"/>
+                    <section-iterate name="ToolSection" list="profile.tools" entry="toolRow"><widgets>
+                        <label text="${toolRow.name}: ${toolRow.allowed ? 'allowed' : 'off'}" type="div"/>
+                    </widgets></section-iterate>
+                </row-col></container-row>
+                <label text="Allowed request paths: ${profile.allowedPaths ? profile.allowedPaths.join(', ') : 'none'}" type="div"/>
+                <label text="Allowed entities: ${profile.allowedEntities ? profile.allowedEntities.join(', ') : 'none'} (find_basic entities: ${profile.allowedBasicEntityCount})" type="div"/>
+                <label text="Extra headers: ${profile.extraHeaderNames ? profile.extraHeaderNames.join(', ') : 'none'}. Extra query parameters: ${profile.extraQueryNames ? profile.extraQueryNames.join(', ') : 'none'}. System prompt: ${profile.systemLocation ?: 'default'}" type="div"/>
+            </box-body></container-box>
+        </widgets></section-iterate>
+
+        <container-box><box-header title="Runtime Switches"/><box-body>
+            <label text="Set outside profiles, as system properties or environment variables. llm_trace_dump writes full prompts and responses to the log. llm_skill_auto_admit=true promotes a proposed skill to Active after one successful write, without review." type="p"/>
+            <form-list name="RuntimeSwitchList" list="runtimeSwitchList" skip-form="true">
+                <field name="name"><default-field><display/></default-field></field>
+                <field name="value"><default-field><display/></default-field></field>
+            </form-list>
+        </box-body></container-box>
+    </widgets>
+</screen>

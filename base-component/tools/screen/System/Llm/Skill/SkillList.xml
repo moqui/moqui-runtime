@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Skills" default-menu-index="1">
+
+    <transition name="skillDetail"><default-response url="../SkillDetail"/></transition>
+    <transition name="approveSkill">
+        <service-call name="org.moqui.impl.LlmAdminServices.approve#LlmSkill"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="rejectSkill">
+        <service-call name="org.moqui.impl.LlmAdminServices.reject#LlmSkill"/>
+        <default-response url="."/>
+    </transition>
+
+    <actions>
+        <entity-find entity-name="moqui.llm.LlmSkill" list="skillList" use-clone="true">
+            <search-form-inputs default-order-by="name"/>
+            <select-field field-name="skillId,name,title,description,riskId,statusId,provenanceId,speaker,version,worldSuccessCount,simSuccessCount,lastUsedDate,lastUpdatedStamp"/>
+        </entity-find>
+        <script><![CDATA[
+            // Shipped skill files win over a database row of the same name, so show them and any shadowing row
+            dbNames = [] as Set
+            for (row in ec.entity.find("moqui.llm.LlmSkill").selectField("name").useCache(false).list()) dbNames.add(row.name)
+            shippedList = []
+            for (doc in org.moqui.impl.llm.SkillIndex.scanShipped(ec)) {
+                shippedList.add([name: doc.name, title: doc.title, risk: doc.risk, sourceLocation: doc.sourceLocation,
+                        summary: doc.summary ?: doc.description, shadowed: dbNames.contains(doc.name) ? 'database row with the same name exists' : ''])
+            }
+            shippedList.sort { it.name }
+        ]]></script>
+    </actions>
+    <widgets>
+        <container>
+            <link url="." text="Needs Review" btn-type="warning" parameter-map="[statusId:'LsksProposed', orderByField:'-worldSuccessCount']"/>
+            <link url="." text="Active" parameter-map="[statusId:'LsksActive']"/>
+            <link url="." text="All" parameter-map="[:]"/>
+        </container>
+        <label text="Needs Review lists skills the agent proposed in a sim. A proposed skill never skips the confirmation click and does not appear in other users' prompts until it is approved here. Approving marks it human-reviewed and lets you set its risk." type="p"/>
+
+        <form-list name="SkillList" list="skillList" skip-form="true" header-dialog="true" saved-finds="true"
+                show-csv-button="true" select-columns="true" show-page-size="true">
+            <field name="name">
+                <header-field show-order-by="true"><text-find size="25"/></header-field>
+                <default-field><link text="${name}" url="skillDetail" link-type="anchor"><parameter name="skillId"/></link></default-field>
+            </field>
+            <field name="title"><header-field show-order-by="true"><text-find size="25"/></header-field>
+                <default-field><display/></default-field></field>
+            <field name="description">
+                <header-field title="Description (word search)"><text-find size="25" hide-options="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="body">
+                <header-field title="Body (word search)"><text-find size="25" hide-options="true"/></header-field>
+                <default-field><hidden/></default-field>
+            </field>
+            <field name="statusId" title="Status">
+                <header-field title="Status" show-order-by="true"><drop-down allow-empty="true"><entity-options key="${enumId}" text="${description}"><entity-find entity-name="moqui.basic.Enumeration" cache="true"><econdition field-name="enumTypeId" value="LlmSkillStatus"/><order-by field-name="enumId"/></entity-find></entity-options></drop-down></header-field>
+                <default-field><display-entity entity-name="moqui.basic.Enumeration" key-field-name="enumId" text="${description}"/></default-field>
+            </field>
+            <field name="provenanceId" title="Provenance">
+                <header-field title="Provenance" show-order-by="true"><drop-down allow-empty="true"><entity-options key="${enumId}" text="${description}"><entity-find entity-name="moqui.basic.Enumeration" cache="true"><econdition field-name="enumTypeId" value="LlmSkillProvenance"/><order-by field-name="enumId"/></entity-find></entity-options></drop-down></header-field>
+                <default-field><display-entity entity-name="moqui.basic.Enumeration" key-field-name="enumId" text="${description}"/></default-field>
+            </field>
+            <field name="riskId" title="Risk">
+                <header-field title="Risk" show-order-by="true"><drop-down allow-empty="true"><entity-options key="${enumId}" text="${description}"><entity-find entity-name="moqui.basic.Enumeration" cache="true"><econdition field-name="enumTypeId" value="LlmSkillRisk"/><order-by field-name="enumId"/></entity-find></entity-options></drop-down></header-field>
+                <default-field><display-entity entity-name="moqui.basic.Enumeration" key-field-name="enumId" text="${description}"/></default-field>
+            </field>
+            <field name="version"><header-field show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="worldSuccessCount" title="World Passes"><header-field title="World Passes" show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="simSuccessCount" title="Sim Passes"><header-field title="Sim Passes" show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="lastUsedDate"><header-field show-order-by="true"><date-period time="true"/></header-field>
+                <default-field><display/></default-field></field>
+            <field name="speaker"><default-field><display/></default-field></field>
+            <field name="review">
+                <default-field>
+                    <link url="approveSkill" text="Approve" link-type="anchor-button" btn-type="success" condition="statusId != 'LsksActive'"
+                            confirmation="Approve this skill as human-reviewed, keeping its current risk? Open the skill first to change the risk.">
+                        <parameter name="skillId"/></link>
+                    <link url="rejectSkill" text="Reject" link-type="anchor-button" btn-type="danger" condition="statusId == 'LsksProposed'">
+                        <parameter name="skillId"/></link>
+                </default-field>
+            </field>
+            <field name="findButton"><header-field><submit text="Find"/></header-field></field>
+
+            <form-list-column><field-ref name="name"/><field-ref name="title"/></form-list-column>
+            <form-list-column><field-ref name="statusId"/><field-ref name="provenanceId"/><field-ref name="riskId"/></form-list-column>
+            <form-list-column><field-ref name="worldSuccessCount"/><field-ref name="simSuccessCount"/></form-list-column>
+            <form-list-column><field-ref name="version"/><field-ref name="lastUsedDate"/></form-list-column>
+            <form-list-column><field-ref name="description"/></form-list-column>
+            <form-list-column><field-ref name="review"/></form-list-column>
+        </form-list>
+
+        <container-box><box-header title="Shipped Skill Files"/><box-body>
+            <label text="Read from the skill directory of each component. Shipped files cannot be edited here, and a database row cannot take a shipped name." type="p"/>
+            <form-list name="ShippedSkillList" list="shippedList" skip-form="true">
+                <field name="name"><default-field><display/></default-field></field>
+                <field name="title"><default-field><display/></default-field></field>
+                <field name="risk"><default-field><display/></default-field></field>
+                <field name="summary"><default-field><display/></default-field></field>
+                <field name="sourceLocation"><default-field><display/></default-field></field>
+                <field name="shadowed" title="Note"><default-field><display/></default-field></field>
+                <form-list-column><field-ref name="name"/><field-ref name="title"/></form-list-column>
+                <form-list-column><field-ref name="risk"/></form-list-column>
+                <form-list-column><field-ref name="summary"/></form-list-column>
+                <form-list-column><field-ref name="sourceLocation"/><field-ref name="shadowed"/></form-list-column>
+            </form-list>
+        </box-body></container-box>
+    </widgets>
+</screen>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Usage" default-menu-index="3">
+
+    <transition name="callList"><default-response url="../Call"/></transition>
+
+    <actions>
+        <entity-find entity-name="moqui.llm.LlmCallUsage" list="usageList" use-clone="true">
+            <search-form-inputs default-order-by="-startDay,profileName,model"/>
+        </entity-find>
+    </actions>
+    <widgets>
+        <label text="Calls, tokens and latency grouped by day, profile, model, user and error flag. Calls logged before this view existed have no day and are not counted. Use Calls for individual requests."
+                type="p"/>
+        <form-list name="UsageList" list="usageList" skip-form="true" header-dialog="true" saved-finds="true"
+                show-csv-button="true" select-columns="true" show-page-size="true">
+            <field name="startDay" title="Day">
+                <header-field title="Day" show-order-by="true"><date-period/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="profileName">
+                <header-field show-order-by="true"><text-find size="15" default-operator="begins"/></header-field>
+                <default-field><link url="callList" text="${profileName}" link-type="anchor">
+                    <parameter name="profileName"/></link></default-field>
+            </field>
+            <field name="model">
+                <header-field show-order-by="true"><text-find size="20" default-operator="begins"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="userId">
+                <header-field show-order-by="true"><text-find size="15" default-operator="begins"/></header-field>
+                <default-field><display-entity entity-name="moqui.security.UserAccount" text="UsernameTemplate"/></default-field>
+            </field>
+            <field name="wasError" title="Error">
+                <header-field title="Error" show-order-by="true"><drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="callCount" title="Calls"><header-field title="Calls" show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="promptTokens" title="Prompt Tokens"><header-field title="Prompt Tokens" show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="completionTokens" title="Completion Tokens"><header-field title="Completion Tokens" show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="totalTokens" title="Total Tokens"><header-field title="Total Tokens" show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="avgDurationMs" title="Avg ms"><header-field title="Avg ms" show-order-by="true"/><default-field><display format="#,##0"/></default-field></field>
+            <field name="maxDurationMs" title="Max ms"><header-field title="Max ms" show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="findButton"><header-field><submit text="Find"/></header-field></field>
+
+            <form-list-column><field-ref name="startDay"/></form-list-column>
+            <form-list-column><field-ref name="profileName"/><field-ref name="model"/></form-list-column>
+            <form-list-column><field-ref name="userId"/><field-ref name="wasError"/></form-list-column>
+            <form-list-column><field-ref name="callCount"/></form-list-column>
+            <form-list-column><field-ref name="promptTokens"/><field-ref name="completionTokens"/><field-ref name="totalTokens"/></form-list-column>
+            <form-list-column><field-ref name="avgDurationMs"/><field-ref name="maxDurationMs"/></form-list-column>
+        </form-list>
+    </widgets>
+</screen>

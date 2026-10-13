@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd">
+
+    <transition name="conversationDetail"><default-response url="../ConversationDetail"/></transition>
+    <transition name="userAccountDetail"><default-response url="//system/Security/UserAccountDetail"/></transition>
+    <transition name="visitDetail"><default-response url="//system/Visit/VisitDetail"/></transition>
+    <transition name="cancelConversation">
+        <service-call name="org.moqui.impl.LlmServices.cancel#Conversation"/>
+        <default-response url="."/>
+    </transition>
+
+    <actions>
+        <entity-find entity-name="moqui.llm.LlmConversation" list="conversationList" use-clone="true">
+            <search-form-inputs default-order-by="-lastMessageDate"/>
+        </entity-find>
+    </actions>
+    <widgets>
+        <form-list name="ConversationList" list="conversationList" skip-form="true" header-dialog="true" saved-finds="true"
+                show-csv-button="true" select-columns="true" show-page-size="true">
+            <field name="conversationId">
+                <header-field show-order-by="true"><text-find size="20" default-operator="begins"/></header-field>
+                <default-field><link text="${conversationId}" url="conversationDetail" link-type="anchor">
+                    <parameter name="conversationId"/></link></default-field>
+            </field>
+            <field name="title">
+                <header-field show-order-by="true"><text-find size="30"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="searchText">
+                <header-field title="Search Text (first message and summary)"><text-find size="30" hide-options="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="summary"><default-field><display/></default-field></field>
+            <field name="profileName">
+                <header-field show-order-by="true"><text-find size="15" default-operator="begins"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="purpose">
+                <header-field show-order-by="true"><text-find size="12" hide-options="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="statusId" title="Status">
+                <header-field title="Status" show-order-by="true">
+                    <drop-down allow-empty="true"><entity-options key="${enumId}" text="${description}">
+                        <entity-find entity-name="moqui.basic.Enumeration" cache="true">
+                            <econdition field-name="enumTypeId" value="LlmConversationStatus"/><order-by field-name="enumId"/>
+                        </entity-find></entity-options></drop-down>
+                </header-field>
+                <default-field><display-entity entity-name="moqui.basic.Enumeration" key-field-name="enumId" text="${description}"/></default-field>
+            </field>
+            <field name="userId">
+                <header-field show-order-by="true"><text-find size="15" default-operator="begins"/></header-field>
+                <default-field>
+                    <display-entity entity-name="moqui.security.UserAccount" text="UsernameTemplate"/>
+                </default-field>
+            </field>
+            <field name="messageCount"><header-field show-order-by="true"/><default-field><display/></default-field></field>
+            <field name="hasCanvas">
+                <header-field><drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="createdDate">
+                <header-field show-order-by="true"><date-period time="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="lastMessageDate">
+                <header-field show-order-by="true"><date-period time="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="visitId">
+                <header-field><text-find size="15" default-operator="begins"/></header-field>
+                <default-field><link text="${visitId}" url="visitDetail" link-type="anchor" condition="visitId">
+                    <parameter name="visitId"/></link></default-field>
+            </field>
+            <field name="cancel">
+                <default-field><link url="cancelConversation" text="Cancel" link-type="anchor-button" btn-type="warning"
+                        condition="statusId in ['LlmcsStreaming', 'LlmcsYielded']"
+                        confirmation="Cancel this conversation's in-flight turn?">
+                    <parameter name="conversationId"/></link></default-field>
+            </field>
+            <field name="findButton"><header-field><submit text="Find"/></header-field></field>
+
+            <form-list-column><field-ref name="conversationId"/><field-ref name="statusId"/></form-list-column>
+            <form-list-column><field-ref name="title"/><field-ref name="summary"/></form-list-column>
+            <form-list-column><field-ref name="userId"/><field-ref name="profileName"/><field-ref name="purpose"/></form-list-column>
+            <form-list-column><field-ref name="messageCount"/><field-ref name="hasCanvas"/></form-list-column>
+            <form-list-column><field-ref name="createdDate"/><field-ref name="lastMessageDate"/></form-list-column>
+            <form-list-column><field-ref name="visitId"/><field-ref name="cancel"/></form-list-column>
+        </form-list>
+    </widgets>
+</screen>

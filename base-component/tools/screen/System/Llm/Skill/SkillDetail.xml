@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-include="false">
+
+    <parameter name="skillId" required="true"/>
+
+    <transition name="conversationDetail"><default-response url="../../Conversation/ConversationDetail"/></transition>
+    <transition name="skillDetail"><default-response url="."/></transition>
+    <transition name="updateSkill">
+        <service-call name="org.moqui.impl.LlmAdminServices.update#LlmSkillContent"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="approveSkill">
+        <service-call name="org.moqui.impl.LlmAdminServices.approve#LlmSkill"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="rejectSkill">
+        <service-call name="org.moqui.impl.LlmAdminServices.reject#LlmSkill"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="deprecateSkill">
+        <service-call name="org.moqui.impl.LlmAdminServices.deprecate#LlmSkill"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="supersedeSkill">
+        <service-call name="org.moqui.impl.LlmAdminServices.supersede#LlmSkill" in-map="[oldSkillId:skillId, newSkillId:newSkillId]"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="setLessonStatus">
+        <service-call name="org.moqui.impl.LlmAdminServices.set#LlmLessonStatus"/>
+        <default-response url="."/>
+    </transition>
+
+    <actions>
+        <entity-find-one entity-name="moqui.llm.LlmSkill" value-field="skill"/>
+        <if condition="skill == null"><return error="true" message="Skill not found with ID ${skillId}"/></if>
+        <set field="shipped" from="org.moqui.impl.llm.SkillIndex.isShippedName(ec, skill.name)"/>
+        <set field="shippedDoc" from="shipped ? org.moqui.impl.llm.SkillIndex.scanShipped(ec).find { it.name == skill.name } : null"/>
+        <entity-find-one entity-name="moqui.basic.Enumeration" value-field="statusEnum"><field-map field-name="enumId" from="skill.statusId"/></entity-find-one>
+        <entity-find-one entity-name="moqui.basic.Enumeration" value-field="provenanceEnum"><field-map field-name="enumId" from="skill.provenanceId"/></entity-find-one>
+        <entity-find-one entity-name="moqui.basic.Enumeration" value-field="riskEnum"><field-map field-name="enumId" from="skill.riskId"/></entity-find-one>
+        <set field="supersedesSkill" from="skill.supersededSkillId ? ec.entity.find('moqui.llm.LlmSkill').condition('skillId', skill.supersededSkillId).one() : null"/>
+        <entity-find entity-name="moqui.llm.LlmLesson" list="lessonList" use-clone="true">
+            <econdition field-name="skillId"/><order-by field-name="-createdDate"/>
+        </entity-find>
+        <entity-find entity-name="moqui.llm.LlmSkillUse" list="useList" use-clone="true" limit="100">
+            <econdition field-name="skillId"/><order-by field-name="-usedDate"/>
+        </entity-find>
+        <entity-find entity-name="moqui.llm.LlmSkill" list="otherSkillList" use-clone="true">
+            <econdition field-name="skillId" operator="not-equals" from="skillId"/>
+            <econdition field-name="statusId" value="LsksActive"/>
+            <order-by field-name="name"/>
+        </entity-find>
+    </actions>
+    <widgets>
+        <container-box><box-header title="Skill ${skill.name}"/><box-toolbar>
+            <link url="approveSkill" text="Approve" btn-type="success" condition="!shipped &amp;&amp; skill.statusId != 'LsksActive'"
+                    confirmation="Approve as human-reviewed with the current risk? Use the Review form to change the risk."
+                    parameter-map="[skillId:skillId]"/>
+            <link url="rejectSkill" text="Reject" btn-type="danger" condition="!shipped &amp;&amp; skill.statusId == 'LsksProposed'"
+                    parameter-map="[skillId:skillId]"/>
+            <link url="deprecateSkill" text="Deprecate" btn-type="warning" condition="!shipped &amp;&amp; skill.statusId == 'LsksActive'"
+                    confirmation="Stop offering this skill to the agent?" parameter-map="[skillId:skillId]"/>
+        </box-toolbar><box-body>
+            <label text="A shipped skill file named ${skill.name} owns this name, so this row is ignored by the agent and cannot be edited or approved. Edit the file instead." type="strong"
+                    condition="shipped"/>
+            <container-row><row-col md="4">
+                <container-row><row-col xs="5" style="text-right"><label text="Status" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${statusEnum?.description ?: skill.statusId}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Provenance" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${provenanceEnum?.description ?: skill.provenanceId}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Risk" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${riskEnum?.description ?: skill.riskId}${skill.provenanceId != 'LskpHuman' &amp;&amp; skill.riskId == 'LskReversible' ? ' (ignored until human-reviewed)' : ''}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Version" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${skill.version}"/></row-col></container-row>
+            </row-col><row-col md="4">
+                <container-row><row-col xs="5" style="text-right"><label text="World Passes" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${skill.worldSuccessCount ?: 0}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Sim Passes" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${skill.simSuccessCount ?: 0}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Last Used" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(skill.lastUsedDate, '')}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Replaces" type="strong"/></row-col>
+                    <row-col xs="7"><link url="skillDetail" text="${supersedesSkill?.name ?: skill.supersededSkillId}" link-type="anchor"
+                            parameter-map="[skillId:skill.supersededSkillId]" condition="skill.supersededSkillId"/></row-col></container-row>
+            </row-col><row-col md="4">
+                <container-row><row-col xs="4" style="text-right"><label text="Speaker" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${skill.speaker ?: ''}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Warrant" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${skill.warrant ?: ''}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Source" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${skill.sourceLocation ?: ''}"/></row-col></container-row>
+            </row-col></container-row>
+        </box-body></container-box>
+
+        <section name="EditSection" condition="!shipped"><widgets>
+            <container-box><box-header title="Edit"/><box-body>
+                <label text="Saving bumps the version. Status and provenance do not change, so an edited skill still needs approval." type="p"/>
+                <form-single name="EditSkill" transition="updateSkill" map="skill">
+                    <field name="skillId"><default-field><hidden/></default-field></field>
+                    <field name="title"><default-field><text-line size="80"/></default-field></field>
+                    <field name="description"><default-field><text-area cols="100" rows="3"/></default-field></field>
+                    <field name="summary"><default-field><text-area cols="100" rows="2"/></default-field></field>
+                    <field name="body"><default-field><text-area cols="100" rows="22" autogrow="true"/></default-field></field>
+                    <field name="riskId" title="Risk"><default-field><drop-down><option key="LskReversible" text="Reversible (runs without a click, once reviewed)"/><option key="LskConfirm" text="Confirm (user clicks before a write)"/><option key="LskIrreversible" text="Irreversible (user clicks, cannot be undone)"/></drop-down></default-field></field>
+                    <field name="submitButton"><default-field title="Save"><submit/></default-field></field>
+                </form-single>
+            </box-body></container-box>
+            <container-box><box-header title="Review"/><box-body>
+                <form-single name="ApproveSkill" transition="approveSkill" map="skill">
+                    <field name="skillId"><default-field><hidden/></default-field></field>
+                    <field name="riskId" title="Risk when approved"><default-field><drop-down><option key="LskReversible" text="Reversible (runs without a click, once reviewed)"/><option key="LskConfirm" text="Confirm (user clicks before a write)"/><option key="LskIrreversible" text="Irreversible (user clicks, cannot be undone)"/></drop-down></default-field></field>
+                    <field name="submitButton"><default-field title="Approve as Human-Reviewed"><submit/></default-field></field>
+                </form-single>
+                <form-single name="SupersedeSkill" transition="supersedeSkill">
+                    <field name="skillId"><default-field><hidden/></default-field></field>
+                    <field name="newSkillId" title="Replace this skill with"><default-field>
+                        <drop-down allow-empty="true"><list-options list="otherSkillList" key="${skillId}" text="${name}"/></drop-down>
+                    </default-field></field>
+                    <field name="submitButton"><default-field title="Supersede"><submit/></default-field></field>
+                </form-single>
+            </box-body></container-box>
+        </widgets><fail-widgets>
+            <container-box><box-header title="Body (database row, not used)"/><box-body><label text="${skill.body}" type="pre"/></box-body></container-box>
+        </fail-widgets></section>
+
+        <section name="ShippedDiffSection" condition="shippedDoc"><widgets>
+            <container-box><box-header title="Shipped File ${shippedDoc?.sourceLocation}"/><box-body>
+                <label text="${shippedDoc?.body}" type="pre"/>
+            </box-body></container-box>
+        </widgets></section>
+
+        <container-box><box-header title="Lessons"/><box-body>
+            <form-list name="LessonList" list="lessonList" skip-form="true">
+                <field name="createdDate"><default-field><display/></default-field></field>
+                <field name="title"><default-field><display/></default-field></field>
+                <field name="body"><default-field><display/></default-field></field>
+                <field name="statusId" title="Status"><default-field><display-entity entity-name="moqui.basic.Enumeration" key-field-name="enumId" text="${description}"/></default-field></field>
+                <field name="provenanceId" title="Provenance"><default-field><display-entity entity-name="moqui.basic.Enumeration" key-field-name="enumId" text="${description}"/></default-field></field>
+                <field name="review"><default-field>
+                    <link url="setLessonStatus" text="Approve" link-type="anchor-button" btn-type="success" condition="statusId != 'LsksActive'">
+                        <parameter name="lessonId"/><parameter name="statusId" value="LsksActive"/></link>
+                    <link url="setLessonStatus" text="Reject" link-type="anchor-button" btn-type="danger" condition="statusId != 'LsksRejected'">
+                        <parameter name="lessonId"/><parameter name="statusId" value="LsksRejected"/></link>
+                </default-field></field>
+                <form-list-column><field-ref name="createdDate"/><field-ref name="statusId"/><field-ref name="provenanceId"/></form-list-column>
+                <form-list-column><field-ref name="title"/></form-list-column>
+                <form-list-column><field-ref name="body"/></form-list-column>
+                <form-list-column><field-ref name="review"/></form-list-column>
+            </form-list>
+        </box-body></container-box>
+
+        <container-box><box-header title="Recent Use"/><box-body>
+            <form-list name="UseList" list="useList" skip-form="true">
+                <field name="usedDate"><default-field><display text-format="yyyy-MM-dd HH:mm:ss"/></default-field></field>
+                <field name="contact"><default-field><display/></default-field></field>
+                <field name="outcome"><default-field><display/></default-field></field>
+                <field name="conversationId"><default-field><link text="${conversationId}" url="conversationDetail" link-type="anchor" condition="conversationId">
+                    <parameter name="conversationId"/></link></default-field></field>
+                <field name="notes"><default-field><display/></default-field></field>
+                <form-list-column><field-ref name="usedDate"/><field-ref name="contact"/><field-ref name="outcome"/></form-list-column>
+                <form-list-column><field-ref name="conversationId"/></form-list-column>
+                <form-list-column><field-ref name="notes"/></form-list-column>
+            </form-list>
+        </box-body></container-box>
+    </widgets>
+</screen>

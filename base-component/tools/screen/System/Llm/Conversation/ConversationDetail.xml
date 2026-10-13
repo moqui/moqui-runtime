@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-include="false">
+
+    <parameter name="conversationId" required="true"/>
+
+    <transition name="userAccountDetail"><default-response url="//system/Security/UserAccountDetail"/></transition>
+    <transition name="visitDetail"><default-response url="//system/Visit/VisitDetail"/></transition>
+    <transition name="callDetail"><default-response url="../../Call/CallDetail"/></transition>
+    <transition name="skillDetail"><default-response url="../../Skill/SkillDetail"/></transition>
+    <transition name="cancelConversation">
+        <service-call name="org.moqui.impl.LlmServices.cancel#Conversation"/>
+        <default-response url="."/>
+    </transition>
+    <transition name="deleteConversation">
+        <service-call name="org.moqui.impl.LlmAdminServices.delete#LlmConversation"/>
+        <default-response url="../ConversationList"/>
+        <error-response url="."/>
+    </transition>
+
+    <actions>
+        <entity-find-one entity-name="moqui.llm.LlmConversation" value-field="conversation"/>
+        <if condition="conversation == null"><return error="true" message="Conversation not found with ID ${conversationId}"/></if>
+        <entity-find-one entity-name="moqui.security.UserAccount" value-field="userAccount">
+            <field-map field-name="userId" from="conversation.userId"/></entity-find-one>
+        <entity-find-one entity-name="moqui.basic.Enumeration" value-field="statusEnum">
+            <field-map field-name="enumId" from="conversation.statusId"/></entity-find-one>
+        <set field="statusDescription" from="statusEnum?.description ?: conversation.statusId"/>
+        <set field="inFlight" from="conversation.statusId in ['LlmcsStreaming', 'LlmcsYielded']"/>
+
+        <entity-find entity-name="moqui.llm.LlmMessage" list="messageList" use-clone="true">
+            <econdition field-name="conversationId"/>
+            <order-by field-name="ordinal"/>
+        </entity-find>
+        <entity-find entity-name="moqui.llm.LlmCallLog" list="callList" use-clone="true">
+            <econdition field-name="conversationId"/>
+            <order-by field-name="startDate"/>
+        </entity-find>
+        <entity-find entity-name="moqui.llm.LlmSkillUse" list="skillUseList" use-clone="true">
+            <econdition field-name="conversationId"/>
+            <order-by field-name="usedDate"/>
+        </entity-find>
+        <script><![CDATA[
+            // Totals over this conversation's provider calls
+            callTotalTokens = 0; callTotalMs = 0; callErrors = 0
+            for (call in callList) {
+                callTotalTokens += (call.totalTokens ?: 0) as long
+                callTotalMs += (call.durationMs ?: 0) as long
+                if (call.wasError == 'Y') callErrors++
+            }
+        ]]></script>
+    </actions>
+    <widgets>
+        <container-box><box-header title="Conversation ${conversation.title ?: conversationId}"/><box-toolbar>
+            <link url="cancelConversation" text="Cancel Turn" btn-type="warning" condition="inFlight"
+                    confirmation="Cancel this conversation's in-flight turn?" parameter-map="[conversationId:conversationId]"/>
+            <link url="deleteConversation" text="Delete" btn-type="danger"
+                    confirmation="Delete this conversation with its messages and call logs? This cannot be undone."
+                    parameter-map="[conversationId:conversationId]"/>
+        </box-toolbar><box-body>
+            <container-row><row-col md="4">
+                <container-row><row-col xs="4" style="text-right"><label text="Conversation" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${conversationId}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Status" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${statusDescription}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Profile" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${conversation.profileName}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Purpose" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${conversation.purpose ?: ''}"/></row-col></container-row>
+            </row-col><row-col md="4">
+                <container-row><row-col xs="4" style="text-right"><label text="User" type="strong"/></row-col>
+                    <row-col xs="8"><link url="userAccountDetail" text="UsernameTemplate" text-map="userAccount" link-type="anchor"
+                            parameter-map="[userId:conversation.userId]" condition="conversation.userId"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Visit" type="strong"/></row-col>
+                    <row-col xs="8"><link url="visitDetail" text="${conversation.visitId}" link-type="anchor"
+                            parameter-map="[visitId:conversation.visitId]" condition="conversation.visitId"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="A2A Context" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${conversation.contextId ?: ''}"/></row-col></container-row>
+                <container-row><row-col xs="4" style="text-right"><label text="Summary" type="strong"/></row-col>
+                    <row-col xs="8"><label text="${conversation.summary ?: ''}"/></row-col></container-row>
+            </row-col><row-col md="4">
+                <container-row><row-col xs="5" style="text-right"><label text="Created" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(conversation.createdDate, '')}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Last Message" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${ec.l10n.format(conversation.lastMessageDate, '')}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Messages" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${messageList.size()}"/></row-col></container-row>
+                <container-row><row-col xs="5" style="text-right"><label text="Provider Calls" type="strong"/></row-col>
+                    <row-col xs="7"><label text="${callList.size()} (${callErrors} errors, ${callTotalTokens} tokens, ${callTotalMs} ms)"/></row-col></container-row>
+            </row-col></container-row>
+        </box-body></container-box>
+
+        <container-box><box-header title="Messages"/><box-body>
+            <form-list name="MessageList" list="messageList" skip-form="true" select-columns="true">
+                <row-actions>
+                    <set field="contentShort" from="(content ?: '').length() > 3000 ? content.take(3000) + ' ... [' + (content.length() - 3000) + ' more characters]' : content"/>
+                    <set field="toolCallsShort" from="(toolCallsJson ?: '').length() > 1500 ? toolCallsJson.take(1500) + ' ...' : toolCallsJson"/>
+                </row-actions>
+                <field name="ordinal"><default-field><display/></default-field></field>
+                <field name="role"><default-field><display/></default-field></field>
+                <field name="name" title="Tool"><default-field><display/></default-field></field>
+                <field name="toolCallId" title="Tool Call"><default-field><display/></default-field></field>
+                <field name="contentShort" title="Content"><default-field><display/></default-field></field>
+                <field name="toolCallsShort" title="Tool Calls"><default-field><display/></default-field></field>
+                <field name="sentDate"><default-field><display text-format="yyyy-MM-dd HH:mm:ss"/></default-field></field>
+                <form-list-column><field-ref name="ordinal"/><field-ref name="role"/></form-list-column>
+                <form-list-column><field-ref name="name"/><field-ref name="toolCallId"/></form-list-column>
+                <form-list-column><field-ref name="contentShort"/></form-list-column>
+                <form-list-column><field-ref name="toolCallsShort"/></form-list-column>
+                <form-list-column><field-ref name="sentDate"/></form-list-column>
+            </form-list>
+        </box-body></container-box>
+
+        <container-box><box-header title="Provider Calls"/><box-body>
+            <form-list name="CallList" list="callList" skip-form="true">
+                <field name="startDate"><default-field><link url="callDetail" text="${ec.l10n.format(startDate, 'yyyy-MM-dd HH:mm:ss')}" link-type="anchor">
+                    <parameter name="callId"/></link></default-field></field>
+                <field name="iteration"><default-field><display/></default-field></field>
+                <field name="model"><default-field><display/></default-field></field>
+                <field name="finishReason"><default-field><display/></default-field></field>
+                <field name="httpStatus"><default-field><display/></default-field></field>
+                <field name="totalTokens" title="Tokens"><default-field><display/></default-field></field>
+                <field name="durationMs" title="ms"><default-field><display/></default-field></field>
+                <field name="wasError" title="Error"><default-field><display/></default-field></field>
+                <field name="errorMessage"><default-field><display/></default-field></field>
+                <form-list-column><field-ref name="startDate"/><field-ref name="iteration"/></form-list-column>
+                <form-list-column><field-ref name="model"/><field-ref name="finishReason"/></form-list-column>
+                <form-list-column><field-ref name="httpStatus"/><field-ref name="totalTokens"/><field-ref name="durationMs"/></form-list-column>
+                <form-list-column><field-ref name="wasError"/><field-ref name="errorMessage"/></form-list-column>
+            </form-list>
+        </box-body></container-box>
+
+        <section name="SkillUseSection" condition="skillUseList"><widgets>
+            <container-box><box-header title="Skill Use"/><box-body>
+                <form-list name="SkillUseList" list="skillUseList" skip-form="true">
+                    <row-actions>
+                        <entity-find-one entity-name="moqui.llm.LlmSkill" value-field="useSkill"><field-map field-name="skillId"/></entity-find-one>
+                    </row-actions>
+                    <field name="usedDate"><default-field><display text-format="yyyy-MM-dd HH:mm:ss"/></default-field></field>
+                    <field name="skillId"><default-field><link url="skillDetail" text="${useSkill?.name ?: skillId}" link-type="anchor">
+                        <parameter name="skillId"/></link></default-field></field>
+                    <field name="contact"><default-field><display/></default-field></field>
+                    <field name="outcome"><default-field><display/></default-field></field>
+                    <field name="notes"><default-field><display/></default-field></field>
+                </form-list>
+            </box-body></container-box>
+        </widgets></section>
+
+        <section name="StateSection"><widgets>
+            <container-box><box-header title="State"/><box-body>
+                <label text="System prompt (${(conversation.systemText ?: '').length()} characters)" type="strong" condition="conversation.systemText"/>
+                <label text="${(conversation.systemText ?: '').take(6000)}" type="pre" condition="conversation.systemText"/>
+                <label text="Pending tool calls" type="strong" condition="conversation.pendingToolCallsJson"/>
+                <label text="${conversation.pendingToolCallsJson}" type="pre" condition="conversation.pendingToolCallsJson"/>
+                <label text="Canvas" type="strong" condition="conversation.canvasJson"/>
+                <label text="${(conversation.canvasJson ?: '').take(6000)}" type="pre" condition="conversation.canvasJson"/>
+                <label text="Window policy" type="strong" condition="conversation.windowPolicyJson"/>
+                <label text="${conversation.windowPolicyJson}" type="pre" condition="conversation.windowPolicyJson"/>
+                <label text="Attributes" type="strong" condition="conversation.attributesJson"/>
+                <label text="${conversation.attributesJson}" type="pre" condition="conversation.attributesJson"/>
+            </box-body></container-box>
+        </widgets></section>
+    </widgets>
+</screen>

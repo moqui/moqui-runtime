@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Retrieval Test" default-menu-index="3">
+
+    <transition name="skillDetail"><default-response url="../SkillDetail"/></transition>
+
+    <actions>
+        <set field="resultSkills" from="[]"/>
+        <if condition="query">
+            <service-call name="org.moqui.impl.LlmAdminServices.retrieve#LlmSkills" in-map="[query:query, limit:15]" out-map="retrieval"/>
+            <set field="resultSkills" from="retrieval.skills"/>
+            <set field="injectText" from="retrieval.injectText"/>
+        </if>
+    </actions>
+    <widgets>
+        <label text="Type a request the way a user would. This shows which skills the agent would retrieve, how each scored, and the exact skill text added to the prompt." type="p"/>
+        <form-single name="RetrievalForm" transition=".">
+            <field name="query"><default-field title="Request"><text-line size="90"/></default-field></field>
+            <field name="submitButton"><default-field title="Retrieve"><submit/></default-field></field>
+        </form-single>
+
+        <section name="ResultSection" condition="query"><widgets>
+            <label text="No skill matched." type="p" condition="!resultSkills"/>
+            <form-list name="ResultList" list="resultSkills" skip-form="true">
+                <field name="name"><default-field>
+                    <link text="${name}" url="skillDetail" link-type="anchor" condition="skillId"><parameter name="skillId"/></link>
+                    <display condition="!skillId"/>
+                </default-field></field>
+                <field name="title"><default-field><display/></default-field></field>
+                <field name="score"><default-field><display/></default-field></field>
+                <field name="strongMatch"><default-field><display/></default-field></field>
+                <field name="reference" title="Reference Card"><default-field><display/></default-field></field>
+                <field name="source"><default-field><display/></default-field></field>
+                <field name="statusId" title="Status"><default-field><display/></default-field></field>
+                <field name="provenanceId" title="Provenance"><default-field><display/></default-field></field>
+                <field name="risk"><default-field><display/></default-field></field>
+                <form-list-column><field-ref name="name"/><field-ref name="title"/></form-list-column>
+                <form-list-column><field-ref name="score"/><field-ref name="strongMatch"/><field-ref name="reference"/></form-list-column>
+                <form-list-column><field-ref name="source"/><field-ref name="statusId"/><field-ref name="provenanceId"/><field-ref name="risk"/></form-list-column>
+            </form-list>
+            <container-box><box-header title="Text Added to the Prompt"/><box-body>
+                <label text="Nothing is added." type="i" condition="!injectText"/>
+                <label text="${injectText}" type="pre" condition="injectText"/>
+            </box-body></container-box>
+        </widgets></section>
+    </widgets>
+</screen>

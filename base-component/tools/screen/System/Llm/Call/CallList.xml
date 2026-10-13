@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd">
+
+    <transition name="callDetail"><default-response url="../CallDetail"/></transition>
+    <transition name="conversationDetail"><default-response url="../../Conversation/ConversationDetail"/></transition>
+
+    <actions>
+        <entity-find entity-name="moqui.llm.LlmCallLog" list="callList" use-clone="true">
+            <search-form-inputs default-order-by="-startDate"/>
+            <select-field field-name="callId,conversationId,profileName,model,userId,httpStatus,finishReason,promptTokens,completionTokens,totalTokens,durationMs,iteration,wasError,errorMessage,startDate"/>
+        </entity-find>
+    </actions>
+    <widgets>
+        <form-list name="CallList" list="callList" skip-form="true" header-dialog="true" saved-finds="true"
+                show-csv-button="true" select-columns="true" show-page-size="true">
+            <field name="startDate">
+                <header-field show-order-by="true"><date-period time="true"/></header-field>
+                <default-field><link text="${ec.l10n.format(startDate, 'yyyy-MM-dd HH:mm:ss')}" url="callDetail" link-type="anchor">
+                    <parameter name="callId"/></link></default-field>
+            </field>
+            <field name="conversationId">
+                <header-field show-order-by="true"><text-find size="20" default-operator="begins"/></header-field>
+                <default-field><link text="${conversationId}" url="conversationDetail" link-type="anchor" condition="conversationId">
+                    <parameter name="conversationId"/></link></default-field>
+            </field>
+            <field name="profileName">
+                <header-field show-order-by="true"><text-find size="15" default-operator="begins"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="model">
+                <header-field show-order-by="true"><text-find size="20" default-operator="begins"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="userId">
+                <header-field show-order-by="true"><text-find size="15" default-operator="begins"/></header-field>
+                <default-field><display-entity entity-name="moqui.security.UserAccount" text="UsernameTemplate"/></default-field>
+            </field>
+            <field name="finishReason">
+                <header-field show-order-by="true"><drop-down allow-empty="true">
+                    <option key="STOP"/><option key="LENGTH"/><option key="TOOL_CALLS"/><option key="CONTENT_FILTER"/>
+                    <option key="CONTEXT_OVERFLOW"/><option key="EMPTY"/><option key="ERROR"/><option key="MAX_ITERATIONS"/>
+                </drop-down></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="httpStatus" title="HTTP">
+                <header-field title="HTTP" show-order-by="true"><text-find size="5" hide-options="true"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="iteration"><default-field><display/></default-field></field>
+            <field name="totalTokens" title="Tokens">
+                <header-field title="Tokens" show-order-by="true"><range-find size="6"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="promptTokens" title="Prompt"><default-field><display/></default-field></field>
+            <field name="completionTokens" title="Completion"><default-field><display/></default-field></field>
+            <field name="durationMs" title="ms">
+                <header-field title="ms" show-order-by="true"><range-find size="6"/></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="wasError" title="Error">
+                <header-field title="Error" show-order-by="true"><drop-down allow-empty="true"><option key="Y"/><option key="N"/></drop-down></header-field>
+                <default-field><display/></default-field>
+            </field>
+            <field name="errorMessage"><default-field><display/></default-field></field>
+            <field name="findButton"><header-field><submit text="Find"/></header-field></field>
+
+            <form-list-column><field-ref name="startDate"/><field-ref name="iteration"/></form-list-column>
+            <form-list-column><field-ref name="conversationId"/><field-ref name="userId"/></form-list-column>
+            <form-list-column><field-ref name="profileName"/><field-ref name="model"/></form-list-column>
+            <form-list-column><field-ref name="finishReason"/><field-ref name="httpStatus"/></form-list-column>
+            <form-list-column><field-ref name="totalTokens"/><field-ref name="promptTokens"/><field-ref name="completionTokens"/></form-list-column>
+            <form-list-column><field-ref name="durationMs"/></form-list-column>
+            <form-list-column><field-ref name="wasError"/><field-ref name="errorMessage"/></form-list-column>
+        </form-list>
+    </widgets>
+</screen>

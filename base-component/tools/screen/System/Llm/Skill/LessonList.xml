@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This software is in the public domain under CC0 1.0 Universal plus a 
+Grant of Patent License.
+
+To the extent possible under law, the author(s) have dedicated all
+copyright and related and neighboring rights to this software to the
+public domain worldwide. This software is distributed without any
+warranty.
+
+You should have received a copy of the CC0 Public Domain Dedication
+along with this software (see the LICENSE.md file). If not, see
+<http://creativecommons.org/publicdomain/zero/1.0/>.
+-->
+<screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
+        default-menu-title="Lessons" default-menu-index="2">
+
+    <transition name="skillDetail"><default-response url="../SkillDetail"/></transition>
+    <transition name="setLessonStatus">
+        <service-call name="org.moqui.impl.LlmAdminServices.set#LlmLessonStatus"/>
+        <default-response url="."/>
+    </transition>
+
+    <actions>
+        <entity-find entity-name="moqui.llm.LlmLesson" list="lessonList" use-clone="true">
+            <search-form-inputs default-order-by="-createdDate"><default-parameters statusId="LsksProposed"/></search-form-inputs>
+        </entity-find>
+    </actions>
+    <widgets>
+        <label text="Lessons are notes recorded when a write fails under a skill. An Active lesson is added to that skill's prompt for every user. Lessons on agent-proposed skills start as Proposed and stay out of prompts until approved here. Lessons contain text from tool errors, so read them before approving." type="p"/>
+        <form-list name="LessonList" list="lessonList" skip-form="true" header-dialog="true" select-columns="true" show-page-size="true">
+            <row-actions>
+                <entity-find-one entity-name="moqui.llm.LlmSkill" value-field="lessonSkill"><field-map field-name="skillId"/></entity-find-one>
+            </row-actions>
+            <field name="createdDate"><header-field show-order-by="true"><date-period time="true"/></header-field>
+                <default-field><display/></default-field></field>
+            <field name="skillId" title="Skill">
+                <header-field title="Skill"><text-find size="15" default-operator="begins"/></header-field>
+                <default-field><link text="${lessonSkill?.name ?: skillId}" url="skillDetail" link-type="anchor"><parameter name="skillId"/></link></default-field>
+            </field>
+            <field name="title"><header-field><text-find size="25"/></header-field><default-field><display/></default-field></field>
+            <field name="body"><default-field><display/></default-field></field>
+            <field name="statusId" title="Status">
+                <header-field title="Status" show-order-by="true"><drop-down allow-empty="true"><entity-options key="${enumId}" text="${description}"><entity-find entity-name="moqui.basic.Enumeration" cache="true"><econdition field-name="enumTypeId" value="LlmSkillStatus"/><order-by field-name="enumId"/></entity-find></entity-options></drop-down></header-field>
+                <default-field><display-entity entity-name="moqui.basic.Enumeration" key-field-name="enumId" text="${description}"/></default-field>
+            </field>
+            <field name="provenanceId" title="Provenance">
+                <header-field title="Provenance"><drop-down allow-empty="true"><entity-options key="${enumId}" text="${description}"><entity-find entity-name="moqui.basic.Enumeration" cache="true"><econdition field-name="enumTypeId" value="LlmSkillProvenance"/><order-by field-name="enumId"/></entity-find></entity-options></drop-down></header-field>
+                <default-field><display-entity entity-name="moqui.basic.Enumeration" key-field-name="enumId" text="${description}"/></default-field>
+            </field>
+            <field name="review">
+                <default-field>
+                    <link url="setLessonStatus" text="Approve" link-type="anchor-button" btn-type="success" condition="statusId != 'LsksActive'">
+                        <parameter name="lessonId"/><parameter name="statusId" value="LsksActive"/></link>
+                    <link url="setLessonStatus" text="Reject" link-type="anchor-button" btn-type="danger" condition="statusId != 'LsksRejected'">
+                        <parameter name="lessonId"/><parameter name="statusId" value="LsksRejected"/></link>
+                </default-field>
+            </field>
+            <field name="findButton"><header-field><submit text="Find"/></header-field></field>
+            <form-list-column><field-ref name="createdDate"/><field-ref name="statusId"/><field-ref name="provenanceId"/></form-list-column>
+            <form-list-column><field-ref name="skillId"/><field-ref name="title"/></form-list-column>
+            <form-list-column><field-ref name="body"/></form-list-column>
+            <form-list-column><field-ref name="review"/></form-list-column>
+        </form-list>
+    </widgets>
+</screen>
