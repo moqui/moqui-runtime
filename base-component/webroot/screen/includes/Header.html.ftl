@@ -10,22 +10,36 @@
     <title><#if html_title?has_content>${html_title}<#else><#if parentMenuName?has_content>${ec.resource.expand(parentMenuName, "")} - </#if><#if defaultMenuName?has_content>${ec.resource.expand(defaultMenuName, "")}</#if></#if></title>
     <link rel="apple-touch-icon" href="/MoquiLogo100.png"/>
 <#-- Style Sheets -->
+<#assign seenStyleSheets = []>
 <#list sri.getThemeValues("STRT_STYLESHEET") as styleSheetLocation>
+  <#if !seenStyleSheets?seq_contains(styleSheetLocation)>
+    <#assign seenStyleSheets = seenStyleSheets + [styleSheetLocation]>
     <#assign hrefUrl = sri.buildUrl(styleSheetLocation).url>
     <link href="${hrefUrl}<#if !styleSheetLocation?starts_with("http") && !hrefUrl?contains("?")>?v=${ec.web.getResourceDistinctValue()}</#if>" rel="stylesheet" type="text/css">
+  </#if>
 </#list>
 <#list html_stylesheets?if_exists as styleSheetLocation>
+  <#if !seenStyleSheets?seq_contains(styleSheetLocation)>
+    <#assign seenStyleSheets = seenStyleSheets + [styleSheetLocation]>
     <#assign hrefUrl = sri.buildUrl(styleSheetLocation).url>
     <link href="${hrefUrl}<#if !styleSheetLocation?starts_with("http") && !hrefUrl?contains("?")>?v=${ec.web.getResourceDistinctValue()}</#if>" rel="stylesheet" type="text/css">
+  </#if>
 </#list>
 <#-- JavaScript -->
+<#assign seenScripts = []>
 <#list html_scripts?if_exists as scriptLocation>
+  <#if !seenScripts?seq_contains(scriptLocation)>
+    <#assign seenScripts = seenScripts + [scriptLocation]>
     <#assign srcUrl = sri.buildUrl(scriptLocation).url>
     <script src="${srcUrl}<#if !scriptLocation?starts_with("http") && !srcUrl?contains("?")>?v=${ec.web.getResourceDistinctValue()}</#if>" type="text/javascript"></script>
+  </#if>
 </#list>
 <#list sri.getThemeValues("STRT_SCRIPT") as scriptLocation>
+  <#if !seenScripts?seq_contains(scriptLocation)>
+    <#assign seenScripts = seenScripts + [scriptLocation]>
     <#assign srcUrl = sri.buildUrl(scriptLocation).url>
     <script src="${srcUrl}<#if !scriptLocation?starts_with("http") && !srcUrl?contains("?")>?v=${ec.web.getResourceDistinctValue()}</#if>" type="text/javascript"></script>
+  </#if>
 </#list>
 <#-- Icon -->
 <#list sri.getThemeValues("STRT_SHORTCUT_ICON") as iconLocation>
