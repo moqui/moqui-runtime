@@ -1,6 +1,7 @@
 [submodule "component/MarbleERP"]
 	path = component/MarbleERP
 	url = https://github.com/moqui/MarbleERP.git
+	branch = llm-client
 [submodule "component/SimpleScreens"]
 	path = component/SimpleScreens
 	url = https://github.com/moqui/SimpleScreens.git
