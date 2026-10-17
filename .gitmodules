@@ -1,0 +1,12 @@
+[submodule "component/MarbleERP"]
+	path = component/MarbleERP
+	url = https://github.com/moqui/MarbleERP.git
+[submodule "component/SimpleScreens"]
+	path = component/SimpleScreens
+	url = https://github.com/moqui/SimpleScreens.git
+[submodule "component/mantle-usl"]
+	path = component/mantle-usl
+	url = https://github.com/moqui/mantle-usl.git
+[submodule "component/mantle-udm"]
+	path = component/mantle-udm
+	url = https://github.com/moqui/mantle-udm.git
